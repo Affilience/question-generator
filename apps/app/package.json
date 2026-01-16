@@ -1,0 +1,49 @@
+{
+  "name": "@qg/app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "prewarm": "tsx scripts/prewarm-cache.ts",
+    "prewarm:gcse": "tsx scripts/prewarm-cache.ts --level=gcse",
+    "prewarm:alevel": "tsx scripts/prewarm-cache.ts --level=a-level"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "@types/animejs": "^3.1.13",
+    "@upstash/redis": "^1.36.1",
+    "animejs": "^4.2.2",
+    "axios": "^1.13.2",
+    "canvas-confetti": "^1.9.4",
+    "cmdk": "^1.1.1",
+    "framer-motion": "^12.26.2",
+    "groq-sdk": "^0.37.0",
+    "katex": "^0.16.27",
+    "next": "16.1.1",
+    "openai": "^6.16.0",
+    "pdf-img-convert": "^2.0.0",
+    "pdf-parse": "^2.4.5",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-katex": "^3.1.0",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-katex": "^3.0.4",
+    "dotenv": "^16.4.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

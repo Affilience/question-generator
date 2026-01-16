@@ -1,0 +1,526 @@
+@import "tailwindcss";
+
+/* ============================================
+   CSS Variables - Dark Theme (default)
+   ============================================ */
+:root,
+.dark {
+  /* Background hierarchy */
+  --color-bg-deepest: #0a0a0a;
+  --color-bg-page: #111111;
+  --color-bg-card: #1a1a1a;
+  --color-bg-elevated: #222222;
+  --color-bg-hover: #2a2a2a;
+  --color-surface: #1a1a1a;
+  --color-surface-hover: #2a2a2a;
+
+  /* Text colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #666666;
+
+  /* Blue accent */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #60a5fa;
+  --color-accent-active: #2563eb;
+  --color-accent-glow: rgba(59, 130, 246, 0.4);
+  --color-accent-subtle: rgba(59, 130, 246, 0.1);
+
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-success-glow: rgba(34, 197, 94, 0.5);
+  --color-success-subtle: rgba(34, 197, 94, 0.15);
+  --color-warning: #eab308;
+  --color-warning-glow: rgba(234, 179, 8, 0.5);
+  --color-warning-subtle: rgba(234, 179, 8, 0.15);
+  --color-error: #ef4444;
+  --color-error-glow: rgba(239, 68, 68, 0.5);
+  --color-error-subtle: rgba(239, 68, 68, 0.15);
+
+  /* Borders */
+  --color-border: #2a2a2a;
+  --color-border-visible: #333333;
+
+  /* Skeleton loading */
+  --color-skeleton-base: #1a1a1a;
+  --color-skeleton-shine: #2a2a2a;
+
+  /* Scrollbar */
+  --color-scrollbar-track: #1a1a1a;
+  --color-scrollbar-thumb: #333333;
+  --color-scrollbar-thumb-hover: #444444;
+
+  /* Selection */
+  --color-selection-bg: rgba(59, 130, 246, 0.3);
+  --color-selection-text: #ffffff;
+
+  /* Diagram (on white background) */
+  --color-diagram-stroke: #1a1a1a;
+  --color-diagram-text: #1a1a1a;
+  --color-diagram-bg: #ffffff;
+
+  /* Legacy compatibility */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+}
+
+/* ============================================
+   CSS Variables - Light Theme
+   ============================================ */
+.light {
+  /* Background hierarchy */
+  --color-bg-deepest: #f5f5f5;
+  --color-bg-page: #fafafa;
+  --color-bg-card: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #f0f0f0;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f5f5f5;
+
+  /* Text colors */
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-muted: #a3a3a3;
+
+  /* Blue accent - slightly adjusted for light mode */
+  --color-accent: #2563eb;
+  --color-accent-hover: #3b82f6;
+  --color-accent-active: #1d4ed8;
+  --color-accent-glow: rgba(37, 99, 235, 0.25);
+  --color-accent-subtle: rgba(37, 99, 235, 0.08);
+
+  /* Semantic colors - adjusted for light backgrounds */
+  --color-success: #16a34a;
+  --color-success-glow: rgba(22, 163, 74, 0.3);
+  --color-success-subtle: rgba(22, 163, 74, 0.1);
+  --color-warning: #ca8a04;
+  --color-warning-glow: rgba(202, 138, 4, 0.3);
+  --color-warning-subtle: rgba(202, 138, 4, 0.1);
+  --color-error: #dc2626;
+  --color-error-glow: rgba(220, 38, 38, 0.3);
+  --color-error-subtle: rgba(220, 38, 38, 0.1);
+
+  /* Borders */
+  --color-border: #e5e5e5;
+  --color-border-visible: #d4d4d4;
+
+  /* Skeleton loading */
+  --color-skeleton-base: #f5f5f5;
+  --color-skeleton-shine: #e5e5e5;
+
+  /* Scrollbar */
+  --color-scrollbar-track: #f5f5f5;
+  --color-scrollbar-thumb: #d4d4d4;
+  --color-scrollbar-thumb-hover: #a3a3a3;
+
+  /* Selection */
+  --color-selection-bg: rgba(37, 99, 235, 0.2);
+  --color-selection-text: #171717;
+
+  /* Diagram (still on white background in light mode) */
+  --color-diagram-stroke: #1a1a1a;
+  --color-diagram-text: #1a1a1a;
+  --color-diagram-bg: #ffffff;
+
+  /* Legacy compatibility */
+  --background: #fafafa;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-bg-deepest);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   Animation Keyframes
+   ============================================ */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes cursor-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scaleY(0.8);
+  }
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 530ms ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.skeleton-loading {
+  background: linear-gradient(90deg,
+    var(--color-skeleton-base) 25%,
+    var(--color-skeleton-shine) 50%,
+    var(--color-skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 300ms ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 300ms ease-out forwards;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 0.8s linear infinite;
+}
+
+/* ============================================
+   KaTeX Theme Support
+   ============================================ */
+.dark .katex,
+.dark .katex .mord,
+.dark .katex .mbin,
+.dark .katex .mrel,
+.dark .katex .mopen,
+.dark .katex .mclose,
+.dark .katex .mpunct,
+.dark .katex .minner {
+  color: #ffffff !important;
+}
+
+.light .katex,
+.light .katex .mord,
+.light .katex .mbin,
+.light .katex .mrel,
+.light .katex .mopen,
+.light .katex .mclose,
+.light .katex .mpunct,
+.light .katex .minner {
+  color: #171717 !important;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+
+/* ============================================
+   Selection Styling
+   ============================================ */
+::selection {
+  background: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+/* ============================================
+   Focus Styles
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Transition Classes for Theme Switch
+   ============================================ */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease,
+              box-shadow 0.3s ease !important;
+}
+
+/* ============================================
+   Mobile TikTok-Style Feed Utilities
+   ============================================ */
+
+/* Hide scrollbar for TikTok-style feed */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* Safe area insets for modern phones with notches */
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent overscroll bounce on iOS */
+.overscroll-none {
+  overscroll-behavior: none;
+}
+
+/* Full viewport height accounting for mobile browser chrome */
+.h-dvh {
+  height: 100dvh;
+}
+
+/* Swipe hint animation */
+@keyframes swipe-hint {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+.animate-swipe-hint {
+  animation: swipe-hint 2s ease-in-out infinite;
+}
+
+/* Slide up animation for solution reveal */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 300ms ease-out forwards;
+}
+
+/* Tap feedback for mobile */
+.tap-highlight {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tap-highlight:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease;
+}
+
+/* ============================================
+   Glow Effects
+   ============================================ */
+
+/* Card glow on hover */
+.card-glow {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-glow:hover::before {
+  background: linear-gradient(135deg, var(--color-accent), rgba(59, 130, 246, 0.3));
+  opacity: 1;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 30px -5px var(--color-accent-glow),
+              0 0 15px -5px var(--color-accent-glow);
+}
+
+/* Subtle card glow (always visible) */
+.card-glow-subtle {
+  box-shadow: 0 0 20px -10px var(--color-accent-glow);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-glow-subtle:hover {
+  box-shadow: 0 0 35px -5px var(--color-accent-glow),
+              0 0 20px -5px var(--color-accent-glow);
+}
+
+/* Background glow orb */
+.glow-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-orb-blue {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+}
+
+.glow-orb-purple {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+}
+
+.glow-orb-cyan {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+}
+
+/* Animated glow pulse */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.glow-orb-animated {
+  animation: glow-pulse 8s ease-in-out infinite;
+}
+
+/* Accent glow text */
+.text-glow {
+  text-shadow: 0 0 20px var(--color-accent-glow);
+}
+
+/* Button glow */
+.btn-glow {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(15px);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.btn-glow:hover::after {
+  opacity: 0.5;
+}
+
+/* ============================================
+   Mobile Touch Target Utilities
+   ============================================ */
+
+/* Minimum 44px touch target for accessibility */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Touch-friendly button base */
+.touch-btn {
+  min-height: 44px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch-friendly link wrapper */
+.touch-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Mobile-friendly page container with safe areas */
+.mobile-safe-container {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Larger back button for mobile */
+@media (max-width: 640px) {
+  .back-link {
+    min-height: 44px;
+    padding: 0.5rem 0;
+    display: inline-flex;
+    align-items: center;
+  }
+}
