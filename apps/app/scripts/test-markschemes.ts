@@ -33,7 +33,7 @@ const testCases: TestCase[] = [
   {
     name: 'A-Level History Essay (should use levels + SPaG)',
     params: {
-      topicId: 'aqa-alevel-hist-germany',
+      topicId: 'aqa-alevel-hist-germany-1871-1991',
       difficulty: 'hard',
       subtopic: 'Rise of the Nazi Party',
       subject: 'history',

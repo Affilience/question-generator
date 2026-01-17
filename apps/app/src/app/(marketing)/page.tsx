@@ -2,903 +2,764 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
 
-// Subject card data
+// Subject card data with accurate subtopic counts
 const subjects = [
-  { name: 'Mathematics', subtopics: '150+', icon: '∑' },
-  { name: 'Physics', subtopics: '120+', icon: '⚛' },
-  { name: 'Chemistry', subtopics: '130+', icon: '⚗' },
-  { name: 'Biology', subtopics: '140+', icon: '🧬' },
-  { name: 'Economics', subtopics: '80+', icon: '📈' },
-  { name: 'Psychology', subtopics: '90+', icon: '🧠' },
-  { name: 'History', subtopics: '100+', icon: '📜' },
-  { name: 'English Lit', subtopics: '60+', icon: '📚' },
+  { name: 'Mathematics', subtopics: '45+', icon: '∑', href: '/gcse/maths' },
+  { name: 'Physics', subtopics: '38+', icon: '⚛', href: '/gcse/physics' },
+  { name: 'Chemistry', subtopics: '42+', icon: '⚗', href: '/gcse/chemistry' },
+  { name: 'Biology', subtopics: '40+', icon: '🧬', href: '/gcse/biology' },
+  { name: 'Economics', subtopics: '28+', icon: '📈', href: '/a-level/economics' },
+  { name: 'Psychology', subtopics: '32+', icon: '🧠', href: '/gcse/psychology' },
+  { name: 'History', subtopics: '35+', icon: '📜', href: '/gcse/history' },
+  { name: 'English Lit', subtopics: '24+', icon: '📚', href: '/gcse/english-literature' },
 ];
-
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const }
-  }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
-  }
-};
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
+  const prefersReducedMotion = useReducedMotion();
 
-  // Parallax effect for hero
-  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  // Parallax effect for hero (disabled if user prefers reduced motion)
+  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -80]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0]);
+
+  // Animation variants - respect reduced motion preference
+  const fadeInUp = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: prefersReducedMotion ? 0.2 : 0.6, ease: [0.25, 0.1, 0.25, 1] }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0.05 : 0.08,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const scaleIn = {
+    hidden: { opacity: 0, scale: prefersReducedMotion ? 1 : 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: prefersReducedMotion ? 0.2 : 0.5, ease: [0.25, 0.1, 0.25, 1] }
+    }
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMobileMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close menu when clicking outside or pressing escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    if (mobileMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
+    <div className="min-h-screen bg-[#0a0a0a]">
+      {/* Skip to main content */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Navigation */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          transition: 'background 0.3s ease, backdrop-filter 0.3s ease',
-          backgroundColor: scrolled ? 'rgba(0,0,0,0.8)' : 'transparent',
-          backdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.1)' : 'none',
-        }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled ? 'bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/[0.08]' : 'bg-transparent'
+        }`}
+        role="navigation"
+        aria-label="Main navigation"
       >
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontWeight: 600, fontSize: 20, color: '#f5f5f7', textDecoration: 'none' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 h-14 flex items-center justify-between">
+          <Link
+            href="/"
+            className="font-semibold text-lg text-white hover:text-white/80 transition-colors"
+            aria-label="Past Papers Home"
+          >
             Past Papers
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <Link href="#features" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>Features</Link>
-            <Link href="#subjects" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>Subjects</Link>
-            <Link href="#how-it-works" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>How It Works</Link>
-            <Link href="/pricing" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>Pricing</Link>
-          </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link
-              href="#choose-level"
-              style={{
-                backgroundColor: '#f5f5f7',
-                color: '#1d1d1f',
-                padding: '8px 16px',
-                borderRadius: 980,
-                fontSize: 14,
-                textDecoration: 'none',
-                fontWeight: 500,
-                display: 'inline-block',
-              }}
-            >
-              Get Started
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-sm text-white/60 hover:text-white transition-colors">
+              Features
             </Link>
-          </motion.div>
+            <Link href="#subjects" className="text-sm text-white/60 hover:text-white transition-colors">
+              Subjects
+            </Link>
+            <Link href="#how-it-works" className="text-sm text-white/60 hover:text-white transition-colors">
+              How It Works
+            </Link>
+            <Link href="/pricing" className="text-sm text-white/60 hover:text-white transition-colors">
+              Pricing
+            </Link>
+          </div>
+
+          {/* Desktop CTA */}
+          <Link
+            href="#choose-level"
+            className="hidden md:inline-flex bg-white text-[#0a0a0a] px-5 py-2 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
+          >
+            Get Started
+          </Link>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 -mr-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 md:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <motion.div
+                id="mobile-menu"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 right-0 md:hidden bg-[#0a0a0a] border-t border-white/[0.08]"
+              >
+                <div className="px-5 py-6 flex flex-col gap-1">
+                  {[
+                    { href: '#features', label: 'Features' },
+                    { href: '#subjects', label: 'Subjects' },
+                    { href: '#how-it-works', label: 'How It Works' },
+                    { href: '/pricing', label: 'Pricing' },
+                  ].map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <Link
+                    href="#choose-level"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="bg-white text-[#0a0a0a] px-6 py-3.5 rounded-full text-center font-medium mt-4"
+                  >
+                    Get Started Free
+                  </Link>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
-      {/* Hero Section - Dark */}
-      <section style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#000000',
-        position: 'relative',
-        overflow: 'hidden',
-        paddingTop: 48,
-      }}>
-        {/* Background gradient */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.15), transparent)',
-        }} />
-
-        <motion.div
-          style={{
-            maxWidth: 980,
-            margin: '0 auto',
-            padding: '0 24px',
-            textAlign: 'center',
-            y: heroY,
-            opacity: heroOpacity,
-          }}
+      {/* Main Content */}
+      <main id="main-content">
+        {/* Hero Section */}
+        <section
+          className="min-h-[100svh] flex items-center justify-center relative overflow-hidden pt-14"
+          aria-labelledby="hero-heading"
         >
-          {/* Infinity Symbol */}
+          {/* Subtle gradient background */}
+          <div
+            className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,rgba(59,130,246,0.08),transparent)]"
+            aria-hidden="true"
+          />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{ marginBottom: 8 }}
+            style={{ y: heroY, opacity: heroOpacity }}
+            className="max-w-4xl mx-auto px-5 sm:px-6 text-center relative z-10"
           >
-            <span
-              style={{
-                fontSize: 'clamp(80px, 18vw, 180px)',
-                fontWeight: 200,
-                lineHeight: 0.9,
-                background: 'linear-gradient(135deg, #0071e3 0%, #5856d6 50%, #af52de 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                display: 'block',
-              }}
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] mb-8"
             >
-              ∞
-            </span>
-          </motion.div>
+              <span className="text-blue-400 text-lg">∞</span>
+              <span className="text-white/70 text-sm">Unlimited AI-generated questions</span>
+            </motion.div>
 
-          {/* Main Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{
-              fontSize: 'clamp(36px, 6vw, 72px)',
-              lineHeight: 1.05,
-              fontWeight: 600,
-              letterSpacing: '-0.03em',
-              color: '#f5f5f7',
-              marginBottom: 16,
-            }}
-          >
-            Infinite exam questions.
-            <br />
-            <span
-              style={{
-                background: 'linear-gradient(90deg, #0071e3, #5856d6, #af52de)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
+            {/* Main Headline */}
+            <motion.h1
+              id="hero-heading"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-white mb-6 leading-[1.1]"
             >
-              Every single subtopic.
-            </span>
-          </motion.h1>
+              Never run out of
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
+                practice questions
+              </span>
+            </motion.h1>
 
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{
-              fontSize: 'clamp(17px, 2vw, 24px)',
-              lineHeight: 1.3,
-              fontWeight: 400,
-              color: '#86868b',
-              maxWidth: 600,
-              margin: '0 auto 32px',
-            }}
-          >
-            AI generates fresh, exam-board accurate questions on demand.
-            <br />
-            Never run out of practice again.
-          </motion.p>
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed"
+            >
+              AI generates fresh GCSE and A-Level questions tailored to your exam board.
+              Complete with step-by-step solutions and mark schemes.
+            </motion.p>
 
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 20,
-              flexWrap: 'wrap',
-            }}
-          >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
               <Link
                 href="#choose-level"
-                style={{
-                  background: 'linear-gradient(135deg, #0071e3 0%, #5856d6 100%)',
-                  color: 'white',
-                  padding: '16px 32px',
-                  borderRadius: 980,
-                  fontSize: 17,
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                  display: 'inline-block',
-                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
               >
-                Start Practicing — Free
+                Start Practicing Free
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
-            </motion.div>
-            <motion.div whileHover={{ x: 5 }}>
               <Link
-                href="#how-it-works"
-                style={{
-                  color: '#0071e3',
-                  fontSize: 17,
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
+                href="#demo"
+                className="text-white/60 hover:text-white text-base flex items-center gap-2 py-4 transition-colors"
               >
-                See how it works
-                <svg style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                See example question
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </Link>
             </motion.div>
-          </motion.div>
-        </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          style={{
-            position: 'absolute',
-            bottom: 32,
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ color: '#86868b', fontSize: 14 }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12l7 7 7-7" />
-            </svg>
+            {/* Trust indicators */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-white/40"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                AQA, Edexcel, OCR
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                12 subjects
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Free to start
+              </span>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      </section>
+        </section>
 
-      {/* Level Selector Section - Primary CTA */}
-      <section id="choose-level" style={{ padding: '100px 0', backgroundColor: '#000000' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={fadeInUp}
-            style={{ textAlign: 'center', marginBottom: 48 }}
-          >
-            <h2 style={{
-              fontSize: 'clamp(28px, 4vw, 40px)',
-              fontWeight: 600,
-              color: '#f5f5f7',
-              letterSpacing: '-0.02em',
-              marginBottom: 12,
-            }}>
-              Choose your level
-            </h2>
-            <p style={{ fontSize: 17, color: '#86868b' }}>
-              Select your qualification to start practicing
-            </p>
-          </motion.div>
+        {/* Demo Section */}
+        <section id="demo" className="py-20 md:py-28 bg-[#050505]" aria-labelledby="demo-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-12"
+            >
+              <h2 id="demo-heading" className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
+                See what you get
+              </h2>
+              <p className="text-white/50 text-lg">
+                Every question comes with a full solution and mark scheme
+              </p>
+            </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 24,
-              maxWidth: 700,
-              margin: '0 auto',
-            }}
-          >
-            {[
-              {
-                level: 'gcse',
-                name: 'GCSE',
-                description: 'Years 10-11 • Ages 14-16',
-                subjects: 'Maths, Physics, Chemistry, Biology & more',
-                color: '#0071e3',
-              },
-              {
-                level: 'a-level',
-                name: 'A-Level',
-                description: 'Years 12-13 • Ages 16-18',
-                subjects: 'Maths, Physics, Chemistry, Biology & more',
-                color: '#af52de',
-              },
-            ].map((item) => (
-              <motion.div
-                key={item.level}
-                variants={scaleIn}
-                whileHover={{
-                  y: -8,
-                  boxShadow: `0 20px 60px ${item.color}30`,
-                  transition: { duration: 0.3 }
-                }}
-              >
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={scaleIn}
+              className="max-w-2xl mx-auto"
+            >
+              {/* Question Card */}
+              <div className="bg-[#111] rounded-2xl border border-white/[0.06] overflow-hidden">
+                {/* Header */}
+                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-medium rounded">
+                      AQA
+                    </span>
+                    <span className="px-2.5 py-1 bg-violet-500/10 text-violet-400 text-xs font-medium rounded">
+                      GCSE Maths
+                    </span>
+                  </div>
+                  <span className="text-white/40 text-sm">Medium difficulty</span>
+                </div>
+
+                {/* Question Content */}
+                <div className="p-5 sm:p-6">
+                  <div className="text-white/40 text-sm mb-3">
+                    Algebra — Quadratic Equations
+                  </div>
+                  <div className="text-white text-lg leading-relaxed mb-5">
+                    Solve the quadratic equation by factorisation:
+                  </div>
+                  <div className="bg-white/[0.03] rounded-xl p-5 mb-5 text-center border border-white/[0.04]">
+                    <span className="text-white text-xl sm:text-2xl font-mono">
+                      x² + 5x + 6 = 0
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/40">Show your working clearly.</span>
+                    <span className="text-blue-400 font-medium">[3 marks]</span>
+                  </div>
+                </div>
+
+                {/* Solution Preview */}
+                <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+                  <div className="bg-gradient-to-r from-blue-500/5 to-violet-500/5 rounded-xl p-4 border border-white/[0.04]">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-white/80 text-sm font-medium">Step-by-step solution included</span>
+                      </div>
+                      <span className="text-white/40 text-sm">+ M1/A1 mark scheme</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features below demo */}
+              <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-4">
+                {[
+                  { icon: '⚡', text: 'Instant generation' },
+                  { icon: '🎯', text: 'Exam-accurate' },
+                  { icon: '📝', text: 'Full solutions' },
+                ].map(item => (
+                  <div key={item.text} className="text-center py-4 px-2 rounded-xl bg-white/[0.02]">
+                    <div className="text-xl mb-1.5" aria-hidden="true">{item.icon}</div>
+                    <div className="text-white/60 text-xs sm:text-sm">{item.text}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Level Selector */}
+        <section id="choose-level" className="py-20 md:py-28 bg-[#0a0a0a]" aria-labelledby="level-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-12"
+            >
+              <h2 id="level-heading" className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
+                Choose your level
+              </h2>
+              <p className="text-white/50 text-lg">
+                Select your qualification to browse subjects
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl mx-auto"
+            >
+              {/* GCSE Card */}
+              <motion.div variants={scaleIn}>
                 <Link
-                  href={`/${item.level}`}
-                  style={{
-                    display: 'block',
-                    background: 'linear-gradient(135deg, #1d1d1f 0%, #2d2d2d 100%)',
-                    border: `1px solid ${item.color}40`,
-                    borderRadius: 24,
-                    padding: 32,
-                    textDecoration: 'none',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
+                  href="/gcse"
+                  className="block bg-[#111] border border-white/[0.06] hover:border-blue-500/30 rounded-2xl p-6 sm:p-8 relative overflow-hidden group transition-colors"
                 >
-                  {/* Gradient accent */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 3,
-                    background: `linear-gradient(90deg, ${item.color}, ${item.color}80)`,
-                  }} />
-
-                  <div style={{
-                    fontSize: 32,
-                    fontWeight: 700,
-                    color: '#f5f5f7',
-                    marginBottom: 8,
-                  }}>
-                    {item.name}
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    color: item.color,
-                    fontWeight: 500,
-                    marginBottom: 16,
-                  }}>
-                    {item.description}
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    color: '#86868b',
-                    marginBottom: 20,
-                  }}>
-                    {item.subjects}
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    color: item.color,
-                    fontSize: 15,
-                    fontWeight: 500,
-                  }}>
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400" aria-hidden="true" />
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-2">GCSE</div>
+                  <div className="text-sm text-blue-400 font-medium mb-1">Years 10-11</div>
+                  <div className="text-sm text-white/40 mb-6">Ages 14-16</div>
+                  <div className="inline-flex items-center gap-2 text-sm text-blue-400 font-medium">
                     Browse subjects
-                    <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
                 </Link>
               </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Stats Section - Dark */}
-      <section style={{ padding: '80px 0', backgroundColor: '#000000' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 80,
-            }}
-          >
-            {[
-              { value: '∞', label: 'Questions per topic' },
-              { value: '12', label: 'Subjects covered' },
-              { value: '3', label: 'Exam boards' },
-            ].map((stat) => (
-              <motion.div key={stat.label} variants={fadeInUp} style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontSize: 64,
-                  fontWeight: 600,
-                  color: '#f5f5f7',
-                  marginBottom: 8,
-                  background: stat.value === '∞' ? 'linear-gradient(135deg, #0071e3, #af52de)' : 'none',
-                  WebkitBackgroundClip: stat.value === '∞' ? 'text' : 'unset',
-                  WebkitTextFillColor: stat.value === '∞' ? 'transparent' : '#f5f5f7',
-                }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: 15, color: '#86868b', letterSpacing: '0.02em' }}>{stat.label}</div>
+              {/* A-Level Card */}
+              <motion.div variants={scaleIn}>
+                <Link
+                  href="/a-level"
+                  className="block bg-[#111] border border-white/[0.06] hover:border-violet-500/30 rounded-2xl p-6 sm:p-8 relative overflow-hidden group transition-colors"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-violet-400" aria-hidden="true" />
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-2">A-Level</div>
+                  <div className="text-sm text-violet-400 font-medium mb-1">Years 12-13</div>
+                  <div className="text-sm text-white/40 mb-6">Ages 16-18</div>
+                  <div className="inline-flex items-center gap-2 text-sm text-violet-400 font-medium">
+                    Browse subjects
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
               </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* The Problem Section - White */}
-      <section style={{ padding: '120px 0', backgroundColor: '#ffffff' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={fadeInUp}
-            style={{ textAlign: 'center', marginBottom: 80 }}
-          >
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86868b', marginBottom: 16 }}>
-              The Problem
-            </p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1.07, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.03em' }}>
-              Past papers run out.
-              <br />
-              <span style={{ color: '#86868b' }}>Your practice shouldn't.</span>
-            </h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}
-          >
-            {[
-              { icon: '📚', title: 'Limited Past Papers', desc: "There are only so many past papers available. Once you've done them all, you're stuck." },
-              { icon: '🔍', title: 'Hard to Find by Topic', desc: "Want to practice just quadratic equations? Good luck finding enough targeted questions." },
-              { icon: '❓', title: 'No Detailed Solutions', desc: "Mark schemes tell you the answer but not how to get there. You need step-by-step explanations." },
-              { icon: '📊', title: 'No Progress Tracking', desc: "Which topics are you strong in? Without tracking, you're revising blind." },
-            ].map((item) => (
-              <motion.div
-                key={item.title}
-                variants={scaleIn}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                style={{
-                  backgroundColor: '#f5f5f7',
-                  borderRadius: 20,
-                  padding: 32,
-                  cursor: 'default',
-                }}
-              >
-                <div style={{ fontSize: 36, marginBottom: 16 }}>{item.icon}</div>
-                <h3 style={{ fontSize: 20, fontWeight: 600, color: '#1d1d1f', marginBottom: 12 }}>{item.title}</h3>
-                <p style={{ color: '#6e6e73', lineHeight: 1.5, fontSize: 15 }}>{item.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* The Solution Section - Dark */}
-      <section id="features" style={{ padding: '120px 0', backgroundColor: '#000000' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={fadeInUp}
-            style={{ textAlign: 'center', marginBottom: 100 }}
-          >
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86868b', marginBottom: 16 }}>
-              The Solution
-            </p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1.07, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.03em' }}>
-              Infinite questions.
-              <br />
-              <span style={{ background: 'linear-gradient(90deg, #0071e3, #5856d6, #af52de)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Instant generation.
-              </span>
-            </h2>
-          </motion.div>
-
-          {/* Feature 1 */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center', marginBottom: 140 }}
-          >
-            <motion.div variants={fadeInUp} style={{ textAlign: 'center' }}>
-              <motion.span
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                  fontSize: 'clamp(100px, 15vw, 180px)',
-                  fontWeight: 200,
-                  background: 'linear-gradient(135deg, #0071e3 0%, #5856d6 50%, #af52de 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  display: 'block',
-                }}
-              >
-                ∞
-              </motion.span>
             </motion.div>
-            <motion.div variants={fadeInUp}>
-              <h3 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, color: '#f5f5f7', marginBottom: 20, letterSpacing: '-0.02em' }}>
-                Unlimited questions for every subtopic
-              </h3>
-              <p style={{ fontSize: 18, color: '#86868b', lineHeight: 1.6, marginBottom: 28 }}>
-                Pick any topic. Pick any subtopic. Generate as many questions as you need.
-                Our AI creates fresh, unique questions every time — perfectly calibrated to your exam board&apos;s style.
-              </p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {['Quadratic Equations', 'Cell Division', 'Electromagnetic Waves', 'Market Structures'].map((topic) => (
-                  <motion.li
-                    key={topic}
-                    whileHover={{ x: 8 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14, color: '#f5f5f7', fontSize: 16 }}
-                  >
-                    <span style={{
-                      color: '#0071e3',
-                      fontSize: 20,
-                      background: 'linear-gradient(135deg, #0071e3, #af52de)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}>∞</span>
-                    <span>{topic}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          </motion.div>
+          </div>
+        </section>
 
-          {/* Feature 2 */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center' }}
-          >
-            <motion.div variants={fadeInUp} style={{ order: 1 }}>
-              <h3 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, color: '#f5f5f7', marginBottom: 20, letterSpacing: '-0.02em' }}>
-                Matches real exam style
-              </h3>
-              <p style={{ fontSize: 18, color: '#86868b', lineHeight: 1.6, marginBottom: 28 }}>
-                Every question is crafted to match the exact format, wording, and difficulty of your actual exam. AQA, Edexcel, or OCR — our AI knows the difference.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-                {['AQA', 'Edexcel', 'OCR'].map((board) => (
-                  <motion.span
-                    key={board}
-                    whileHover={{ scale: 1.1 }}
-                    style={{
-                      padding: '10px 20px',
-                      background: 'linear-gradient(135deg, rgba(0,113,227,0.2), rgba(175,82,222,0.2))',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: 980,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: '#f5f5f7'
-                    }}
-                  >
-                    {board}
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
+        {/* Problem Section */}
+        <section className="py-20 md:py-28 bg-white" aria-labelledby="problem-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
             <motion.div
-              variants={scaleIn}
-              whileHover={{ scale: 1.02 }}
-              style={{
-                backgroundColor: '#1d1d1f',
-                borderRadius: 20,
-                padding: 32,
-                border: '1px solid rgba(255,255,255,0.1)',
-                order: 2,
-              }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-16"
             >
-              <div style={{ fontSize: 13, color: '#86868b', marginBottom: 12, fontWeight: 500, letterSpacing: '0.05em' }}>AQA GCSE MATHEMATICS</div>
-              <div style={{ fontSize: 17, color: '#f5f5f7', marginBottom: 20, lineHeight: 1.6 }}>
-                Solve the simultaneous equations:
-              </div>
-              <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 16, color: '#f5f5f7', marginBottom: 8, paddingLeft: 16 }}>
-                3x + 2y = 12
-              </div>
-              <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 16, color: '#f5f5f7', marginBottom: 20, paddingLeft: 16 }}>
-                x - y = 1
-              </div>
-              <div style={{ textAlign: 'right', fontSize: 14, color: '#86868b', fontWeight: 500 }}>[3 marks]</div>
+              <p className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">
+                The Problem
+              </p>
+              <h2 id="problem-heading" className="text-3xl sm:text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight leading-tight">
+                Past papers run out.
+                <br />
+                <span className="text-neutral-400">Your practice shouldn&apos;t.</span>
+              </h2>
             </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Subjects Grid - White */}
-      <section id="subjects" style={{ padding: '120px 0', backgroundColor: '#ffffff' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={fadeInUp}
-            style={{ textAlign: 'center', marginBottom: 80 }}
-          >
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86868b', marginBottom: 16 }}>
-              Subjects
-            </p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1.07, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.03em', marginBottom: 16 }}>
-              GCSE & A-Level.
-              <br />
-              <span style={{ color: '#86868b' }}>Every major subject.</span>
-            </h2>
-            <p style={{ fontSize: 'clamp(17px, 2vw, 21px)', color: '#86868b' }}>
-              Hundreds of subtopics, infinite questions each.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}
-          >
-            {subjects.map((subject) => (
-              <motion.div
-                key={subject.name}
-                variants={scaleIn}
-                whileHover={{
-                  y: -12,
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                  transition: { duration: 0.3 }
-                }}
-                style={{
-                  backgroundColor: '#f5f5f7',
-                  borderRadius: 20,
-                  padding: 28,
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                }}
-              >
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              {[
+                { icon: '📚', title: 'Limited Papers', desc: 'Only a handful of past papers exist for each subject. They run out fast.' },
+                { icon: '🔍', title: 'Topic Hunting', desc: 'Finding questions on specific subtopics means hours of searching.' },
+                { icon: '❓', title: 'No Explanations', desc: 'Mark schemes give answers, not the working. Hard to learn from mistakes.' },
+                { icon: '📊', title: 'No Tracking', desc: 'Without progress tracking, you don\'t know where to focus.' },
+              ].map((item) => (
                 <motion.div
-                  style={{ fontSize: 40, marginBottom: 12 }}
-                  whileHover={{ scale: 1.2, rotate: 10 }}
-                  transition={{ type: 'spring', stiffness: 400 }}
+                  key={item.title}
+                  variants={scaleIn}
+                  className="bg-neutral-50 rounded-2xl p-6"
                 >
-                  {subject.icon}
+                  <div className="text-3xl mb-4" aria-hidden="true">{item.icon}</div>
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-2">{item.title}</h3>
+                  <p className="text-neutral-500 text-sm leading-relaxed">{item.desc}</p>
                 </motion.div>
-                <h3 style={{ fontWeight: 600, color: '#1d1d1f', marginBottom: 4, fontSize: 17 }}>{subject.name}</h3>
-                <p style={{ fontSize: 14, color: '#86868b', marginBottom: 12 }}>{subject.subtopics} subtopics</p>
-                <div style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  background: 'linear-gradient(90deg, #0071e3, #af52de)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}>
-                  ∞ questions each
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              ))}
+            </motion.div>
+          </div>
+        </section>
 
-      {/* How It Works - Dark */}
-      <section id="how-it-works" style={{ padding: '120px 0', backgroundColor: '#000000' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={fadeInUp}
-            style={{ textAlign: 'center', marginBottom: 80 }}
-          >
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86868b', marginBottom: 16 }}>
-              How It Works
-            </p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1.07, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.03em' }}>
-              Three steps to
-              <br />
-              <span style={{ background: 'linear-gradient(90deg, #0071e3, #5856d6, #af52de)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                unlimited practice.
-              </span>
-            </h2>
-          </motion.div>
+        {/* Features Section */}
+        <section id="features" className="py-20 md:py-28 bg-[#0a0a0a]" aria-labelledby="features-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-16"
+            >
+              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
+                The Solution
+              </p>
+              <h2 id="features-heading" className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight leading-tight">
+                Unlimited questions.
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
+                  Every subtopic covered.
+                </span>
+              </h2>
+            </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40 }}
-          >
-            {[
-              { num: '1', title: 'Choose your topic', desc: 'Select your subject, exam board, and drill down to the exact subtopic you want to practice.' },
-              { num: '2', title: 'Generate questions', desc: 'AI instantly creates exam-style questions. Choose your difficulty. Get as many as you need.' },
-              { num: '3', title: 'Learn & improve', desc: 'Check your answers with detailed solutions. Track your progress. Master every topic.' },
-            ].map((step) => (
-              <motion.div key={step.num} variants={fadeInUp} style={{ textAlign: 'center' }}>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"
+            >
+              {[
+                {
+                  title: 'Infinite Questions',
+                  desc: 'Generate unlimited unique questions for any subtopic. Never do the same question twice.',
+                  icon: (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: 'Exam-Board Accurate',
+                  desc: 'Questions match your exam board\'s style exactly. AQA, Edexcel, and OCR formats supported.',
+                  icon: (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: 'Full Solutions',
+                  desc: 'Every question includes step-by-step working and proper M1/A1 mark scheme notation.',
+                  icon: (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  ),
+                },
+              ].map((feature) => (
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 10 }}
-                  transition={{ type: 'spring', stiffness: 400 }}
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #0071e3 0%, #5856d6 100%)',
-                    color: 'white',
-                    fontSize: 28,
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 24px',
-                  }}
+                  key={feature.title}
+                  variants={scaleIn}
+                  className="bg-[#111] border border-white/[0.06] rounded-2xl p-6 sm:p-8"
                 >
-                  {step.num}
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 flex items-center justify-center text-blue-400 mb-5">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                  <p className="text-white/50 leading-relaxed">{feature.desc}</p>
                 </motion.div>
-                <h3 style={{ fontSize: 22, fontWeight: 600, color: '#f5f5f7', marginBottom: 12 }}>{step.title}</h3>
-                <p style={{ color: '#86868b', lineHeight: 1.6, fontSize: 16 }}>{step.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              ))}
+            </motion.div>
+          </div>
+        </section>
 
-      {/* Final CTA - Gradient */}
-      <section style={{
-        padding: '140px 0',
-        background: 'linear-gradient(180deg, #000000 0%, #1d1d1f 100%)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Background glow */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '800px',
-          height: '800px',
-          background: 'radial-gradient(circle, rgba(0,113,227,0.15) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
+        {/* Subjects Grid */}
+        <section id="subjects" className="py-20 md:py-28 bg-white" aria-labelledby="subjects-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-12"
+            >
+              <p className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">
+                Subjects
+              </p>
+              <h2 id="subjects-heading" className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight mb-4">
+                GCSE & A-Level covered
+              </h2>
+              <p className="text-neutral-500 text-lg">
+                12 subjects across 3 exam boards
+              </p>
+            </motion.div>
 
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-          >
-            <motion.span
-              variants={scaleIn}
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-              style={{
-                fontSize: 'clamp(100px, 20vw, 240px)',
-                fontWeight: 200,
-                background: 'linear-gradient(135deg, rgba(0,113,227,0.3) 0%, rgba(175,82,222,0.3) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'block',
-                marginBottom: 32,
-                lineHeight: 1,
-              }}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
             >
-              ∞
-            </motion.span>
-            <motion.h2
+              {subjects.map((subject) => (
+                <motion.div key={subject.name} variants={scaleIn}>
+                  <Link
+                    href={subject.href}
+                    className="block bg-neutral-50 hover:bg-neutral-100 rounded-xl p-5 sm:p-6 text-center transition-colors group"
+                  >
+                    <div className="text-3xl sm:text-4xl mb-3 group-hover:scale-110 transition-transform" aria-hidden="true">
+                      {subject.icon}
+                    </div>
+                    <h3 className="font-semibold text-neutral-900 text-sm sm:text-base mb-1">{subject.name}</h3>
+                    <p className="text-neutral-500 text-xs sm:text-sm">{subject.subtopics} subtopics</p>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="py-20 md:py-28 bg-[#0a0a0a]" aria-labelledby="how-heading">
+          <div className="max-w-6xl mx-auto px-5 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
               variants={fadeInUp}
-              style={{ fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: 600, color: '#f5f5f7', marginBottom: 24, letterSpacing: '-0.03em' }}
+              className="text-center mb-16"
             >
-              Ready for unlimited practice?
-            </motion.h2>
-            <motion.p
-              variants={fadeInUp}
-              style={{ fontSize: 'clamp(17px, 2vw, 21px)', color: '#86868b', marginBottom: 48, maxWidth: 560, margin: '0 auto 48px' }}
+              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
+                How It Works
+              </p>
+              <h2 id="how-heading" className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+                Three steps to better grades
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
             >
-              Join thousands of students using AI-powered practice to ace their exams.
-            </motion.p>
-            <motion.div variants={fadeInUp}>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                style={{ display: 'inline-block' }}
+              {[
+                { num: '1', title: 'Pick a topic', desc: 'Choose your subject, exam board, and specific subtopic.' },
+                { num: '2', title: 'Generate questions', desc: 'Get instant, unique questions at your chosen difficulty.' },
+                { num: '3', title: 'Learn from solutions', desc: 'Review step-by-step working and mark schemes.' },
+              ].map((step) => (
+                <motion.div key={step.num} variants={fadeInUp} className="text-center">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-white text-xl font-semibold flex items-center justify-center mx-auto mb-5">
+                    {step.num}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
+                  <p className="text-white/50">{step.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-24 md:py-32 bg-gradient-to-b from-[#0a0a0a] to-[#111]" aria-labelledby="cta-heading">
+          <div className="max-w-4xl mx-auto px-5 sm:px-6 text-center">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={staggerContainer}
+            >
+              <motion.h2
+                id="cta-heading"
+                variants={fadeInUp}
+                className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight"
               >
+                Ready to start practicing?
+              </motion.h2>
+              <motion.p
+                variants={fadeInUp}
+                className="text-lg text-white/50 mb-10 max-w-xl mx-auto"
+              >
+                Free to use. No account required. Generate your first question now.
+              </motion.p>
+              <motion.div variants={fadeInUp}>
                 <Link
                   href="/gcse"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    background: 'linear-gradient(135deg, #0071e3 0%, #5856d6 100%)',
-                    color: 'white',
-                    padding: '20px 40px',
-                    borderRadius: 980,
-                    fontSize: 19,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
+                  className="inline-flex items-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
                 >
                   Start Practicing Free
-                  <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
               </motion.div>
             </motion.div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer style={{ padding: '32px 0', backgroundColor: '#000000', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 40, marginBottom: 32 }}>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 18, color: '#f5f5f7', marginBottom: 16 }}>Past Papers</div>
-              <p style={{ color: '#86868b', fontSize: 14, maxWidth: 280 }}>
-                Infinite AI-generated exam questions for GCSE & A-Level students.
+      <footer className="py-12 bg-[#050505] border-t border-white/[0.06]" role="contentinfo">
+        <div className="max-w-6xl mx-auto px-5 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-2 md:col-span-1">
+              <div className="font-semibold text-white mb-4">Past Papers</div>
+              <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+                AI-generated exam questions for GCSE & A-Level students.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: 60 }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 12, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Product</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <Link href="/gcse" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>GCSE</Link>
-                  <Link href="/a-level" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>A-Level</Link>
-                  <Link href="/pricing" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>Pricing</Link>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 12, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Subjects</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <Link href="/gcse/maths" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>Mathematics</Link>
-                  <Link href="/gcse/physics" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>Physics</Link>
-                  <Link href="/gcse/chemistry" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>Chemistry</Link>
-                  <Link href="/gcse/biology" style={{ color: '#a1a1a6', fontSize: 14, textDecoration: 'none' }}>Biology</Link>
-                </div>
-              </div>
+            <div>
+              <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Product</div>
+              <nav className="flex flex-col gap-2" aria-label="Product links">
+                <Link href="/gcse" className="text-white/40 hover:text-white text-sm transition-colors">GCSE</Link>
+                <Link href="/a-level" className="text-white/40 hover:text-white text-sm transition-colors">A-Level</Link>
+                <Link href="/pricing" className="text-white/40 hover:text-white text-sm transition-colors">Pricing</Link>
+              </nav>
+            </div>
+            <div>
+              <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Subjects</div>
+              <nav className="flex flex-col gap-2" aria-label="Subject links">
+                <Link href="/gcse/maths" className="text-white/40 hover:text-white text-sm transition-colors">Maths</Link>
+                <Link href="/gcse/physics" className="text-white/40 hover:text-white text-sm transition-colors">Physics</Link>
+                <Link href="/gcse/chemistry" className="text-white/40 hover:text-white text-sm transition-colors">Chemistry</Link>
+                <Link href="/gcse/biology" className="text-white/40 hover:text-white text-sm transition-colors">Biology</Link>
+              </nav>
+            </div>
+            <div>
+              <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Exam Boards</div>
+              <nav className="flex flex-col gap-2" aria-label="Exam board links">
+                <Link href="/gcse/maths/aqa" className="text-white/40 hover:text-white text-sm transition-colors">AQA</Link>
+                <Link href="/gcse/maths/edexcel" className="text-white/40 hover:text-white text-sm transition-colors">Edexcel</Link>
+                <Link href="/gcse/maths/ocr" className="text-white/40 hover:text-white text-sm transition-colors">OCR</Link>
+              </nav>
             </div>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: '#86868b' }}>
-            <div>&copy; 2025 Past Papers. All rights reserved.</div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06] text-sm text-white/30">
+            <div>&copy; 2026 Past Papers. All rights reserved.</div>
             <div>Not affiliated with AQA, Edexcel, Pearson, or OCR.</div>
           </div>
         </div>
