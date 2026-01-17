@@ -13,7 +13,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 1: Atomic Structure and the Periodic Table
   {
-    id: 'edexcel-alevel-chemistry-atomic-structure',
+    id: 'atomic-structure',
     name: 'Atomic Structure and the Periodic Table',
     description: 'Atomic models, electron configuration, and periodic trends',
     icon: '⚛️',
@@ -53,7 +53,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 2: Bonding and Structure
   {
-    id: 'edexcel-alevel-chemistry-bonding',
+    id: 'bonding',
     name: 'Bonding and Structure',
     description: 'Types of bonding, shapes of molecules, and intermolecular forces',
     icon: '🔗',
@@ -104,7 +104,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 3: Redox I
   {
-    id: 'edexcel-alevel-chemistry-redox1',
+    id: 'redox1',
     name: 'Redox I',
     description: 'Oxidation states, redox reactions, and ionic equations',
     icon: '⚡',
@@ -135,7 +135,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 4: Inorganic Chemistry and the Periodic Table
   {
-    id: 'edexcel-alevel-chemistry-inorganic1',
+    id: 'inorganic1',
     name: 'Inorganic Chemistry and the Periodic Table',
     description: 'Group 2 and Group 7 chemistry',
     icon: '📊',
@@ -169,7 +169,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 5: Formulae, Equations and Amounts of Substance
   {
-    id: 'edexcel-alevel-chemistry-amounts',
+    id: 'amounts',
     name: 'Formulae, Equations and Amounts of Substance',
     description: 'Moles, concentration, gas volumes, and yield calculations',
     icon: '⚖️',
@@ -210,7 +210,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 6: Organic Chemistry I
   {
-    id: 'edexcel-alevel-chemistry-organic1',
+    id: 'organic1',
     name: 'Organic Chemistry I',
     description: 'Alkanes, alkenes, halogenoalkanes, and alcohols',
     icon: '🧬',
@@ -260,7 +260,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 7: Modern Analytical Techniques I
   {
-    id: 'edexcel-alevel-chemistry-analysis1',
+    id: 'analysis1',
     name: 'Modern Analytical Techniques I',
     description: 'Mass spectrometry and infrared spectroscopy',
     icon: '🔬',
@@ -288,7 +288,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 8: Energetics I
   {
-    id: 'edexcel-alevel-chemistry-energetics1',
+    id: 'energetics1',
     name: 'Energetics I',
     description: 'Enthalpy changes, Hess\'s law, and bond enthalpies',
     icon: '🔥',
@@ -321,7 +321,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 9: Kinetics I
   {
-    id: 'edexcel-alevel-chemistry-kinetics1',
+    id: 'kinetics1',
     name: 'Kinetics I',
     description: 'Rates of reaction and collision theory',
     icon: '⏱️',
@@ -354,7 +354,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 10: Equilibrium I
   {
-    id: 'edexcel-alevel-chemistry-equilibrium1',
+    id: 'equilibrium1',
     name: 'Equilibrium I',
     description: 'Dynamic equilibrium, Kc, and Le Chatelier\'s principle',
     icon: '⚖️',
@@ -384,7 +384,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 11: Equilibrium II
   {
-    id: 'edexcel-alevel-chemistry-equilibrium2',
+    id: 'equilibrium2',
     name: 'Equilibrium II',
     description: 'Kp and gas phase equilibria',
     icon: '💨',
@@ -406,7 +406,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 12: Acid-Base Equilibria
   {
-    id: 'edexcel-alevel-chemistry-acids-bases',
+    id: 'acids-bases',
     name: 'Acid-Base Equilibria',
     description: 'pH, Ka, buffers, and titration curves',
     icon: '🧪',
@@ -447,7 +447,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 13: Energetics II
   {
-    id: 'edexcel-alevel-chemistry-energetics2',
+    id: 'energetics2',
     name: 'Energetics II',
     description: 'Born-Haber cycles, entropy, and Gibbs free energy',
     icon: '🌡️',
@@ -483,7 +483,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 14: Redox II
   {
-    id: 'edexcel-alevel-chemistry-redox2',
+    id: 'redox2',
     name: 'Redox II',
     description: 'Electrode potentials and electrochemical cells',
     icon: '🔋',
@@ -513,7 +513,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 15: Transition Metals
   {
-    id: 'edexcel-alevel-chemistry-transition-metals',
+    id: 'transition-metals',
     name: 'Transition Metals',
     description: 'Properties, complexes, and reactions of transition metals',
     icon: '🔩',
@@ -561,7 +561,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 16: Kinetics II
   {
-    id: 'edexcel-alevel-chemistry-kinetics2',
+    id: 'kinetics2',
     name: 'Kinetics II',
     description: 'Rate equations, orders of reaction, and mechanisms',
     icon: '📈',
@@ -594,7 +594,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 17: Organic Chemistry II
   {
-    id: 'edexcel-alevel-chemistry-organic2',
+    id: 'organic2',
     name: 'Organic Chemistry II',
     description: 'Optical isomerism, carbonyl compounds, and carboxylic acids',
     icon: '🧫',
@@ -635,7 +635,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 18: Organic Chemistry III
   {
-    id: 'edexcel-alevel-chemistry-organic3',
+    id: 'organic3',
     name: 'Organic Chemistry III',
     description: 'Aromatic chemistry, amines, polymers, and synthesis',
     icon: '💎',
@@ -680,7 +680,7 @@ export const edexcelALevelChemistryTopics: Topic[] = [
 
   // Topic 19: Modern Analytical Techniques II
   {
-    id: 'edexcel-alevel-chemistry-analysis2',
+    id: 'analysis2',
     name: 'Modern Analytical Techniques II',
     description: 'NMR spectroscopy and chromatography',
     icon: '📡',

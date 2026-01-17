@@ -17,7 +17,7 @@ import { Topic } from '@/types';
 
 export const edexcelTopics: Topic[] = [
   {
-    id: 'edexcel-number',
+    id: 'number',
     name: 'Number',
     description: 'Integers, fractions, decimals, percentages, powers and roots',
     icon: '🔢',
@@ -85,7 +85,7 @@ export const edexcelTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-algebra',
+    id: 'algebra',
     name: 'Algebra',
     description: 'Expressions, equations, formulae, sequences, graphs and functions',
     icon: '📐',
@@ -178,7 +178,7 @@ export const edexcelTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-geometry',
+    id: 'geometry',
     name: 'Geometry & Measures',
     description: 'Properties of shapes, mensuration, trigonometry, vectors',
     icon: '📏',
@@ -262,7 +262,7 @@ export const edexcelTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-statistics',
+    id: 'statistics',
     name: 'Statistics',
     description: 'Collecting, representing and analysing data',
     icon: '📊',
@@ -304,7 +304,7 @@ export const edexcelTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-probability',
+    id: 'probability',
     name: 'Probability',
     description: 'Single events, combined events, tree diagrams',
     icon: '🎲',
@@ -336,7 +336,7 @@ export const edexcelTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-ratio',
+    id: 'ratio',
     name: 'Ratio, Proportion & Rates',
     description: 'Ratio, proportion, rates of change, growth and decay',
     icon: '⚖️',

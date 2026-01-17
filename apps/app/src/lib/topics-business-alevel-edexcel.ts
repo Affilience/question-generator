@@ -15,7 +15,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 1.1 Meeting customer needs
   {
-    id: 'edexcel-alevel-bus-meeting-customer-needs',
+    id: 'meeting-customer-needs',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -78,7 +78,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 1.2 The market
   {
-    id: 'edexcel-alevel-bus-market-analysis',
+    id: 'market-analysis',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -141,7 +141,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 1.3 Marketing mix and strategy
   {
-    id: 'edexcel-alevel-bus-marketing-mix',
+    id: 'marketing-mix',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -227,7 +227,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 1.4 Managing people
   {
-    id: 'edexcel-alevel-bus-managing-people',
+    id: 'managing-people',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -329,7 +329,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 1.5 Entrepreneurs and leaders
   {
-    id: 'edexcel-alevel-bus-entrepreneurs',
+    id: 'entrepreneurs',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -396,7 +396,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 2.1 Raising finance
   {
-    id: 'edexcel-alevel-bus-raising-finance',
+    id: 'raising-finance',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -444,7 +444,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 2.2 Financial planning
   {
-    id: 'edexcel-alevel-bus-financial-planning',
+    id: 'financial-planning',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -509,7 +509,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 2.3 Managing finance
   {
-    id: 'edexcel-alevel-bus-managing-finance',
+    id: 'managing-finance',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -571,7 +571,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 2.4 Resource management
   {
-    id: 'edexcel-alevel-bus-resource-management',
+    id: 'resource-management',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -640,7 +640,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 2.5 External influences
   {
-    id: 'edexcel-alevel-bus-external-influences',
+    id: 'external-influences',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -708,7 +708,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.1 Business objectives and strategy
   {
-    id: 'edexcel-alevel-bus-objectives-strategy',
+    id: 'objectives-strategy',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -775,7 +775,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.2 Business growth
   {
-    id: 'edexcel-alevel-bus-business-growth',
+    id: 'business-growth',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -829,7 +829,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.3 Decision-making techniques
   {
-    id: 'edexcel-alevel-bus-decision-making',
+    id: 'decision-making',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -906,7 +906,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.4 Influences on business decisions
   {
-    id: 'edexcel-alevel-bus-influences-decisions',
+    id: 'influences-decisions',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -961,7 +961,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.5 Assessing competitiveness
   {
-    id: 'edexcel-alevel-bus-competitiveness',
+    id: 'competitiveness',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -1022,7 +1022,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 3.6 Managing change
   {
-    id: 'edexcel-alevel-bus-managing-change',
+    id: 'managing-change',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -1070,7 +1070,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 4.1 Globalisation
   {
-    id: 'edexcel-alevel-bus-globalisation',
+    id: 'globalisation',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -1118,7 +1118,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 4.2 Global markets and business expansion
   {
-    id: 'edexcel-alevel-bus-global-expansion',
+    id: 'global-expansion',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -1169,7 +1169,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 4.3 Global marketing
   {
-    id: 'edexcel-alevel-bus-global-marketing',
+    id: 'global-marketing',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',
@@ -1206,7 +1206,7 @@ export const edexcelALevelBusinessTopics: Topic[] = [
 
   // 4.4 Global industries and companies (multinational corporations)
   {
-    id: 'edexcel-alevel-bus-mncs',
+    id: 'mncs',
     examBoard: 'edexcel',
     qualification: 'a-level',
     subject: 'business',

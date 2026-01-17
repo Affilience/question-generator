@@ -9,7 +9,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
   // MODULE 2: Foundations in Biology
   // ============================================================================
   {
-    id: 'ocr-alevel-biology-foundations',
+    id: 'foundations',
     examBoard: 'ocr',
     name: 'Foundations in Biology',
     description: 'Cell structure, biological molecules, enzymes, and membranes',
@@ -114,7 +114,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
   // MODULE 3: Exchange and Transport
   // ============================================================================
   {
-    id: 'ocr-alevel-biology-exchange-transport',
+    id: 'exchange-transport',
     examBoard: 'ocr',
     name: 'Exchange and Transport',
     description: 'Gas exchange, transport systems in plants and animals',
@@ -189,7 +189,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
   // MODULE 4: Biodiversity, Evolution and Disease
   // ============================================================================
   {
-    id: 'ocr-alevel-biology-biodiversity',
+    id: 'biodiversity',
     examBoard: 'ocr',
     name: 'Biodiversity, Evolution and Disease',
     description: 'Classification, biodiversity, evolution, and communicable diseases',
@@ -274,7 +274,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
   // MODULE 5: Communication, Homeostasis and Energy
   // ============================================================================
   {
-    id: 'ocr-alevel-biology-communication-homeostasis',
+    id: 'communication-homeostasis',
     examBoard: 'ocr',
     name: 'Communication and Homeostasis',
     description: 'Nervous system, hormones, and homeostasis',
@@ -342,7 +342,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-biology-energy',
+    id: 'energy',
     examBoard: 'ocr',
     name: 'Energy for Biological Processes',
     description: 'Photosynthesis and respiration',
@@ -391,7 +391,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
   // MODULE 6: Genetics, Evolution and Ecosystems
   // ============================================================================
   {
-    id: 'ocr-alevel-biology-genetics',
+    id: 'genetics',
     examBoard: 'ocr',
     name: 'Genetics and Evolution',
     description: 'Inheritance, genetic technologies, and evolution',
@@ -444,7 +444,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-biology-ecosystems',
+    id: 'ecosystems',
     examBoard: 'ocr',
     name: 'Ecosystems',
     description: 'Populations, succession, and nutrient cycles',
@@ -500,7 +500,7 @@ export const ocrALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-biology-control-coordination',
+    id: 'control-coordination',
     examBoard: 'ocr',
     name: 'Animal and Plant Responses',
     description: 'Muscles, animal behaviour, and plant responses',

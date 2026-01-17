@@ -11,7 +11,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
   // PAPER 1: BUSINESS 1 – BUSINESS ACTIVITY, MARKETING AND PEOPLE
   // ============================================================================
   {
-    id: 'ocr-gcse-bus-business-activity',
+    id: 'business-activity',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',
@@ -124,7 +124,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-bus-marketing',
+    id: 'marketing',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',
@@ -275,7 +275,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-bus-people',
+    id: 'people',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',
@@ -411,7 +411,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
   // PAPER 2: BUSINESS 2 – OPERATIONS, FINANCE AND INFLUENCES ON BUSINESS
   // ============================================================================
   {
-    id: 'ocr-gcse-bus-production',
+    id: 'production',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',
@@ -543,7 +543,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-bus-finance',
+    id: 'finance',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',
@@ -665,7 +665,7 @@ export const ocrGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-bus-influences',
+    id: 'influences',
     examBoard: 'ocr',
     qualification: 'gcse',
     subject: 'business',

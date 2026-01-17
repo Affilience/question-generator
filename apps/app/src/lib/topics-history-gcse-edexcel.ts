@@ -9,7 +9,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
   // PAPER 1: THEMATIC STUDY AND HISTORIC ENVIRONMENT
   // ============================================================================
   {
-    id: 'edexcel-gcse-hist-crime-punishment',
+    id: 'crime-punishment',
     name: 'Crime and Punishment in Britain c1000-present',
     description: 'Changes in crime, punishment and law enforcement',
     icon: '⚖️',
@@ -91,7 +91,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-hist-medicine',
+    id: 'medicine',
     name: 'Medicine in Britain c1250-present',
     description: 'Development of medicine and treatment',
     icon: '💊',
@@ -165,7 +165,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-hist-warfare',
+    id: 'warfare',
     name: 'Warfare and British Society c1250-present',
     description: 'Changes in warfare through British history',
     icon: '⚔️',
@@ -233,7 +233,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
   // Section A: Period Studies
   // ============================================================================
   {
-    id: 'edexcel-gcse-hist-superpower-relations',
+    id: 'superpower-relations',
     name: 'Superpower Relations and the Cold War 1941-91',
     description: 'The Cold War from origins to collapse',
     icon: '❄️',
@@ -285,7 +285,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-hist-american-west',
+    id: 'american-west',
     name: 'The American West c1835-c1895',
     description: 'Settlement and conflict in the American West',
     icon: '🤠',
@@ -351,7 +351,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
   // PAPER 2: Section B - British Depth Studies
   // ============================================================================
   {
-    id: 'edexcel-gcse-hist-anglo-saxon-norman',
+    id: 'anglo-saxon-norman',
     name: 'Anglo-Saxon and Norman England c1060-88',
     description: 'England before and after the Norman Conquest',
     icon: '🏰',
@@ -402,7 +402,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-hist-early-elizabethan',
+    id: 'early-elizabethan',
     name: 'Early Elizabethan England 1558-88',
     description: 'The first thirty years of Elizabeth I',
     icon: '👑',
@@ -464,7 +464,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
   // PAPER 3: MODERN DEPTH STUDY
   // ============================================================================
   {
-    id: 'edexcel-gcse-hist-weimar-nazi',
+    id: 'weimar-nazi',
     name: 'Weimar and Nazi Germany 1918-39',
     description: 'Germany from defeat to dictatorship',
     icon: '🇩🇪',
@@ -558,7 +558,7 @@ export const edexcelGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-hist-usa-conflict',
+    id: 'usa-conflict',
     name: 'The USA 1954-75: Conflict at Home and Abroad',
     description: 'Civil Rights movement and Vietnam War',
     icon: '🇺🇸',

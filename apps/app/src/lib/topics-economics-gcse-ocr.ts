@@ -13,7 +13,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 1: Main economic groups and factors of production
   {
-    id: 'ocr-gcse-econ-groups',
+    id: 'groups',
     examBoard: 'ocr',
     name: 'Main Economic Groups and Factors of Production',
     description: 'Economic agents, factors of production, and resource allocation',
@@ -54,7 +54,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 2: Markets
   {
-    id: 'ocr-gcse-econ-markets',
+    id: 'markets',
     examBoard: 'ocr',
     name: 'Markets',
     description: 'Demand, supply, price determination, and price elasticity',
@@ -128,7 +128,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 3: Market failure and government intervention
   {
-    id: 'ocr-gcse-econ-market-failure',
+    id: 'market-failure',
     examBoard: 'ocr',
     name: 'Market Failure and Government Intervention',
     description: 'Types of market failure and corrective policies',
@@ -200,7 +200,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 4: Production, costs, revenue and profit
   {
-    id: 'ocr-gcse-econ-production',
+    id: 'production',
     examBoard: 'ocr',
     name: 'Production, Costs, Revenue and Profit',
     description: 'Business economics and financial concepts',
@@ -252,7 +252,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 5: The national economy
   {
-    id: 'ocr-gcse-econ-national',
+    id: 'national',
     examBoard: 'ocr',
     name: 'The National Economy',
     description: 'Macroeconomic indicators, economic growth, and the business cycle',
@@ -325,7 +325,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 6: Government economic objectives and policies
   {
-    id: 'ocr-gcse-econ-policy',
+    id: 'policy',
     examBoard: 'ocr',
     name: 'Government Economic Objectives and Policies',
     description: 'Fiscal policy, monetary policy, and supply-side policies',
@@ -391,7 +391,7 @@ export const ocrEconomicsTopics: Topic[] = [
 
   // Topic 7: International trade and the global economy
   {
-    id: 'ocr-gcse-econ-trade',
+    id: 'trade',
     examBoard: 'ocr',
     name: 'International Trade and the Global Economy',
     description: 'Trade, exchange rates, globalisation, and economic development',

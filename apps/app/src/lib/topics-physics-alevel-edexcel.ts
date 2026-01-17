@@ -13,7 +13,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 1: Working as a Physicist
   {
-    id: 'edexcel-alevel-physics-working',
+    id: 'working',
     name: 'Working as a Physicist',
     description: 'Scientific methodology, units, estimation and practical skills',
     icon: '🔬',
@@ -55,7 +55,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 2: Mechanics
   {
-    id: 'edexcel-alevel-physics-mechanics',
+    id: 'mechanics',
     name: 'Mechanics',
     description: 'Motion, forces, momentum, work, energy and power',
     icon: '⚙️',
@@ -133,7 +133,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 3: Electric Circuits
   {
-    id: 'edexcel-alevel-physics-circuits',
+    id: 'circuits',
     name: 'Electric Circuits',
     description: 'Current, voltage, resistance, EMF and circuit analysis',
     icon: '⚡',
@@ -199,7 +199,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 6: Further Mechanics
   {
-    id: 'edexcel-alevel-physics-further-mechanics',
+    id: 'further-mechanics',
     name: 'Further Mechanics',
     description: 'Circular motion and momentum in two dimensions',
     icon: '🔄',
@@ -233,7 +233,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 7: Electric and Magnetic Fields
   {
-    id: 'edexcel-alevel-physics-em-fields',
+    id: 'em-fields',
     name: 'Electric and Magnetic Fields',
     description: 'Electric fields, capacitance, magnetic fields and electromagnetic induction',
     icon: '🧲',
@@ -313,7 +313,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 8: Nuclear and Particle Physics
   {
-    id: 'edexcel-alevel-physics-nuclear-particle',
+    id: 'nuclear-particle',
     name: 'Nuclear and Particle Physics',
     description: 'Particle physics, nuclear structure and fundamental interactions',
     icon: '⚛️',
@@ -378,7 +378,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 4: Materials
   {
-    id: 'edexcel-alevel-physics-materials',
+    id: 'materials',
     name: 'Materials',
     description: 'Properties of materials, stress, strain and the Young modulus',
     icon: '🔩',
@@ -422,7 +422,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 5: Waves and Particle Nature of Light
   {
-    id: 'edexcel-alevel-physics-waves',
+    id: 'waves',
     name: 'Waves and Particle Nature of Light',
     description: 'Wave properties, superposition, diffraction and quantum phenomena',
     icon: '🌊',
@@ -502,7 +502,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 9: Thermodynamics
   {
-    id: 'edexcel-alevel-physics-thermodynamics',
+    id: 'thermodynamics',
     name: 'Thermodynamics',
     description: 'Heat transfer, ideal gases and kinetic theory',
     icon: '🌡️',
@@ -549,7 +549,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 10: Space
   {
-    id: 'edexcel-alevel-physics-space',
+    id: 'space',
     name: 'Space',
     description: 'Astrophysics, stellar evolution and cosmology',
     icon: '🔭',
@@ -607,7 +607,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 11: Nuclear Radiation
   {
-    id: 'edexcel-alevel-physics-nuclear-rad',
+    id: 'nuclear-rad',
     name: 'Nuclear Radiation',
     description: 'Radioactivity, decay, binding energy and nuclear reactions',
     icon: '☢️',
@@ -668,7 +668,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 12: Gravitational Fields
   {
-    id: 'edexcel-alevel-physics-gravity',
+    id: 'gravity',
     name: 'Gravitational Fields',
     description: 'Gravitational fields, potential and orbital motion',
     icon: '🌍',
@@ -715,7 +715,7 @@ export const edexcelALevelPhysicsTopics: Topic[] = [
 
   // Topic 13: Oscillations
   {
-    id: 'edexcel-alevel-physics-oscillations',
+    id: 'oscillations',
     name: 'Oscillations',
     description: 'Simple harmonic motion, damping and resonance',
     icon: '〰️',

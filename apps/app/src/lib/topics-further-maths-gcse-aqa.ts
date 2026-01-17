@@ -56,7 +56,7 @@ export const aqaGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Algebraic Manipulation',
     description: 'Advanced algebraic techniques beyond GCSE',
-    icon: 'x²',
+    icon: '📐',
     color: 'bg-purple-600',
     subtopics: [
       // Factor theorem
@@ -111,7 +111,7 @@ export const aqaGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Functions',
     description: 'Understanding and working with functions',
-    icon: 'f(x)',
+    icon: '📈',
     color: 'bg-cyan-600',
     subtopics: [
       // Function basics
@@ -176,7 +176,7 @@ export const aqaGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Differentiation',
     description: 'Introduction to calculus - finding gradients and rates of change',
-    icon: 'dy/dx',
+    icon: '📉',
     color: 'bg-red-600',
     subtopics: [
       // Basic differentiation
@@ -238,7 +238,7 @@ export const aqaGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Matrices',
     description: 'Introduction to matrix algebra and transformations',
-    icon: 'M',
+    icon: '📊',
     color: 'bg-emerald-600',
     subtopics: [
       // Matrix basics
@@ -305,7 +305,7 @@ export const aqaGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Trigonometry',
     description: 'Extended trigonometric concepts and identities',
-    icon: 'sinθ',
+    icon: '📐',
     color: 'bg-violet-600',
     subtopics: [
       // Basic trig functions

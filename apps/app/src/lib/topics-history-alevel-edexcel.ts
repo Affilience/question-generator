@@ -10,7 +10,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'edexcel-alevel-hist-russia-1917-91',
+    id: 'russia-1917-91',
     name: 'Paper 1E: Russia 1917-1991: From Lenin to Yeltsin',
     description: 'Soviet history from Revolution to collapse',
     icon: '🇷🇺',
@@ -72,7 +72,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-usa-1917-96',
+    id: 'usa-1917-96',
     name: 'Paper 1F: In Search of the American Dream 1917-96',
     description: 'America from WWI to Clinton',
     icon: '🇺🇸',
@@ -139,7 +139,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-germany-1918-89',
+    id: 'germany-1918-89',
     name: 'Paper 1G: Germany and West Germany 1918-1989',
     description: 'Germany from Weimar to reunification',
     icon: '🇩🇪',
@@ -198,7 +198,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-britain-1918-97',
+    id: 'britain-1918-97',
     name: 'Paper 1H: Britain Transformed 1918-97',
     description: 'Britain from WWI aftermath to Blair',
     icon: '🇬🇧',
@@ -267,7 +267,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'edexcel-alevel-hist-france-revolution',
+    id: 'france-revolution',
     name: 'Paper 2C.1: France in Revolution 1774-99',
     description: 'The French Revolution from causes to Napoleon',
     icon: '🇫🇷',
@@ -325,7 +325,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-russia-revolution',
+    id: 'russia-revolution',
     name: 'Paper 2C.2: Russia in Revolution 1894-1924',
     description: 'Russia from Nicholas II to death of Lenin',
     icon: '☭',
@@ -390,7 +390,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-maos-china',
+    id: 'maos-china',
     name: 'Paper 2E.1: Mao\'s China 1949-76',
     description: 'China under Mao Zedong',
     icon: '🇨🇳',
@@ -439,7 +439,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-south-africa',
+    id: 'south-africa',
     name: 'Paper 2F.2: South Africa 1948-94: Apartheid to Rainbow Nation',
     description: 'South Africa from apartheid to democracy',
     icon: '🇿🇦',
@@ -501,7 +501,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'edexcel-alevel-hist-civil-rights-usa',
+    id: 'civil-rights-usa',
     name: 'Paper 3 Option 39: Civil Rights in the USA 1865-1992',
     description: 'African American experience from slavery to modern era',
     icon: '✊',
@@ -568,7 +568,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-making-russia',
+    id: 'making-russia',
     name: 'Paper 3 Option 38: The Making of Modern Russia 1855-1991',
     description: 'Russia from Alexander II to end of USSR',
     icon: '🏛️',
@@ -621,7 +621,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-hist-warfare',
+    id: 'warfare',
     name: 'Paper 3 Option 37: Changing Nature of Warfare 1859-1991',
     description: 'Evolution of warfare from Crimea to Gulf War',
     icon: '⚔️',
@@ -675,7 +675,7 @@ export const edexcelALevelHistoryTopics: Topic[] = [
   // COURSEWORK
   // ============================================================================
   {
-    id: 'edexcel-alevel-hist-coursework',
+    id: 'coursework',
     name: 'Coursework: Independent Investigation',
     description: 'Historical investigation 3000-4000 words',
     icon: '📝',

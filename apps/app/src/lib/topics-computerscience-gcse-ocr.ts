@@ -13,7 +13,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.1 SYSTEMS ARCHITECTURE
   {
-    id: 'ocr-gcse-cs-systems-architecture',
+    id: 'systems-architecture',
     examBoard: 'ocr',
     name: 'Systems Architecture',
     description: 'CPU architecture, fetch-execute cycle, and embedded systems',
@@ -45,7 +45,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.2 MEMORY AND STORAGE
   {
-    id: 'ocr-gcse-cs-memory-storage',
+    id: 'memory-storage',
     examBoard: 'ocr',
     name: 'Memory and Storage',
     description: 'Primary and secondary storage, data storage units',
@@ -118,7 +118,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.3 COMPUTER NETWORKS, CONNECTIONS AND PROTOCOLS
   {
-    id: 'ocr-gcse-cs-networks',
+    id: 'networks',
     examBoard: 'ocr',
     name: 'Computer Networks, Connections and Protocols',
     description: 'Network types, topologies, protocols, and the internet',
@@ -171,7 +171,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.4 NETWORK SECURITY
   {
-    id: 'ocr-gcse-cs-network-security',
+    id: 'network-security',
     examBoard: 'ocr',
     name: 'Network Security',
     description: 'Threats to networks and prevention methods',
@@ -211,7 +211,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.5 SYSTEMS SOFTWARE
   {
-    id: 'ocr-gcse-cs-systems-software',
+    id: 'systems-software',
     examBoard: 'ocr',
     name: 'Systems Software',
     description: 'Operating systems and utility software',
@@ -241,7 +241,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 1.6 ETHICAL, LEGAL, CULTURAL AND ENVIRONMENTAL IMPACTS
   {
-    id: 'ocr-gcse-cs-impacts',
+    id: 'impacts',
     examBoard: 'ocr',
     name: 'Ethical, Legal, Cultural and Environmental Impacts',
     description: 'Impact of digital technology on society',
@@ -283,7 +283,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 2.1 ALGORITHMS
   {
-    id: 'ocr-gcse-cs-algorithms',
+    id: 'algorithms',
     examBoard: 'ocr',
     name: 'Algorithms',
     description: 'Computational thinking, algorithm design, searching and sorting',
@@ -322,7 +322,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 2.2 PROGRAMMING FUNDAMENTALS
   {
-    id: 'ocr-gcse-cs-programming-fundamentals',
+    id: 'programming-fundamentals',
     examBoard: 'ocr',
     name: 'Programming Fundamentals',
     description: 'Programming concepts, data types, and constructs',
@@ -376,7 +376,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 2.3 PRODUCING ROBUST PROGRAMS
   {
-    id: 'ocr-gcse-cs-robust-programs',
+    id: 'robust-programs',
     examBoard: 'ocr',
     name: 'Producing Robust Programs',
     description: 'Defensive design, testing, and maintainability',
@@ -419,7 +419,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 2.4 BOOLEAN LOGIC
   {
-    id: 'ocr-gcse-cs-boolean-logic',
+    id: 'boolean-logic',
     examBoard: 'ocr',
     name: 'Boolean Logic',
     description: 'Logic gates and truth tables',
@@ -445,7 +445,7 @@ export const ocrComputerScienceTopics: Topic[] = [
 
   // 2.5 PROGRAMMING LANGUAGES AND INTEGRATED DEVELOPMENT ENVIRONMENTS
   {
-    id: 'ocr-gcse-cs-languages-ide',
+    id: 'languages-ide',
     examBoard: 'ocr',
     name: 'Programming Languages and IDEs',
     description: 'High/low-level languages, translators, and development environments',

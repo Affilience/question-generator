@@ -10,7 +10,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
   // Topics 1-4 are compulsory
   // ============================================================================
   {
-    id: 'edexcel-alevel-psych-social',
+    id: 'social',
     name: 'Social Psychology',
     description: 'Obedience, prejudice, and social psychological explanations of behaviour',
     icon: '👥',
@@ -69,7 +69,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-cognitive',
+    id: 'cognitive',
     name: 'Cognitive Psychology',
     description: 'Memory processes, models of memory, and applications to eyewitness testimony',
     icon: '🧠',
@@ -129,7 +129,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-biological',
+    id: 'biological',
     name: 'Biological Psychology',
     description: 'Brain structure, neurotransmitters, aggression, and biological explanations of behaviour',
     icon: '🔬',
@@ -205,7 +205,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-learning',
+    id: 'learning',
     name: 'Learning Theories',
     description: 'Classical and operant conditioning, social learning, and phobias',
     icon: '📖',
@@ -291,7 +291,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
   // Topic 5 is compulsory, plus one option from Topics 6-8
   // ============================================================================
   {
-    id: 'edexcel-alevel-psych-clinical',
+    id: 'clinical',
     name: 'Clinical Psychology',
     description: 'Mental health, diagnosis of disorders, and treatments including schizophrenia and depression',
     icon: '🩺',
@@ -378,7 +378,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-criminological',
+    id: 'criminological',
     name: 'Criminological Psychology',
     description: 'Explanations of crime, eyewitness testimony, and treatment of offenders',
     icon: '🔍',
@@ -465,7 +465,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-child',
+    id: 'child',
     name: 'Child Psychology',
     description: 'Attachment, deprivation, daycare, and autism',
     icon: '👶',
@@ -550,7 +550,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-health',
+    id: 'health',
     name: 'Health Psychology',
     description: 'Stress, addiction, and health promotion',
     icon: '❤️',
@@ -657,7 +657,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
   // Topics 9 - Research methods and Issues/Debates
   // ============================================================================
   {
-    id: 'edexcel-alevel-psych-research-methods',
+    id: 'research-methods',
     name: 'Research Methods',
     description: 'Scientific methodology, experimental design, data analysis, and statistical testing',
     icon: '📊',
@@ -787,7 +787,7 @@ export const edexcelALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-psych-issues-debates',
+    id: 'issues-debates',
     name: 'Issues and Debates',
     description: 'Key debates and issues in psychology including ethics, nature-nurture, and reductionism',
     icon: '⚖️',

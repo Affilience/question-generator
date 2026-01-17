@@ -7,7 +7,7 @@ import { Topic } from '@/types';
 export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
   // Paper 1: Drama - Shakespeare (Tragedy)
   {
-    id: 'edexcel-alevel-eng-lit-othello',
+    id: 'lit-othello',
     name: 'Othello (Tragedy)',
     description: 'Shakespeare\'s domestic tragedy exploring jealousy, race, and betrayal',
     icon: '📖',
@@ -32,7 +32,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-hamlet',
+    id: 'lit-hamlet',
     name: 'Hamlet (Tragedy)',
     description: 'Shakespeare\'s greatest tragedy of revenge, madness, and mortality',
     icon: '📖',
@@ -57,7 +57,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-twelfth-night-alevel',
+    id: 'lit-twelfth-night-alevel',
     name: 'Twelfth Night (Comedy)',
     description: 'Shakespeare\'s romantic comedy of disguise, desire, and festive misrule',
     icon: '📖',
@@ -83,7 +83,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Paper 1: Drama - Other Drama
   {
-    id: 'edexcel-alevel-eng-lit-streetcar-edexcel',
+    id: 'lit-streetcar-edexcel',
     name: 'A Streetcar Named Desire',
     description: 'Williams\' Southern Gothic tragedy of illusion versus brutal reality',
     icon: '📖',
@@ -108,7 +108,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-hedda-gabler',
+    id: 'lit-hedda-gabler',
     name: 'Hedda Gabler',
     description: 'Ibsen\'s psychological tragedy of a woman trapped by society',
     icon: '📖',
@@ -134,7 +134,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Paper 2: Prose
   {
-    id: 'edexcel-alevel-eng-lit-frankenstein-alevel',
+    id: 'lit-frankenstein-alevel',
     name: 'Frankenstein',
     description: 'Shelley\'s Gothic novel exploring creation, responsibility, and monstrosity',
     icon: '📖',
@@ -159,7 +159,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-dracula',
+    id: 'lit-dracula',
     name: 'Dracula',
     description: 'Stoker\'s Gothic masterpiece exploring Victorian anxieties',
     icon: '📖',
@@ -184,7 +184,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-handmaids-edexcel',
+    id: 'lit-handmaids-edexcel',
     name: 'The Handmaid\'s Tale',
     description: 'Atwood\'s dystopia examining theocratic oppression of women',
     icon: '📖',
@@ -210,7 +210,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Paper 3: Poetry
   {
-    id: 'edexcel-alevel-eng-lit-keats-edexcel',
+    id: 'lit-keats-edexcel',
     name: 'John Keats: Poetry',
     description: 'Keats\'s Romantic poetry exploring beauty, mortality, and imagination',
     icon: '📖',
@@ -235,7 +235,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-rossetti',
+    id: 'lit-rossetti',
     name: 'Christina Rossetti: Poetry',
     description: 'Rossetti\'s Victorian poetry of faith, love, and female experience',
     icon: '📖',
@@ -260,7 +260,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-eng-lit-larkin',
+    id: 'lit-larkin',
     name: 'Philip Larkin: Poetry',
     description: 'Larkin\'s post-war poetry of mortality, loneliness, and everyday England',
     icon: '📖',
@@ -286,7 +286,7 @@ export const edexcelALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Coursework
   {
-    id: 'edexcel-alevel-eng-lit-coursework',
+    id: 'lit-coursework',
     name: 'Coursework: Comparative Essay',
     description: 'Independent comparative study of two texts',
     icon: '📖',

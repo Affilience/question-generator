@@ -9,7 +9,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
   // PAPER 1: COGNITION AND BEHAVIOUR (55%)
   // ============================================================================
   {
-    id: 'edexcel-gcse-psych-development',
+    id: 'development',
     name: 'Development',
     description: 'Brain development, nature vs nurture, and educational applications',
     icon: '👶',
@@ -62,7 +62,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-memory',
+    id: 'memory',
     name: 'Memory',
     description: 'How memory works, models of memory, and forgetting',
     icon: '🧠',
@@ -120,7 +120,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-psychological-problems',
+    id: 'psychological-problems',
     name: 'Psychological Problems',
     description: 'Mental health issues, causes and treatments of depression and addiction',
     icon: '🩺',
@@ -194,7 +194,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-brain-neuropsychology',
+    id: 'brain-neuropsychology',
     name: 'The Brain and Neuropsychology',
     description: 'Structure and function of the brain and how damage affects behaviour',
     icon: '🔬',
@@ -257,7 +257,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-social-influence',
+    id: 'social-influence',
     name: 'Social Influence',
     description: 'How others affect our behaviour including conformity, obedience, and crowds',
     icon: '👥',
@@ -328,7 +328,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
   // Section B is optional topics
   // ============================================================================
   {
-    id: 'edexcel-gcse-psych-research-methods',
+    id: 'research-methods',
     name: 'Research Methods',
     description: 'How psychologists conduct research and analyse data',
     icon: '📊',
@@ -416,7 +416,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
 
   // OPTIONAL TOPICS (Choose 2 from Sections B-F)
   {
-    id: 'edexcel-gcse-psych-criminal',
+    id: 'criminal',
     name: 'Criminal Psychology',
     description: 'Why do people become criminals? Biological, social and psychological factors',
     icon: '🔍',
@@ -474,7 +474,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-self',
+    id: 'self',
     name: 'The Self',
     description: 'What makes you who you are? Self-concept, personality and free will',
     icon: '🪞',
@@ -526,7 +526,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-perception',
+    id: 'perception',
     name: 'Perception',
     description: 'How do you interpret the world around you? Visual perception and illusions',
     icon: '👁️',
@@ -582,7 +582,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-sleep-dreaming',
+    id: 'sleep-dreaming',
     name: 'Sleep and Dreaming',
     description: 'Why do you need to sleep and dream? Sleep stages and theories of dreaming',
     icon: '😴',
@@ -640,7 +640,7 @@ export const edexcelGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-psych-language',
+    id: 'language',
     name: 'Language, Thought and Communication',
     description: 'How do you communicate with others? Verbal and non-verbal communication',
     icon: '💬',

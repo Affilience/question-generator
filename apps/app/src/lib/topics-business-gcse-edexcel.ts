@@ -12,7 +12,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
   // Assessed in Paper 1
   // ============================================================================
   {
-    id: 'edexcel-gcse-bus-enterprise-entrepreneurship',
+    id: 'enterprise-entrepreneurship',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -64,7 +64,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-spotting-opportunity',
+    id: 'spotting-opportunity',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -125,7 +125,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-putting-idea-into-practice',
+    id: 'putting-idea-into-practice',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -218,7 +218,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-making-business-effective',
+    id: 'making-business-effective',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -295,7 +295,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-external-influences',
+    id: 'external-influences',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -366,7 +366,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
   // Assessed in Paper 2
   // ============================================================================
   {
-    id: 'edexcel-gcse-bus-growing-business',
+    id: 'growing-business',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -452,7 +452,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-making-marketing-decisions',
+    id: 'making-marketing-decisions',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -535,7 +535,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-making-operational-decisions',
+    id: 'making-operational-decisions',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -621,7 +621,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-making-financial-decisions',
+    id: 'making-financial-decisions',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',
@@ -682,7 +682,7 @@ export const edexcelGCSEBusinessTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-bus-making-human-resource-decisions',
+    id: 'making-human-resource-decisions',
     examBoard: 'edexcel',
     qualification: 'gcse',
     subject: 'business',

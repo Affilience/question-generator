@@ -15,7 +15,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 1.1 Nature of economics
   {
-    id: 'edexcel-alevel-econ-nature',
+    id: 'nature',
     examBoard: 'edexcel',
     name: 'Nature of Economics',
     description: 'Economics as a social science, positive and normative economics',
@@ -34,7 +34,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 1.2 How markets work
   {
-    id: 'edexcel-alevel-econ-markets-work',
+    id: 'markets-work',
     examBoard: 'edexcel',
     name: 'How Markets Work',
     description: 'Demand, supply, price determination, and elasticities',
@@ -117,7 +117,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 1.3 Market failure
   {
-    id: 'edexcel-alevel-econ-market-failure',
+    id: 'market-failure',
     examBoard: 'edexcel',
     name: 'Market Failure',
     description: 'Types of market failure and government intervention',
@@ -187,7 +187,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.1 Measures of economic performance
   {
-    id: 'edexcel-alevel-econ-measures',
+    id: 'measures',
     examBoard: 'edexcel',
     name: 'Measures of Economic Performance',
     description: 'Economic indicators and measures of economic performance',
@@ -232,7 +232,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.2 Aggregate demand
   {
-    id: 'edexcel-alevel-econ-ad',
+    id: 'ad',
     examBoard: 'edexcel',
     name: 'Aggregate Demand',
     description: 'Components and determinants of aggregate demand',
@@ -282,7 +282,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.3 Aggregate supply
   {
-    id: 'edexcel-alevel-econ-as',
+    id: 'as',
     examBoard: 'edexcel',
     name: 'Aggregate Supply',
     description: 'Short-run and long-run aggregate supply',
@@ -313,7 +313,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.4 National income
   {
-    id: 'edexcel-alevel-econ-national-income',
+    id: 'national-income',
     examBoard: 'edexcel',
     name: 'National Income',
     description: 'AD/AS equilibrium, the multiplier, and business cycle',
@@ -348,7 +348,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.5 Economic growth
   {
-    id: 'edexcel-alevel-econ-growth',
+    id: 'growth',
     examBoard: 'edexcel',
     name: 'Economic Growth',
     description: 'Causes, benefits, and costs of economic growth',
@@ -382,7 +382,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 2.6 Macroeconomic objectives and policies
   {
-    id: 'edexcel-alevel-econ-objectives',
+    id: 'objectives',
     examBoard: 'edexcel',
     name: 'Macroeconomic Objectives and Policies',
     description: 'Government objectives, fiscal, monetary, and supply-side policies',
@@ -449,7 +449,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 3.1 Business growth
   {
-    id: 'edexcel-alevel-econ-business-growth',
+    id: 'business-growth',
     examBoard: 'edexcel',
     name: 'Business Growth',
     description: 'Sizes of firms, growth methods, and objectives',
@@ -490,7 +490,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 3.2 Business objectives
   {
-    id: 'edexcel-alevel-econ-business-objectives',
+    id: 'business-objectives',
     examBoard: 'edexcel',
     name: 'Business Objectives',
     description: 'Profit, revenue, and sales maximisation',
@@ -524,7 +524,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 3.3 Revenues, costs and profits
   {
-    id: 'edexcel-alevel-econ-costs-profits',
+    id: 'costs-profits',
     examBoard: 'edexcel',
     name: 'Revenues, Costs and Profits',
     description: 'Cost theory and economies of scale',
@@ -560,7 +560,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 3.4 Market structures
   {
-    id: 'edexcel-alevel-econ-structures',
+    id: 'structures',
     examBoard: 'edexcel',
     name: 'Market Structures',
     description: 'Perfect competition, monopolistic competition, oligopoly, and monopoly',
@@ -630,7 +630,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 3.5 Labour market
   {
-    id: 'edexcel-alevel-econ-labour',
+    id: 'labour',
     examBoard: 'edexcel',
     name: 'The Labour Market',
     description: 'Labour demand, supply, wage determination, and imperfections',
@@ -680,7 +680,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 4.1 International economics
   {
-    id: 'edexcel-alevel-econ-international',
+    id: 'international',
     examBoard: 'edexcel',
     name: 'International Economics',
     description: 'International trade, exchange rates, and trade policies',
@@ -748,7 +748,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 4.2 Poverty and inequality
   {
-    id: 'edexcel-alevel-econ-poverty',
+    id: 'poverty',
     examBoard: 'edexcel',
     name: 'Poverty and Inequality',
     description: 'Income and wealth distribution, poverty, and policies',
@@ -781,7 +781,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 4.3 Emerging and developing economies
   {
-    id: 'edexcel-alevel-econ-development',
+    id: 'development',
     examBoard: 'edexcel',
     name: 'Emerging and Developing Economies',
     description: 'Economic development, growth strategies, and globalisation',
@@ -828,7 +828,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 4.4 The financial sector
   {
-    id: 'edexcel-alevel-econ-financial',
+    id: 'financial',
     examBoard: 'edexcel',
     name: 'The Financial Sector',
     description: 'Financial markets, central banks, and regulation',
@@ -872,7 +872,7 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 4.5 Role of the state in the macroeconomy
   {
-    id: 'edexcel-alevel-econ-state',
+    id: 'state',
     examBoard: 'edexcel',
     name: 'Role of the State in the Macroeconomy',
     description: 'Public finances, fiscal policy, and austerity',

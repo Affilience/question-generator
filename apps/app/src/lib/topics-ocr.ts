@@ -19,7 +19,7 @@ import { Topic } from '@/types';
 
 export const ocrTopics: Topic[] = [
   {
-    id: 'ocr-number',
+    id: 'number',
     name: 'Number',
     description: 'Calculations, fractions, decimals, percentages, powers and roots',
     icon: '🔢',
@@ -87,7 +87,7 @@ export const ocrTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-algebra',
+    id: 'algebra',
     name: 'Algebra',
     description: 'Expressions, equations, formulae, sequences, graphs and functions',
     icon: '📐',
@@ -180,7 +180,7 @@ export const ocrTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-geometry',
+    id: 'geometry',
     name: 'Geometry & Measures',
     description: 'Properties of shapes, mensuration, trigonometry, vectors',
     icon: '📏',
@@ -264,7 +264,7 @@ export const ocrTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-statistics',
+    id: 'statistics',
     name: 'Statistics',
     description: 'Collecting, representing and analysing data',
     icon: '📊',
@@ -306,7 +306,7 @@ export const ocrTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-probability',
+    id: 'probability',
     name: 'Probability',
     description: 'Single events, combined events, tree diagrams',
     icon: '🎲',
@@ -337,7 +337,7 @@ export const ocrTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-ratio',
+    id: 'ratio',
     name: 'Ratio, Proportion & Rates',
     description: 'Ratio, proportion, rates of change, growth and decay',
     icon: '⚖️',

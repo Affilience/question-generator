@@ -55,7 +55,7 @@ export const aqaALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Complex Numbers',
     description: 'The complex number system, Argand diagrams, and De Moivre\'s theorem',
-    icon: 'i',
+    icon: '🔢',
     color: 'bg-purple-600',
     paperRestriction: 'Papers 1 & 2 (Compulsory)',
     subtopics: [
@@ -100,7 +100,7 @@ export const aqaALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Matrices',
     description: 'Matrix algebra, transformations, inverses, and eigenvalues',
-    icon: 'M',
+    icon: '📊',
     color: 'bg-blue-600',
     paperRestriction: 'Papers 1 & 2 (Compulsory)',
     subtopics: [
@@ -297,7 +297,7 @@ export const aqaALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Hyperbolic Functions',
     description: 'Hyperbolic functions, their inverses, and calculus',
-    icon: 'sinh',
+    icon: '〰️',
     color: 'bg-emerald-600',
     paperRestriction: 'Papers 1 & 2 (Compulsory)',
     subtopics: [
@@ -341,7 +341,7 @@ export const aqaALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Differential Equations',
     description: 'First and second order differential equations and their applications',
-    icon: 'dy/dx',
+    icon: '📉',
     color: 'bg-pink-600',
     paperRestriction: 'Papers 1 & 2 (Compulsory)',
     subtopics: [
@@ -557,7 +557,7 @@ export const aqaALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Discrete Mathematics',
     description: 'Graph theory, algorithms, networks, and combinatorics',
-    icon: 'G',
+    icon: '🔗',
     color: 'bg-rose-600',
     paperRestriction: 'Paper 3 or 4 (Option D)',
     subtopics: [

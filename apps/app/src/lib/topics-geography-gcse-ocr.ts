@@ -9,7 +9,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
   // COMPONENT 1: OUR NATURAL WORLD
   // ============================================================================
   {
-    id: 'ocr-gcse-geog-global-hazards',
+    id: 'global-hazards',
     name: 'Global Hazards',
     description: 'Climate patterns, tropical storms and tectonic hazards',
     icon: '🌪️',
@@ -83,7 +83,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-ecosystems',
+    id: 'ecosystems',
     name: 'Changing Climate and UK Ecosystems',
     description: 'UK ecosystems and ecosystem management',
     icon: '🌿',
@@ -139,7 +139,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-tropical-rainforests',
+    id: 'tropical-rainforests',
     name: 'Distinctive Landscapes - Rainforests',
     description: 'Tropical rainforest characteristics and management',
     icon: '🌴',
@@ -205,7 +205,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-polar-hot-deserts',
+    id: 'polar-hot-deserts',
     name: 'Distinctive Landscapes - Polar and Hot Deserts',
     description: 'Desert and polar environment characteristics',
     icon: '🏜️',
@@ -281,7 +281,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-uk-landscapes',
+    id: 'uk-landscapes',
     name: 'Physical Landscapes in the UK',
     description: 'Coastal and river processes and landforms',
     icon: '🏖️',
@@ -361,7 +361,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
   // COMPONENT 2: PEOPLE AND SOCIETY
   // ============================================================================
   {
-    id: 'ocr-gcse-geog-urban-futures',
+    id: 'urban-futures',
     name: 'Urban Futures',
     description: 'Urbanisation, urban living and sustainability',
     icon: '🏙️',
@@ -430,7 +430,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-dynamic-development',
+    id: 'dynamic-development',
     name: 'Dynamic Development',
     description: 'Global inequality and development strategies',
     icon: '📈',
@@ -492,7 +492,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-uk-in-21st-century',
+    id: 'uk-in-21st-century',
     name: 'The UK in the 21st Century',
     description: 'UK economy, connections and challenges',
     icon: '🇬🇧',
@@ -554,7 +554,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-geog-resource-reliance',
+    id: 'resource-reliance',
     name: 'Resource Reliance',
     description: 'Global resources and food security',
     icon: '🌾',
@@ -624,7 +624,7 @@ export const ocrGCSEGeographyTopics: Topic[] = [
   // COMPONENT 3: GEOGRAPHICAL EXPLORATION
   // ============================================================================
   {
-    id: 'ocr-gcse-geog-fieldwork-skills',
+    id: 'fieldwork-skills',
     name: 'Geographical Exploration and Skills',
     description: 'Fieldwork, decision-making and geographical skills',
     icon: '🧭',

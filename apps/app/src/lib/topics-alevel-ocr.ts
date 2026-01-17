@@ -30,7 +30,7 @@ export const ocrALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'ocr-alevel-proof',
+    id: 'proof',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Proof',
@@ -54,7 +54,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-algebra',
+    id: 'algebra',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Algebra and Functions',
@@ -122,7 +122,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-coordinate-geometry',
+    id: 'geometry',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Coordinate Geometry',
@@ -160,7 +160,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-sequences-series',
+    id: 'series',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Sequences and Series',
@@ -205,7 +205,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-trigonometry',
+    id: 'trigonometry',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Trigonometry',
@@ -269,12 +269,12 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-exponentials-logarithms',
+    id: 'logarithms',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Exponentials and Logarithms',
     description: 'Exponential and logarithmic functions, laws of logarithms, and modelling',
-    icon: 'e',
+    icon: '📈',
     color: 'bg-emerald-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -307,12 +307,12 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-differentiation',
+    id: 'differentiation',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Differentiation',
     description: 'Derivatives, chain rule, product rule, quotient rule, and applications',
-    icon: 'd/dx',
+    icon: '📉',
     color: 'bg-red-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -358,7 +358,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-integration',
+    id: 'integration',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Integration',
@@ -410,7 +410,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-numerical-methods',
+    id: 'methods',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Numerical Methods',
@@ -445,7 +445,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-vectors',
+    id: 'vectors',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Vectors',
@@ -491,7 +491,7 @@ export const ocrALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'ocr-alevel-statistical-sampling',
+    id: 'sampling',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Statistical Sampling',
@@ -525,7 +525,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-data-presentation',
+    id: 'presentation',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Data Presentation and Interpretation',
@@ -585,12 +585,12 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-probability',
+    id: 'probability',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Probability',
     description: 'Probability laws, Venn diagrams, tree diagrams, and conditional probability',
-    icon: 'P',
+    icon: '🎲',
     color: 'bg-lime-600',
     paperRestriction: 'Paper 2 only',
     subtopics: [
@@ -625,7 +625,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-statistical-distributions',
+    id: 'distributions',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Statistical Distributions',
@@ -668,12 +668,12 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-hypothesis-testing',
+    id: 'testing',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Statistical Hypothesis Testing',
     description: 'Hypothesis tests for proportions, means, and correlation',
-    icon: 'H₀',
+    icon: '📋',
     color: 'bg-rose-600',
     paperRestriction: 'Paper 2 only',
     subtopics: [
@@ -717,12 +717,12 @@ export const ocrALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'ocr-alevel-quantities-units',
+    id: 'units',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Quantities and Units in Mechanics',
     description: 'SI units, scalars, vectors, and modelling assumptions',
-    icon: 'SI',
+    icon: '📏',
     color: 'bg-stone-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -748,7 +748,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-kinematics',
+    id: 'kinematics',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Kinematics',
@@ -805,12 +805,12 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-forces-newtons-laws',
+    id: 'newtons-laws',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Forces and Newton\'s Laws',
     description: 'Force diagrams, Newton\'s laws, friction, and connected particles',
-    icon: 'F',
+    icon: '⚖️',
     color: 'bg-orange-700',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -861,7 +861,7 @@ export const ocrALevelTopics: Topic[] = [
   },
 
   {
-    id: 'ocr-alevel-moments',
+    id: 'moments',
     examBoard: 'ocr',
     qualification: 'a-level',
     name: 'Moments',

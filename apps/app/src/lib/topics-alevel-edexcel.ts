@@ -27,7 +27,7 @@ export const edexcelALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'edexcel-alevel-proof',
+    id: 'proof',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Proof',
@@ -53,7 +53,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-algebra',
+    id: 'algebra',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Algebra and Functions',
@@ -111,7 +111,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-coordinate-geometry',
+    id: 'geometry',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Coordinate Geometry',
@@ -147,7 +147,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-sequences-series',
+    id: 'series',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Sequences and Series',
@@ -184,7 +184,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-trigonometry',
+    id: 'trigonometry',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Trigonometry',
@@ -249,12 +249,12 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-exponentials-logarithms',
+    id: 'logarithms',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Exponentials and Logarithms',
     description: 'Exponential and logarithmic functions, laws of logarithms, and modelling',
-    icon: 'e',
+    icon: '📈',
     color: 'bg-emerald-600',
     paperRestriction: 'Papers 1 & 2',
     subtopics: [
@@ -286,12 +286,12 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-differentiation',
+    id: 'differentiation',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Differentiation',
     description: 'Derivatives, chain rule, product rule, quotient rule, implicit and parametric differentiation',
-    icon: 'd/dx',
+    icon: '📉',
     color: 'bg-red-600',
     paperRestriction: 'Papers 1 & 2',
     subtopics: [
@@ -341,7 +341,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-integration',
+    id: 'integration',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Integration',
@@ -390,7 +390,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-numerical-methods',
+    id: 'methods',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Numerical Methods',
@@ -424,7 +424,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-vectors',
+    id: 'vectors',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Vectors',
@@ -469,7 +469,7 @@ export const edexcelALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'edexcel-alevel-statistical-sampling',
+    id: 'sampling',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Statistical Sampling',
@@ -503,7 +503,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-data-presentation',
+    id: 'presentation',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Data Presentation and Interpretation',
@@ -559,12 +559,12 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-probability',
+    id: 'probability',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Probability',
     description: 'Probability laws, Venn diagrams, tree diagrams, and conditional probability',
-    icon: 'P',
+    icon: '🎲',
     color: 'bg-lime-600',
     paperRestriction: 'Paper 3 (Statistics)',
     subtopics: [
@@ -597,7 +597,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-statistical-distributions',
+    id: 'distributions',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Statistical Distributions',
@@ -639,12 +639,12 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-hypothesis-testing',
+    id: 'testing',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Statistical Hypothesis Testing',
     description: 'Hypothesis tests for proportions, means, and correlation',
-    icon: 'H₀',
+    icon: '📋',
     color: 'bg-rose-600',
     paperRestriction: 'Paper 3 (Statistics)',
     subtopics: [
@@ -687,12 +687,12 @@ export const edexcelALevelTopics: Topic[] = [
   // ============================================
 
   {
-    id: 'edexcel-alevel-quantities-units',
+    id: 'units',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Quantities and Units in Mechanics',
     description: 'SI units, scalars, vectors, and modelling assumptions',
-    icon: 'SI',
+    icon: '📏',
     color: 'bg-stone-600',
     paperRestriction: 'Paper 3 (Mechanics)',
     subtopics: [
@@ -716,7 +716,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-kinematics',
+    id: 'kinematics',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Kinematics',
@@ -768,12 +768,12 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-forces-newtons-laws',
+    id: 'newtons-laws',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Forces and Newton\'s Laws',
     description: 'Force diagrams, Newton\'s laws, friction, and connected particles',
-    icon: 'F',
+    icon: '⚖️',
     color: 'bg-orange-700',
     paperRestriction: 'Paper 3 (Mechanics)',
     subtopics: [
@@ -818,7 +818,7 @@ export const edexcelALevelTopics: Topic[] = [
   },
 
   {
-    id: 'edexcel-alevel-moments',
+    id: 'moments',
     examBoard: 'edexcel',
     qualification: 'a-level',
     name: 'Moments',

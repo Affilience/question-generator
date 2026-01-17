@@ -228,7 +228,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Exponentials and Logarithms',
     description: 'Exponential and logarithmic functions, laws of logarithms, and natural logarithms',
-    icon: 'e',
+    icon: '📈',
     color: 'bg-emerald-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -265,7 +265,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Differentiation',
     description: 'Derivatives of standard functions, chain rule, product rule, quotient rule, and applications',
-    icon: 'd/dx',
+    icon: '📉',
     color: 'bg-red-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -310,7 +310,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Integration',
     description: 'Integration as reverse of differentiation, definite integrals, areas, volumes, and methods of integration',
-    icon: 'integrate',
+    icon: '∫',
     color: 'bg-pink-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -392,7 +392,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Vectors',
     description: 'Vectors in 2D and 3D, magnitude, direction, position vectors, and geometric applications',
-    icon: 'vec',
+    icon: '➡️',
     color: 'bg-violet-600',
     paperRestriction: 'Papers 1, 2, 3',
     subtopics: [
@@ -431,7 +431,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Statistical Sampling',
     description: 'Populations, samples, and sampling methods',
-    icon: 'sample',
+    icon: '🎯',
     color: 'bg-amber-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -458,7 +458,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Data Presentation and Interpretation',
     description: 'Representing data, measures of central tendency and spread, correlation and regression',
-    icon: 'chart',
+    icon: '📊',
     color: 'bg-yellow-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -507,7 +507,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Probability',
     description: 'Probability laws, tree diagrams, Venn diagrams, and conditional probability',
-    icon: 'P',
+    icon: '🎲',
     color: 'bg-lime-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -541,7 +541,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Statistical Distributions',
     description: 'Discrete and continuous distributions including binomial and normal',
-    icon: 'dist',
+    icon: '🔔',
     color: 'bg-teal-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -580,7 +580,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Statistical Hypothesis Testing',
     description: 'Hypothesis tests for population parameters using binomial and normal distributions',
-    icon: 'H0',
+    icon: '📋',
     color: 'bg-rose-600',
     paperRestriction: 'Paper 3 only',
     subtopics: [
@@ -622,7 +622,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Quantities and Units in Mechanics',
     description: 'SI units, scalars, vectors, and fundamental mechanical quantities',
-    icon: 'SI',
+    icon: '📏',
     color: 'bg-stone-600',
     paperRestriction: 'Paper 2 only',
     subtopics: [
@@ -644,7 +644,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Kinematics',
     description: 'Motion in a straight line and in a plane, including projectiles',
-    icon: 'motion',
+    icon: '🏃',
     color: 'bg-sky-600',
     paperRestriction: 'Paper 2 only',
     subtopics: [
@@ -692,7 +692,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Forces and Newton\'s Laws',
     description: 'Force diagrams, Newton\'s laws, friction, and connected particles',
-    icon: 'F=ma',
+    icon: '⚖️',
     color: 'bg-orange-700',
     paperRestriction: 'Paper 2 only',
     subtopics: [
@@ -739,7 +739,7 @@ export const aqaALevelTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Moments',
     description: 'Moments of forces, equilibrium of rigid bodies, and centres of mass',
-    icon: 'moment',
+    icon: '🔄',
     color: 'bg-fuchsia-600',
     paperRestriction: 'Paper 2 only',
     subtopics: [

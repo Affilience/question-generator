@@ -11,7 +11,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 1: Development of Practical Skills
   // ==========================================
   {
-    id: 'ocr-alevel-physics-practical-skills',
+    id: 'practical-skills',
     name: 'Development of Practical Skills',
     description: 'Practical skills for written examination and practical endorsement',
     icon: '🔬',
@@ -58,7 +58,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 2: Foundations of Physics
   // ==========================================
   {
-    id: 'ocr-alevel-physics-foundations',
+    id: 'foundations',
     name: 'Foundations of Physics',
     description: 'Physical quantities, units, scalars, vectors and estimation',
     icon: '📐',
@@ -104,7 +104,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 3: Forces and Motion (Paper 1)
   // ==========================================
   {
-    id: 'ocr-alevel-physics-forces-motion',
+    id: 'forces-motion',
     name: 'Forces and Motion',
     description: 'Kinematics, dynamics, work, energy, materials and momentum',
     icon: '🚀',
@@ -213,7 +213,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 4: Electrons, Waves and Photons (Paper 2)
   // ==========================================
   {
-    id: 'ocr-alevel-physics-electrons-waves',
+    id: 'electrons-waves',
     name: 'Electrons, Waves and Photons',
     description: 'Electricity, waves, quantum physics and optics',
     icon: '⚡',
@@ -321,7 +321,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 5: Newtonian World and Astrophysics (Paper 1)
   // ==========================================
   {
-    id: 'ocr-alevel-physics-newtonian-astro',
+    id: 'newtonian-astro',
     name: 'Newtonian World and Astrophysics',
     description: 'Thermal physics, gases, circular motion, oscillations, gravitation and cosmology',
     icon: '🌌',
@@ -460,7 +460,7 @@ export const ocrALevelPhysicsTopics: Topic[] = [
   // MODULE 6: Particles and Medical Physics (Paper 2)
   // ==========================================
   {
-    id: 'ocr-alevel-physics-particles-medical',
+    id: 'particles-medical',
     name: 'Particles and Medical Physics',
     description: 'Capacitors, electric fields, electromagnetism, nuclear physics and medical imaging',
     icon: '⚛️',

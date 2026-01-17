@@ -11,7 +11,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 1: COMPUTATIONAL THINKING
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-computational-thinking',
+    id: 'computational-thinking',
     examBoard: 'edexcel',
     name: 'Computational Thinking',
     description: 'Algorithms, flowcharts, pseudocode, searching and sorting',
@@ -67,7 +67,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 2: DATA
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-data',
+    id: 'data',
     examBoard: 'edexcel',
     name: 'Data',
     description: 'Binary, hexadecimal, data representation, and compression',
@@ -132,7 +132,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 3: COMPUTERS
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-computers',
+    id: 'computers',
     examBoard: 'edexcel',
     name: 'Computers',
     description: 'Hardware, software, CPU architecture, and storage',
@@ -208,7 +208,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 4: NETWORKS
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-networks',
+    id: 'networks',
     examBoard: 'edexcel',
     name: 'Networks',
     description: 'Network types, topologies, protocols, and the internet',
@@ -268,7 +268,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 5: ISSUES AND IMPACT
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-issues-impact',
+    id: 'issues-impact',
     examBoard: 'edexcel',
     name: 'Issues and Impact',
     description: 'Security threats, ethics, legislation, and environmental impact',
@@ -336,7 +336,7 @@ export const edexcelComputerScienceTopics: Topic[] = [
   // TOPIC 6: PROBLEM SOLVING WITH PROGRAMMING
   // ============================================================================
   {
-    id: 'edexcel-gcse-cs-programming',
+    id: 'programming',
     examBoard: 'edexcel',
     name: 'Problem Solving with Programming',
     description: 'Programming constructs, data types, and techniques',

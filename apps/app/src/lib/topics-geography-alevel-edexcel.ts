@@ -9,7 +9,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
   // PAPER 1: PHYSICAL GEOGRAPHY
   // ============================================================================
   {
-    id: 'edexcel-alevel-geog-tectonic',
+    id: 'tectonic',
     name: 'Tectonic Processes and Hazards',
     description: 'Plate tectonics, volcanic and seismic hazards',
     icon: '🌋',
@@ -87,7 +87,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-coastal',
+    id: 'coastal',
     name: 'Coastal Landscapes and Change',
     description: 'Coastal systems, processes and management',
     icon: '🌊',
@@ -165,7 +165,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-glaciated',
+    id: 'glaciated',
     name: 'Glaciated Landscapes and Change',
     description: 'Glacial processes, landforms and environments',
     icon: '❄️',
@@ -247,7 +247,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-water-cycle',
+    id: 'water-cycle',
     name: 'The Water Cycle and Water Insecurity',
     description: 'Global water cycle and water security issues',
     icon: '💧',
@@ -316,7 +316,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-carbon-cycle',
+    id: 'carbon-cycle',
     name: 'The Carbon Cycle and Energy Security',
     description: 'Global carbon cycle and energy security',
     icon: '🔋',
@@ -393,7 +393,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
   // PAPER 2: HUMAN GEOGRAPHY
   // ============================================================================
   {
-    id: 'edexcel-alevel-geog-globalisation',
+    id: 'globalisation',
     name: 'Globalisation',
     description: 'Causes, consequences and management of globalisation',
     icon: '🌍',
@@ -457,7 +457,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-superpowers',
+    id: 'superpowers',
     name: 'Superpowers',
     description: 'Changing global power, geopolitics and influence',
     icon: '🏛️',
@@ -520,7 +520,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-regenerating-places',
+    id: 'regenerating-places',
     name: 'Regenerating Places',
     description: 'Place meanings, economic change and regeneration',
     icon: '🏗️',
@@ -588,7 +588,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-geog-diverse-places',
+    id: 'diverse-places',
     name: 'Diverse Places',
     description: 'Population change, diversity and place character',
     icon: '🏘️',
@@ -656,7 +656,7 @@ export const edexcelALevelGeographyTopics: Topic[] = [
   // PAPER 3: SYNOPTIC INVESTIGATION
   // ============================================================================
   {
-    id: 'edexcel-alevel-geog-synoptic',
+    id: 'synoptic',
     name: 'Synoptic Geography',
     description: 'Integrating knowledge across physical and human geography',
     icon: '🔗',

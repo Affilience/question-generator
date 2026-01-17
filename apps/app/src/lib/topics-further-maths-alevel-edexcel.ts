@@ -56,7 +56,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Complex Numbers',
     description: 'Complex number arithmetic, Argand diagrams, and modulus-argument form',
-    icon: 'i',
+    icon: '🔢',
     color: 'bg-purple-600',
     paperRestriction: 'Paper 1 (Core Pure 1)',
     subtopics: [
@@ -93,7 +93,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Matrices',
     description: 'Matrix operations, inverses, and transformations',
-    icon: 'M',
+    icon: '📊',
     color: 'bg-blue-600',
     paperRestriction: 'Paper 1 (Core Pure 1)',
     subtopics: [
@@ -232,7 +232,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Complex Numbers (Further)',
     description: 'De Moivre\'s theorem, exponential form, and nth roots',
-    icon: 'e^iθ',
+    icon: '🌀',
     color: 'bg-purple-700',
     paperRestriction: 'Paper 2 (Core Pure 2)',
     subtopics: [
@@ -264,7 +264,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Hyperbolic Functions',
     description: 'Definitions, identities, and calculus of hyperbolic functions',
-    icon: 'sinh',
+    icon: '〰️',
     color: 'bg-emerald-600',
     paperRestriction: 'Paper 2 (Core Pure 2)',
     subtopics: [
@@ -361,7 +361,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Differential Equations',
     description: 'First and second order differential equations',
-    icon: 'dy/dx',
+    icon: '📉',
     color: 'bg-pink-600',
     paperRestriction: 'Paper 2 (Core Pure 2)',
     subtopics: [
@@ -438,7 +438,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Further Pure Mathematics 2',
     description: 'Groups, number theory, and further topics',
-    icon: 'G',
+    icon: '🔗',
     color: 'bg-slate-700',
     paperRestriction: 'Paper 3B or 4B (Option)',
     subtopics: [
@@ -554,7 +554,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Further Mechanics 1',
     description: 'Momentum, work-energy, and elastic collisions',
-    icon: 'p',
+    icon: '🎯',
     color: 'bg-sky-600',
     paperRestriction: 'Paper 3E or 4E (Option)',
     subtopics: [
@@ -642,7 +642,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Decision Mathematics 1',
     description: 'Algorithms, graphs, and networks',
-    icon: 'G',
+    icon: '🔗',
     color: 'bg-rose-600',
     paperRestriction: 'Paper 3G or 4G (Option)',
     subtopics: [
@@ -686,7 +686,7 @@ export const edexcelALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Decision Mathematics 2',
     description: 'Linear programming, critical path analysis, and game theory',
-    icon: 'LP',
+    icon: '📈',
     color: 'bg-rose-700',
     paperRestriction: 'Paper 3H or 4H (Option)',
     subtopics: [

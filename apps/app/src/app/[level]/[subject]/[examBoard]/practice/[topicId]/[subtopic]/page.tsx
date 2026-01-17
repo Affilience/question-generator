@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTopicByIdSubjectBoardAndLevel, getExamBoardInfo, getExamBoardsByLevel } from '@/lib/topics';
+import { slugify } from '@/lib/seo/utils';
 import { updateProgress } from '@/lib/progress';
 import { getOrCreateUser, recordAttempt } from '@/lib/supabase';
 import { Question, Difficulty, Topic, ExamBoard, QualificationLevel, Subject } from '@/types';
@@ -29,38 +30,17 @@ export default function SubtopicPracticePage() {
   const params = useParams();
   const router = useRouter();
   const isMobile = useIsMobile();
-  const level = params.level as string;
-  const subject = params.subject as string;
-  const examBoard = params.examBoard as string;
-  const topicId = params.topicId as string;
-  const subtopicParam = params.subtopic as string;
-  const subtopic = decodeURIComponent(subtopicParam);
+
+  // Extract params with fallbacks for loading state
+  const level = (params.level as string) || '';
+  const subject = (params.subject as string) || '';
+  const examBoard = (params.examBoard as string) || '';
+  const topicId = (params.topicId as string) || '';
+  const subtopicParam = (params.subtopic as string) || '';
+  const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
   const isRandom = subtopic === 'random';
 
-  // Validate level
-  if (!validLevels.includes(level as QualificationLevel)) {
-    notFound();
-  }
-
-  // Validate subject
-  if (!validSubjects.includes(subject as Subject)) {
-    notFound();
-  }
-
-  // Validate exam board
-  if (!validExamBoards.includes(examBoard as ExamBoard)) {
-    notFound();
-  }
-
-  // Check if this exam board supports this level
-  const boardsForLevel = getExamBoardsByLevel(level as QualificationLevel);
-  if (!boardsForLevel.find(b => b.id === examBoard)) {
-    notFound();
-  }
-
-  const examBoardInfo = getExamBoardInfo(examBoard as ExamBoard);
-  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
-
+  // All hooks must be called before any conditional returns
   const [topic, setTopic] = useState<Topic | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [questionNumber, setQuestionNumber] = useState(1);
@@ -68,6 +48,7 @@ export default function SubtopicPracticePage() {
   const [sessionStats, setSessionStats] = useState({ attempted: 0, correct: 0 });
   const [currentSubtopic, setCurrentSubtopic] = useState<string>('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [paramsReady, setParamsReady] = useState(false);
   const seenQuestionsRef = useRef<string[]>([]);
   const hasGeneratedRef = useRef(false);
   const qualification = level as QualificationLevel;
@@ -81,10 +62,25 @@ export default function SubtopicPracticePage() {
     generate,
   } = useStreamingQuestion();
 
+  // Check if params are ready (handles client-side navigation)
   useEffect(() => {
-    const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
-    setTopic(foundTopic || null);
-  }, [topicId, subject, examBoard, level]);
+    if (subtopicParam && level && subject && examBoard && topicId) {
+      setParamsReady(true);
+    }
+  }, [subtopicParam, level, subject, examBoard, topicId]);
+
+  // Derived values (only valid when params are ready)
+  const examBoardInfo = paramsReady ? getExamBoardInfo(examBoard as ExamBoard) : null;
+  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
+  const boardsForLevel = paramsReady ? getExamBoardsByLevel(level as QualificationLevel) : [];
+
+  // Load topic when params are ready
+  useEffect(() => {
+    if (paramsReady) {
+      const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      setTopic(foundTopic || null);
+    }
+  }, [paramsReady, topicId, subject, examBoard, level]);
 
   // Initialize user for Supabase tracking
   useEffect(() => {
@@ -99,9 +95,11 @@ export default function SubtopicPracticePage() {
     setIsMarked(false);
 
     // For random mode, pick a random subtopic each time
+    // For specific subtopic, look up the actual name from the URL slug
+    const actualSubtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
     const selectedSubtopic = isRandom
       ? topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)]
-      : subtopic;
+      : actualSubtopicName || subtopic;
 
     setCurrentSubtopic(selectedSubtopic);
 
@@ -176,24 +174,51 @@ export default function SubtopicPracticePage() {
     setSessionStats({ attempted: 0, correct: 0 });
   };
 
-  if (!topic) {
+  // All hooks are now declared above. Conditional returns start here.
+
+  // Handle loading state - params not yet available
+  if (!paramsReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Topic not found</h1>
-          <Link
-            href={`/${level}/${subject}/${examBoard}`}
-            className="text-[#3b82f6] hover:text-[#60a5fa] transition-colors"
-          >
-            Return to topics
-          </Link>
-        </div>
+        <div className="animate-pulse text-[#666666]">Loading...</div>
       </div>
     );
   }
 
+  // Validate level
+  if (!validLevels.includes(level as QualificationLevel)) {
+    notFound();
+  }
+
+  // Validate subject
+  if (!validSubjects.includes(subject as Subject)) {
+    notFound();
+  }
+
+  // Validate exam board
+  if (!validExamBoards.includes(examBoard as ExamBoard)) {
+    notFound();
+  }
+
+  // Check if this exam board supports this level
+  if (!boardsForLevel.find(b => b.id === examBoard)) {
+    notFound();
+  }
+
+  // Show loading while topic is being fetched
+  if (!topic) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-[#666666]">Loading topic...</div>
+      </div>
+    );
+  }
+
+  // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
+  const subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+
   // Validate subtopic exists (unless random)
-  if (!isRandom && !topic.subtopics.includes(subtopic)) {
+  if (!isRandom && !subtopicName) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -210,7 +235,9 @@ export default function SubtopicPracticePage() {
     );
   }
 
-  const displaySubtopic = isRandom ? currentSubtopic : subtopic;
+  // Use the actual subtopic name for display and API calls
+  const resolvedSubtopic = subtopicName || '';
+  const displaySubtopic = isRandom ? currentSubtopic : resolvedSubtopic;
   const isHigher = displaySubtopic.includes('(H)');
 
   // Mobile TikTok-style feed view
@@ -218,7 +245,7 @@ export default function SubtopicPracticePage() {
     return (
       <QuestionFeed
         topic={topic}
-        subtopic={isRandom ? 'random' : subtopic}
+        subtopic={isRandom ? 'random' : resolvedSubtopic}
         examBoard={examBoard}
         level={level}
         subject={subject}

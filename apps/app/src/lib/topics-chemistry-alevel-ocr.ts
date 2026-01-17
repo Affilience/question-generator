@@ -13,7 +13,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 2.1 Atoms, ions and compounds
   {
-    id: 'ocr-alevel-chemistry-atoms-compounds',
+    id: 'atoms-compounds',
     name: 'Atoms, Ions and Compounds',
     description: 'Atomic structure, isotopes, and compound formulae',
     icon: '⚛️',
@@ -41,7 +41,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 2.2 Amount of substance
   {
-    id: 'ocr-alevel-chemistry-amount-substance',
+    id: 'amount-substance',
     name: 'Amount of Substance',
     description: 'The mole, concentration, gas volumes, and equations',
     icon: '⚖️',
@@ -79,7 +79,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 2.3 Acids, bases and redox
   {
-    id: 'ocr-alevel-chemistry-acids-redox',
+    id: 'acids-redox',
     name: 'Acids, Bases and Redox',
     description: 'Acid-base reactions, oxidation states, and redox equations',
     icon: '🧪',
@@ -113,7 +113,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 2.4 Electrons, bonding and structure
   {
-    id: 'ocr-alevel-chemistry-bonding',
+    id: 'bonding',
     name: 'Electrons, Bonding and Structure',
     description: 'Electron configuration, bonding types, and molecular shapes',
     icon: '🔗',
@@ -167,7 +167,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 3.1 The periodic table
   {
-    id: 'ocr-alevel-chemistry-periodic-table',
+    id: 'periodic-table',
     name: 'The Periodic Table',
     description: 'Periodicity, Group 2, and Group 17 (halogens)',
     icon: '📊',
@@ -205,7 +205,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 3.2 Physical chemistry
   {
-    id: 'ocr-alevel-chemistry-physical1',
+    id: 'physical1',
     name: 'Physical Chemistry',
     description: 'Enthalpy changes, rates of reaction, and equilibrium',
     icon: '🔥',
@@ -257,7 +257,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.1 Basic concepts
   {
-    id: 'ocr-alevel-chemistry-organic-basics',
+    id: 'organic-basics',
     name: 'Basic Concepts in Organic Chemistry',
     description: 'Nomenclature, isomerism, and reaction mechanisms',
     icon: '🧬',
@@ -299,7 +299,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.2 Alkanes
   {
-    id: 'ocr-alevel-chemistry-alkanes',
+    id: 'alkanes',
     name: 'Alkanes',
     description: 'Properties and reactions of alkanes',
     icon: '⛽',
@@ -334,7 +334,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.3 Alkenes
   {
-    id: 'ocr-alevel-chemistry-alkenes',
+    id: 'alkenes',
     name: 'Alkenes',
     description: 'Structure and reactions of alkenes',
     icon: '⚗️',
@@ -366,7 +366,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.4 Alcohols
   {
-    id: 'ocr-alevel-chemistry-alcohols',
+    id: 'alcohols',
     name: 'Alcohols',
     description: 'Classification, properties and reactions of alcohols',
     icon: '🍷',
@@ -399,7 +399,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.5 Halogenoalkanes
   {
-    id: 'ocr-alevel-chemistry-halogenoalkanes',
+    id: 'halogenoalkanes',
     name: 'Halogenoalkanes',
     description: 'Reactions of halogenoalkanes',
     icon: '🔴',
@@ -432,7 +432,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 4.6 Organic synthesis
   {
-    id: 'ocr-alevel-chemistry-synthesis-as',
+    id: 'synthesis-as',
     name: 'Organic Synthesis (AS)',
     description: 'Practical techniques and synthesis routes',
     icon: '🔬',
@@ -459,7 +459,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 5.1 Rates of reaction
   {
-    id: 'ocr-alevel-chemistry-rates',
+    id: 'rates',
     name: 'Rates of Reaction',
     description: 'Rate equations, orders, and mechanisms',
     icon: '📈',
@@ -492,7 +492,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 5.2 Equilibrium
   {
-    id: 'ocr-alevel-chemistry-equilibrium',
+    id: 'equilibrium',
     name: 'Equilibrium',
     description: 'Kp, Kc, and acid-base equilibria',
     icon: '⚖️',
@@ -532,7 +532,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 5.3 Enthalpy and entropy
   {
-    id: 'ocr-alevel-chemistry-thermodynamics',
+    id: 'thermodynamics',
     name: 'Enthalpy and Entropy',
     description: 'Born-Haber cycles, entropy, and Gibbs free energy',
     icon: '🌡️',
@@ -566,7 +566,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 5.4 Redox
   {
-    id: 'ocr-alevel-chemistry-redox2',
+    id: 'redox2',
     name: 'Redox and Electrode Potentials',
     description: 'Electrode potentials and electrochemical cells',
     icon: '🔋',
@@ -597,7 +597,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 5.5 Transition metals
   {
-    id: 'ocr-alevel-chemistry-transition-metals',
+    id: 'transition-metals',
     name: 'Transition Elements',
     description: 'Properties, complexes, and reactions of transition metals',
     icon: '🔩',
@@ -649,7 +649,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.1 Aromatic compounds
   {
-    id: 'ocr-alevel-chemistry-aromatics',
+    id: 'aromatics',
     name: 'Aromatic Compounds',
     description: 'Benzene structure and electrophilic substitution',
     icon: '💎',
@@ -684,7 +684,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.2 Carbonyl compounds
   {
-    id: 'ocr-alevel-chemistry-carbonyls',
+    id: 'carbonyls',
     name: 'Carbonyl Compounds',
     description: 'Aldehydes and ketones',
     icon: '🫧',
@@ -713,7 +713,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.3 Carboxylic acids and derivatives
   {
-    id: 'ocr-alevel-chemistry-carboxylic-acids',
+    id: 'carboxylic-acids',
     name: 'Carboxylic Acids and Derivatives',
     description: 'Carboxylic acids, esters, and acyl chlorides',
     icon: '🧫',
@@ -746,7 +746,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.4 Amines
   {
-    id: 'ocr-alevel-chemistry-amines',
+    id: 'amines',
     name: 'Amines',
     description: 'Properties and reactions of amines',
     icon: '🔷',
@@ -775,7 +775,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.5 Polymers
   {
-    id: 'ocr-alevel-chemistry-polymers',
+    id: 'polymers',
     name: 'Polymers',
     description: 'Addition and condensation polymers',
     icon: '🔗',
@@ -804,7 +804,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.6 Amino acids and proteins
   {
-    id: 'ocr-alevel-chemistry-amino-acids',
+    id: 'amino-acids',
     name: 'Amino Acids, Proteins and DNA',
     description: 'Structure and properties of amino acids and proteins',
     icon: '🧬',
@@ -836,7 +836,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.7 Organic synthesis
   {
-    id: 'ocr-alevel-chemistry-synthesis',
+    id: 'synthesis',
     name: 'Organic Synthesis',
     description: 'Planning multi-step syntheses',
     icon: '🗺️',
@@ -861,7 +861,7 @@ export const ocrALevelChemistryTopics: Topic[] = [
 
   // 6.8 Chromatography and spectroscopy
   {
-    id: 'ocr-alevel-chemistry-analysis',
+    id: 'analysis',
     name: 'Chromatography and Spectroscopy',
     description: 'NMR, mass spectrometry, and chromatography',
     icon: '📡',

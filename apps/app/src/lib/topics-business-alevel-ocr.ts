@@ -14,7 +14,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // The local business environment
   {
-    id: 'ocr-alevel-bus-local-environment',
+    id: 'local-environment',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -88,7 +88,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Marketing
   {
-    id: 'ocr-alevel-bus-marketing',
+    id: 'marketing',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -208,7 +208,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // People
   {
-    id: 'ocr-alevel-bus-people',
+    id: 'people',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -310,7 +310,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Operations
   {
-    id: 'ocr-alevel-bus-operations',
+    id: 'operations',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -384,7 +384,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Finance
   {
-    id: 'ocr-alevel-bus-finance',
+    id: 'finance',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -478,7 +478,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // External environment
   {
-    id: 'ocr-alevel-bus-external-environment',
+    id: 'external-environment',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -553,7 +553,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Business strategy
   {
-    id: 'ocr-alevel-bus-strategy',
+    id: 'strategy',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -624,7 +624,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Decision making
   {
-    id: 'ocr-alevel-bus-decision-making',
+    id: 'decision-making',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -679,7 +679,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Managing change
   {
-    id: 'ocr-alevel-bus-change',
+    id: 'change',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -737,7 +737,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Globalisation
   {
-    id: 'ocr-alevel-bus-globalisation',
+    id: 'globalisation',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -783,7 +783,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Global marketing
   {
-    id: 'ocr-alevel-bus-global-marketing',
+    id: 'global-marketing',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -830,7 +830,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Global operations
   {
-    id: 'ocr-alevel-bus-global-operations',
+    id: 'global-operations',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',
@@ -875,7 +875,7 @@ export const ocrALevelBusinessTopics: Topic[] = [
 
   // Ethics and sustainability
   {
-    id: 'ocr-alevel-bus-ethics-sustainability',
+    id: 'ethics-sustainability',
     examBoard: 'ocr',
     qualification: 'a-level',
     subject: 'business',

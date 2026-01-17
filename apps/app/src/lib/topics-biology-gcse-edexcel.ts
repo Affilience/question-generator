@@ -9,7 +9,7 @@ export const edexcelBiologyTopics: Topic[] = [
   // PAPER 1 TOPICS (Topics 1-5)
   // ============================================================================
   {
-    id: 'edexcel-gcse-biology-cells',
+    id: 'cells',
     examBoard: 'edexcel',
     name: 'Key Concepts in Biology',
     description: 'Cells, microscopy, enzymes, transport, and cell division',
@@ -71,7 +71,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-systems',
+    id: 'systems',
     examBoard: 'edexcel',
     name: 'Cells and Control',
     description: 'Mitosis, cell growth, nervous system, and the brain',
@@ -119,7 +119,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-genetics',
+    id: 'genetics',
     examBoard: 'edexcel',
     name: 'Genetics',
     description: 'DNA, protein synthesis, genetic inheritance, and genetic modification',
@@ -179,7 +179,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-health',
+    id: 'health',
     examBoard: 'edexcel',
     name: 'Natural Selection and Genetic Modification',
     description: 'Evolution, natural selection, and classification',
@@ -221,7 +221,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-health-disease',
+    id: 'health-disease',
     examBoard: 'edexcel',
     name: 'Health, Disease and the Development of Medicines',
     description: 'Communicable diseases, immune system, and drug development',
@@ -292,7 +292,7 @@ export const edexcelBiologyTopics: Topic[] = [
   // PAPER 2 TOPICS (Topics 6-9)
   // ============================================================================
   {
-    id: 'edexcel-gcse-biology-plant-structures',
+    id: 'plant-structures',
     examBoard: 'edexcel',
     name: 'Plant Structures and their Functions',
     description: 'Photosynthesis, transport in plants, and plant hormones',
@@ -340,7 +340,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-animal-coordination',
+    id: 'animal-coordination',
     examBoard: 'edexcel',
     name: 'Animal Coordination, Control and Homeostasis',
     description: 'Hormones, blood glucose control, and maintaining internal conditions',
@@ -418,7 +418,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-exchange',
+    id: 'exchange',
     examBoard: 'edexcel',
     name: 'Exchange and Transport in Animals',
     description: 'Gas exchange, circulatory system, and blood',
@@ -468,7 +468,7 @@ export const edexcelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-biology-ecosystems',
+    id: 'ecosystems',
     examBoard: 'edexcel',
     name: 'Ecosystems and Material Cycles',
     description: 'Ecology, food chains, and nutrient cycles',

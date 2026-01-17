@@ -49,7 +49,7 @@ export const ocrALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Complex Numbers',
     description: 'Fundamentals of complex numbers and Argand diagrams',
-    icon: 'i',
+    icon: '🔢',
     color: 'bg-purple-600',
     paperRestriction: 'Pure Core 1 (Compulsory)',
     subtopics: [
@@ -83,7 +83,7 @@ export const ocrALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Matrices and Linear Transformations',
     description: 'Matrix algebra and geometric transformations',
-    icon: 'M',
+    icon: '📊',
     color: 'bg-blue-600',
     paperRestriction: 'Pure Core 1 (Compulsory)',
     subtopics: [
@@ -183,7 +183,7 @@ export const ocrALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Complex Numbers (Further)',
     description: 'De Moivre\'s theorem and roots of unity',
-    icon: 'e^iθ',
+    icon: '🌀',
     color: 'bg-purple-700',
     paperRestriction: 'Pure Core 2 (Compulsory)',
     subtopics: [
@@ -209,7 +209,7 @@ export const ocrALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Hyperbolic Functions',
     description: 'Hyperbolic functions and their calculus',
-    icon: 'sinh',
+    icon: '〰️',
     color: 'bg-emerald-600',
     paperRestriction: 'Pure Core 2 (Compulsory)',
     subtopics: [
@@ -386,7 +386,7 @@ export const ocrALevelFurtherMathsTopics: Topic[] = [
     qualification: 'a-level',
     name: 'Discrete Mathematics',
     description: 'Algorithms, graphs, and combinatorics',
-    icon: 'G',
+    icon: '🔗',
     color: 'bg-rose-600',
     paperRestriction: 'Discrete (Option)',
     subtopics: [

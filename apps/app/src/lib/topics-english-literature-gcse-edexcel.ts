@@ -7,7 +7,7 @@ import { Topic } from '@/types';
 export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
   // Paper 1: Shakespeare and Post-1914 Literature
   {
-    id: 'edexcel-gcse-eng-lit-macbeth',
+    id: 'lit-macbeth',
     name: 'Macbeth',
     description: 'Shakespeare\'s tragedy exploring ambition, guilt, and supernatural forces',
     icon: '📖',
@@ -32,7 +32,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-romeo-juliet',
+    id: 'lit-romeo-juliet',
     name: 'Romeo and Juliet',
     description: 'Shakespeare\'s tragic love story set against family feuding',
     icon: '📖',
@@ -57,7 +57,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-merchant-venice',
+    id: 'lit-merchant-venice',
     name: 'The Merchant of Venice',
     description: 'Shakespeare\'s problematic comedy exploring mercy, justice, and prejudice',
     icon: '📖',
@@ -82,7 +82,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-much-ado',
+    id: 'lit-much-ado',
     name: 'Much Ado About Nothing',
     description: 'Shakespeare\'s romantic comedy exploring love, deception, and reputation',
     icon: '📖',
@@ -107,7 +107,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-twelfth-night',
+    id: 'lit-twelfth-night',
     name: 'Twelfth Night',
     description: 'Shakespeare\'s comedy of mistaken identity, love, and festivity',
     icon: '📖',
@@ -133,7 +133,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
   },
   // 19th Century Novels
   {
-    id: 'edexcel-gcse-eng-lit-christmas-carol',
+    id: 'lit-christmas-carol',
     name: 'A Christmas Carol',
     description: 'Dickens\' moral tale of redemption and social conscience',
     icon: '📖',
@@ -158,7 +158,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-jekyll-hyde',
+    id: 'lit-jekyll-hyde',
     name: 'The Strange Case of Dr Jekyll and Mr Hyde',
     description: 'Stevenson\'s Gothic novella exploring the dual nature of humanity',
     icon: '📖',
@@ -183,7 +183,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-frankenstein',
+    id: 'lit-frankenstein',
     name: 'Frankenstein',
     description: 'Shelley\'s Gothic novel about creation, responsibility, and isolation',
     icon: '📖',
@@ -208,7 +208,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-jane-eyre',
+    id: 'lit-jane-eyre',
     name: 'Jane Eyre',
     description: 'Brontë\'s novel of a governess\'s journey to independence and love',
     icon: '📖',
@@ -233,7 +233,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-pride-prejudice',
+    id: 'lit-pride-prejudice',
     name: 'Pride and Prejudice',
     description: 'Austen\'s witty novel of manners exploring marriage and social class',
     icon: '📖',
@@ -259,7 +259,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
   },
   // Post-1914 Literature
   {
-    id: 'edexcel-gcse-eng-lit-inspector-calls',
+    id: 'lit-inspector-calls',
     name: 'An Inspector Calls',
     description: 'Priestley\'s morality play examining responsibility and class division',
     icon: '📖',
@@ -284,7 +284,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-animal-farm',
+    id: 'lit-animal-farm',
     name: 'Animal Farm',
     description: 'Orwell\'s allegorical novella satirising totalitarianism and revolution',
     icon: '📖',
@@ -310,7 +310,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
   },
   // Poetry Anthology
   {
-    id: 'edexcel-gcse-eng-lit-poetry-relationships',
+    id: 'lit-poetry-relationships',
     name: 'Poetry Anthology: Relationships',
     description: 'Edexcel poetry collection exploring various aspects of human relationships',
     icon: '📖',
@@ -335,7 +335,7 @@ export const edexcelGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-eng-lit-unseen-poetry',
+    id: 'lit-unseen-poetry',
     name: 'Unseen Poetry',
     description: 'Skills for responding to unfamiliar poems in examination conditions',
     icon: '📖',

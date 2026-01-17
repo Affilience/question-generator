@@ -9,7 +9,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
   // COMPONENT 1: PHYSICAL SYSTEMS (H481/01)
   // ============================================================================
   {
-    id: 'ocr-alevel-geog-earth-life-support',
+    id: 'earth-life-support',
     name: "Earth's Life Support Systems",
     description: 'Water and carbon cycles as critical life support systems',
     icon: '🌍',
@@ -85,7 +85,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-landscape-systems',
+    id: 'landscape-systems',
     name: 'Landscape Systems',
     description: 'Coastal and glaciated landscapes - processes and landforms',
     icon: '🏔️',
@@ -190,7 +190,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
   // COMPONENT 2: HUMAN INTERACTIONS (H481/02)
   // ============================================================================
   {
-    id: 'ocr-alevel-geog-changing-spaces',
+    id: 'changing-spaces',
     name: 'Changing Spaces; Making Places',
     description: 'Place meanings, identity and change',
     icon: '🏘️',
@@ -258,7 +258,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-global-connections',
+    id: 'global-connections',
     name: 'Global Connections',
     description: 'Trade, migration, sovereignty and human rights',
     icon: '🌐',
@@ -335,7 +335,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
   // COMPONENT 3: GEOGRAPHICAL DEBATES (H481/03)
   // ============================================================================
   {
-    id: 'ocr-alevel-geog-climate-change',
+    id: 'climate-change',
     name: 'Climate Change',
     description: 'Causes, impacts and responses to climate change',
     icon: '🌡️',
@@ -398,7 +398,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-disease-dilemmas',
+    id: 'disease-dilemmas',
     name: 'Disease Dilemmas',
     description: 'Global health patterns, disease impacts and management',
     icon: '🏥',
@@ -459,7 +459,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-exploring-oceans',
+    id: 'exploring-oceans',
     name: 'Exploring Oceans',
     description: 'Ocean governance, resources and environmental challenges',
     icon: '🌊',
@@ -518,7 +518,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-future-food',
+    id: 'future-food',
     name: 'Future of Food',
     description: 'Food security, production systems and sustainability',
     icon: '🌾',
@@ -584,7 +584,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-geog-hazardous-earth',
+    id: 'hazardous-earth',
     name: 'Hazardous Earth',
     description: 'Tectonic hazards and atmospheric hazards',
     icon: '⚠️',
@@ -656,7 +656,7 @@ export const ocrALevelGeographyTopics: Topic[] = [
   // FIELDWORK AND SKILLS
   // ============================================================================
   {
-    id: 'ocr-alevel-geog-skills',
+    id: 'skills',
     name: 'Geographical Skills and Investigation',
     description: 'Enquiry process, fieldwork and data skills',
     icon: '📊',

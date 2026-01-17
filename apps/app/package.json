@@ -9,9 +9,13 @@
     "lint": "eslint",
     "prewarm": "tsx scripts/prewarm-cache.ts",
     "prewarm:gcse": "tsx scripts/prewarm-cache.ts --level=gcse",
-    "prewarm:alevel": "tsx scripts/prewarm-cache.ts --level=a-level"
+    "prewarm:alevel": "tsx scripts/prewarm-cache.ts --level=a-level",
+    "generate-content": "tsx scripts/generate-seo-content.ts",
+    "generate-content:gcse-maths": "tsx scripts/generate-seo-content.ts --level gcse --subject maths --batch 100",
+    "generate-content:gcse-science": "tsx scripts/generate-seo-content.ts --level gcse --subject physics --batch 50 && tsx scripts/generate-seo-content.ts --level gcse --subject chemistry --batch 50 && tsx scripts/generate-seo-content.ts --level gcse --subject biology --batch 50"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@supabase/supabase-js": "^2.90.1",
     "@types/animejs": "^3.1.13",
     "@upstash/redis": "^1.36.1",

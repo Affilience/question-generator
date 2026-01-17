@@ -9,7 +9,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
   // PAPER 1: THE PHYSICAL ENVIRONMENT
   // ============================================================================
   {
-    id: 'edexcel-gcse-geog-hazardous-earth',
+    id: 'hazardous-earth',
     name: 'The Changing Climate and Hazardous Earth',
     description: 'Past climate, climate change and tectonic hazards',
     icon: '🌋',
@@ -88,7 +88,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-geog-coastal-landscapes',
+    id: 'coastal-landscapes',
     name: 'Coastal Landscapes and Processes',
     description: 'Coastal processes, landforms and management',
     icon: '🌊',
@@ -165,7 +165,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-geog-river-landscapes',
+    id: 'river-landscapes',
     name: 'River Landscapes and Processes',
     description: 'River processes, landforms and flooding',
     icon: '🏞️',
@@ -246,7 +246,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-geog-glaciated-landscapes',
+    id: 'glaciated-landscapes',
     name: 'Glaciated Upland Landscapes',
     description: 'Glacial processes and landforms in the UK',
     icon: '❄️',
@@ -307,7 +307,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
   // PAPER 2: THE HUMAN ENVIRONMENT
   // ============================================================================
   {
-    id: 'edexcel-gcse-geog-changing-cities',
+    id: 'changing-cities',
     name: 'Changing Cities',
     description: 'Urbanisation and urban change',
     icon: '🏙️',
@@ -367,7 +367,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-geog-global-development',
+    id: 'global-development',
     name: 'Global Development',
     description: 'Development patterns and reducing the gap',
     icon: '🌍',
@@ -433,7 +433,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-gcse-geog-resource-management',
+    id: 'resource-management',
     name: 'Resource Management and Energy',
     description: 'Global resource challenges and energy security',
     icon: '⚡',
@@ -499,7 +499,7 @@ export const edexcelGCSEGeographyTopics: Topic[] = [
   // PAPER 3: GEOGRAPHICAL INVESTIGATIONS
   // ============================================================================
   {
-    id: 'edexcel-gcse-geog-fieldwork-skills',
+    id: 'fieldwork-skills',
     name: 'Fieldwork and UK Challenges',
     description: 'Geographical investigations and skills',
     icon: '📊',

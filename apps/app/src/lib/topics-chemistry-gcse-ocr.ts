@@ -12,7 +12,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C1: Particles
   {
-    id: 'ocr-gcse-chemistry-particles',
+    id: 'particles',
     name: 'Particles',
     description: 'Atomic structure, the periodic table, and bonding',
     icon: '⚛️',
@@ -88,7 +88,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C2: Elements, Compounds and Mixtures
   {
-    id: 'ocr-gcse-chemistry-elements-compounds',
+    id: 'elements-compounds',
     name: 'Elements, Compounds and Mixtures',
     description: 'Purity, separation techniques, and groups of the periodic table',
     icon: '🧪',
@@ -161,7 +161,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C3: Chemical Reactions
   {
-    id: 'ocr-gcse-chemistry-reactions',
+    id: 'reactions',
     name: 'Chemical Reactions',
     description: 'Equations, acids and bases, electrolysis, and energy changes',
     icon: '⚗️',
@@ -243,7 +243,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C4: Predicting and Identifying Reactions and Products
   {
-    id: 'ocr-gcse-chemistry-predicting',
+    id: 'predicting',
     name: 'Predicting and Identifying Reactions and Products',
     description: 'Reactivity series, extracting metals, and chemical tests',
     icon: '🔍',
@@ -301,7 +301,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C5: Monitoring and Controlling Chemical Reactions
   {
-    id: 'ocr-gcse-chemistry-monitoring',
+    id: 'monitoring',
     name: 'Monitoring and Controlling Chemical Reactions',
     description: 'Rates of reaction, equilibria, and industrial processes',
     icon: '⏱️',
@@ -362,7 +362,7 @@ export const ocrChemistryTopics: Topic[] = [
 
   // Topic C6: Global Challenges
   {
-    id: 'ocr-gcse-chemistry-global',
+    id: 'global',
     name: 'Global Challenges',
     description: 'Organic chemistry, atmosphere, resources, and sustainability',
     icon: '🌍',

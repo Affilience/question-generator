@@ -10,7 +10,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'ocr-alevel-hist-tudors-1485-1558',
+    id: 'tudors-1485-1558',
     name: 'Y106: England 1485-1558: The Early Tudors',
     description: 'Tudor England from Henry VII to Mary I',
     icon: '👑',
@@ -71,7 +71,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-later-tudors',
+    id: 'later-tudors',
     name: 'Y107: England 1547-1603: The Later Tudors',
     description: 'England from Edward VI to Elizabeth I',
     icon: '⚜️',
@@ -122,7 +122,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-early-stuarts',
+    id: 'early-stuarts',
     name: 'Y108: The Early Stuarts and the Origins of the Civil War 1603-1660',
     description: 'England from James I to the Restoration',
     icon: '⚔️',
@@ -172,7 +172,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-britain-1900-1951',
+    id: 'britain-1900-1951',
     name: 'Y112: Britain 1900-1951',
     description: 'Britain from Edwardian era to Attlee',
     icon: '🇬🇧',
@@ -222,7 +222,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-britain-1930-1997',
+    id: 'britain-1930-1997',
     name: 'Y113: Britain 1930-1997',
     description: 'Britain from Depression to Blair',
     icon: '🏛️',
@@ -269,7 +269,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'ocr-alevel-hist-germany-1919-1963',
+    id: 'germany-1919-1963',
     name: 'Y221: Democracy and Dictatorships in Germany 1919-1963',
     description: 'Germany from Weimar to divided nation',
     icon: '🇩🇪',
@@ -321,7 +321,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-russia-1894-1941',
+    id: 'russia-1894-1941',
     name: 'Y219: Russia 1894-1941',
     description: 'Russia from Nicholas II to WWII',
     icon: '🇷🇺',
@@ -368,7 +368,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-cold-war-europe',
+    id: 'cold-war-europe',
     name: 'Y223: The Cold War in Europe 1941-1995',
     description: 'Cold War from origins to end',
     icon: '❄️',
@@ -417,7 +417,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-french-revolution',
+    id: 'french-revolution',
     name: 'Y213: The French Revolution and Napoleon 1774-1815',
     description: 'France from ancien regime to Napoleon',
     icon: '🇫🇷',
@@ -471,7 +471,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
   // Most popular options
   // ============================================================================
   {
-    id: 'ocr-alevel-hist-rebellion-tudors',
+    id: 'rebellion-tudors',
     name: 'Y306: Rebellion and Disorder under the Tudors 1485-1603',
     description: 'Rebellion and protest in Tudor England',
     icon: '⚔️',
@@ -517,7 +517,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-russia-rulers',
+    id: 'russia-rulers',
     name: 'Y318: Russia and its Rulers 1855-1964',
     description: 'Russian government and people across regimes',
     icon: '🏛️',
@@ -564,7 +564,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-hist-civil-rights-usa',
+    id: 'civil-rights-usa',
     name: 'Y319: Civil Rights in the USA 1865-1992',
     description: 'African American experience over a century',
     icon: '✊',
@@ -619,7 +619,7 @@ export const ocrALevelHistoryTopics: Topic[] = [
   // UNIT 4: TOPIC-BASED ESSAY (NEA)
   // ============================================================================
   {
-    id: 'ocr-alevel-hist-nea',
+    id: 'nea',
     name: 'Y100: Topic-Based Essay',
     description: 'Historical investigation 3000-4000 words',
     icon: '📝',

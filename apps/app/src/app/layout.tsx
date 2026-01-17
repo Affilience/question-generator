@@ -15,8 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GCSE Maths Practice",
-  description: "AI-generated exam-style questions to help you master every topic",
+  metadataBase: new URL('https://past-papers.co.uk'),
+  title: {
+    default: 'Past Papers - AI Practice Questions for GCSE & A-Level',
+    template: '%s | Past Papers',
+  },
+  description: "AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.",
 };
 
 export default function RootLayout({

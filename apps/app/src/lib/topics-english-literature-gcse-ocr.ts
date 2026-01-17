@@ -8,7 +8,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
   // Component 01: Exploring Modern and Literary Heritage Texts
   // Modern Prose or Drama
   {
-    id: 'ocr-gcse-eng-lit-inspector-calls',
+    id: 'lit-inspector-calls',
     name: 'An Inspector Calls',
     description: 'Priestley\'s powerful drama examining social responsibility in Edwardian England',
     icon: '📖',
@@ -33,7 +33,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-animal-farm',
+    id: 'lit-animal-farm',
     name: 'Animal Farm',
     description: 'Orwell\'s satirical fable about power, corruption, and totalitarianism',
     icon: '📖',
@@ -58,7 +58,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-never-let-go',
+    id: 'lit-never-let-go',
     name: 'Never Let Me Go',
     description: 'Ishiguro\'s dystopian novel exploring humanity, mortality, and what it means to be human',
     icon: '📖',
@@ -84,7 +84,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
   },
   // 19th Century Prose
   {
-    id: 'ocr-gcse-eng-lit-christmas-carol-ocr',
+    id: 'lit-christmas-carol-ocr',
     name: 'A Christmas Carol',
     description: 'Dickens\' supernatural tale of transformation and social criticism',
     icon: '📖',
@@ -109,7 +109,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-jekyll-hyde-ocr',
+    id: 'lit-jekyll-hyde-ocr',
     name: 'The Strange Case of Dr Jekyll and Mr Hyde',
     description: 'Stevenson\'s Gothic mystery exploring Victorian double lives',
     icon: '📖',
@@ -134,7 +134,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-great-expectations-ocr',
+    id: 'lit-great-expectations-ocr',
     name: 'Great Expectations',
     description: 'Dickens\' classic bildungsroman about class, guilt, and self-discovery',
     icon: '📖',
@@ -159,7 +159,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-jane-eyre-ocr',
+    id: 'lit-jane-eyre-ocr',
     name: 'Jane Eyre',
     description: 'Brontë\'s Gothic romance about a woman\'s search for independence and love',
     icon: '📖',
@@ -184,7 +184,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-pride-prejudice-ocr',
+    id: 'lit-pride-prejudice-ocr',
     name: 'Pride and Prejudice',
     description: 'Austen\'s comedy of manners examining marriage and social hierarchy',
     icon: '📖',
@@ -209,7 +209,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-war-worlds',
+    id: 'lit-war-worlds',
     name: 'The War of the Worlds',
     description: 'Wells\' science fiction exploring invasion, imperialism, and human vulnerability',
     icon: '📖',
@@ -235,7 +235,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
   },
   // Component 02: Exploring Poetry and Shakespeare
   {
-    id: 'ocr-gcse-eng-lit-shakespeare-macbeth',
+    id: 'lit-shakespeare-macbeth',
     name: 'Macbeth (OCR)',
     description: 'Shakespeare\'s Scottish tragedy of ambition and its terrible consequences',
     icon: '📖',
@@ -260,7 +260,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-shakespeare-romeo-juliet',
+    id: 'lit-shakespeare-romeo-juliet',
     name: 'Romeo and Juliet (OCR)',
     description: 'Shakespeare\'s immortal love tragedy set in feuding Verona',
     icon: '📖',
@@ -285,7 +285,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-poetry-anthology-ocr',
+    id: 'lit-poetry-anthology-ocr',
     name: 'Poetry Anthology: Love and Relationships',
     description: 'OCR poetry anthology exploring love, loss, and human connections',
     icon: '📖',
@@ -310,7 +310,7 @@ export const ocrGCSEEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-eng-lit-unseen-poetry-ocr',
+    id: 'lit-unseen-poetry-ocr',
     name: 'Unseen Poetry (OCR)',
     description: 'Approaching unfamiliar poetry with confidence and analytical skill',
     icon: '📖',

@@ -31,7 +31,7 @@ import { Topic } from '@/types';
 export const edexcelPhysicsTopics: Topic[] = [
   // ==================== PAPER 1 TOPICS ====================
   {
-    id: 'edexcel-physics-key-concepts',
+    id: 'concepts',
     examBoard: 'edexcel',
     name: 'Key Concepts of Physics',
     description: 'SI units, prefixes, standard form, significant figures, scalars and vectors',
@@ -58,7 +58,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-motion-forces',
+    id: 'forces',
     examBoard: 'edexcel',
     name: 'Motion and Forces',
     description: 'Speed, velocity, acceleration, Newton\'s laws, momentum and stopping distances',
@@ -112,7 +112,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-conservation-energy',
+    id: 'energy',
     examBoard: 'edexcel',
     name: 'Conservation of Energy',
     description: 'Energy stores, transfers, efficiency and energy resources',
@@ -147,7 +147,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-waves',
+    id: 'waves',
     examBoard: 'edexcel',
     name: 'Waves',
     description: 'Wave properties, transverse and longitudinal waves, sound and seismic waves',
@@ -185,7 +185,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-light-em-spectrum',
+    id: 'em-spectrum',
     examBoard: 'edexcel',
     name: 'Light and the Electromagnetic Spectrum',
     description: 'Visible light, EM spectrum properties, uses and dangers',
@@ -231,7 +231,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-radioactivity',
+    id: 'radioactivity',
     examBoard: 'edexcel',
     name: 'Radioactivity',
     description: 'Atomic structure, radioactive decay, half-life and nuclear energy',
@@ -292,7 +292,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-astronomy',
+    id: 'astronomy',
     examBoard: 'edexcel',
     name: 'Astronomy',
     description: 'Solar system, life cycle of stars, red-shift and the expanding universe',
@@ -344,7 +344,7 @@ export const edexcelPhysicsTopics: Topic[] = [
   },
   // ==================== PAPER 2 TOPICS ====================
   {
-    id: 'edexcel-physics-energy-forces-work',
+    id: 'forces-work',
     examBoard: 'edexcel',
     name: 'Energy: Forces Doing Work',
     description: 'Work done, power, kinetic and gravitational potential energy',
@@ -373,7 +373,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-forces-effects',
+    id: 'effects',
     examBoard: 'edexcel',
     name: 'Forces and their Effects',
     description: 'Turning forces, moments, levers, gears and centre of mass',
@@ -405,7 +405,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-electricity-circuits',
+    id: 'circuits',
     examBoard: 'edexcel',
     name: 'Electricity and Circuits',
     description: 'Current, voltage, resistance, Ohm\'s law, series and parallel circuits',
@@ -461,7 +461,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-static-electricity',
+    id: 'electricity',
     examBoard: 'edexcel',
     name: 'Static Electricity',
     description: 'Electric charge, electric fields, and applications of static electricity',
@@ -494,7 +494,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-magnetism-motor-effect',
+    id: 'motor-effect',
     examBoard: 'edexcel',
     name: 'Magnetism and the Motor Effect',
     description: 'Magnetic fields, electromagnets, motors and loudspeakers',
@@ -531,7 +531,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-electromagnetic-induction',
+    id: 'induction',
     examBoard: 'edexcel',
     name: 'Electromagnetic Induction',
     description: 'Generators, transformers and the National Grid',
@@ -569,7 +569,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-particle-model',
+    id: 'model',
     examBoard: 'edexcel',
     name: 'Particle Model',
     description: 'Density, states of matter, internal energy, pressure and changes of state',
@@ -614,7 +614,7 @@ export const edexcelPhysicsTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-physics-forces-matter',
+    id: 'matter',
     examBoard: 'edexcel',
     name: 'Forces and Matter',
     description: 'Hooke\'s law, springs, elastic potential energy and pressure in fluids',

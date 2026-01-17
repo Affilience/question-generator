@@ -9,7 +9,7 @@ export const ocrBiologyTopics: Topic[] = [
   // PAPER 1 & 3 TOPICS (B1-B3, B7)
   // ============================================================================
   {
-    id: 'ocr-gcse-biology-cell-level-systems',
+    id: 'cell-level-systems',
     examBoard: 'ocr',
     name: 'Cell Level Systems',
     description: 'Cell structure, transport, division, and stem cells',
@@ -65,7 +65,7 @@ export const ocrBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-biology-scaling-up',
+    id: 'scaling-up',
     examBoard: 'ocr',
     name: 'Scaling Up',
     description: 'Cell division, growth, and stem cells',
@@ -102,7 +102,7 @@ export const ocrBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-biology-organism-level',
+    id: 'organism-level',
     examBoard: 'ocr',
     name: 'Organism Level Systems',
     description: 'Nervous system, hormones, and homeostasis',
@@ -185,7 +185,7 @@ export const ocrBiologyTopics: Topic[] = [
   // PAPER 2 & 4 TOPICS (B4-B6, B7)
   // ============================================================================
   {
-    id: 'ocr-gcse-biology-community',
+    id: 'community',
     examBoard: 'ocr',
     name: 'Community Level Systems',
     description: 'Ecosystems, biodiversity, and human impact',
@@ -252,7 +252,7 @@ export const ocrBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-biology-genes-inheritance',
+    id: 'genes-inheritance',
     examBoard: 'ocr',
     name: 'Genes, Inheritance and Selection',
     description: 'DNA, genetics, evolution, and classification',
@@ -330,7 +330,7 @@ export const ocrBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-biology-global-challenges',
+    id: 'global-challenges',
     examBoard: 'ocr',
     name: 'Global Challenges',
     description: 'Health, disease, food production, and sustainability',
@@ -421,7 +421,7 @@ export const ocrBiologyTopics: Topic[] = [
   // TOPIC B7 - PRACTICAL SKILLS (Both Papers)
   // ============================================================================
   {
-    id: 'ocr-gcse-biology-practical-skills',
+    id: 'practical-skills',
     examBoard: 'ocr',
     name: 'Practical Skills',
     description: 'Scientific methodology, data analysis, and practical techniques',

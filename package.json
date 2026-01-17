@@ -10,9 +10,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "dev:app": "turbo dev --filter=@qg/app",
-    "dev:website": "turbo dev --filter=@qg/website",
-    "build:app": "turbo build --filter=@qg/app",
-    "build:website": "turbo build --filter=@qg/website"
+    "build:app": "turbo build --filter=@qg/app"
   },
   "devDependencies": {
     "turbo": "^2.5.3"

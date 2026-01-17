@@ -14,7 +14,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 1. Scarcity and choice
   {
-    id: 'ocr-alevel-econ-scarcity',
+    id: 'scarcity',
     examBoard: 'ocr',
     name: 'Scarcity and Choice',
     description: 'The economic problem, resource allocation, and opportunity cost',
@@ -55,7 +55,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 2. How competitive markets work
   {
-    id: 'ocr-alevel-econ-competitive-markets',
+    id: 'competitive-markets',
     examBoard: 'ocr',
     name: 'How Competitive Markets Work',
     description: 'Demand, supply, price determination, and elasticity',
@@ -131,7 +131,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 3. Market failure and government intervention
   {
-    id: 'ocr-alevel-econ-market-failure',
+    id: 'market-failure',
     examBoard: 'ocr',
     name: 'Market Failure and Government Intervention',
     description: 'Types of market failure and corrective policies',
@@ -204,7 +204,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 4. Firms and the market structures
   {
-    id: 'ocr-alevel-econ-firms',
+    id: 'firms',
     examBoard: 'ocr',
     name: 'Firms and Market Structures',
     description: 'Costs, revenues, profits, and market structures',
@@ -320,7 +320,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 5. The labour market
   {
-    id: 'ocr-alevel-econ-labour',
+    id: 'labour',
     examBoard: 'ocr',
     name: 'The Labour Market',
     description: 'Labour demand, supply, wages, and market imperfections',
@@ -377,7 +377,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 6. Distribution of income and wealth
   {
-    id: 'ocr-alevel-econ-distribution',
+    id: 'distribution',
     examBoard: 'ocr',
     name: 'Distribution of Income and Wealth',
     description: 'Inequality, poverty, and redistribution policies',
@@ -418,7 +418,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 7. Aggregate demand and aggregate supply
   {
-    id: 'ocr-alevel-econ-ad-as',
+    id: 'ad-as',
     examBoard: 'ocr',
     name: 'Aggregate Demand and Aggregate Supply',
     description: 'AD/AS model, components of AD, and AS analysis',
@@ -485,7 +485,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 8. Economic growth and development
   {
-    id: 'ocr-alevel-econ-growth',
+    id: 'growth',
     examBoard: 'ocr',
     name: 'Economic Growth and Development',
     description: 'Causes, measurement, and consequences of growth',
@@ -540,7 +540,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 9. Inflation and deflation
   {
-    id: 'ocr-alevel-econ-inflation',
+    id: 'inflation',
     examBoard: 'ocr',
     name: 'Inflation and Deflation',
     description: 'Causes, measurement, and consequences of inflation',
@@ -587,7 +587,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 10. Employment and unemployment
   {
-    id: 'ocr-alevel-econ-unemployment',
+    id: 'unemployment',
     examBoard: 'ocr',
     name: 'Employment and Unemployment',
     description: 'Types, causes, and consequences of unemployment',
@@ -631,7 +631,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 11. Balance of payments and exchange rates
   {
-    id: 'ocr-alevel-econ-balance',
+    id: 'balance',
     examBoard: 'ocr',
     name: 'Balance of Payments and Exchange Rates',
     description: 'Current account, exchange rates, and international competitiveness',
@@ -690,7 +690,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 12. Macroeconomic policy
   {
-    id: 'ocr-alevel-econ-policy',
+    id: 'policy',
     examBoard: 'ocr',
     name: 'Macroeconomic Policy',
     description: 'Fiscal, monetary, and supply-side policies',
@@ -761,7 +761,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 13. International trade
   {
-    id: 'ocr-alevel-econ-trade',
+    id: 'trade',
     examBoard: 'ocr',
     name: 'International Trade',
     description: 'Trade theory, trading blocs, and globalisation',
@@ -815,7 +815,7 @@ export const ocrALevelEconomicsTopics: Topic[] = [
 
   // 14. Financial sector
   {
-    id: 'ocr-alevel-econ-financial',
+    id: 'financial',
     examBoard: 'ocr',
     name: 'The Financial Sector',
     description: 'Functions of money, banking, and financial markets',

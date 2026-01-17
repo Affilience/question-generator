@@ -13,7 +13,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P1: Matter
   {
-    id: 'ocr-physics-p1-matter',
+    id: 'p1-matter',
     name: 'P1: Matter',
     description: 'The particle model, changes of state, and pressure',
     icon: '🔬',
@@ -60,7 +60,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P2: Forces
   {
-    id: 'ocr-physics-p2-forces',
+    id: 'p2-forces',
     name: 'P2: Forces',
     description: 'Motion, Newton\'s laws, and forces in action',
     icon: '🚀',
@@ -131,7 +131,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P3: Electricity
   {
-    id: 'ocr-physics-p3-electricity',
+    id: 'p3-electricity',
     name: 'P3: Electricity',
     description: 'Static electricity and simple circuits',
     icon: '⚡',
@@ -189,7 +189,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P4: Magnetism and Magnetic Fields
   {
-    id: 'ocr-physics-p4-magnetism',
+    id: 'p4-magnetism',
     name: 'P4: Magnetism and Magnetic Fields',
     description: 'Magnets, magnetic fields and uses of magnetism',
     icon: '🧲',
@@ -241,7 +241,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P5: Waves in Matter
   {
-    id: 'ocr-physics-p5-waves',
+    id: 'p5-waves',
     name: 'P5: Waves in Matter',
     description: 'Wave behaviour, the electromagnetic spectrum and wave interactions',
     icon: '🌊',
@@ -304,7 +304,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P6: Radioactivity
   {
-    id: 'ocr-physics-p6-radioactivity',
+    id: 'p6-radioactivity',
     name: 'P6: Radioactivity',
     description: 'Radioactive emissions, uses and hazards',
     icon: '☢️',
@@ -358,7 +358,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P7: Energy
   {
-    id: 'ocr-physics-p7-energy',
+    id: 'p7-energy',
     name: 'P7: Energy',
     description: 'Work done, power and efficiency',
     icon: '🔋',
@@ -408,7 +408,7 @@ export const ocrPhysicsTopics: Topic[] = [
 
   // P8: Global Challenges
   {
-    id: 'ocr-physics-p8-global',
+    id: 'p8-global',
     name: 'P8: Global Challenges',
     description: 'Physics on the move, powering Earth and beyond Earth',
     icon: '🌍',

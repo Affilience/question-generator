@@ -9,7 +9,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
   // PAPER 1 TOPICS (1-4) - The Natural Environment and Species Survival
   // ============================================================================
   {
-    id: 'edexcel-alevel-biology-lifestyle-health',
+    id: 'lifestyle-health',
     examBoard: 'edexcel',
     name: 'Lifestyle, Health and Risk',
     description: 'Cardiovascular system, diet, and heart disease',
@@ -49,7 +49,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-biology-genes-health',
+    id: 'genes-health',
     examBoard: 'edexcel',
     name: 'Genes and Health',
     description: 'DNA, protein synthesis, cell membranes, and genetic diseases',
@@ -102,7 +102,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-biology-voice-genome',
+    id: 'voice-genome',
     examBoard: 'edexcel',
     name: 'Voice of the Genome',
     description: 'Cell division, development, and stem cells',
@@ -149,7 +149,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-biology-biodiversity',
+    id: 'biodiversity',
     examBoard: 'edexcel',
     name: 'Biodiversity and Natural Resources',
     description: 'Classification, biodiversity, plant structure, and sustainability',
@@ -193,7 +193,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
   // PAPER 2 TOPICS (5-6) - Energy, Exercise and Coordination
   // ============================================================================
   {
-    id: 'edexcel-alevel-biology-energy-exercise',
+    id: 'energy-exercise',
     examBoard: 'edexcel',
     name: 'On the Wild Side',
     description: 'Ecosystems, photosynthesis, climate change, and evolution',
@@ -239,7 +239,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-biology-infection-immunity',
+    id: 'infection-immunity',
     examBoard: 'edexcel',
     name: 'Infection, Immunity and Forensics',
     description: 'Pathogens, immune system, forensic biology, and decomposition',
@@ -289,7 +289,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
   // PAPER 3 TOPICS (7-8) - General and Practical Applications in Biology
   // ============================================================================
   {
-    id: 'edexcel-alevel-biology-run-for-life',
+    id: 'run-for-life',
     examBoard: 'edexcel',
     name: 'Run for Your Life',
     description: 'Respiration, muscles, exercise physiology, and homeostasis',
@@ -334,7 +334,7 @@ export const edexcelALevelBiologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'edexcel-alevel-biology-grey-matter',
+    id: 'grey-matter',
     examBoard: 'edexcel',
     name: 'Grey Matter',
     description: 'Nervous system, brain, vision, and coordination',

@@ -1,0 +1,29 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Past Papers - Infinite AI-Generated Exam Questions | GCSE & A-Level',
+    template: '%s | Past Papers',
+  },
+  description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic, matching AQA, Edexcel & OCR specifications exactly.',
+  keywords: ['past papers', 'GCSE past papers', 'A-Level past papers', 'exam questions', 'GCSE revision', 'A-Level revision', 'AQA', 'Edexcel', 'OCR', 'practice papers', 'exam practice'],
+  openGraph: {
+    title: 'Past Papers - Infinite AI-Generated Exam Questions',
+    description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic.',
+    type: 'website',
+    siteName: 'Past Papers',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Past Papers - Infinite AI-Generated Exam Questions',
+    description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic.',
+  },
+};
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}

@@ -3,8 +3,27 @@ import { getOpenAIClient } from '@/lib/openai';
 import { getTopicById, getTopicByIdSubjectBoardAndLevel } from '@/lib/topics';
 import { getCachedQuestion, cacheQuestion, getCacheCount } from '@/lib/questionCache';
 import { Difficulty, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
+import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
+// Import real extract/source databases for English Literature and History
+import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
+import { getRandomSourceForTheme, HistoricalSource } from '@/lib/extracts/history-sources';
+import {
+  getQuestionConfig,
+  isEssaySubject,
+  formatLevelDescriptors,
+  formatAssessmentObjectives,
+  getRandomCommandWord,
+  getRandomQuestionFormat,
+  getRandomScienceQuestionType,
+  getRandomMathsQuestionType,
+  isScienceSubject,
+  isMathsSubject,
+  EssayQuestionConfig,
+  QuestionFormat
+} from '@/lib/essay-subject-config';
 
 export const runtime = 'edge';
 
@@ -14,7 +33,29 @@ function getFineTunedModel(subject: Subject, level: QualificationLevel, board: E
   return process.env[envKey] || null;
 }
 
-function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
+// Calculate appropriate max_tokens based on subject type and difficulty
+function getMaxTokens(subject: Subject, difficulty: Difficulty): number {
+  if (isEssaySubject(subject)) {
+    switch (difficulty) {
+      case 'easy': return 1200;   // Short explanations
+      case 'medium': return 2000; // Extended responses
+      case 'hard': return 3500;   // Full essay answers with detailed mark schemes
+    }
+  }
+
+  // Quantitative subjects need less tokens
+  return 800;
+}
+
+// Get mark range - uses essay config if available, otherwise defaults
+function getMarkRange(difficulty: Difficulty, subject: Subject, level: QualificationLevel, board?: ExamBoard): { min: number; max: number } {
+  const config = getQuestionConfig(subject, level, difficulty, board);
+  if (config) {
+    const marks = config.totalMarks;
+    return { min: marks, max: marks };
+  }
+
+  // Fallback for quantitative subjects
   switch (difficulty) {
     case 'easy': return { min: 1, max: 2 };
     case 'medium': return { min: 3, max: 4 };
@@ -22,7 +63,476 @@ function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
   }
 }
 
-function buildPrompt(
+/**
+ * Get subject-specific guidance for data_response format
+ * This ensures extracts, sources, and data are actually included in questions
+ * and are RELEVANT to the specific topic/subtopic being studied
+ *
+ * For English Literature and History: Uses REAL extracts/sources from the database
+ * For other subjects: AI generates appropriate data/scenarios
+ */
+function getSubjectDataGuidance(subject: Subject, totalMarks: number, topicName: string, subtopic: string): {
+  questionGuidance: string;
+  solutionGuidance: string;
+  commandWords: string[];
+} {
+  switch (subject) {
+    case 'english-literature': {
+      // Try to get a real extract from the database
+      const realExtract = getRandomExtractForTheme(topicName, subtopic);
+
+      if (realExtract) {
+        // Use the real extract from the database
+        return {
+          questionGuidance: `
+QUESTION TYPE: EXTRACT-BASED ANALYSIS (${totalMarks} marks)
+
+**USE THIS EXACT EXTRACT** - This is a real passage from ${realExtract.text}:
+
+---
+**Read the following extract from ${realExtract.location} of "${realExtract.text}" by ${realExtract.author}:**
+
+${realExtract.contextNote ? `[Context: ${realExtract.contextNote}]` : ''}
+
+${realExtract.extract}
+---
+
+**CRITICAL INSTRUCTIONS:**
+1. Include the EXACT extract above in your question (copy it exactly)
+2. Format it clearly with "Read the following extract from ${realExtract.location}..."
+3. Ask an analysis question focusing on: ${subtopic}
+4. The question should explore how ${realExtract.author} presents themes/characters through this passage
+
+**RELEVANT THEMES in this extract:** ${realExtract.themes.join(', ')}
+**LITERARY TECHNIQUES present:** ${realExtract.techniques.join(', ')}
+**CHARACTERS featured:** ${realExtract.characters.join(', ')}`,
+          solutionGuidance: `
+MODEL ANSWER:
+- Quote directly from the provided extract (use quotation marks)
+- Analyse specific words/phrases: consider "${realExtract.techniques[0]}" and other techniques
+- Discuss how ${realExtract.author} presents ${subtopic} through language, structure, form
+- Reference the themes: ${realExtract.themes.slice(0, 2).join(', ')}
+- Link to wider context of the text`,
+          commandWords: ['Read the extract below', 'In this extract, how does', 'Starting with this extract', 'How does the writer present']
+        };
+      }
+
+      // Fallback if no extract found - AI generates (but this should rarely happen)
+      return {
+        questionGuidance: `
+QUESTION TYPE: EXTRACT-BASED ANALYSIS (${totalMarks} marks)
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+
+No pre-loaded extract available for this specific topic. Create a realistic passage that:
+- Is in the style and language of ${topicName}
+- Relates directly to the theme of ${subtopic}
+- Contains 150-300 words with clear literary techniques
+- Includes specific location reference (Act/Scene or Chapter/Stave)`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Quote directly from the provided extract
+- Analyse specific words/phrases and their effects on presenting ${subtopic}
+- Discuss writer's methods in relation to ${subtopic}`,
+        commandWords: ['Read the extract below', 'In this extract, how does', 'Starting with this extract', 'How does the writer present']
+      };
+    }
+
+    case 'history': {
+      // Try to get a real historical source from the database
+      const realSource = getRandomSourceForTheme(topicName, subtopic);
+
+      if (realSource) {
+        // Use the real historical source from the database
+        return {
+          questionGuidance: `
+QUESTION TYPE: SOURCE-BASED QUESTION (${totalMarks} marks)
+
+**USE THIS EXACT SOURCE** - This is a real/adapted historical document:
+
+---
+**Source A: ${realSource.title}**
+
+${realSource.content}
+
+*${realSource.attribution}*
+---
+
+**CRITICAL INSTRUCTIONS:**
+1. Include the EXACT source above in your question (copy it exactly)
+2. Format it as "Source A: ${realSource.title}" followed by the content and attribution
+3. Ask an analysis question relating to: ${subtopic}
+4. Consider asking about usefulness, reliability, or what can be inferred
+
+**SOURCE CONTEXT:**
+- Type: ${realSource.sourceType}
+- Period: ${realSource.period}
+- Provenance: ${realSource.provenance}
+${realSource.bias ? `- Potential bias: ${realSource.bias}` : ''}
+
+**RELEVANT THEMES:** ${realSource.themes.join(', ')}`,
+          solutionGuidance: `
+MODEL ANSWER:
+- Reference specific content from Source A
+- Analyse the source's perspective and purpose
+- Consider provenance: ${realSource.provenance}
+${realSource.bias ? `- Evaluate bias: ${realSource.bias}` : ''}
+- Use contextual knowledge about ${topicName} to evaluate
+- Consider both strengths and limitations of the source`,
+          commandWords: ['Study Source A', 'Using Source A', 'How useful is Source A', 'What can you infer from Source A']
+        };
+      }
+
+      // Fallback if no source found - AI generates (but should rarely happen)
+      return {
+        questionGuidance: `
+QUESTION TYPE: SOURCE-BASED QUESTION (${totalMarks} marks)
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+
+No pre-loaded source available. Create a realistic historical source that:
+- Is period-appropriate for ${topicName}
+- Relates to ${subtopic}
+- Includes clear attribution (author, date, context)
+- Uses historically accurate language and details`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Reference specific content from the source
+- Analyse perspective/bias/purpose in relation to ${subtopic}
+- Consider provenance
+- Use contextual knowledge to evaluate`,
+        commandWords: ['Study Source A', 'Using Source A', 'How useful is Source A', 'What can you infer from Source A']
+      };
+    }
+
+    case 'economics':
+    case 'business':
+      return {
+        questionGuidance: `
+QUESTION TYPE: DATA RESPONSE (${totalMarks} marks)
+CRITICAL: You MUST include data/statistics in the question.
+
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+The data MUST be relevant to "${subtopic}" and demonstrate the economic/business concept being studied.
+
+FORMAT YOUR QUESTION LIKE THIS:
+1. First, provide the data in a clearly marked section:
+   "Figure 1: [Title relevant to ${subtopic} - e.g., data showing ${subtopic} in practice]
+
+   | Year/Category | Value |
+   |---------------|-------|
+   | ...           | ...   |
+   ...
+
+   OR describe a graph/chart relevant to ${subtopic}:
+   'Figure 1 shows [description of trend/data illustrating ${subtopic}]...'"
+
+2. Then ask the analysis question about the data in relation to ${subtopic}.
+
+DATA REQUIREMENTS:
+- Data MUST illustrate or relate to: ${subtopic}
+- Include realistic, plausible figures that demonstrate ${subtopic}
+- Use appropriate units (%, £millions, index numbers)
+- Data should show clear trends or patterns relevant to ${subtopic}
+- Can include: tables, graph descriptions, company financial data, market statistics`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Reference specific figures from the data
+- Identify and explain trends/patterns in relation to ${subtopic}
+- Apply ${subtopic} concepts to analyse the data
+- Draw conclusions supported by the evidence`,
+        commandWords: ['Using the data in Figure 1', 'With reference to the data', 'Using the information provided', 'Calculate and explain']
+      };
+
+    case 'psychology':
+      return {
+        questionGuidance: `
+QUESTION TYPE: RESEARCH STUDY/DATA ANALYSIS (${totalMarks} marks)
+CRITICAL: You MUST include research data or a study description.
+
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+The study/data MUST be relevant to "${subtopic}" and represent the type of research used in this area.
+
+FORMAT YOUR QUESTION LIKE THIS:
+1. First, provide the study/data:
+   "A psychologist conducted a study investigating ${subtopic}...
+   [describe method, sample, procedure relevant to ${subtopic}]
+
+   Results:
+   | Condition A | Condition B |
+   |-------------|-------------|
+   | Mean: X     | Mean: Y     |
+
+   OR 'The results showed that... [findings relevant to ${subtopic}]'"
+
+2. Then ask the analysis question relating to ${subtopic}.
+
+REQUIREMENTS:
+- Study MUST be relevant to: ${topicName} - ${subtopic}
+- Include realistic psychological research scenarios appropriate for ${subtopic}
+- Provide actual numerical data where appropriate
+- Reference research methods, variables, sampling typical for ${subtopic} research`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Reference specific data from the study
+- Apply ${subtopic} concepts/theories to explain findings
+- Evaluate methodology if relevant
+- Draw evidence-based conclusions about ${subtopic}`,
+        commandWords: ['Using the data', 'With reference to the study', 'What do the results suggest', 'Evaluate the findings']
+      };
+
+    case 'geography':
+      return {
+        questionGuidance: `
+QUESTION TYPE: RESOURCE-BASED QUESTION (${totalMarks} marks)
+CRITICAL: You MUST include geographical data/resources.
+
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+The resource MUST be relevant to "${subtopic}" and show geographical patterns/data for this topic.
+
+FORMAT YOUR QUESTION LIKE THIS:
+1. First, provide the resource:
+   "Figure 1: [Map/Graph/Table/Photo description relevant to ${subtopic}]
+
+   [Include data, statistics, or detailed description of geographical features/patterns illustrating ${subtopic}]"
+
+2. Then ask the analysis question relating to ${subtopic}.
+
+REQUIREMENTS:
+- Resource MUST illustrate: ${topicName} - ${subtopic}
+- Include realistic geographical data (population, climate, economic figures) relevant to ${subtopic}
+- Describe maps, graphs, or fieldwork data that demonstrate ${subtopic}
+- Reference specific locations and statistics appropriate for ${subtopic}`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Reference specific evidence from the resource
+- Apply ${subtopic} concepts and terminology
+- Explain patterns, processes, or relationships shown
+- Use case study knowledge where relevant to ${subtopic}`,
+        commandWords: ['Study Figure 1', 'Using Figure 1', 'Describe the pattern shown', 'Using evidence from']
+      };
+
+    case 'computer-science':
+      return {
+        questionGuidance: `
+QUESTION TYPE: PROGRAM/ALGORITHM ANALYSIS (${totalMarks} marks)
+CRITICAL: You MUST include code, pseudocode, or a trace table in the question.
+
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+The code/algorithm MUST demonstrate "${subtopic}" - the specific programming concept being studied.
+
+FORMAT YOUR QUESTION LIKE THIS:
+1. First, provide the code/algorithm:
+   "The following pseudocode/Python/algorithm demonstrates ${subtopic}...
+
+   \`\`\`
+   [Include 5-15 lines of code or pseudocode that demonstrates ${subtopic}]
+   \`\`\`
+
+   OR provide a trace table showing ${subtopic} in action:
+   | Variable | Value after iteration 1 | Value after iteration 2 |
+   |----------|------------------------|------------------------|
+   | x        | ...                    | ...                    |"
+
+2. Then ask the analysis question about ${subtopic}.
+
+REQUIREMENTS:
+- Code MUST demonstrate: ${subtopic}
+- Include realistic, runnable code or clear pseudocode showing ${subtopic}
+- For trace tables: show variable states demonstrating ${subtopic}
+- For algorithms: include actual code that demonstrates ${subtopic}
+- May include program output to interpret`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Trace through code step by step if required
+- Identify how the code demonstrates ${subtopic}
+- Explain algorithm efficiency/purpose in relation to ${subtopic}
+- Reference specific lines/variables`,
+        commandWords: ['What is the output', 'Trace through the algorithm', 'State the purpose', 'Complete the trace table', 'Explain what this code does']
+      };
+
+    default:
+      // Generic data response for other subjects
+      return {
+        questionGuidance: `
+QUESTION TYPE: DATA/STIMULUS RESPONSE (${totalMarks} marks)
+CRITICAL: You MUST include relevant data, extract, or stimulus material in the question.
+
+**TOPIC CONTEXT**: ${topicName} - ${subtopic}
+The stimulus material MUST be relevant to "${subtopic}".
+
+Include the stimulus material FIRST, clearly marked, then ask the question about it.
+The material should be substantial enough for meaningful analysis of ${subtopic}.`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Reference specific content from the stimulus
+- Show analysis of the material in relation to ${subtopic}
+- Link analysis to subject concepts`,
+        commandWords: ['Using the information provided', 'With reference to', 'Based on the extract', 'Analyse']
+      };
+  }
+}
+
+/**
+ * Get format-specific guidance for different question types
+ */
+function getFormatGuidance(format: QuestionFormat, config: EssayQuestionConfig, subject: Subject, level: QualificationLevel, topicName: string, subtopic: string): {
+  questionGuidance: string;
+  solutionGuidance: string;
+  commandWords: string[];
+} {
+  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
+
+  switch (format) {
+    case 'definition':
+      return {
+        questionGuidance: `
+QUESTION TYPE: DEFINITION/STATE (${config.totalMarks} marks)
+- Use command words: "Define", "State", "What is meant by", "Give the meaning of"
+- Requires precise, accurate definition using subject terminology
+- May ask for examples to demonstrate understanding
+- Clear, unambiguous wording`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Provide precise definition with key terminology
+- Include example if appropriate
+- Brief but complete`,
+        commandWords: ['Define', 'State', 'What is meant by', 'Give the meaning of']
+      };
+
+    case 'calculation':
+      return {
+        questionGuidance: `
+QUESTION TYPE: CALCULATION/DATA (${config.totalMarks} marks)
+- Requires numerical calculation or data interpretation
+- Include realistic data/figures in the question
+- Show units in question and expect them in answer
+- For ${subject}: use appropriate formulas and realistic values`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Show all working clearly
+- Include correct formula
+- Present final answer with units
+- Note key steps`,
+        commandWords: ['Calculate', 'Work out', 'Using the data', 'Determine']
+      };
+
+    case 'short_answer':
+      return {
+        questionGuidance: `
+QUESTION TYPE: SHORT ANSWER (${config.totalMarks} marks)
+- Tests factual recall with brief response
+- Use command words: "Identify", "Name", "Give", "State", "Outline"
+- Clear, specific question
+- One mark per valid point typically`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Brief, accurate responses
+- One point per mark typically
+- Use correct terminology`,
+        commandWords: ['Identify', 'Name', 'Give', 'State', 'Outline', 'List']
+      };
+
+    case 'diagram':
+      return {
+        questionGuidance: `
+QUESTION TYPE: DIAGRAM-BASED (${config.totalMarks} marks)
+- Requires drawing, labelling, or interpreting a diagram
+- May combine diagram with brief explanation
+- For ${subject}: use appropriate diagram types
+- Clearly state what should be shown/labelled`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Describe expected diagram elements
+- Include correct labels
+- Link explanation to diagram`,
+        commandWords: ['Draw', 'Sketch', 'Label', 'Using a diagram, explain', 'With the help of a diagram']
+      };
+
+    case 'data_response':
+      // Subject-specific data/extract guidance with topic context
+      const dataGuidance = getSubjectDataGuidance(subject, config.totalMarks, topicName, subtopic);
+      return {
+        questionGuidance: dataGuidance.questionGuidance,
+        solutionGuidance: dataGuidance.solutionGuidance,
+        commandWords: dataGuidance.commandWords
+      };
+
+    case 'explain':
+      return {
+        questionGuidance: `
+QUESTION TYPE: EXPLAIN (${config.totalMarks} marks)
+- Requires developed explanation with reasoning
+- Use command words: "Explain", "Why", "How"
+- Needs chains of reasoning (point → because → therefore)
+- May need examples or evidence to support`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Clear chains of reasoning
+- Link cause to effect
+- Use subject terminology
+- Include relevant examples`,
+        commandWords: ['Explain', 'Explain why', 'Explain how', 'Why does', 'Account for']
+      };
+
+    case 'analyse':
+      return {
+        questionGuidance: `
+QUESTION TYPE: ANALYSE/COMPARE (${config.totalMarks} marks)
+- Requires detailed analysis or comparison
+- Use command words: "Analyse", "Compare", "Examine", "Assess"
+- Multiple points/factors should be considered
+- For ${subject}: apply appropriate analytical frameworks`,
+        solutionGuidance: `
+MODEL ANSWER:
+- Multiple analytical points
+- Clear structure
+- Consider different aspects/factors
+- Link analysis to question focus`,
+        commandWords: ['Analyse', 'Compare', 'Examine', 'Assess', 'Consider']
+      };
+
+    case 'short_essay':
+      return {
+        questionGuidance: `
+QUESTION TYPE: SHORT ESSAY (${config.totalMarks} marks)
+- Extended response requiring analysis and some evaluation
+- Use command words: "Discuss", "Explain", "Analyse", "Assess"
+- Requires structured paragraphs
+- Evidence/examples required`,
+        solutionGuidance: `
+MODEL ANSWER (${levelDisplay === 'A-Level' ? '300-500' : '200-300'} words):
+- Clear introduction
+- 2-3 developed points with evidence
+- Links between points
+- Brief conclusion`,
+        commandWords: ['Discuss', 'Analyse', 'Assess', 'Explain in detail']
+      };
+
+    case 'extended_essay':
+    default:
+      return {
+        questionGuidance: `
+QUESTION TYPE: EXTENDED ESSAY (${config.totalMarks} marks)
+- Full essay requiring sustained argument and evaluation
+- Use command words: "Evaluate", "To what extent", "Discuss", "Assess"
+- Requires balanced argument considering multiple perspectives
+- Must reach substantiated judgement`,
+        solutionGuidance: `
+MODEL ANSWER (${levelDisplay === 'A-Level' ? '800-1200' : '500-800'} words):
+- Clear introduction with thesis
+- ${levelDisplay === 'A-Level' ? '3-4' : '2-3'} body paragraphs with evidence
+- Counter-arguments considered
+- Conclusion with clear judgement`,
+        commandWords: ['Evaluate', 'To what extent', 'Discuss', 'Assess', 'How far do you agree']
+      };
+  }
+}
+
+/**
+ * Build essay-specific prompt using comprehensive configuration
+ * Now with question format variation based on allowedFormats
+ */
+function buildEssayPrompt(
+  config: EssayQuestionConfig,
   subject: Subject,
   level: QualificationLevel,
   board: ExamBoard,
@@ -30,9 +540,250 @@ function buildPrompt(
   subtopic: string,
   difficulty: Difficulty
 ): string {
-  const markRange = getMarkRange(difficulty);
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
   const boardUpper = board.toUpperCase();
+
+  // Get a random question format from allowed formats for variety
+  const selectedFormat = getRandomQuestionFormat(config);
+  const formatGuidance = getFormatGuidance(selectedFormat, config, subject, level, topicName, subtopic);
+  const commandWord = formatGuidance.commandWords[Math.floor(Math.random() * formatGuidance.commandWords.length)];
+
+  // Format assessment objectives for the prompt
+  const aoBreakdown = config.assessmentObjectives
+    .map(ao => `- ${ao.code} (${ao.marks} marks): ${ao.description}`)
+    .join('\n');
+
+  // Format level descriptors for the mark scheme
+  const levelDescriptors = config.levelDescriptors
+    .sort((a, b) => b.level - a.level)
+    .map(ld => {
+      const chars = ld.characteristics.slice(0, 3).join('; ');
+      return `Level ${ld.level} (${ld.minMarks}-${ld.maxMarks} marks): ${chars}`;
+    })
+    .join('\n');
+
+  // Check if this subject uses SPaG marks (History essays)
+  const usesSPaG = subject === 'history' && config.totalMarks >= 16;
+  const spagNote = usesSPaG ? '\n\n**Additional SPaG marks (4 marks):**\n- High (4): Sophisticated vocabulary including specialist terms; accurate spelling and punctuation; effective grammar\n- Intermediate (2-3): Generally accurate with some errors\n- Threshold (1): Basic accuracy; frequent errors' : '';
+
+  // Build mark scheme guidance based on format
+  let markSchemeGuidance = '';
+  if (selectedFormat === 'calculation') {
+    markSchemeGuidance = `
+MARK SCHEME REQUIREMENTS:
+- Total marks: ${config.totalMarks}
+- Award method marks (M) for correct process
+- Award accuracy marks (A) for correct answer
+- Award marks for correct units where applicable`;
+  } else if (selectedFormat === 'definition' || selectedFormat === 'short_answer') {
+    markSchemeGuidance = `
+MARK SCHEME REQUIREMENTS:
+- Total marks: ${config.totalMarks}
+- List specific points that earn marks
+- Award 1 mark per valid point typically
+- Include acceptable alternative answers`;
+  } else if (config.totalMarks >= 8) {
+    markSchemeGuidance = `
+MARK SCHEME REQUIREMENTS:
+This question is worth ${config.totalMarks} marks, allocated as:
+${aoBreakdown}
+${spagNote}
+
+The mark scheme MUST follow this EXACT structure in the markScheme array:
+
+1. **AO BREAKDOWN** (first entry): "AO Breakdown: ${config.assessmentObjectives.map(ao => `${ao.code}=${ao.marks}`).join(', ')}"
+
+2. **LEVEL DESCRIPTORS** (one entry per level, highest first):
+${levelDescriptors}
+Format each as: "Level X (Y-Z marks): [descriptor characteristics]"
+
+3. **INDICATIVE CONTENT** (specific points students might include):
+- Start with "Indicative content:"
+- List 6-10 specific points, examples, or pieces of evidence students might use
+- Include specific terminology, dates, quotations, case studies, or theorists as appropriate for ${subject}
+- Points should be relevant to the specific topic: ${topicName} - ${subtopic}
+
+EXAMPLE markScheme array format:
+[
+  "AO Breakdown: ${config.assessmentObjectives.map(ao => `${ao.code}=${ao.marks}`).join(', ')}",
+  "Level 4 (13-16 marks): Complex analysis; sustained judgement; well-selected evidence",
+  "Level 3 (9-12 marks): Developed explanation; clear judgement; relevant evidence",
+  "Level 2 (5-8 marks): Simple explanation; partial judgement; some evidence",
+  "Level 1 (1-4 marks): Basic points; limited or no judgement",
+  "Indicative content: Students may include: [specific point 1]; [specific point 2]; [specific point 3]; [quotation or statistic]; [case study or example]; [counterargument]; [evaluation point]"${usesSPaG ? ',\n  "SPaG (4 marks): High (4)=sophisticated vocabulary and accurate throughout; Intermediate (2-3)=generally accurate; Threshold (1)=basic accuracy"' : ''}
+]`;
+  } else {
+    markSchemeGuidance = `
+MARK SCHEME REQUIREMENTS:
+- Total marks: ${config.totalMarks}
+- List specific points for marking
+- Include assessment objective allocation: ${aoBreakdown}
+- Include indicative content with specific examples for ${subtopic}`;
+  }
+
+  // Include diagram schema for diagram-type questions
+  const needsDiagram = selectedFormat === 'diagram' || selectedFormat === 'data_response';
+  const diagramInstructions = needsDiagram ? `
+
+${DIAGRAM_SCHEMA_DOCS}
+
+IMPORTANT: For this question type, you SHOULD include a "diagram" field in your JSON response following the schema above.` : '';
+
+  // JSON structure with optional diagram field
+  const jsonStructure = needsDiagram
+    ? `{
+  "content": "The full question text using the command word '${commandWord}'",
+  "marks": ${config.totalMarks},
+  "solution": "Complete model answer",
+  "markScheme": ["Mark point 1", "Mark point 2", "..."],
+  "diagram": {"width": 10, "height": 8, "elements": [...]}
+}`
+    : `{
+  "content": "The full question text using the command word '${commandWord}'",
+  "marks": ${config.totalMarks},
+  "solution": "Complete model answer",
+  "markScheme": ["Mark point 1", "Mark point 2", "..."]
+}`;
+
+  return `Generate a ${boardUpper} ${levelDisplay} ${subject.replace('-', ' ')} exam question. Return ONLY valid JSON, no markdown.
+
+TOPIC: ${topicName} - ${subtopic}
+MARKS: ${config.totalMarks}
+DIFFICULTY: ${difficulty.toUpperCase()}
+SELECTED FORMAT: ${selectedFormat.toUpperCase()}
+${formatGuidance.questionGuidance}
+
+Command word to use: "${commandWord}"
+${markSchemeGuidance}
+${formatGuidance.solutionGuidance}
+${diagramInstructions}
+
+${config.totalMarks >= 8 ? 'CRITICAL: The mark scheme must use LEVEL-BASED DESCRIPTORS as shown above, not just a list of points.' : ''}
+
+Use \\n for line breaks in strings.
+
+Return exactly this JSON structure (no markdown code blocks):
+${jsonStructure}`;
+}
+
+/**
+ * Get question type guidance for quantitative subjects based on selected format
+ */
+function getQuantitativeFormatGuidance(format: QuestionFormat, subject: Subject): {
+  typeDescription: string;
+  requirements: string;
+  commandWords: string[];
+} {
+  switch (format) {
+    case 'calculation':
+      return {
+        typeDescription: 'CALCULATION/PROBLEM-SOLVING',
+        requirements: `
+- Numerical calculation or algebraic manipulation required
+- Include realistic values and units
+- May require formula application
+- Show working for method marks`,
+        commandWords: ['Calculate', 'Work out', 'Find', 'Determine', 'Show that']
+      };
+
+    case 'explain':
+      return {
+        typeDescription: 'EXPLAIN/DESCRIBE',
+        requirements: `
+- Requires explanation using subject terminology
+- Chain of reasoning (because → therefore)
+- May link concepts to phenomena
+- Use specific examples where relevant`,
+        commandWords: ['Explain', 'Describe', 'Why does', 'How does', 'Suggest why']
+      };
+
+    case 'data_response':
+      return {
+        typeDescription: 'GRAPH/DATA ANALYSIS',
+        requirements: `
+- Include data in question (table or describe graph/trend)
+- Requires interpretation of the data
+- May ask to identify patterns/trends
+- Link data analysis to concepts`,
+        commandWords: ['Using the data', 'What does the graph show', 'Describe the trend', 'Analyse']
+      };
+
+    case 'analyse':
+      return {
+        typeDescription: 'COMPARE/EVALUATE',
+        requirements: `
+- Compare two or more items/methods/situations
+- Identify similarities AND differences
+- May require evaluation of advantages/disadvantages
+- Use comparative language`,
+        commandWords: ['Compare', 'Contrast', 'Evaluate', 'Discuss the advantages']
+      };
+
+    case 'short_essay':
+      return {
+        typeDescription: 'EXTENDED RESPONSE (6 marks - LEVEL-BASED)',
+        requirements: `
+- Longer response requiring structured answer (6 marks)
+- Multiple points linked together
+- For ${subject}: use appropriate ${subject === 'physics' ? 'physics concepts and formulas' : subject === 'chemistry' ? 'chemical equations and terminology' : 'mathematical reasoning'}
+- Quality of written communication assessed
+
+IMPORTANT: 6-mark extended response uses LEVEL-BASED marking, NOT individual mark points:
+- Level 3 (5-6 marks): Detailed, coherent explanation linking all relevant points; uses correct scientific terminology throughout; clear logical structure
+- Level 2 (3-4 marks): Explanation links some points; uses some scientific terminology; mostly logical structure
+- Level 1 (1-2 marks): Simple statements; limited terminology; lacks clear structure
+
+The markScheme array for 6-mark questions MUST include:
+["Level 3 (5-6 marks): Detailed coherent explanation with correct terminology and logical structure",
+ "Level 2 (3-4 marks): Links some points with some terminology",
+ "Level 1 (1-2 marks): Simple statements with limited terminology",
+ "Indicative content: [list 5-6 specific points students might include for this topic]"]`,
+        commandWords: ['Explain in detail', 'Describe and explain', 'Discuss']
+      };
+
+    case 'diagram':
+    default:
+      return {
+        typeDescription: 'GRAPH/DIAGRAM INTERPRETATION',
+        requirements: `
+- May involve interpreting or sketching graphs/diagrams
+- Describe key features to include
+- Link graph features to concepts
+- For ${subject}: use appropriate graph types`,
+        commandWords: ['Sketch', 'Draw', 'Using the diagram', 'Describe the shape of']
+      };
+  }
+}
+
+/**
+ * Build prompt for quantitative (non-essay) subjects
+ * Now with question type variation based on subject
+ */
+function buildQuantitativePrompt(
+  subject: Subject,
+  level: QualificationLevel,
+  board: ExamBoard,
+  topicName: string,
+  subtopic: string,
+  difficulty: Difficulty
+): string {
+  const markRange = getMarkRange(difficulty, subject, level, board);
+  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
+  const boardUpper = board.toUpperCase();
+  const targetMarks = Math.floor((markRange.min + markRange.max) / 2);
+
+  // Select question type based on subject
+  let selectedFormat: QuestionFormat;
+  if (isScienceSubject(subject)) {
+    selectedFormat = getRandomScienceQuestionType();
+  } else if (isMathsSubject(subject)) {
+    selectedFormat = getRandomMathsQuestionType();
+  } else {
+    selectedFormat = 'calculation'; // Default
+  }
+
+  const formatGuidance = getQuantitativeFormatGuidance(selectedFormat, subject);
+  const commandWord = formatGuidance.commandWords[Math.floor(Math.random() * formatGuidance.commandWords.length)];
 
   const difficultyDesc = difficulty === 'easy'
     ? 'Simple, 1-2 steps, grades 1-3'
@@ -40,17 +791,50 @@ function buildPrompt(
     ? 'Moderate, 2-3 steps, grades 4-5'
     : 'Challenging, multi-step, grades 6-9';
 
+  // Include diagram schema for diagram-type questions
+  const needsDiagram = selectedFormat === 'diagram' || selectedFormat === 'data_response';
+  const diagramInstructions = needsDiagram ? `
+
+${DIAGRAM_SCHEMA_DOCS}
+
+IMPORTANT: For this question type, you SHOULD include a "diagram" field in your JSON response following the schema above.` : '';
+
+  // JSON structure with optional diagram field
+  const jsonExample = needsDiagram
+    ? `{"content":"Question text using '${commandWord}'","marks":${targetMarks},"solution":"**Step 1:** [action] (M1)\\n**Step 2:** [calculation] (A1)\\n**Answer:** [final answer with units]","markScheme":["M1: Correct method/formula","A1 ft: Correct substitution/calculation","A1: cao Final answer"],"diagram":{"width":10,"height":8,"elements":[...]}}`
+    : `{"content":"Question text using '${commandWord}'","marks":${targetMarks},"solution":"**Step 1:** [action] (M1)\\n**Step 2:** [calculation] (A1)\\n**Answer:** [final answer with units]","markScheme":["M1: Correct method/formula","A1 ft: Correct calculation","A1: cao Final answer"]}`;
+
   return `Generate a ${boardUpper} ${levelDisplay} ${subject} exam question. Return ONLY valid JSON, no markdown.
 
 Topic: ${topicName} - ${subtopic}
 Difficulty: ${difficultyDesc}
 Marks: ${markRange.min}-${markRange.max}
+QUESTION TYPE: ${formatGuidance.typeDescription}
+
+Use command word: "${commandWord}"
+${formatGuidance.requirements}
 
 Requirements:
 - Original question matching ${boardUpper} exam style
 - Clear, unambiguous wording
-- Worked solution with steps
-- Mark scheme with M (method) and A (accuracy) marks
+- Worked solution with steps showing each mark point
+
+MARK SCHEME FORMAT (CRITICAL - use proper notation):
+Mark types:
+- **M1, M2**: Method marks for correct approach/setup (awarded even with arithmetic errors)
+- **A1, A2**: Accuracy marks for correct execution (depend on preceding M marks)
+- **B1**: Independent marks for correct statements, values, or conclusions
+- **ft**: Follow-through mark (credit given despite earlier errors if method is correct)
+- **dep**: Dependent mark (requires previous mark to be awarded)
+- **oe**: Or equivalent (accept equivalent correct forms)
+- **cao**: Correct answer only (no follow-through)
+
+For multi-part questions, prefix with part: "(a) M1:", "(b) A1:"
+
+EXAMPLE markScheme formats:
+3-mark question: ["M1: Sets up equation correctly", "M1 dep: Solves to find $x$", "A1: cao $x = 5$"]
+4-mark question: ["M1: Uses correct formula", "A1 ft: Substitutes values correctly", "M1 dep: Rearranges for final variable", "A1: cao Final answer with units"]
+Multi-part: ["(a) B1: Correct value", "(b) M1: Identifies relationship", "(b) A1 ft: Calculates result"]
 
 LaTeX/Math Formatting (CRITICAL):
 - ALWAYS wrap ALL math expressions in $...$ delimiters
@@ -74,12 +858,34 @@ Physics Notation:
 - Vectors can use bold: $\\\\mathbf{F}$ or with arrows: $\\\\vec{v}$
 - Dot product: $\\\\cdot$
 - Standard form: $3.0 \\\\times 10^8$
+${diagramInstructions}
 
 Use DOUBLE backslashes for ALL LaTeX commands in JSON (e.g., $\\\\frac{1}{2}$)
 Use \\n for line breaks in strings
 
 Return exactly this JSON structure (no markdown code blocks):
-{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: Method mark","A1: Accuracy mark"]}`;
+${jsonExample}`;
+}
+
+/**
+ * Main prompt builder - routes to essay or quantitative prompt
+ */
+function buildPrompt(
+  subject: Subject,
+  level: QualificationLevel,
+  board: ExamBoard,
+  topicName: string,
+  subtopic: string,
+  difficulty: Difficulty
+): string {
+  // Check if this is an essay subject and get its configuration (now board-specific)
+  const essayConfig = getQuestionConfig(subject, level, difficulty, board);
+
+  if (essayConfig) {
+    return buildEssayPrompt(essayConfig, subject, level, board, topicName, subtopic, difficulty);
+  }
+
+  return buildQuantitativePrompt(subject, level, board, topicName, subtopic, difficulty);
 }
 
 export async function POST(request: NextRequest) {
@@ -213,6 +1019,7 @@ export async function POST(request: NextRequest) {
 
     if (stream) {
       // Stream OpenAI response for better UX
+      const maxTokens = getMaxTokens(subject, difficulty);
       const completion = await openai.chat.completions.create({
         model: modelToUse,
         messages: [
@@ -220,7 +1027,7 @@ export async function POST(request: NextRequest) {
           { role: 'user', content: prompt },
         ],
         temperature: 0.5,
-        max_tokens: 800,
+        max_tokens: maxTokens,
         response_format: { type: 'json_object' },
         stream: true,
       });
@@ -314,7 +1121,16 @@ export async function POST(request: NextRequest) {
             // Parse and send final question
             try {
               const parsed = JSON.parse(fullJson);
-              const question = {
+              const question: {
+                id: string;
+                topicId: string;
+                difficulty: Difficulty;
+                content: string;
+                solution: string;
+                marks: number;
+                markScheme: string[];
+                diagram?: DiagramSpec;
+              } = {
                 id: crypto.randomUUID(),
                 topicId,
                 difficulty,
@@ -324,12 +1140,18 @@ export async function POST(request: NextRequest) {
                 markScheme: parsed.markScheme || [],
               };
 
-              // Cache it
+              // Include diagram if present
+              if (parsed.diagram) {
+                question.diagram = parsed.diagram;
+              }
+
+              // Cache it (including diagram if present)
               cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
                 content: question.content,
                 solution: question.solution,
                 marks: question.marks,
                 markScheme: question.markScheme,
+                ...(question.diagram && { diagram: question.diagram }),
               }).catch(console.error);
 
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, question })}\n\n`));
@@ -355,6 +1177,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Non-streaming fallback
+    const maxTokens = getMaxTokens(subject, difficulty);
     const completion = await openai.chat.completions.create({
       model: modelToUse,
       messages: [
@@ -362,7 +1185,7 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: prompt },
       ],
       temperature: 0.5,
-      max_tokens: 800,
+      max_tokens: maxTokens,
       response_format: { type: 'json_object' },
     });
 
@@ -370,7 +1193,16 @@ export async function POST(request: NextRequest) {
     if (!content) throw new Error('No response from OpenAI');
 
     const parsed = JSON.parse(content);
-    const question = {
+    const question: {
+      id: string;
+      topicId: string;
+      difficulty: Difficulty;
+      content: string;
+      solution: string;
+      marks: number;
+      markScheme: string[];
+      diagram?: DiagramSpec;
+    } = {
       id: crypto.randomUUID(),
       topicId,
       difficulty,
@@ -380,12 +1212,18 @@ export async function POST(request: NextRequest) {
       markScheme: parsed.markScheme || [],
     };
 
-    // Cache it
+    // Include diagram if present
+    if (parsed.diagram) {
+      question.diagram = parsed.diagram;
+    }
+
+    // Cache it (including diagram if present)
     cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
       content: question.content,
       solution: question.solution,
       marks: question.marks,
       markScheme: question.markScheme,
+      ...(question.diagram && { diagram: question.diagram }),
     }).catch(console.error);
 
     return new Response(JSON.stringify(question), {

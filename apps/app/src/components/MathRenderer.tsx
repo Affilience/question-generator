@@ -238,12 +238,14 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   const fixedContent = fixLatexEscaping(processedContent);
 
   // Split content by LaTeX delimiters and render appropriately
-  // Supports: $...$ for inline, $$...$$ for block
+  // Supports: $...$ for inline, $$...$$ for block, \(...\) for inline, \[...\] for block
   const renderMathContent = (text: string) => {
-    // Simplified regex:
+    // Comprehensive regex for all LaTeX delimiter styles:
     // 1. Block math: $$...$$ (non-greedy, can contain newlines)
-    // 2. Inline math: $...$ (non-greedy, must have content, no nested $)
-    const mathRegex = /(\$\$[\s\S]+?\$\$|\$[^$]+\$)/g;
+    // 2. Block math: \[...\] (escaped brackets, non-greedy)
+    // 3. Inline math: $...$ (non-greedy, must have content, no nested $)
+    // 4. Inline math: \(...\) (escaped parentheses, non-greedy to allow nested parens)
+    const mathRegex = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$]+\$|\\\([\s\S]+?\\\))/g;
 
     const parts: string[] = [];
     let lastIndex = 0;
@@ -268,18 +270,27 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     }
 
     return parts.map((part, index) => {
-      if (part.startsWith('$$') && part.endsWith('$$') && part.length > 4) {
-        // Block math (must have content)
-        const math = part.slice(2, -2).trim();
+      // Block math: $$...$$ or \[...\]
+      if ((part.startsWith('$$') && part.endsWith('$$') && part.length > 4) ||
+          (part.startsWith('\\[') && part.endsWith('\\]') && part.length > 4)) {
+        // Extract math content based on delimiter type
+        const math = part.startsWith('$$')
+          ? part.slice(2, -2).trim()
+          : part.slice(2, -2).trim();
         if (!math) return <span key={index}>{part}</span>;
         return (
           <div key={index} className="my-4">
             <SafeBlockMath math={math} />
           </div>
         );
-      } else if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
-        // Inline math (must have content)
-        const math = part.slice(1, -1);
+      }
+      // Inline math: $...$ or \(...\)
+      else if ((part.startsWith('$') && part.endsWith('$') && part.length > 2) ||
+               (part.startsWith('\\(') && part.endsWith('\\)') && part.length > 4)) {
+        // Extract math content based on delimiter type
+        const math = part.startsWith('$')
+          ? part.slice(1, -1)
+          : part.slice(2, -2);
         if (!math) return <span key={index}>{part}</span>;
 
         // Extra check: skip if it looks like currency (just a number)

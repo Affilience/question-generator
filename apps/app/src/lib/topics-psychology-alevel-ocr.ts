@@ -9,7 +9,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
   // COMPONENT 1: RESEARCH METHODS (30%)
   // ============================================================================
   {
-    id: 'ocr-alevel-psych-research-methods',
+    id: 'research-methods',
     name: 'Research Methods',
     description: 'Research methodology, experimental design, data analysis, and scientific processes',
     icon: '📊',
@@ -180,7 +180,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
   // COMPONENT 2: PSYCHOLOGICAL THEMES THROUGH CORE STUDIES (35%)
   // ============================================================================
   {
-    id: 'ocr-alevel-psych-social-area',
+    id: 'social-area',
     name: 'Social Psychology Area',
     description: 'Core studies in social psychology including obedience, conformity, and bystander behaviour',
     icon: '👥',
@@ -248,7 +248,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-cognitive-area',
+    id: 'cognitive-area',
     name: 'Cognitive Psychology Area',
     description: 'Core studies in cognitive psychology including memory, attention, and cognitive processes',
     icon: '🧠',
@@ -313,7 +313,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-developmental-area',
+    id: 'developmental-area',
     name: 'Developmental Psychology Area',
     description: 'Core studies in developmental psychology including cognitive and social development',
     icon: '👶',
@@ -381,7 +381,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-biological-area',
+    id: 'biological-area',
     name: 'Biological Psychology Area',
     description: 'Core studies in biological psychology including brain structure, genetics, and physiology',
     icon: '🔬',
@@ -454,7 +454,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-individual-differences',
+    id: 'individual-differences',
     name: 'Individual Differences Area',
     description: 'Core studies in individual differences including psychopathology and personality',
     icon: '🎭',
@@ -527,7 +527,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
   // COMPONENT 3: APPLIED PSYCHOLOGY (35%)
   // ============================================================================
   {
-    id: 'ocr-alevel-psych-mental-health',
+    id: 'mental-health',
     name: 'Mental Health',
     description: 'Historical context of mental health, specific disorders, and treatments',
     icon: '🩺',
@@ -624,7 +624,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-criminal',
+    id: 'criminal',
     name: 'Criminal Psychology',
     description: 'Explanations of criminal behaviour, collection of evidence, and psychology of testimony',
     icon: '🔍',
@@ -720,7 +720,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-sport-exercise',
+    id: 'sport-exercise',
     name: 'Sports and Exercise Psychology',
     description: 'Psychological factors in sport performance, motivation, and exercise',
     icon: '⚽',
@@ -813,7 +813,7 @@ export const ocrALevelPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-psych-environmental',
+    id: 'environmental',
     name: 'Environmental Psychology',
     description: 'Effects of environment on behaviour, personal space, and environmental cognition',
     icon: '🌍',

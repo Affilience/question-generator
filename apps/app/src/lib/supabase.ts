@@ -44,6 +44,94 @@ export interface UserStreak {
   created_at: string;
 }
 
+// SEO Content types
+export interface SEOContent {
+  id: string;
+  level: string;
+  subject: string;
+  exam_board: string;
+  topic_slug: string;
+  subtopic_slug: string;
+  title: string;
+  meta_description: string;
+  introduction: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SampleQuestion {
+  id: string;
+  subtopic_id: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  content: string;
+  solution: string;
+  marks: number;
+  display_order: number;
+  created_at: string;
+}
+
+// Fetch SEO content for a subtopic
+export async function getSEOContent(
+  level: string,
+  subject: string,
+  examBoard: string,
+  topicSlug: string,
+  subtopicSlug: string
+): Promise<SEOContent | null> {
+  const { data, error } = await supabase
+    .from('seo_content')
+    .select('*')
+    .eq('level', level)
+    .eq('subject', subject)
+    .eq('exam_board', examBoard)
+    .eq('topic_slug', topicSlug)
+    .eq('subtopic_slug', subtopicSlug)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as SEOContent;
+}
+
+// Fetch sample questions for a subtopic
+export async function getSampleQuestionsForSubtopic(
+  level: string,
+  subject: string,
+  examBoard: string,
+  topicSlug: string,
+  subtopicSlug: string
+): Promise<SampleQuestion[]> {
+  // First get the seo_content ID
+  const { data: seoContent, error: seoError } = await supabase
+    .from('seo_content')
+    .select('id')
+    .eq('level', level)
+    .eq('subject', subject)
+    .eq('exam_board', examBoard)
+    .eq('topic_slug', topicSlug)
+    .eq('subtopic_slug', subtopicSlug)
+    .single();
+
+  if (seoError || !seoContent) {
+    return [];
+  }
+
+  // Then fetch the sample questions
+  const { data: questions, error: questionsError } = await supabase
+    .from('sample_questions')
+    .select('*')
+    .eq('subtopic_id', seoContent.id)
+    .order('display_order', { ascending: true });
+
+  if (questionsError || !questions) {
+    return [];
+  }
+
+  return questions as SampleQuestion[];
+}
+
 // Get or create user from localStorage ID
 export async function getOrCreateUser(): Promise<User | null> {
   // Check localStorage for existing user ID

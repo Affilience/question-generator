@@ -28,7 +28,7 @@ export const ocrGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Algebra',
     description: 'Advanced algebraic techniques including polynomials and identities',
-    icon: 'x²',
+    icon: '📐',
     color: 'bg-purple-600',
     subtopics: [
       // Manipulation
@@ -151,7 +151,7 @@ export const ocrGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Trigonometry',
     description: 'Trigonometric functions, equations and identities',
-    icon: 'sinθ',
+    icon: '📐',
     color: 'bg-violet-600',
     subtopics: [
       // Ratios and graphs
@@ -189,7 +189,7 @@ export const ocrGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Differentiation',
     description: 'Introduction to differential calculus',
-    icon: 'dy/dx',
+    icon: '📉',
     color: 'bg-red-600',
     subtopics: [
       // Basic differentiation
@@ -254,7 +254,7 @@ export const ocrGCSEFurtherMathsTopics: Topic[] = [
     qualification: 'gcse',
     name: 'Exponentials and Logarithms',
     description: 'Exponential and logarithmic functions and their properties',
-    icon: 'e^x',
+    icon: '📈',
     color: 'bg-emerald-600',
     subtopics: [
       // Exponential functions

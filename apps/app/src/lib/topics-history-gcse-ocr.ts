@@ -10,7 +10,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
   // Thematic Studies
   // ============================================================================
   {
-    id: 'ocr-gcse-hist-peoples-health',
+    id: 'peoples-health',
     name: 'The People\'s Health c1250-present',
     description: 'Changes in health and medicine in Britain',
     icon: '🏥',
@@ -70,7 +70,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-crime-punishment',
+    id: 'crime-punishment',
     name: 'Crime and Punishment c1250-present',
     description: 'Changes in crime, punishment and law enforcement',
     icon: '⚖️',
@@ -134,7 +134,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-migrants-britain',
+    id: 'migrants-britain',
     name: 'Migrants to Britain c1250-present',
     description: 'Migration and its impact on British history',
     icon: '🌍',
@@ -182,7 +182,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
   // British Depth Studies
   // ============================================================================
   {
-    id: 'ocr-gcse-hist-norman-conquest',
+    id: 'norman-conquest',
     name: 'The Norman Conquest 1065-1087',
     description: 'England before and after 1066',
     icon: '🏰',
@@ -235,7 +235,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-elizabethans',
+    id: 'elizabethans',
     name: 'The Elizabethans 1580-1603',
     description: 'England in the later Elizabethan period',
     icon: '👑',
@@ -287,7 +287,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-britain-1900-1918',
+    id: 'britain-1900-1918',
     name: 'Britain in Peace and War 1900-1918',
     description: 'Britain from Edwardian era through WWI',
     icon: '🇬🇧',
@@ -343,7 +343,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
   // COMPONENT 2: HISTORY AROUND US
   // ============================================================================
   {
-    id: 'ocr-gcse-hist-around-us',
+    id: 'around-us',
     name: 'History Around Us',
     description: 'Study of a local historic site',
     icon: '🏛️',
@@ -381,7 +381,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
   // Period Studies
   // ============================================================================
   {
-    id: 'ocr-gcse-hist-viking-expansion',
+    id: 'viking-expansion',
     name: 'Viking Expansion c750-c1050',
     description: 'Viking raids, settlement and legacy',
     icon: '⚔️',
@@ -424,7 +424,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-making-america',
+    id: 'making-america',
     name: 'The Making of America 1789-1900',
     description: 'Development of the United States',
     icon: '🇺🇸',
@@ -483,7 +483,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
   // World Depth Studies
   // ============================================================================
   {
-    id: 'ocr-gcse-hist-nazi-rule',
+    id: 'nazi-rule',
     name: 'Living under Nazi Rule 1933-1945',
     description: 'Life in Nazi Germany and occupied Europe',
     icon: '🇩🇪',
@@ -550,7 +550,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-first-crusade',
+    id: 'first-crusade',
     name: 'The First Crusade c1070-1100',
     description: 'Origins, events and impact of the First Crusade',
     icon: '⚔️',
@@ -603,7 +603,7 @@ export const ocrGCSEHistoryTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-hist-aztecs-spanish',
+    id: 'aztecs-spanish',
     name: 'Aztecs and the Spanish Conquest 1519-1535',
     description: 'The Aztec Empire and its conquest by Spain',
     icon: '🏛️',

@@ -14,7 +14,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 1.1 CHARACTERISTICS OF CONTEMPORARY PROCESSORS, INPUT, OUTPUT AND STORAGE
   {
-    id: 'ocr-alevel-cs-processors-io',
+    id: 'processors-io',
     examBoard: 'ocr',
     name: 'Processors, Input, Output and Storage',
     description: 'CPU architecture, memory types, and storage devices',
@@ -76,7 +76,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 1.2 SOFTWARE AND SOFTWARE DEVELOPMENT
   {
-    id: 'ocr-alevel-cs-software',
+    id: 'software',
     examBoard: 'ocr',
     name: 'Software and Software Development',
     description: 'System software, programming languages, and development tools',
@@ -154,7 +154,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 1.3 EXCHANGING DATA
   {
-    id: 'ocr-alevel-cs-exchanging-data',
+    id: 'exchanging-data',
     examBoard: 'ocr',
     name: 'Exchanging Data',
     description: 'Compression, encryption, databases, networks, and web technologies',
@@ -262,7 +262,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 1.4 DATA TYPES, DATA STRUCTURES AND ALGORITHMS
   {
-    id: 'ocr-alevel-cs-data-structures',
+    id: 'data-structures',
     examBoard: 'ocr',
     name: 'Data Types, Data Structures and Algorithms',
     description: 'Data representation, data structures, and Boolean algebra',
@@ -320,7 +320,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 1.5 LEGAL, MORAL, CULTURAL AND ETHICAL ISSUES
   {
-    id: 'ocr-alevel-cs-ethics',
+    id: 'ethics',
     examBoard: 'ocr',
     name: 'Legal, Moral, Cultural and Ethical Issues',
     description: 'Computing legislation and ethical considerations',
@@ -365,7 +365,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 2.1 ELEMENTS OF COMPUTATIONAL THINKING
   {
-    id: 'ocr-alevel-cs-computational-thinking',
+    id: 'computational-thinking',
     examBoard: 'ocr',
     name: 'Elements of Computational Thinking',
     description: 'Problem solving, abstraction, and algorithm design',
@@ -408,7 +408,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 2.2 PROBLEM SOLVING AND PROGRAMMING
   {
-    id: 'ocr-alevel-cs-programming',
+    id: 'programming',
     examBoard: 'ocr',
     name: 'Problem Solving and Programming',
     description: 'Programming concepts, paradigms, and techniques',
@@ -479,7 +479,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // 2.3 ALGORITHMS
   {
-    id: 'ocr-alevel-cs-algorithms',
+    id: 'algorithms',
     examBoard: 'ocr',
     name: 'Algorithms',
     description: 'Analysis, searching, sorting, path finding, and optimisation',
@@ -535,7 +535,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
   // ADDITIONAL TOPICS
   // Regular languages and finite state machines
   {
-    id: 'ocr-alevel-cs-theory-computation',
+    id: 'theory-computation',
     examBoard: 'ocr',
     name: 'Theory of Computation',
     description: 'Finite state machines, regular expressions, and BNF',
@@ -582,7 +582,7 @@ export const ocrALevelComputerScienceTopics: Topic[] = [
 
   // Functional programming
   {
-    id: 'ocr-alevel-cs-functional',
+    id: 'functional',
     examBoard: 'ocr',
     name: 'Functional Programming',
     description: 'Functional programming paradigm and techniques',

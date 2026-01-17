@@ -7,7 +7,7 @@ import { Topic } from '@/types';
 export const ocrALevelEnglishLiteratureTopics: Topic[] = [
   // Component 01: Drama and Poetry Pre-1900
   {
-    id: 'ocr-alevel-eng-lit-measure-measure',
+    id: 'lit-measure-measure',
     name: 'Measure for Measure',
     description: 'Shakespeare\'s dark comedy exploring justice, mercy, and sexual morality',
     icon: '📖',
@@ -32,7 +32,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-duchess-malfi',
+    id: 'lit-duchess-malfi',
     name: 'The Duchess of Malfi',
     description: 'Webster\'s Jacobean tragedy of female defiance and aristocratic corruption',
     icon: '📖',
@@ -57,7 +57,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-doctor-faustus',
+    id: 'lit-doctor-faustus',
     name: 'Doctor Faustus',
     description: 'Marlowe\'s morality play exploring ambition, damnation, and Renaissance learning',
     icon: '📖',
@@ -82,7 +82,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-chaucer-pardoner',
+    id: 'lit-chaucer-pardoner',
     name: 'Chaucer: The Pardoner\'s Prologue and Tale',
     description: 'Chaucer\'s satirical tale exposing religious corruption and moral hypocrisy',
     icon: '📖',
@@ -107,7 +107,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-romantic-poetry',
+    id: 'lit-romantic-poetry',
     name: 'Romantic Poetry',
     description: 'Selected Romantic poets exploring nature, imagination, and the self',
     icon: '📖',
@@ -133,7 +133,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Component 02: Comparative and Contextual Study
   {
-    id: 'ocr-alevel-eng-lit-gothic-lit',
+    id: 'lit-gothic-lit',
     name: 'The Gothic',
     description: 'Gothic literature from its origins to contemporary manifestations',
     icon: '📖',
@@ -158,7 +158,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-dystopia',
+    id: 'lit-dystopia',
     name: 'Dystopia',
     description: 'Dystopian literature exploring totalitarianism and social critique',
     icon: '📖',
@@ -183,7 +183,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-women-writing',
+    id: 'lit-women-writing',
     name: 'Women in Literature',
     description: 'Female experience and representation across literary periods',
     icon: '📖',
@@ -208,7 +208,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-american-lit',
+    id: 'lit-american-lit',
     name: 'American Literature 1880-1940',
     description: 'American literary development from realism through modernism',
     icon: '📖',
@@ -234,7 +234,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
   },
   // Component 03: Literature Post-1900 (NEA)
   {
-    id: 'ocr-alevel-eng-lit-post-1900',
+    id: 'lit-post-1900',
     name: 'Literature Post-1900',
     description: 'Twentieth and twenty-first century literature for independent study',
     icon: '📖',
@@ -259,7 +259,7 @@ export const ocrALevelEnglishLiteratureTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-alevel-eng-lit-nea-ocr',
+    id: 'lit-nea-ocr',
     name: 'NEA: Close Reading or Re-creative Writing',
     description: 'Independent study through close reading analysis or creative response',
     icon: '📖',

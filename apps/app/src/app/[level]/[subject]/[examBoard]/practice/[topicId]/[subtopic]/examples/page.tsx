@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTopicByIdSubjectBoardAndLevel, getExamBoardsByLevel } from '@/lib/topics';
+import { slugify } from '@/lib/seo/utils';
 import { Topic, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { WorkedExampleCard } from '@/components/WorkedExampleCard';
 
@@ -31,48 +32,40 @@ const validSubjects: Subject[] = [
 
 export default function WorkedExamplesPage() {
   const params = useParams();
-  const level = params.level as string;
-  const subject = params.subject as string;
-  const examBoard = params.examBoard as string;
-  const topicId = params.topicId as string;
-  const subtopicParam = params.subtopic as string;
-  const subtopic = decodeURIComponent(subtopicParam);
 
-  // Validate level
-  if (!validLevels.includes(level as QualificationLevel)) {
-    notFound();
-  }
-
-  // Validate subject
-  if (!validSubjects.includes(subject as Subject)) {
-    notFound();
-  }
-
-  // Validate exam board
-  if (!validExamBoards.includes(examBoard as ExamBoard)) {
-    notFound();
-  }
-
-  // Check if this exam board supports this level
-  const boardsForLevel = getExamBoardsByLevel(level as QualificationLevel);
-  if (!boardsForLevel.find(b => b.id === examBoard)) {
-    notFound();
-  }
+  // Extract params with fallbacks for loading state
+  const level = (params.level as string) || '';
+  const subject = (params.subject as string) || '';
+  const examBoard = (params.examBoard as string) || '';
+  const topicId = (params.topicId as string) || '';
+  const subtopicParam = (params.subtopic as string) || '';
+  const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
 
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
 
+  // All hooks must be called before any conditional returns
   const [topic, setTopic] = useState<Topic | null>(null);
   const [topicLoaded, setTopicLoaded] = useState(false);
   const [examples, setExamples] = useState<WorkedExample[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paramsReady, setParamsReady] = useState(false);
 
-  // Load topic
+  // Check if params are ready
   useEffect(() => {
-    const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
-    setTopic(foundTopic || null);
-    setTopicLoaded(true);
-  }, [topicId, subject, examBoard, level]);
+    if (subtopicParam && level && subject && examBoard && topicId) {
+      setParamsReady(true);
+    }
+  }, [subtopicParam, level, subject, examBoard, topicId]);
+
+  // Load topic when params are ready
+  useEffect(() => {
+    if (paramsReady) {
+      const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      setTopic(foundTopic || null);
+      setTopicLoaded(true);
+    }
+  }, [paramsReady, topicId, subject, examBoard, level]);
 
   // Fetch examples once topic is loaded
   useEffect(() => {
@@ -82,6 +75,13 @@ export default function WorkedExamplesPage() {
       return;
     }
     if (subtopic === 'random') {
+      setLoading(false);
+      return;
+    }
+
+    // Find the actual subtopic name from the slug
+    const actualSubtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+    if (!actualSubtopicName) {
       setLoading(false);
       return;
     }
@@ -96,7 +96,7 @@ export default function WorkedExamplesPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             topicId,
-            subtopic,
+            subtopic: actualSubtopicName,
             qualification: level,
             examBoard,
             subject,
@@ -120,6 +120,38 @@ export default function WorkedExamplesPage() {
 
     fetchExamples();
   }, [topicLoaded, topic, topicId, subtopic, level, examBoard, subject]);
+
+  // All hooks declared above. Conditional returns start here.
+
+  // Handle loading state - params not yet available
+  if (!paramsReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-[#666666]">Loading...</div>
+      </div>
+    );
+  }
+
+  // Validate level
+  if (!validLevels.includes(level as QualificationLevel)) {
+    notFound();
+  }
+
+  // Validate subject
+  if (!validSubjects.includes(subject as Subject)) {
+    notFound();
+  }
+
+  // Validate exam board
+  if (!validExamBoards.includes(examBoard as ExamBoard)) {
+    notFound();
+  }
+
+  // Check if this exam board supports this level
+  const boardsForLevel = getExamBoardsByLevel(level as QualificationLevel);
+  if (!boardsForLevel.find(b => b.id === examBoard)) {
+    notFound();
+  }
 
   // Show loading while topic is being loaded
   if (!topicLoaded) {
@@ -163,8 +195,27 @@ export default function WorkedExamplesPage() {
     );
   }
 
-  const displaySubtopic = subtopic.replace(' (H)', '');
-  const isHigher = subtopic.includes('(H)');
+  // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
+  const subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  if (!subtopicName) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-2">Subtopic not found</h1>
+          <p className="text-[#a1a1a1] mb-4">&quot;{subtopic}&quot; is not a valid subtopic</p>
+          <Link
+            href={`/${level}/${subject}/${examBoard}/practice/${topicId}`}
+            className="text-[#3b82f6] hover:text-[#60a5fa] transition-colors"
+          >
+            Choose a different subtopic
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const displaySubtopic = subtopicName.replace(' (H)', '');
+  const isHigher = subtopicName.includes('(H)');
 
   return (
     <div className="min-h-screen">

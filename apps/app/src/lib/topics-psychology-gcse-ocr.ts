@@ -10,7 +10,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
   // Criminal Psychology, Development, Psychological Problems, Research Methods
   // ============================================================================
   {
-    id: 'ocr-gcse-psych-criminal',
+    id: 'criminal',
     name: 'Criminal Psychology',
     description: 'What makes a criminal? Biological, cognitive and social explanations',
     icon: '🔍',
@@ -67,7 +67,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-psych-development',
+    id: 'development',
     name: 'Development',
     description: 'Early brain development, Piaget, and learning theories',
     icon: '👶',
@@ -126,7 +126,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-psych-psychological-problems',
+    id: 'psychological-problems',
     name: 'Psychological Problems',
     description: 'Mental health, depression, addiction, and their treatment',
     icon: '🩺',
@@ -204,7 +204,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
   // Social Influence, Memory, Sleep and Dreaming, Research Methods
   // ============================================================================
   {
-    id: 'ocr-gcse-psych-social-influence',
+    id: 'social-influence',
     name: 'Social Influence',
     description: 'How others influence behaviour: conformity, obedience, and crowds',
     icon: '👥',
@@ -275,7 +275,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-psych-memory',
+    id: 'memory',
     name: 'Memory',
     description: 'How memory works, why we forget, and eyewitness testimony',
     icon: '🧠',
@@ -342,7 +342,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-psych-sleep-dreaming',
+    id: 'sleep-dreaming',
     name: 'Sleep and Dreaming',
     description: 'Why we sleep, stages of sleep, and theories of dreaming',
     icon: '😴',
@@ -411,7 +411,7 @@ export const ocrGCSEPsychologyTopics: Topic[] = [
     ],
   },
   {
-    id: 'ocr-gcse-psych-research-methods',
+    id: 'research-methods',
     name: 'Research Methods',
     description: 'How psychologists conduct research and investigate behaviour',
     icon: '📊',

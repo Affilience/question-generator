@@ -12,7 +12,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 1: Key Concepts in Chemistry
   {
-    id: 'edexcel-gcse-chemistry-key-concepts',
+    id: 'key-concepts',
     name: 'Key Concepts in Chemistry',
     description: 'Atomic structure, periodic table, ionic and covalent bonding, equations and calculations',
     icon: '⚛️',
@@ -81,7 +81,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 2: States of Matter and Mixtures
   {
-    id: 'edexcel-gcse-chemistry-states-mixtures',
+    id: 'states-mixtures',
     name: 'States of Matter and Mixtures',
     description: 'States of matter, separation techniques, and methods of purification',
     icon: '💧',
@@ -125,7 +125,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 3: Chemical Changes
   {
-    id: 'edexcel-gcse-chemistry-chemical-changes',
+    id: 'chemical-changes',
     name: 'Chemical Changes',
     description: 'Acids, bases, neutralisation, electrolysis, and obtaining metals',
     icon: '🧪',
@@ -181,7 +181,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 4: Extracting Metals and Equilibria
   {
-    id: 'edexcel-gcse-chemistry-metals-equilibria',
+    id: 'metals-equilibria',
     name: 'Extracting Metals and Equilibria',
     description: 'Extraction of metals, life cycle assessments, and reversible reactions',
     icon: '⚙️',
@@ -217,7 +217,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 5: Separate Chemistry 1 (Triple Science)
   {
-    id: 'edexcel-gcse-chemistry-separate1',
+    id: 'separate1',
     name: 'Separate Chemistry 1',
     description: 'Transition metals, alloys, quantitative analysis, and dynamic equilibria',
     icon: '🔬',
@@ -263,7 +263,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 6: Groups in the Periodic Table
   {
-    id: 'edexcel-gcse-chemistry-groups',
+    id: 'groups',
     name: 'Groups in the Periodic Table',
     description: 'Group 1, Group 7, Group 0, and tests for ions and gases',
     icon: '📊',
@@ -316,7 +316,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 7: Rates of Reaction and Energy Changes
   {
-    id: 'edexcel-gcse-chemistry-rates-energy',
+    id: 'rates-energy',
     name: 'Rates of Reaction and Energy Changes',
     description: 'Rates of reaction, catalysts, exothermic and endothermic reactions',
     icon: '⏱️',
@@ -374,7 +374,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 8: Fuels and Earth Science
   {
-    id: 'edexcel-gcse-chemistry-fuels-earth',
+    id: 'fuels-earth',
     name: 'Fuels and Earth Science',
     description: 'Hydrocarbons, crude oil, combustion, the atmosphere, and climate',
     icon: '🌍',
@@ -439,7 +439,7 @@ export const edexcelChemistryTopics: Topic[] = [
 
   // Topic 9: Separate Chemistry 2 (Triple Science)
   {
-    id: 'edexcel-gcse-chemistry-separate2',
+    id: 'separate2',
     name: 'Separate Chemistry 2',
     description: 'Hydrocarbons reactions, alcohols, carboxylic acids, polymers, and nanoparticles',
     icon: '🛢️',
