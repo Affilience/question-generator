@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
+import { BreadcrumbJsonLd, EducationalResourceJsonLd, FAQJsonLd } from '@/components/seo/JsonLd';
 import { getBreadcrumbs } from '@/lib/seo/utils';
 import { subjects, examBoards, getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
 import type { Subject } from '@/types';
@@ -26,6 +26,26 @@ export const metadata: Metadata = {
 export const dynamic = 'force-static';
 export const revalidate = 86400; // Revalidate once per day
 
+// GCSE FAQs for structured data
+const gcseFaqs = [
+  {
+    question: 'What is the best way to revise for GCSE exams?',
+    answer: 'The most effective GCSE revision combines active recall and spaced repetition. Practice past paper questions regularly, review mark schemes to understand examiner expectations, and focus extra time on weaker topics. Our AI generates unlimited practice questions to help you prepare thoroughly.',
+  },
+  {
+    question: 'How many GCSE subjects should I practice?',
+    answer: 'Most students take 8-10 GCSEs. Focus your revision time on subjects you find challenging while maintaining practice in all subjects. We recommend dedicating at least 20-30 minutes daily per subject in the months before exams.',
+  },
+  {
+    question: 'Are GCSE past papers enough for revision?',
+    answer: 'While past papers are valuable, they are limited in number. Once you have completed available past papers, you need additional practice material. Our AI-generated questions provide unlimited exam-style practice that matches AQA, Edexcel, and OCR specifications.',
+  },
+  {
+    question: 'What GCSE subjects are available on Past Papers?',
+    answer: 'We offer practice questions for core subjects including Mathematics, Physics, Chemistry, Biology, English Literature, History, Geography, Psychology, Economics, and more. Each subject covers AQA, Edexcel, and OCR exam board specifications.',
+  },
+];
+
 export default function GCSEPage() {
   const breadcrumbs = getBreadcrumbs({ level: 'gcse' });
 
@@ -47,6 +67,7 @@ export default function GCSEPage() {
         url="/gcse"
         educationalLevel="GCSE"
       />
+      <FAQJsonLd questions={gcseFaqs} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <Breadcrumbs items={breadcrumbs} />
@@ -149,6 +170,36 @@ export default function GCSEPage() {
                   {board.description}
                 </p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {gcseFaqs.map((faq, index) => (
+              <details
+                key={index}
+                className="group bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)]"
+              >
+                <summary className="flex items-center justify-between cursor-pointer p-5 text-[var(--color-text-primary)] font-medium">
+                  {faq.question}
+                  <svg
+                    className="w-5 h-5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="px-5 pb-5 text-[var(--color-text-secondary)] leading-relaxed">
+                  {faq.answer}
+                </div>
+              </details>
             ))}
           </div>
         </section>

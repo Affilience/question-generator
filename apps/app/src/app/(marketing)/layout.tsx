@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { WebsiteJsonLd } from '@/components/seo';
 
 export const metadata: Metadata = {
   title: {
@@ -18,6 +19,9 @@ export const metadata: Metadata = {
     title: 'Past Papers - Infinite AI-Generated Exam Questions',
     description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic.',
   },
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function MarketingLayout({
@@ -25,5 +29,10 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <WebsiteJsonLd />
+      {children}
+    </>
+  );
 }

@@ -2,10 +2,30 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
+import { BreadcrumbJsonLd, EducationalResourceJsonLd, FAQJsonLd } from '@/components/seo/JsonLd';
 import { getBreadcrumbs } from '@/lib/seo/utils';
 import { subjects, examBoards, getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
 import type { Subject } from '@/types';
+
+// A-Level FAQs for structured data
+const alevelFaqs = [
+  {
+    question: 'How do I effectively revise for A-Level exams?',
+    answer: 'A-Level revision requires deeper engagement than GCSE. Focus on understanding underlying concepts, practice extended response questions, and develop exam technique through timed practice. Our AI generates unlimited A-Level questions with detailed solutions to help build your skills.',
+  },
+  {
+    question: 'How many A-Level subjects should I study?',
+    answer: 'Most students take 3-4 A-Levels. Universities typically require 3 A-Levels for entry. Quality of grades matters more than quantity, so focus on subjects relevant to your intended degree and career path.',
+  },
+  {
+    question: 'What makes A-Level questions different from GCSE?',
+    answer: 'A-Level questions require more advanced problem-solving, longer extended answers, and deeper conceptual understanding. Questions often combine multiple topics and require you to apply knowledge in unfamiliar contexts. Our questions match these A-Level expectations.',
+  },
+  {
+    question: 'How can I improve my A-Level exam technique?',
+    answer: 'Practice with exam-style questions regularly, study mark schemes to understand how marks are awarded, work on time management, and learn to structure extended responses effectively. Use our step-by-step solutions to understand examiner expectations.',
+  },
+];
 
 export const metadata: Metadata = {
   title: 'A-Level Practice Questions - All Subjects | Past Papers',
@@ -47,6 +67,7 @@ export default function ALevelPage() {
         url="/a-level"
         educationalLevel="A-Level"
       />
+      <FAQJsonLd questions={alevelFaqs} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <Breadcrumbs items={breadcrumbs} />
@@ -149,6 +170,36 @@ export default function ALevelPage() {
                   {board.description}
                 </p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {alevelFaqs.map((faq, index) => (
+              <details
+                key={index}
+                className="group bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)]"
+              >
+                <summary className="flex items-center justify-between cursor-pointer p-5 text-[var(--color-text-primary)] font-medium">
+                  {faq.question}
+                  <svg
+                    className="w-5 h-5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="px-5 pb-5 text-[var(--color-text-secondary)] leading-relaxed">
+                  {faq.answer}
+                </div>
+              </details>
             ))}
           </div>
         </section>

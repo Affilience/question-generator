@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
+import { BreadcrumbJsonLd, EducationalResourceJsonLd, FAQJsonLd } from '@/components/seo/JsonLd';
 import {
   getBreadcrumbs,
   generateSEOTitle,
@@ -89,6 +89,34 @@ export default async function SubjectPage({ params }: PageProps) {
     notFound();
   }
 
+  // Get unique topic names across all boards for this subject
+  const allTopicNames = new Set<string>();
+  availableBoards.forEach(b => {
+    const topics = getTopicsBySubjectBoardAndLevel(subject as Subject, b.id, level as QualificationLevel);
+    topics.forEach(t => allTopicNames.add(t.name));
+  });
+  const uniqueTopics = Array.from(allTopicNames).slice(0, 5).join(', ');
+
+  // Generate subject-specific FAQs
+  const faqs = [
+    {
+      question: `How do I revise for ${qualInfo.name} ${subjectInfo.name}?`,
+      answer: `The best way to revise for ${qualInfo.name} ${subjectInfo.name} is through regular practice with exam-style questions. Our platform generates unlimited questions matching your exam board's style. Focus on understanding concepts, practice timing, and review mark schemes to understand what examiners look for.`,
+    },
+    {
+      question: `What topics are covered in ${qualInfo.name} ${subjectInfo.name}?`,
+      answer: `${qualInfo.name} ${subjectInfo.name} covers key topics including ${uniqueTopics}${allTopicNames.size > 5 ? `, and ${allTopicNames.size - 5} more` : ''}. The exact syllabus varies by exam board (AQA, Edexcel, OCR), so select your exam board for specific topics.`,
+    },
+    {
+      question: `How many questions should I practice for ${qualInfo.name} ${subjectInfo.name}?`,
+      answer: `We recommend practicing at least 5-10 questions per topic before moving on. For weaker areas, increase this to 15-20 questions. Regular daily practice (even 15-30 minutes) is more effective than cramming. Track your progress to identify areas needing more attention.`,
+    },
+    {
+      question: `Are the ${qualInfo.name} ${subjectInfo.name} questions similar to real exam questions?`,
+      answer: `Yes, our AI generates questions specifically designed to match ${qualInfo.name} exam style, difficulty, and mark allocation. Questions follow exam board specifications for AQA, Edexcel, and OCR, with accurate mark schemes using proper notation (M1, A1, B1 marks).`,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-deepest)]">
       <Header />
@@ -100,6 +128,7 @@ export default async function SubjectPage({ params }: PageProps) {
         educationalLevel={qualInfo.name}
         subject={subjectInfo.name}
       />
+      <FAQJsonLd questions={faqs} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <Breadcrumbs items={breadcrumbs} />
@@ -180,6 +209,36 @@ export default async function SubjectPage({ params }: PageProps) {
                 </Link>
               );
             })}
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <details
+                key={index}
+                className="group bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)]"
+              >
+                <summary className="flex items-center justify-between cursor-pointer p-5 text-[var(--color-text-primary)] font-medium">
+                  {faq.question}
+                  <svg
+                    className="w-5 h-5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="px-5 pb-5 text-[var(--color-text-secondary)] leading-relaxed">
+                  {faq.answer}
+                </div>
+              </details>
+            ))}
           </div>
         </section>
 
