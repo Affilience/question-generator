@@ -227,6 +227,103 @@ export async function canControlDifficulty(userId: string | null): Promise<boole
 }
 
 /**
+ * Check if a user can generate a paper based on their subscription
+ */
+export async function checkPaperGenerationAllowed(
+  userId: string | null
+): Promise<UsageCheckResult> {
+  if (!userId) {
+    // Anonymous users cannot generate papers
+    return {
+      allowed: false,
+      tier: 'free',
+      remaining: 0,
+      error: 'You must be signed in to generate practice papers. Sign up for free to get started!',
+    };
+  }
+
+  const supabase = getSupabaseAdmin();
+
+  // Get subscription
+  const { data: subscription } = await supabase
+    .from('user_subscriptions')
+    .select('price_id, status, current_period_end')
+    .eq('user_id', userId)
+    .in('status', ['active', 'trialing'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  // Determine tier
+  let tier: SubscriptionTier = 'free';
+
+  if (subscription && (subscription.status === 'active' || subscription.status === 'trialing')) {
+    const periodEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end)
+      : null;
+
+    if (periodEnd && periodEnd > new Date()) {
+      const priceId = subscription.price_id || '';
+      if (priceId.includes('student_plus')) {
+        tier = 'student_plus';
+      } else if (priceId.includes('exam_pro')) {
+        tier = 'exam_pro';
+      } else if (priceId.includes('exam_season')) {
+        tier = 'exam_season';
+      }
+    }
+  }
+
+  const limits = TIER_LIMITS[tier];
+
+  // Free users cannot generate papers
+  if (limits.papersPerWeek === 0) {
+    return {
+      allowed: false,
+      tier,
+      remaining: 0,
+      error: 'Practice paper generation is a paid feature. Upgrade to Student Plus for 3 papers/week!',
+    };
+  }
+
+  // Unlimited for higher tiers
+  if (limits.papersPerWeek === null) {
+    return {
+      allowed: true,
+      tier,
+      remaining: null,
+    };
+  }
+
+  // Check weekly usage for student_plus (3 papers/week)
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const { count } = await supabase
+    .from('generated_papers')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', oneWeekAgo.toISOString());
+
+  const papersGenerated = count || 0;
+
+  if (papersGenerated >= limits.papersPerWeek) {
+    return {
+      allowed: false,
+      tier,
+      remaining: 0,
+      error: `Weekly limit of ${limits.papersPerWeek} papers reached. Upgrade to Exam Pro for unlimited papers!`,
+    };
+  }
+
+  return {
+    allowed: true,
+    tier,
+    remaining: limits.papersPerWeek - papersGenerated,
+  };
+}
+
+/**
  * Get user's current tier
  */
 export async function getUserTier(userId: string | null): Promise<SubscriptionTier> {

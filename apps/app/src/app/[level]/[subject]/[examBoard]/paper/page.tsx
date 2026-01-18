@@ -9,6 +9,9 @@ import { PaperBuilder, PaperConfig } from '@/components/paper/PaperBuilder';
 import { Header } from '@/components/Header';
 import { Breadcrumbs, buildBreadcrumbs } from '@/components/ui/Breadcrumbs';
 import { QualificationLevel, Subject, ExamBoard } from '@/types';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { UpgradePrompt } from '@/components/UpgradePrompt';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
 const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
@@ -38,6 +41,10 @@ export default function PaperGeneratorPage() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+
+  const { user } = useAuth();
+  const { canGeneratePaper, tier, loading: subscriptionLoading } = useSubscription();
 
   // Validate params
   if (!validLevels.includes(level as QualificationLevel)) {
@@ -71,6 +78,18 @@ export default function PaperGeneratorPage() {
   ];
 
   const handleGenerate = async (config: PaperConfig) => {
+    // Check if user can generate papers
+    if (!user) {
+      setError('Please sign in to generate practice papers.');
+      router.push(`/login?redirect=/${level}/${subject}/${examBoard}/paper`);
+      return;
+    }
+
+    if (!canGeneratePaper) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
 
@@ -81,6 +100,7 @@ export default function PaperGeneratorPage() {
         examBoard,
         level,
         subject,
+        userId: user.id,
       }));
 
       // Navigate to paper taking view
@@ -94,6 +114,15 @@ export default function PaperGeneratorPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg-deepest)]">
       <Header />
+
+      {/* Upgrade prompt modal */}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          reason="papers"
+          modal={true}
+          onDismiss={() => setShowUpgradePrompt(false)}
+        />
+      )}
 
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <Breadcrumbs items={breadcrumbs} className="mb-6" />
@@ -112,6 +141,13 @@ export default function PaperGeneratorPage() {
           <p className="text-[#a1a1a1]">
             Create a custom {examBoardInfo?.name} {levelDisplay} {subjectData?.name} practice paper
           </p>
+          {tier === 'free' && !subscriptionLoading && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm px-3 py-1.5 rounded-lg">
+              <span>⭐</span>
+              <span>Paper generation requires a paid plan</span>
+              <Link href="/pricing" className="underline hover:text-yellow-300">Upgrade</Link>
+            </div>
+          )}
         </motion.header>
 
         {error && (

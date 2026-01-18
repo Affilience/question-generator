@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
 import {
   PaperConfig,
   ExamBoard,
@@ -11,6 +12,7 @@ import {
   QuestionType,
   Difficulty,
 } from '@/types';
+import { checkPaperGenerationAllowed } from '@/lib/api/subscription-check';
 import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
@@ -41,6 +43,7 @@ interface PaperGenerationRequest {
   subject: Subject;
   paperName: string;
   config: PaperConfig;
+  userId?: string;
 }
 
 // Check for fine-tuned model
@@ -511,7 +514,21 @@ async function generateQuestionsInBatches(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as PaperGenerationRequest;
-    const { examBoard, qualification, subject, paperName, config } = body;
+    const { examBoard, qualification, subject, paperName, config, userId } = body;
+
+    // Check subscription-based access
+    const usageCheck = await checkPaperGenerationAllowed(userId || null);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.error || 'Paper generation not available on your plan',
+          tier: usageCheck.tier,
+          remaining: usageCheck.remaining,
+          upgrade: true,
+        },
+        { status: 403 }
+      );
+    }
 
     if (!examBoard || !qualification || !subject || !config) {
       return NextResponse.json(
