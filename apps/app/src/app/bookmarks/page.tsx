@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getOrCreateUser, getBookmarks, removeBookmark, BookmarkedQuestion } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { getBookmarks, removeBookmark, BookmarkedQuestion } from '@/lib/supabase';
 import { getTopicById } from '@/lib/topics';
 import { MathRenderer } from '@/components/MathRenderer';
 
 export default function BookmarksPage() {
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [bookmarks, setBookmarks] = useState<BookmarkedQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -15,20 +16,20 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     async function load() {
-      const user = await getOrCreateUser();
-      if (user) {
-        setUserId(user.id);
+      if (user?.id) {
         const data = await getBookmarks(user.id);
         setBookmarks(data);
       }
       setLoading(false);
     }
-    load();
-  }, []);
+    if (!authLoading) {
+      load();
+    }
+  }, [user?.id, authLoading]);
 
   const handleRemove = async (bookmarkId: string) => {
-    if (!userId) return;
-    const success = await removeBookmark(userId, bookmarkId);
+    if (!user?.id) return;
+    const success = await removeBookmark(user.id, bookmarkId);
     if (success) {
       setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
     }
@@ -40,7 +41,7 @@ export default function BookmarksPage() {
 
   const uniqueTopics = [...new Set(bookmarks.map(b => b.topic_id))];
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center">

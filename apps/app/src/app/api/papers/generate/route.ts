@@ -9,16 +9,31 @@ import {
   GeneratedSection,
   GeneratedQuestion,
   QuestionType,
+  Difficulty,
 } from '@/types';
+import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
-import { parseQuestionResponse } from '@/lib/prompts-common';
+import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
+import {
+  getQuestionConfig,
+  isEssaySubject,
+  isScienceSubject,
+  isMathsSubject,
+  getRandomQuestionFormat,
+  getRandomScienceQuestionType,
+  getRandomMathsQuestionType,
+  EssayQuestionConfig,
+  QuestionFormat,
+} from '@/lib/essay-subject-config';
+// Import extract databases for essay subjects
+import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
+import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
 
-// Note: Cannot use edge runtime due to Supabase client needs
-export const maxDuration = 60; // Allow up to 60 seconds for paper generation
+export const maxDuration = 60;
 
 interface PaperGenerationRequest {
   examBoard: ExamBoard;
@@ -28,65 +43,367 @@ interface PaperGenerationRequest {
   config: PaperConfig;
 }
 
-// System prompts now use enhanced versions from prompts/system-prompts.ts
-// which include exam board-specific conventions, copyright prevention, and accuracy constraints
+// Check for fine-tuned model
+function getFineTunedModel(subject: Subject, level: QualificationLevel, board: ExamBoard): string | null {
+  const envKey = `FINE_TUNED_MODEL_${subject.toUpperCase()}_${level.toUpperCase().replace('-', '')}_${board.toUpperCase()}`;
+  return process.env[envKey] || null;
+}
+
+// Get max tokens based on subject type and question marks
+function getMaxTokens(subject: Subject, marks: number): number {
+  if (isEssaySubject(subject)) {
+    if (marks <= 4) return 800;
+    if (marks <= 8) return 1200;
+    if (marks <= 12) return 2000;
+    return 3500;
+  }
+  return 800;
+}
 
 /**
- * Generate a prompt for a specific question plan
+ * Get subject-specific data/stimulus guidance
  */
-function generateQuestionPrompt(
+function getSubjectDataGuidance(
+  subject: Subject,
+  totalMarks: number,
+  topicName: string,
+  subtopic: string
+): { questionGuidance: string; solutionGuidance: string } {
+  switch (subject) {
+    case 'english-literature': {
+      const realExtract = getRandomExtractForTheme(topicName, subtopic);
+      if (realExtract) {
+        return {
+          questionGuidance: `
+USE THIS EXACT EXTRACT from "${realExtract.text}" by ${realExtract.author}:
+
+---
+**Read the following extract from ${realExtract.location}:**
+
+${realExtract.contextNote ? `[Context: ${realExtract.contextNote}]` : ''}
+
+${realExtract.extract}
+---
+
+Include this EXACT extract in your question. Ask about: ${subtopic}
+Themes present: ${realExtract.themes.join(', ')}
+Techniques: ${realExtract.techniques.join(', ')}`,
+          solutionGuidance: `Quote directly from extract. Analyse techniques: ${realExtract.techniques.slice(0, 2).join(', ')}. Link to themes: ${realExtract.themes.slice(0, 2).join(', ')}.`,
+        };
+      }
+      return {
+        questionGuidance: `Create an extract-based question about ${topicName} - ${subtopic}. Include a 150-300 word passage.`,
+        solutionGuidance: 'Quote from extract. Analyse language and techniques. Link to themes.',
+      };
+    }
+
+    case 'history': {
+      const realSource = getRandomSourceForTheme(topicName, subtopic);
+      if (realSource) {
+        return {
+          questionGuidance: `
+USE THIS EXACT SOURCE:
+
+---
+**Source A: ${realSource.title}**
+
+${realSource.content}
+
+*${realSource.attribution}*
+---
+
+Include this EXACT source. Source type: ${realSource.sourceType}. Period: ${realSource.period}.
+${realSource.bias ? `Potential bias: ${realSource.bias}` : ''}`,
+          solutionGuidance: `Reference Source A specifically. Consider provenance: ${realSource.provenance}. ${realSource.bias ? `Evaluate bias: ${realSource.bias}` : ''} Use contextual knowledge.`,
+        };
+      }
+      return {
+        questionGuidance: `Create a source-based question about ${topicName} - ${subtopic}. Include a period-appropriate historical source with attribution.`,
+        solutionGuidance: 'Reference the source. Evaluate reliability/usefulness. Use contextual knowledge.',
+      };
+    }
+
+    case 'economics':
+    case 'business':
+      return {
+        questionGuidance: `
+INCLUDE DATA relevant to ${subtopic}:
+"Figure 1: [Title about ${subtopic}]
+
+| Year/Category | Value |
+|---------------|-------|
+| [realistic data showing ${subtopic}] |"
+
+Then ask analysis question about the data.`,
+        solutionGuidance: `Reference specific figures. Identify trends related to ${subtopic}. Apply economic/business concepts.`,
+      };
+
+    case 'psychology':
+      return {
+        questionGuidance: `
+INCLUDE RESEARCH STUDY about ${subtopic}:
+"A psychologist conducted a study investigating ${subtopic}...
+[describe method, sample, procedure]
+
+Results:
+| Condition A | Condition B |
+|-------------|-------------|
+| Mean: X     | Mean: Y     |"`,
+        solutionGuidance: `Reference study data. Apply ${subtopic} theories. Evaluate methodology.`,
+      };
+
+    case 'geography':
+      return {
+        questionGuidance: `
+INCLUDE GEOGRAPHICAL RESOURCE about ${subtopic}:
+"Figure 1: [Map/Graph/Data relevant to ${subtopic}]
+[Include data, statistics, or geographical patterns]"`,
+        solutionGuidance: `Reference Figure 1. Apply ${subtopic} concepts. Use case study knowledge.`,
+      };
+
+    case 'computer-science':
+      return {
+        questionGuidance: `
+INCLUDE CODE/ALGORITHM demonstrating ${subtopic}:
+"\`\`\`
+[5-15 lines of pseudocode/Python showing ${subtopic}]
+\`\`\`"
+OR include a trace table showing variable states.`,
+        solutionGuidance: `Trace through code. Explain how it demonstrates ${subtopic}. Reference specific lines.`,
+      };
+
+    default:
+      return {
+        questionGuidance: `Include relevant data or stimulus material for ${subtopic}.`,
+        solutionGuidance: `Reference the stimulus. Apply ${subtopic} concepts.`,
+      };
+  }
+}
+
+/**
+ * Build essay question prompt with full mark scheme support
+ */
+function buildEssayQuestionPrompt(
   plan: QuestionPlan,
   subject: Subject,
   examBoard: ExamBoard,
-  qualification: QualificationLevel
+  qualification: QualificationLevel,
+  topicName: string
 ): string {
-  const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
-                getTopicById(plan.topicId);
+  const config = getQuestionConfig(subject, qualification, plan.difficulty, examBoard);
+  if (!config) {
+    return buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+  }
 
-  const topicName = topic?.name || plan.topicId;
-  const boardName = examBoard.toUpperCase();
-  const levelName = qualification === 'gcse' ? 'GCSE' : 'A-Level';
+  const levelDisplay = qualification === 'a-level' ? 'A-Level' : 'GCSE';
+  const boardUpper = examBoard.toUpperCase();
+  const selectedFormat = getRandomQuestionFormat(config);
 
-  // Map question types to descriptions
-  const typeDescriptions: Record<QuestionType, string> = {
-    'multiple-choice': 'a multiple choice question with 4 options (A, B, C, D)',
-    'short-answer': 'a short answer question requiring 1-3 sentences',
-    'calculation': 'a calculation/numerical problem showing working',
-    'explain': 'an explain/describe question testing understanding',
-    'extended': 'an extended response question requiring detailed analysis',
-    'data-analysis': 'a data analysis question with a table or graph to interpret',
-    'graph': 'a question involving drawing or completing a graph',
-    'compare': 'a compare/contrast question analyzing differences',
-  };
+  // Get format-specific guidance
+  let formatGuidance = '';
+  let commandWords: string[] = [];
 
-  const typeDesc = typeDescriptions[plan.questionType] || 'a question';
-  const difficultyDesc = plan.difficulty === 'easy' ? 'foundation level' :
-                         plan.difficulty === 'hard' ? 'challenging' : 'standard';
+  switch (selectedFormat) {
+    case 'data_response':
+      const dataGuidance = getSubjectDataGuidance(subject, plan.marks, topicName, plan.subtopic);
+      formatGuidance = dataGuidance.questionGuidance;
+      commandWords = ['Using the data', 'With reference to', 'Study Figure 1'];
+      break;
+    case 'explain':
+      formatGuidance = `QUESTION TYPE: EXPLAIN (${plan.marks} marks)\nRequires developed explanation with reasoning chains.`;
+      commandWords = ['Explain', 'Explain why', 'Explain how'];
+      break;
+    case 'analyse':
+      formatGuidance = `QUESTION TYPE: ANALYSE (${plan.marks} marks)\nRequires detailed analysis considering multiple factors.`;
+      commandWords = ['Analyse', 'Examine', 'Assess'];
+      break;
+    case 'short_essay':
+      formatGuidance = `QUESTION TYPE: SHORT ESSAY (${plan.marks} marks)\nExtended response with structured paragraphs.`;
+      commandWords = ['Discuss', 'Explain in detail'];
+      break;
+    case 'extended_essay':
+      formatGuidance = `QUESTION TYPE: EXTENDED ESSAY (${plan.marks} marks)\nFull essay with balanced argument and evaluation.`;
+      commandWords = ['Evaluate', 'To what extent', 'Discuss', 'How far do you agree'];
+      break;
+    default:
+      formatGuidance = `QUESTION TYPE: ${selectedFormat.toUpperCase()} (${plan.marks} marks)`;
+      commandWords = ['State', 'Identify', 'Define'];
+  }
 
-  return `Generate ${typeDesc} for ${boardName} ${levelName} ${subject.replace('-', ' ')}.
+  const commandWord = commandWords[Math.floor(Math.random() * commandWords.length)];
 
-Topic: ${topicName}
-Subtopic: ${plan.subtopic}
-Difficulty: ${difficultyDesc}
-Target marks: ${plan.marks}
+  // Build mark scheme guidance
+  let markSchemeGuidance = '';
+  if (plan.marks >= 8 && config.levelDescriptors.length > 0) {
+    const aoBreakdown = config.assessmentObjectives
+      .map(ao => `${ao.code}=${ao.marks}`)
+      .join(', ');
+    const levelDesc = config.levelDescriptors
+      .sort((a, b) => b.level - a.level)
+      .map(ld => `Level ${ld.level} (${ld.minMarks}-${ld.maxMarks} marks): ${ld.characteristics.slice(0, 2).join('; ')}`)
+      .join('\n');
 
-Requirements:
-- Question should be worth exactly ${plan.marks} marks
-- Match the ${boardName} ${levelName} exam style
-- Include clear mark scheme points
-- Provide a complete worked solution
+    markSchemeGuidance = `
+MARK SCHEME (LEVEL-BASED):
+AO Breakdown: ${aoBreakdown}
 
-Return JSON format:
+${levelDesc}
+
+markScheme array format:
+["AO Breakdown: ${aoBreakdown}",
+ "Level 4 (13-16 marks): [descriptor]",
+ "Level 3 (9-12 marks): [descriptor]",
+ "Level 2 (5-8 marks): [descriptor]",
+ "Level 1 (1-4 marks): [descriptor]",
+ "Indicative content: [list 6-8 specific points for ${plan.subtopic}]"]`;
+  } else {
+    markSchemeGuidance = `
+MARK SCHEME:
+- Total marks: ${plan.marks}
+- List specific points that earn marks
+- Include indicative content for ${plan.subtopic}`;
+  }
+
+  // Check if diagram needed
+  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram';
+  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if visual aids would help.` : '';
+
+  return `Generate a ${boardUpper} ${levelDisplay} ${subject.replace('-', ' ')} exam question. Return ONLY valid JSON.
+
+TOPIC: ${topicName} - ${plan.subtopic}
+MARKS: ${plan.marks}
+DIFFICULTY: ${plan.difficulty.toUpperCase()}
+
+${formatGuidance}
+
+Command word: "${commandWord}"
+${markSchemeGuidance}
+${diagramInstructions}
+
+Return JSON:
 {
-  "content": "The question text",
+  "content": "Question using '${commandWord}'",
   "marks": ${plan.marks},
-  "solution": "Step-by-step solution",
-  "markScheme": ["M1: method mark point", "A1: answer mark point"]
+  "solution": "Complete model answer",
+  "markScheme": ["Mark point 1", "Mark point 2", ...]${needsDiagram ? ',\n  "diagram": {...}' : ''}
 }`;
 }
 
 /**
- * Generate a single question using the AI
+ * Build quantitative question prompt with proper mark scheme notation
+ */
+function buildQuantitativeQuestionPrompt(
+  plan: QuestionPlan,
+  subject: Subject,
+  examBoard: ExamBoard,
+  qualification: QualificationLevel,
+  topicName: string
+): string {
+  const levelDisplay = qualification === 'a-level' ? 'A-Level' : 'GCSE';
+  const boardUpper = examBoard.toUpperCase();
+
+  // Select format based on subject and question type
+  let selectedFormat: QuestionFormat;
+  if (plan.questionType === 'calculation') {
+    selectedFormat = 'calculation';
+  } else if (plan.questionType === 'explain') {
+    selectedFormat = 'explain';
+  } else if (plan.questionType === 'data-analysis' || plan.questionType === 'graph') {
+    selectedFormat = 'data_response';
+  } else if (plan.questionType === 'extended') {
+    selectedFormat = 'short_essay';
+  } else if (isScienceSubject(subject)) {
+    selectedFormat = getRandomScienceQuestionType();
+  } else if (isMathsSubject(subject)) {
+    selectedFormat = getRandomMathsQuestionType();
+  } else {
+    selectedFormat = 'calculation';
+  }
+
+  // Get format-specific requirements
+  let typeDescription = '';
+  let requirements = '';
+  let commandWords: string[] = [];
+
+  switch (selectedFormat) {
+    case 'calculation':
+      typeDescription = 'CALCULATION/PROBLEM-SOLVING';
+      requirements = 'Numerical calculation with realistic values and units. Show working for method marks.';
+      commandWords = ['Calculate', 'Work out', 'Find', 'Determine'];
+      break;
+    case 'explain':
+      typeDescription = 'EXPLAIN/DESCRIBE';
+      requirements = 'Explanation using terminology. Chain of reasoning (because → therefore).';
+      commandWords = ['Explain', 'Describe', 'Why does', 'Suggest why'];
+      break;
+    case 'data_response':
+      typeDescription = 'DATA/GRAPH ANALYSIS';
+      requirements = 'Include data table or graph description. Requires interpretation and pattern identification.';
+      commandWords = ['Using the data', 'Describe the trend', 'Analyse'];
+      break;
+    case 'short_essay':
+      typeDescription = 'EXTENDED RESPONSE (6 marks)';
+      requirements = `6-mark extended response uses LEVEL-BASED marking:
+- Level 3 (5-6 marks): Detailed, coherent explanation with correct terminology
+- Level 2 (3-4 marks): Links some points with some terminology
+- Level 1 (1-2 marks): Simple statements with limited terminology`;
+      commandWords = ['Explain in detail', 'Describe and explain', 'Discuss'];
+      break;
+    default:
+      typeDescription = 'GRAPH/DIAGRAM';
+      requirements = 'Interpret or sketch graphs/diagrams. Describe key features.';
+      commandWords = ['Sketch', 'Draw', 'Using the diagram'];
+  }
+
+  const commandWord = commandWords[Math.floor(Math.random() * commandWords.length)];
+  const difficultyDesc = plan.difficulty === 'easy' ? 'grades 1-3' : plan.difficulty === 'medium' ? 'grades 4-5' : 'grades 6-9';
+
+  // Check if diagram needed
+  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram' || plan.questionType === 'graph';
+  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field for visual content.` : '';
+
+  // Mark scheme format
+  const markSchemeFormat = selectedFormat === 'short_essay' && plan.marks >= 6
+    ? `markScheme array for 6-mark questions:
+["Level 3 (5-6 marks): Detailed coherent explanation with terminology",
+ "Level 2 (3-4 marks): Links some points",
+ "Level 1 (1-2 marks): Simple statements",
+ "Indicative content: [list points for ${plan.subtopic}]"]`
+    : `MARK SCHEME NOTATION:
+- M1, M2: Method marks (awarded even with arithmetic errors)
+- A1, A2: Accuracy marks (depend on preceding M marks)
+- B1: Independent marks for correct statements
+- ft: Follow-through, cao: Correct answer only
+
+Example for ${plan.marks}-mark: ["M1: Correct formula/setup", "A1 ft: Substitution", "A1: cao Final answer"]`;
+
+  return `Generate a ${boardUpper} ${levelDisplay} ${subject} exam question. Return ONLY valid JSON.
+
+Topic: ${topicName} - ${plan.subtopic}
+Difficulty: ${difficultyDesc}
+Marks: ${plan.marks}
+QUESTION TYPE: ${typeDescription}
+
+Command word: "${commandWord}"
+${requirements}
+
+${markSchemeFormat}
+
+LaTeX Math Formatting:
+- Wrap ALL math in $...$ delimiters
+- Variables: $x$, $F_{net}$, $v^2$
+- Fractions: $\\\\frac{a}{b}$
+- Greek: $\\\\theta$, $\\\\alpha$
+- Chemistry: $\\\\text{H}_2\\\\text{O}$, $\\\\text{Na}^+$
+- Units: $\\\\text{m s}^{-1}$
+${diagramInstructions}
+
+Return JSON:
+{"content":"Question using '${commandWord}'","marks":${plan.marks},"solution":"**Step 1:** [action] (M1)\\n**Answer:** [final]","markScheme":["M1: ...", "A1: ..."]${needsDiagram ? ',"diagram":{...}' : ''}}`;
+}
+
+/**
+ * Generate a single question with enhanced prompts
  */
 async function generateSingleQuestion(
   plan: QuestionPlan,
@@ -95,23 +412,39 @@ async function generateSingleQuestion(
   qualification: QualificationLevel,
   openai: ReturnType<typeof getOpenAIClient>
 ): Promise<GeneratedQuestion> {
-  const basePrompt = generateQuestionPrompt(plan, subject, examBoard, qualification);
-  // Add global constraints (copyright, accuracy, safety) to the prompt
+  const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
+                getTopicById(plan.topicId);
+  const topicName = topic?.name || plan.topicId;
+
+  // Build prompt based on subject type
+  const basePrompt = isEssaySubject(subject)
+    ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
+    : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+
+  // Add global constraints
   const subjectConstraints = getAllConstraints(subject);
   const prompt = `${subjectConstraints}\n\n${basePrompt}`;
-  // Use exam board-specific system prompt with enhanced constraints
+
+  // Get system prompt
   const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);
+
+  // Check for fine-tuned model
+  const fineTunedModel = getFineTunedModel(subject, qualification, examBoard);
+  const modelToUse = fineTunedModel || 'gpt-4o-mini';
+
+  // Calculate max tokens
+  const maxTokens = getMaxTokens(subject, plan.marks);
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: modelToUse,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
       ],
       response_format: { type: 'json_object' },
       temperature: 0.6,
-      max_tokens: 800,
+      max_tokens: maxTokens,
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -123,7 +456,7 @@ async function generateSingleQuestion(
 
     return {
       id: plan.id,
-      questionNumber: '', // Will be assigned later
+      questionNumber: '',
       content: questionData.content,
       marks: plan.marks,
       difficulty: plan.difficulty,
@@ -132,11 +465,10 @@ async function generateSingleQuestion(
       subtopic: plan.subtopic,
       solution: questionData.solution,
       markScheme: questionData.markScheme,
-      diagram: questionData.diagram,
+      diagram: questionData.diagram as DiagramSpec | undefined,
     };
   } catch (error) {
     console.error('Failed to generate question:', error);
-    // Return a placeholder on failure
     return {
       id: plan.id,
       questionNumber: '',
@@ -165,7 +497,6 @@ async function generateQuestionsInBatches(
   const openai = getOpenAIClient();
   const results: GeneratedQuestion[] = [];
 
-  // Process in batches to avoid rate limits
   for (let i = 0; i < plans.length; i += batchSize) {
     const batch = plans.slice(i, i + batchSize);
     const batchResults = await Promise.all(
@@ -182,7 +513,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as PaperGenerationRequest;
     const { examBoard, qualification, subject, paperName, config } = body;
 
-    // Validate required fields
     if (!examBoard || !qualification || !subject || !config) {
       return NextResponse.json(
         { error: 'Missing required fields: examBoard, qualification, subject, config' },
@@ -204,10 +534,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Plan the questions using the selector
+    // Plan the questions
     const selectionResult = selectQuestionsForPaper(config);
 
-    // Step 2: Flatten all question plans
+    // Flatten all question plans
     const allPlans: QuestionPlan[] = [];
     selectionResult.sections.forEach((section) => {
       allPlans.push(...section.questions);
@@ -220,7 +550,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3: Generate all questions in parallel batches
+    // Generate all questions
     const generatedQuestions = await generateQuestionsInBatches(
       allPlans,
       subject,
@@ -228,10 +558,10 @@ export async function POST(request: NextRequest) {
       qualification
     );
 
-    // Step 4: Create a map for quick lookup
+    // Create lookup map
     const questionMap = new Map(generatedQuestions.map((q) => [q.id, q]));
 
-    // Step 5: Organize into sections with question numbers
+    // Organize into sections with question numbers
     let globalQuestionNumber = 1;
     const sections: GeneratedSection[] = selectionResult.sections.map((section) => {
       const sectionQuestions = section.questions.map((plan) => {
@@ -249,7 +579,7 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Step 6: Create the paper object
+    // Create paper object
     const paper: GeneratedPaper = {
       id: crypto.randomUUID(),
       examBoard,
@@ -263,15 +593,13 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    // Step 7: Store in Supabase
+    // Store in Supabase
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (supabaseUrl && supabaseKey) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
-
-        // Store the generated paper
         const { error: insertError } = await supabase
           .from('generated_papers')
           .insert({
@@ -288,12 +616,10 @@ export async function POST(request: NextRequest) {
           });
 
         if (insertError) {
-          console.error('Failed to store paper in database:', insertError);
-          // Continue anyway - paper is generated
+          console.error('Failed to store paper:', insertError);
         }
       } catch (dbError) {
         console.error('Database error:', dbError);
-        // Continue anyway - paper is generated
       }
     }
 
@@ -310,22 +636,13 @@ export async function POST(request: NextRequest) {
     console.error('Error generating paper:', error);
 
     if (error instanceof Error && error.message.includes('API key')) {
-      return NextResponse.json(
-        { error: 'AI API key not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'AI API key not configured' }, { status: 500 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to generate paper' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate paper' }, { status: 500 });
   }
 }
 
-/**
- * Create a simple hash of the config for caching purposes
- */
 function hashConfig(config: PaperConfig): string {
   const str = JSON.stringify({
     totalMarks: config.totalMarks,
@@ -338,7 +655,7 @@ function hashConfig(config: PaperConfig): string {
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return Math.abs(hash).toString(16);
 }

@@ -1,16 +1,13 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getPracticalById } from '@/lib/practicals';
-import { getExamBoardInfo, getExamBoardsByLevel } from '@/lib/topics';
-import { getTopicProgress } from '@/lib/progress';
-import { Practical, TopicProgress, ExamBoard, QualificationLevel, PracticalSubtopic, Subject } from '@/types';
-
-const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
-const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
-const validSubjects: Subject[] = ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'];
+import { notFound } from 'next/navigation';
+import { getPracticalById, getPracticals } from '@/lib/practicals';
+import { getExamBoardInfo, getSubjectInfo, getQualificationInfo } from '@/lib/topics';
+import { getAllPracticalParams, getPracticalBreadcrumbs, getRelatedPracticals } from '@/lib/seo/utils';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
+import { PracticalSubtopic, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { PracticalProgress } from './PracticalProgress';
 
 // Subtopic display info
 const subtopicInfo: Record<PracticalSubtopic, { icon: string; description: string }> = {
@@ -24,71 +21,112 @@ const subtopicInfo: Record<PracticalSubtopic, { icon: string; description: strin
   'Safety': { icon: '🦺', description: 'Identify hazards and precautions' },
 };
 
-export default function PracticalPage() {
-  const params = useParams();
-  const level = params.level as string;
-  const subject = params.subject as string;
-  const examBoard = params.examBoard as string;
-  const practicalId = params.practicalId as string;
+interface PageProps {
+  params: Promise<{
+    level: string;
+    subject: string;
+    examBoard: string;
+    practicalId: string;
+  }>;
+}
 
-  const [practical, setPractical] = useState<Practical | null>(null);
-  const [progress, setProgress] = useState<TopicProgress | null>(null);
-  const [mounted, setMounted] = useState(false);
+export async function generateStaticParams() {
+  return getAllPracticalParams();
+}
 
-  // Validate level
-  if (!validLevels.includes(level as QualificationLevel)) {
-    notFound();
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { level, subject, examBoard, practicalId } = await params;
+
+  const practical = getPracticalById(practicalId);
+  const boardInfo = getExamBoardInfo(examBoard as ExamBoard);
+  const subjectInfo = getSubjectInfo(subject as Subject);
+  const qualInfo = getQualificationInfo(level as QualificationLevel);
+
+  if (!practical || !boardInfo || !subjectInfo || !qualInfo) {
+    return { title: 'Practical Not Found' };
   }
 
-  // Validate subject
-  if (!validSubjects.includes(subject as Subject)) {
-    notFound();
-  }
+  const title = `${practical.name} - ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} Required Practical`;
+  const description = `Practice questions for ${practical.name}. ${practical.description} ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} required practical with step-by-step solutions.`;
 
-  // Validate exam board
-  if (!validExamBoards.includes(examBoard as ExamBoard)) {
-    notFound();
-  }
+  return {
+    title,
+    description,
+    keywords: [
+      `${practical.name}`,
+      `${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} required practical`,
+      `${practical.name} questions`,
+      `${practical.name} method`,
+      `${qualInfo.name} ${subjectInfo.name} practical`,
+      `required practical ${subjectInfo.name}`,
+    ],
+    alternates: {
+      canonical: `/${level}/${subject}/${examBoard}/practicals/${practicalId}`,
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `/${level}/${subject}/${examBoard}/practicals/${practicalId}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
-  // Check if this exam board supports this level
-  const boardsForLevel = getExamBoardsByLevel(level as QualificationLevel);
-  if (!boardsForLevel.find(b => b.id === examBoard)) {
-    notFound();
-  }
+export const dynamic = 'force-static';
+export const revalidate = 86400; // Revalidate daily
 
+export default async function PracticalPage({ params }: PageProps) {
+  const { level, subject, examBoard, practicalId } = await params;
+
+  const practical = getPracticalById(practicalId);
   const examBoardInfo = getExamBoardInfo(examBoard as ExamBoard);
-  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
+  const subjectInfo = getSubjectInfo(subject as Subject);
+  const qualInfo = getQualificationInfo(level as QualificationLevel);
 
-  useEffect(() => {
-    setMounted(true);
-    const foundPractical = getPracticalById(practicalId);
-    setPractical(foundPractical || null);
-    setProgress(getTopicProgress(practicalId));
-  }, [practicalId]);
-
-  if (!practical) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Practical not found</h1>
-          <Link
-            href={`/${level}/${subject}/${examBoard}?tab=practicals`}
-            className="text-[#10b981] hover:text-[#34d399] transition-colors"
-          >
-            Return to practicals
-          </Link>
-        </div>
-      </div>
-    );
+  if (!practical || !examBoardInfo || !subjectInfo || !qualInfo) {
+    notFound();
   }
 
-  const accuracy = progress && progress.attempted > 0
-    ? Math.round((progress.correct / progress.attempted) * 100)
-    : null;
+  const equipment = practical.equipment || [];
+  const safety = practical.safety || [];
+
+  // Get breadcrumbs
+  const breadcrumbs = getPracticalBreadcrumbs({
+    level,
+    subject,
+    examBoard,
+    practicalName: practical.name,
+  });
+
+  // Get related practicals for internal linking
+  const relatedPracticals = getRelatedPracticals(
+    subject as Subject,
+    examBoard as ExamBoard,
+    level as QualificationLevel,
+    practicalId,
+    4
+  );
 
   return (
     <div className="min-h-screen">
+      {/* Structured Data */}
+      <BreadcrumbJsonLd items={breadcrumbs} />
+      <EducationalResourceJsonLd
+        name={`${practical.name} - ${examBoardInfo.name} ${qualInfo.name} ${subjectInfo.name}`}
+        description={`Practice questions for ${practical.name}. ${practical.description} ${examBoardInfo.name} ${qualInfo.name} ${subjectInfo.name} required practical with step-by-step solutions.`}
+        url={`/${level}/${subject}/${examBoard}/practicals/${practicalId}`}
+        educationalLevel={qualInfo.name}
+        subject={subjectInfo.name}
+      />
+
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Breadcrumbs */}
+        <Breadcrumbs items={breadcrumbs} />
+
         <header className="mb-8">
           <Link
             href={`/${level}/${subject}/${examBoard}?tab=practicals`}
@@ -106,78 +144,100 @@ export default function PracticalPage() {
           </div>
           <p className="text-[#a1a1a1] mb-4">{practical.description}</p>
 
-          <div className="mb-4">
+          <div className="flex flex-wrap gap-2 mb-4">
             <span className="inline-block px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-sm rounded-full border border-[#10b981]/20">
               Required Practical
             </span>
+            <span className="inline-block px-3 py-1 bg-blue-500/10 text-blue-400 text-sm rounded-full border border-blue-500/20">
+              {examBoardInfo.name}
+            </span>
+            <span className="inline-block px-3 py-1 bg-purple-500/10 text-purple-400 text-sm rounded-full border border-purple-500/20">
+              {qualInfo.name}
+            </span>
           </div>
 
-          {/* Equipment and Safety quick reference */}
-          {practical.equipment && practical.equipment.length > 0 && (
+          {/* Equipment list - good for SEO */}
+          {equipment.length > 0 && (
             <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#2a2a2a] mb-4">
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                <span>🔬</span> Equipment
-              </h3>
-              <p className="text-sm text-[#a1a1a1]">
-                {practical.equipment.join(' • ')}
-              </p>
+              <h2 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <span>🔬</span> Equipment Required
+              </h2>
+              <ul className="text-sm text-[#a1a1a1] list-disc list-inside space-y-1">
+                {equipment.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {mounted && progress && progress.attempted > 0 && (
-            <div className="flex gap-4 animate-fade-in">
-              <div className="bg-[#1a1a1a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                <span className="text-lg font-semibold text-white">{progress.attempted}</span>
-                <span className="text-sm text-[#666666] ml-1">practiced</span>
-              </div>
-              {accuracy !== null && (
-                <div className="bg-[#1a1a1a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                  <span className={`text-lg font-semibold ${accuracy >= 70 ? 'text-green-400' : accuracy >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {accuracy}%
-                  </span>
-                  <span className="text-sm text-[#666666] ml-1">accuracy</span>
-                </div>
-              )}
+          {/* Safety - good for SEO */}
+          {safety.length > 0 && (
+            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#2a2a2a] mb-4">
+              <h2 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <span>🦺</span> Safety Precautions
+              </h2>
+              <ul className="text-sm text-[#a1a1a1] list-disc list-inside space-y-1">
+                {safety.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
             </div>
           )}
+
+          {/* Client component for progress */}
+          <PracticalProgress practicalId={practicalId} />
         </header>
+
+        {/* PRIMARY CTA - Hero Section */}
+        <section className="mb-10 bg-gradient-to-br from-[#10b981]/20 via-emerald-500/15 to-teal-500/20 rounded-2xl border border-[#10b981]/40 p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Start Practicing Now
+              </h2>
+              <p className="text-[#a1a1a1]">
+                Master {practical.name} with unlimited practice questions. Test your knowledge of method, variables, equipment, and more.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-[#666666]">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Unlimited questions
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Step-by-step solutions
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {examBoardInfo.name} exam style
+                </span>
+              </div>
+            </div>
+            <Link
+              href={`/${level}/${subject}/${examBoard}/practicals/${practical.id}/random`}
+              className="inline-flex items-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:scale-105 hover:shadow-lg hover:shadow-[#10b981]/25 whitespace-nowrap"
+            >
+              Start Practice
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </section>
 
         <section>
           <h2 className="text-lg font-semibold text-white mb-4">
-            Choose what to practice
+            Or choose a specific area to practice
           </h2>
           <p className="text-sm text-[#666666] mb-6">
             {practical.subtopics.length} practice areas available
           </p>
-
-          {/* Random practice option */}
-          <Link
-            href={`/${level}/${subject}/${examBoard}/practicals/${practical.id}/random`}
-            className="block mb-6"
-          >
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#10b981]/20 to-[#059669]/20 border border-[#10b981]/30 p-6 transition-all duration-300 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:border-[#10b981]/60 cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#10b981]/20 flex items-center justify-center text-2xl">
-                    🎲
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-white">Random Practice</h3>
-                    <p className="text-sm text-[#a1a1a1]">
-                      Practice questions from all aspects of this practical
-                    </p>
-                  </div>
-                </div>
-                <svg className="w-6 h-6 text-[#10b981] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <div className="text-center text-sm text-[#666666] my-6">
-            — OR CHOOSE A SPECIFIC AREA —
-          </div>
 
           {/* Subtopic grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,6 +267,75 @@ export default function PracticalPage() {
             })}
           </div>
         </section>
+
+        {/* SEO content section */}
+        <section className="mt-12 border-t border-[#2a2a2a] pt-8">
+          <h2 className="text-xl font-semibold text-white mb-4">
+            About {practical.name}
+          </h2>
+          <div className="prose prose-invert max-w-none text-[#a1a1a1]">
+            <p>
+              {practical.name} is a required practical for {examBoardInfo.name} {qualInfo.name} {subjectInfo.name}.
+              This practical {practical.description.toLowerCase()}
+            </p>
+            <p>
+              Students are expected to understand the method, identify and control variables, use appropriate equipment,
+              analyse results, draw graphs, identify sources of error, suggest improvements, and consider safety precautions.
+            </p>
+            <p>
+              Questions on required practicals frequently appear in {examBoardInfo.name} {qualInfo.name} {subjectInfo.name} exams
+              and can be worth significant marks. Practice with our AI-generated questions to master this practical.
+            </p>
+          </div>
+        </section>
+
+        {/* Related Practicals - Internal Linking */}
+        {relatedPracticals.length > 0 && (
+          <section className="mt-12 border-t border-[#2a2a2a] pt-8">
+            <h2 className="text-xl font-semibold text-white mb-4">
+              More {examBoardInfo.name} {qualInfo.name} {subjectInfo.name} Required Practicals
+            </h2>
+            <p className="text-[#666666] mb-6">
+              Continue practicing with these other required practicals
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {relatedPracticals.map((relatedPractical) => (
+                <Link
+                  key={relatedPractical.id}
+                  href={`/${level}/${subject}/${examBoard}/practicals/${relatedPractical.id}`}
+                  className="block"
+                >
+                  <div className="group relative overflow-hidden rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:border-[#10b981]/50">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">{relatedPractical.icon}</div>
+                      <div>
+                        <h3 className="font-semibold text-white group-hover:text-[#10b981] transition-colors">
+                          {relatedPractical.name}
+                        </h3>
+                        <p className="text-xs text-[#666666] line-clamp-2">
+                          {relatedPractical.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Link to all practicals */}
+            <div className="mt-6 text-center">
+              <Link
+                href={`/${level}/${subject}/${examBoard}?tab=practicals`}
+                className="inline-flex items-center gap-2 text-[#10b981] hover:text-[#059669] transition-colors"
+              >
+                View all {subjectInfo.name} required practicals
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

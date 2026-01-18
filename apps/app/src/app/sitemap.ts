@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getAllSubjectParams } from '@/lib/seo/utils';
+import { getAllSubjectParams, getAllPracticalParams } from '@/lib/seo/utils';
 
 const BASE_URL = 'https://past-papers.co.uk';
 
@@ -71,10 +71,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  // Required Practical pages - High search demand for science subjects
+  // e.g., /gcse/physics/aqa/practicals/aqa-gcse-physics-rp1
+  const practicalPages: MetadataRoute.Sitemap = getAllPracticalParams().map(({ level, subject, examBoard, practicalId }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${examBoard}/practicals/${practicalId}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
   return [
     ...staticPages,
     ...levelPages,
     ...subjectPages,
+    ...practicalPages,
     // NOTE: Board/topic/subtopic pages intentionally excluded
     // They exist for navigation but don't capture distinct search intent
     // Add them selectively after keyword research validates demand

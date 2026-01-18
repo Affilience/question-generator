@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { getTopicByIdSubjectBoardAndLevel, getExamBoardInfo, getExamBoardsByLevel } from '@/lib/topics';
 import { slugify } from '@/lib/seo/utils';
 import { updateProgress } from '@/lib/progress';
-import { getOrCreateUser, recordAttempt } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { recordProgress } from '@/lib/api/progress';
 import { Question, Difficulty, Topic, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { StreamingQuestionCard } from '@/components/StreamingQuestionCard';
 import { SolutionPanel } from '@/components/SolutionPanel';
@@ -14,6 +15,7 @@ import { DifficultySelector } from '@/components/DifficultySelector';
 import { useStreamingQuestion } from '@/hooks/useStreamingQuestion';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { QuestionFeed } from '@/components/mobile/QuestionFeed';
+import { UpgradePrompt, UsageIndicator } from '@/components/UpgradePrompt';
 
 // Loading states for better UX
 type LoadingState = 'idle' | 'streaming' | 'done';
@@ -41,17 +43,19 @@ export default function SubtopicPracticePage() {
   const isRandom = subtopic === 'random';
 
   // All hooks must be called before any conditional returns
+  const { user } = useAuth();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [questionNumber, setQuestionNumber] = useState(1);
   const [isMarked, setIsMarked] = useState(false);
   const [sessionStats, setSessionStats] = useState({ attempted: 0, correct: 0 });
+  const [correctStreak, setCorrectStreak] = useState(0);
   const [currentSubtopic, setCurrentSubtopic] = useState<string>('');
-  const [userId, setUserId] = useState<string | null>(null);
   const [paramsReady, setParamsReady] = useState(false);
   const seenQuestionsRef = useRef<string[]>([]);
   const hasGeneratedRef = useRef(false);
   const qualification = level as QualificationLevel;
+  const userId = user?.id || null;
 
   // Use the streaming hook
   const {
@@ -59,6 +63,7 @@ export default function SubtopicPracticePage() {
     streamedContent,
     question,
     error,
+    upgradeNeeded,
     generate,
   } = useStreamingQuestion();
 
@@ -81,13 +86,6 @@ export default function SubtopicPracticePage() {
       setTopic(foundTopic || null);
     }
   }, [paramsReady, topicId, subject, examBoard, level]);
-
-  // Initialize user for Supabase tracking
-  useEffect(() => {
-    getOrCreateUser().then(user => {
-      if (user) setUserId(user.id);
-    });
-  }, []);
 
   const generateQuestion = useCallback(async () => {
     if (!topic) return;
@@ -138,28 +136,44 @@ export default function SubtopicPracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [difficulty]); // Only depend on difficulty
 
-  const handleMark = (correct: boolean) => {
+  const handleMark = async (correct: boolean) => {
     setIsMarked(true);
-    updateProgress(topicId, correct);
+
+    // Update local session stats
     setSessionStats((prev) => ({
       attempted: prev.attempted + 1,
       correct: prev.correct + (correct ? 1 : 0),
     }));
 
-    // Record to Supabase for dashboard
+    // Update localStorage for non-logged-in users
+    updateProgress(topicId, correct);
+
+    // Record to Supabase via API (handles XP, achievements, streaks)
     if (userId && question) {
-      recordAttempt(
+      const result = await recordProgress({
         userId,
         topicId,
-        currentSubtopic || subtopic,
+        subtopic: currentSubtopic || subtopic,
         difficulty,
-        question.content,
-        question.solution,
         correct,
+        questionContent: question.content,
+        questionSolution: question.solution,
         subject,
         examBoard,
-        level
-      ).catch(err => console.error('Failed to record attempt:', err));
+        qualification: level,
+        correctStreak,
+      });
+
+      if (result.success) {
+        // Update correct streak from server
+        setCorrectStreak(result.correctStreak);
+
+        // Could show XP notification here
+        // result.xpGained, result.leveledUp, result.newAchievements
+      }
+    } else {
+      // Update local streak for non-logged-in users
+      setCorrectStreak(correct ? correctStreak + 1 : 0);
     }
   };
 
@@ -325,23 +339,32 @@ export default function SubtopicPracticePage() {
             disabled={isStreaming}
           />
 
-          {sessionStats.attempted > 0 && (
-            <div className="text-sm text-[#666666]">
-              Session: {sessionStats.correct}/{sessionStats.attempted} correct
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <UsageIndicator />
+            {sessionStats.attempted > 0 && (
+              <div className="text-sm text-[#666666]">
+                Session: {sessionStats.correct}/{sessionStats.attempted} correct
+              </div>
+            )}
+          </div>
         </div>
 
         {error && !isStreaming && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6 animate-fade-in">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button
-              onClick={generateQuestion}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg transition-all duration-300 hover:bg-red-400 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95"
-            >
-              Try again
-            </button>
-          </div>
+          upgradeNeeded ? (
+            <div className="mb-6 animate-fade-in">
+              <UpgradePrompt reason="daily_limit" message={error} />
+            </div>
+          ) : (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6 animate-fade-in">
+              <p className="text-red-400 mb-4">{error}</p>
+              <button
+                onClick={generateQuestion}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg transition-all duration-300 hover:bg-red-400 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95"
+              >
+                Try again
+              </button>
+            </div>
+          )
         )}
 
         {(isStreaming || question) && !error && (

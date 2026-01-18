@@ -1,8 +1,11 @@
 import { NextRequest } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai';
 import { getTopicById, getTopicByIdSubjectBoardAndLevel } from '@/lib/topics';
+import { getPracticalById } from '@/lib/practicals';
 import { getCachedQuestion, cacheQuestion, getCacheCount } from '@/lib/questionCache';
-import { Difficulty, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { checkRateLimit, getClientIP, getRateLimitHeaders, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkQuestionGenerationAllowed, incrementQuestionUsage, canControlDifficulty } from '@/lib/api/subscription-check';
+import { Difficulty, ExamBoard, QualificationLevel, Subject, Practical, PracticalSubtopic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -868,6 +871,220 @@ ${jsonExample}`;
 }
 
 /**
+ * Get subtopic-specific guidance for practical questions
+ */
+function getPracticalSubtopicGuidance(subtopic: PracticalSubtopic, practical: Practical, difficulty: Difficulty): {
+  focus: string;
+  questionTypes: string[];
+  markAllocation: string;
+} {
+  const equipment = practical.equipment || [];
+  const safety = practical.safety || [];
+  const equipmentList = equipment.slice(0, 5).join(', ') || 'standard laboratory equipment';
+  const safetyList = safety.slice(0, 3).join('; ') || 'standard laboratory safety precautions';
+
+  switch (subtopic) {
+    case 'Method':
+      return {
+        focus: `Focus on the experimental procedure for ${practical.name}. Questions should test understanding of why specific steps are taken, the order of operations, and how to ensure valid results.`,
+        questionTypes: [
+          'Describe the method for this investigation',
+          'Explain why a specific step is necessary',
+          'Put these steps in the correct order',
+          'What would happen if step X was omitted?'
+        ],
+        markAllocation: difficulty === 'easy' ? '2-3 marks for basic method recall' : difficulty === 'medium' ? '4-5 marks for explained method with reasoning' : '6 marks for detailed method with justifications'
+      };
+
+    case 'Variables':
+      return {
+        focus: `Focus on independent, dependent, and control variables in ${practical.name}. Questions should test identification and understanding of why variables must be controlled.`,
+        questionTypes: [
+          'Identify the independent/dependent/control variables',
+          'Explain why variable X must be controlled',
+          'How would you keep variable X constant?',
+          'What effect would changing variable X have on results?'
+        ],
+        markAllocation: difficulty === 'easy' ? '1-2 marks for identification' : difficulty === 'medium' ? '3-4 marks for identification with explanation' : '5-6 marks for full analysis of all variables'
+      };
+
+    case 'Equipment':
+      return {
+        focus: `Focus on equipment selection and use for ${practical.name}. Equipment used: ${equipmentList}. Questions should test understanding of why specific equipment is chosen and how it improves accuracy/precision.`,
+        questionTypes: [
+          'Why is this equipment suitable for this investigation?',
+          'What is the resolution/precision of the measuring instrument?',
+          'Suggest more accurate equipment and explain why',
+          'How does this equipment reduce errors?'
+        ],
+        markAllocation: difficulty === 'easy' ? '1-2 marks for equipment identification' : difficulty === 'medium' ? '3-4 marks for equipment choice with reasoning' : '5-6 marks for detailed equipment analysis'
+      };
+
+    case 'Results Analysis':
+      return {
+        focus: `Focus on processing and interpreting results from ${practical.name}. Questions should involve calculations, identifying patterns, and drawing conclusions from data.`,
+        questionTypes: [
+          'Calculate the mean/gradient/rate from these results',
+          'What conclusion can be drawn from these results?',
+          'Identify the anomalous result and suggest a cause',
+          'How confident can you be in this conclusion?'
+        ],
+        markAllocation: difficulty === 'easy' ? '2-3 marks for simple calculations' : difficulty === 'medium' ? '4-5 marks for calculations with interpretation' : '6 marks for full analysis with evaluation'
+      };
+
+    case 'Graph Skills':
+      return {
+        focus: `Focus on graphing skills for ${practical.name}. Questions should test ability to plot, draw lines of best fit, interpret gradients, and extract information from graphs.`,
+        questionTypes: [
+          'Describe how to plot a graph of these results',
+          'What does the gradient of the line represent?',
+          'Use the graph to determine a value',
+          'Why might points not lie exactly on the line?'
+        ],
+        markAllocation: difficulty === 'easy' ? '2-3 marks for basic graph interpretation' : difficulty === 'medium' ? '4-5 marks for gradient/intercept calculations' : '6 marks for full graphical analysis'
+      };
+
+    case 'Errors':
+      return {
+        focus: `Focus on sources of error and uncertainty in ${practical.name}. Questions should test understanding of systematic vs random errors, percentage uncertainty, and how errors affect results.`,
+        questionTypes: [
+          'Identify a source of random/systematic error',
+          'Calculate the percentage uncertainty',
+          'How would this error affect the final result?',
+          'Which measurement contributes most to uncertainty?'
+        ],
+        markAllocation: difficulty === 'easy' ? '1-2 marks for error identification' : difficulty === 'medium' ? '3-4 marks for error analysis' : '5-6 marks for full uncertainty calculation'
+      };
+
+    case 'Improvements':
+      return {
+        focus: `Focus on how to improve the reliability, accuracy, and validity of ${practical.name}. Questions should test ability to suggest and justify improvements.`,
+        questionTypes: [
+          'Suggest an improvement to increase accuracy',
+          'How could you improve the reliability of results?',
+          'What additional equipment would improve this investigation?',
+          'How would you modify the method to test a different hypothesis?'
+        ],
+        markAllocation: difficulty === 'easy' ? '2-3 marks for simple improvements' : difficulty === 'medium' ? '4-5 marks for justified improvements' : '6 marks for comprehensive improvement plan'
+      };
+
+    case 'Safety':
+      return {
+        focus: `Focus on safety considerations for ${practical.name}. Key hazards: ${safetyList}. Questions should test identification of hazards and appropriate precautions.`,
+        questionTypes: [
+          'Identify a hazard in this practical',
+          'State a precaution to reduce risk',
+          'What safety equipment should be used?',
+          'Why is this safety measure necessary?'
+        ],
+        markAllocation: difficulty === 'easy' ? '1-2 marks for hazard identification' : difficulty === 'medium' ? '3-4 marks for hazard and precaution' : '4-5 marks for risk assessment'
+      };
+
+    default:
+      return {
+        focus: `General practical skills for ${practical.name}.`,
+        questionTypes: ['Describe', 'Explain', 'Suggest', 'Calculate'],
+        markAllocation: '3-4 marks'
+      };
+  }
+}
+
+/**
+ * Build prompt for Required Practical questions
+ */
+function buildPracticalPrompt(
+  practical: Practical,
+  subtopic: PracticalSubtopic,
+  difficulty: Difficulty
+): string {
+  const board = practical.examBoard.toUpperCase();
+  const level = practical.qualification === 'a-level' ? 'A-Level' : 'GCSE';
+  const subject = practical.subject;
+
+  const guidance = getPracticalSubtopicGuidance(subtopic, practical, difficulty);
+
+  // Determine marks based on difficulty
+  const markRange = difficulty === 'easy'
+    ? { min: 1, max: 3 }
+    : difficulty === 'medium'
+    ? { min: 3, max: 5 }
+    : { min: 5, max: 6 };
+
+  const targetMarks = Math.floor(Math.random() * (markRange.max - markRange.min + 1)) + markRange.min;
+
+  // Build equipment and safety context
+  const equipment = practical.equipment || [];
+  const safety = practical.safety || [];
+
+  const equipmentContext = equipment.length > 0
+    ? `\n\nEQUIPMENT AVAILABLE:\n${equipment.map(e => `- ${e}`).join('\n')}`
+    : '';
+
+  const safetyContext = safety.length > 0
+    ? `\n\nSAFETY CONSIDERATIONS:\n${safety.map(s => `- ${s}`).join('\n')}`
+    : '';
+
+  // Determine if diagram might be useful
+  const diagramSubtopics: PracticalSubtopic[] = ['Method', 'Equipment', 'Graph Skills', 'Results Analysis'];
+  const needsDiagram = diagramSubtopics.includes(subtopic);
+
+  const diagramInstructions = needsDiagram ? `
+
+${DIAGRAM_SCHEMA_DOCS}
+
+IMPORTANT: For practical questions, consider including a "diagram" field showing:
+- Equipment setup (for Method/Equipment questions)
+- Example graph (for Graph Skills questions)
+- Results table (for Results Analysis questions)` : '';
+
+  const jsonExample = needsDiagram
+    ? `{"content":"Question text","marks":${targetMarks},"solution":"Model answer with mark points","markScheme":["M1: Point 1","A1: Point 2"],"diagram":{"width":10,"height":8,"elements":[...]}}`
+    : `{"content":"Question text","marks":${targetMarks},"solution":"Model answer with mark points","markScheme":["M1: Point 1","A1: Point 2"]}`;
+
+  return `Generate a ${board} ${level} ${subject} REQUIRED PRACTICAL exam question. Return ONLY valid JSON, no markdown.
+
+PRACTICAL: ${practical.name}
+DESCRIPTION: ${practical.description}
+QUESTION FOCUS: ${subtopic.toUpperCase()}
+DIFFICULTY: ${difficulty.toUpperCase()}
+MARKS: ${targetMarks}
+${equipmentContext}
+${safetyContext}
+
+SUBTOPIC GUIDANCE:
+${guidance.focus}
+
+SUGGESTED QUESTION TYPES:
+${guidance.questionTypes.map(q => `- ${q}`).join('\n')}
+
+MARK ALLOCATION: ${guidance.markAllocation}
+
+Requirements:
+- Question MUST focus on the "${subtopic}" aspect of this practical
+- Use realistic values and contexts from ${practical.name}
+- Reference specific equipment where relevant
+- Match ${board} exam style and command words
+
+MARK SCHEME FORMAT:
+- **M1, M2**: Method marks for correct approach
+- **A1, A2**: Accuracy marks for correct answers
+- **B1**: Independent marks for correct statements
+- Use "ft" for follow-through, "cao" for correct answer only
+
+LaTeX/Math Formatting:
+- Wrap ALL math in $...$ delimiters
+- Units: $\\\\text{m s}^{-1}$, $\\\\text{kg}$
+- Formulas: $\\\\frac{1}{2}mv^2$, $E = mc^2$
+- Use DOUBLE backslashes for LaTeX commands
+${diagramInstructions}
+
+Use \\n for line breaks in strings.
+
+Return exactly this JSON structure (no markdown code blocks):
+${jsonExample}`;
+}
+
+/**
  * Main prompt builder - routes to essay or quantitative prompt
  */
 function buildPrompt(
@@ -901,6 +1118,7 @@ export async function POST(request: NextRequest) {
       subject = 'maths',
       excludeContent,
       stream = true,
+      userId, // Optional user ID for rate limiting
     } = body as {
       topicId: string;
       difficulty: Difficulty;
@@ -911,7 +1129,59 @@ export async function POST(request: NextRequest) {
       subject?: Subject;
       excludeContent?: string | string[];
       stream?: boolean;
+      userId?: string;
     };
+
+    // Rate limiting
+    const clientIP = getClientIP(request);
+    const rateLimitConfig = userId
+      ? RATE_LIMITS.QUESTION_GENERATION_AUTH
+      : RATE_LIMITS.QUESTION_GENERATION_ANON;
+
+    const rateLimitResult = await checkRateLimit(rateLimitConfig, userId, clientIP);
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded. Please try again later.',
+          resetAt: rateLimitResult.resetAt.toISOString(),
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getRateLimitHeaders(rateLimitResult),
+          },
+        }
+      );
+    }
+
+    // Check subscription-based usage limits
+    const usageCheck = await checkQuestionGenerationAllowed(userId || null, clientIP);
+    if (!usageCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: usageCheck.error || 'Daily question limit reached',
+          tier: usageCheck.tier,
+          remaining: usageCheck.remaining,
+          upgrade: true,
+        }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Check if user can control difficulty (paid feature)
+    // Free users get random difficulty
+    let effectiveDifficulty: Difficulty = difficulty;
+    const canControl = await canControlDifficulty(userId || null);
+    if (!canControl) {
+      // Random difficulty for free users
+      const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
+      effectiveDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+    }
 
     if (!topicId || !difficulty) {
       return new Response(
@@ -920,31 +1190,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Try to find as a topic first, then as a practical
     const topic = getTopicByIdSubjectBoardAndLevel(topicId, subject, examBoard, qualification) || getTopicById(topicId);
-    if (!topic) {
+    const practical = !topic ? getPracticalById(topicId) : null;
+
+    if (!topic && !practical) {
       return new Response(
-        JSON.stringify({ error: 'Invalid topic ID' }),
+        JSON.stringify({ error: 'Invalid topic or practical ID' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const effectiveSubtopic = subtopic || topic.subtopics[0];
-    const cacheKey = `${subject}:${qualification}:${topicId}`;
+    // Determine if this is a practical question
+    const isPractical = !!practical;
+
+    // Get effective subtopic - for practicals, use provided subtopic or first practical subtopic
+    const effectiveSubtopic = isPractical
+      ? (subtopic || practical!.subtopics[0])
+      : (subtopic || topic!.subtopics[0]);
+
+    const cacheKey = isPractical
+      ? `practical:${practical!.subject}:${practical!.qualification}:${topicId}`
+      : `${subject}:${qualification}:${topicId}`;
 
     // Try cache first (but stream it for consistent UX)
     // Only use cache if we have enough questions to avoid cycling
-    const cacheCount = !skipCache ? await getCacheCount(cacheKey, effectiveSubtopic, difficulty) : 0;
+    const cacheCount = !skipCache ? await getCacheCount(cacheKey, effectiveSubtopic, effectiveDifficulty) : 0;
     const shouldTryCache = !skipCache && cacheCount >= 3; // Need at least 3 questions to avoid obvious cycling
 
     if (shouldTryCache && stream) {
-      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, difficulty, excludeContent);
+      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludeContent);
       if (cached) {
+        // Track usage for subscription limits (cache hit still counts)
+        incrementQuestionUsage(userId || null, clientIP).catch(console.error);
+
         // Stream cached question for consistent typing animation UX
         const encoder = new TextEncoder();
         const question = {
           id: crypto.randomUUID(),
           topicId,
-          difficulty,
+          difficulty: effectiveDifficulty,
           content: cached.content,
           solution: cached.solution,
           marks: cached.marks,
@@ -984,12 +1269,15 @@ export async function POST(request: NextRequest) {
       }
     } else if (shouldTryCache && !stream) {
       // Non-streaming cached response (for backwards compatibility)
-      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, difficulty, excludeContent);
+      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludeContent);
       if (cached) {
+        // Track usage for subscription limits (cache hit still counts)
+        await incrementQuestionUsage(userId || null, clientIP);
+
         const question = {
           id: crypto.randomUUID(),
           topicId,
-          difficulty,
+          difficulty: effectiveDifficulty,
           content: cached.content,
           solution: cached.solution,
           marks: cached.marks,
@@ -1005,21 +1293,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate question with OpenAI
-    const basePrompt = buildPrompt(subject, qualification, examBoard, topic.name, effectiveSubtopic, difficulty);
+    // Use practical-specific prompt for practicals, standard prompt for topics
+    const basePrompt = isPractical
+      ? buildPracticalPrompt(practical!, effectiveSubtopic as PracticalSubtopic, effectiveDifficulty)
+      : buildPrompt(subject, qualification, examBoard, topic!.name, effectiveSubtopic, effectiveDifficulty);
+
     // Add global constraints (copyright, accuracy, safety) to the prompt
-    const subjectConstraints = getAllConstraints(subject);
+    const effectiveSubject = isPractical ? practical!.subject : subject;
+    const subjectConstraints = getAllConstraints(effectiveSubject);
     const prompt = `${subjectConstraints}\n\n${basePrompt}`;
+
     // Use exam board-specific system prompt with enhanced constraints
-    const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);
+    const effectiveBoard = isPractical ? practical!.examBoard : examBoard;
+    const effectiveLevel = isPractical ? practical!.qualification : qualification;
+    const systemPrompt = getEnhancedSystemPrompt(effectiveSubject, effectiveBoard, effectiveLevel);
 
     // Use OpenAI with streaming for quality + fast perceived response
     const openai = getOpenAIClient();
-    const fineTunedModel = getFineTunedModel(subject, qualification, examBoard);
+    const fineTunedModel = getFineTunedModel(effectiveSubject, effectiveLevel, effectiveBoard);
     const modelToUse = fineTunedModel || 'gpt-4o-mini';
 
     if (stream) {
       // Stream OpenAI response for better UX
-      const maxTokens = getMaxTokens(subject, difficulty);
+      const maxTokens = getMaxTokens(effectiveSubject, effectiveDifficulty);
       const completion = await openai.chat.completions.create({
         model: modelToUse,
         messages: [
@@ -1133,7 +1429,7 @@ export async function POST(request: NextRequest) {
               } = {
                 id: crypto.randomUUID(),
                 topicId,
-                difficulty,
+                difficulty: effectiveDifficulty,
                 content: parsed.content || '',
                 solution: parsed.solution || '',
                 marks: parsed.marks || 3,
@@ -1146,13 +1442,16 @@ export async function POST(request: NextRequest) {
               }
 
               // Cache it (including diagram if present)
-              cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
+              cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
                 content: question.content,
                 solution: question.solution,
                 marks: question.marks,
                 markScheme: question.markScheme,
                 ...(question.diagram && { diagram: question.diagram }),
               }).catch(console.error);
+
+              // Track usage for subscription limits
+              incrementQuestionUsage(userId || null, clientIP).catch(console.error);
 
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, question })}\n\n`));
             } catch {
@@ -1177,7 +1476,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Non-streaming fallback
-    const maxTokens = getMaxTokens(subject, difficulty);
+    const maxTokens = getMaxTokens(effectiveSubject, difficulty);
     const completion = await openai.chat.completions.create({
       model: modelToUse,
       messages: [
@@ -1205,7 +1504,7 @@ export async function POST(request: NextRequest) {
     } = {
       id: crypto.randomUUID(),
       topicId,
-      difficulty,
+      difficulty: effectiveDifficulty,
       content: parsed.content || '',
       solution: parsed.solution || '',
       marks: parsed.marks || 3,
@@ -1218,13 +1517,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Cache it (including diagram if present)
-    cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
+    cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
       content: question.content,
       solution: question.solution,
       marks: question.marks,
       markScheme: question.markScheme,
       ...(question.diagram && { diagram: question.diagram }),
     }).catch(console.error);
+
+    // Track usage for subscription limits
+    await incrementQuestionUsage(userId || null, clientIP);
 
     return new Response(JSON.stringify(question), {
       headers: {

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CommandPalette } from "@/components/ui/CommandPalette";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,19 +35,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
       >
-        <ThemeProvider>
-          {/* Background glow orbs - contained to prevent scroll issues */}
-          <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="glow-orb glow-orb-blue glow-orb-animated w-[500px] h-[500px] -top-32 -left-32" />
-            <div className="glow-orb glow-orb-purple glow-orb-animated w-[400px] h-[400px] top-1/3 -right-32" style={{ animationDelay: '2s' }} />
-            <div className="glow-orb glow-orb-cyan glow-orb-animated w-[350px] h-[350px] bottom-0 left-1/4" style={{ animationDelay: '4s' }} />
-          </div>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <ThemeProvider>
+              {/* Background glow orbs - contained to prevent scroll issues */}
+              <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="glow-orb glow-orb-blue glow-orb-animated w-[500px] h-[500px] -top-32 -left-32" />
+                <div className="glow-orb glow-orb-purple glow-orb-animated w-[400px] h-[400px] top-1/3 -right-32" style={{ animationDelay: '2s' }} />
+                <div className="glow-orb glow-orb-cyan glow-orb-animated w-[350px] h-[350px] bottom-0 left-1/4" style={{ animationDelay: '4s' }} />
+              </div>
 
-          <div className="relative z-10 min-h-screen">
-            {children}
-          </div>
-          <CommandPalette />
-        </ThemeProvider>
+              <div className="relative z-10 min-h-screen">
+                {children}
+              </div>
+              <CommandPalette />
+            </ThemeProvider>
+          </SubscriptionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

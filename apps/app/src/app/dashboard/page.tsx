@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getOrCreateUser, getUserStats, StatsFilter } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserStats, StatsFilter } from '@/lib/supabase';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { StreakDisplay } from '@/components/dashboard/StreakDisplay';
 import { RecentMistakesCard } from '@/components/dashboard/RecentMistakesCard';
+import { SubscriptionStatus } from '@/components/dashboard/SubscriptionStatus';
 
 interface DashboardStats {
   totalAttempted: number;
@@ -55,48 +57,32 @@ const LEVELS = [
 ];
 
 export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatsFilter>({});
 
   const loadStats = useCallback(async (uid: string, currentFilter: StatsFilter) => {
     try {
+      setStatsLoading(true);
       const userStats = await getUserStats(uid, currentFilter);
       setStats(userStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+    } finally {
+      setStatsLoading(false);
     }
   }, []);
 
+  // Load stats when user is available
   useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const user = await getOrCreateUser();
-        if (!user) {
-          setError('Failed to initialize user');
-          return;
-        }
-
-        setUserId(user.id);
-        await loadStats(user.id, filter);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard');
-      } finally {
-        setLoading(false);
-      }
+    if (user?.id) {
+      loadStats(user.id, filter);
     }
+  }, [user?.id, filter, loadStats]);
 
-    loadDashboard();
-  }, []);
-
-  // Reload stats when filter changes
-  useEffect(() => {
-    if (userId) {
-      loadStats(userId, filter);
-    }
-  }, [userId, filter, loadStats]);
+  const loading = authLoading || (user && statsLoading && !stats);
 
   if (loading) {
     return (
@@ -131,18 +117,40 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 safe-area-inset-bottom">
         {/* Header */}
         <header className="mb-6 sm:mb-8">
-          <Link
-            href="/"
-            className="back-link inline-flex items-center text-sm text-[#666666] hover:text-[#a1a1a1] transition-colors mb-4"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to topics
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              className="back-link inline-flex items-center text-sm text-[#666666] hover:text-[#a1a1a1] transition-colors"
+            >
+              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to topics
+            </Link>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Your Dashboard</h1>
-          <p className="text-[#a1a1a1] mb-4">Track your progress and identify areas to improve</p>
+            {/* User info and logout */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-[#a1a1a1]">
+                {user?.user_metadata?.display_name || user?.email}
+              </span>
+              <button
+                onClick={() => signOut()}
+                className="text-sm text-[#666666] hover:text-white transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Your Dashboard</h1>
+              <p className="text-[#a1a1a1]">Track your progress and identify areas to improve</p>
+            </div>
+            <div className="sm:w-64">
+              <SubscriptionStatus />
+            </div>
+          </div>
 
           {/* Filter Controls */}
           <div className="flex flex-wrap gap-3">

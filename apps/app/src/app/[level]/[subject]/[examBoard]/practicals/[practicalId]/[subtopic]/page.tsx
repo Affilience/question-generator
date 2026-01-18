@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { getPracticalById } from '@/lib/practicals';
 import { getExamBoardInfo, getExamBoardsByLevel } from '@/lib/topics';
 import { updateProgress } from '@/lib/progress';
-import { getOrCreateUser, recordAttempt } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { recordProgress } from '@/lib/api/progress';
 import { Question, Difficulty, Practical, PracticalSubtopic, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { StreamingQuestionCard } from '@/components/StreamingQuestionCard';
 import { SolutionPanel } from '@/components/SolutionPanel';
@@ -55,15 +56,17 @@ export default function PracticalSubtopicPracticePage() {
   const examBoardInfo = getExamBoardInfo(examBoard as ExamBoard);
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
 
+  const { user } = useAuth();
   const [practical, setPractical] = useState<Practical | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [questionNumber, setQuestionNumber] = useState(1);
   const [isMarked, setIsMarked] = useState(false);
   const [sessionStats, setSessionStats] = useState({ attempted: 0, correct: 0 });
+  const [correctStreak, setCorrectStreak] = useState(0);
   const [currentSubtopic, setCurrentSubtopic] = useState<string>('');
-  const [userId, setUserId] = useState<string | null>(null);
   const seenQuestionsRef = useRef<string[]>([]);
   const hasGeneratedRef = useRef(false);
+  const userId = user?.id || null;
 
   // Use the streaming hook for typing animation
   const {
@@ -78,13 +81,6 @@ export default function PracticalSubtopicPracticePage() {
     const foundPractical = getPracticalById(practicalId);
     setPractical(foundPractical || null);
   }, [practicalId]);
-
-  // Initialize user for Supabase tracking
-  useEffect(() => {
-    getOrCreateUser().then(user => {
-      if (user) setUserId(user.id);
-    });
-  }, []);
 
   const generateQuestion = useCallback(async () => {
     if (!practical) return;
@@ -126,28 +122,41 @@ export default function PracticalSubtopicPracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practical]); // Only depend on practical, not generateQuestion to avoid loops
 
-  const handleMark = (correct: boolean) => {
+  const handleMark = async (correct: boolean) => {
     setIsMarked(true);
-    updateProgress(practicalId, correct);
+
+    // Update local session stats
     setSessionStats((prev) => ({
       attempted: prev.attempted + 1,
       correct: prev.correct + (correct ? 1 : 0),
     }));
 
-    // Record to Supabase for dashboard
+    // Update localStorage for non-logged-in users
+    updateProgress(practicalId, correct);
+
+    // Record to Supabase via API (handles XP, achievements, streaks)
     if (userId && question) {
-      recordAttempt(
+      const result = await recordProgress({
         userId,
-        practicalId,
-        currentSubtopic || subtopic,
+        topicId: practicalId,
+        subtopic: currentSubtopic || subtopic,
         difficulty,
-        question.content,
-        question.solution,
         correct,
+        questionContent: question.content,
+        questionSolution: question.solution,
         subject,
         examBoard,
-        level
-      ).catch(err => console.error('Failed to record attempt:', err));
+        qualification: level,
+        correctStreak,
+      });
+
+      if (result.success) {
+        // Update correct streak from server
+        setCorrectStreak(result.correctStreak);
+      }
+    } else {
+      // Update local streak for non-logged-in users
+      setCorrectStreak(correct ? correctStreak + 1 : 0);
     }
   };
 

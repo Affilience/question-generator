@@ -10,12 +10,14 @@ import {
   PaperAttemptAnswer,
 } from '@/types';
 import { MarkBadge, InlineMarks } from '@/components/ui/MarkBadge';
+import { MathRenderer } from '@/components/MathRenderer';
 
 interface PaperTakePageProps {
   params: Promise<{ paperId: string }>;
 }
 
 type AnswerState = Record<string, string>; // questionId -> answer
+type SelfMarkState = Record<string, number>; // questionId -> marks awarded
 
 export default function PaperTakePage({ params }: PaperTakePageProps) {
   const { paperId } = use(params);
@@ -27,11 +29,13 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
   // Paper taking state
   const [answers, setAnswers] = useState<AnswerState>({});
+  const [selfMarks, setSelfMarks] = useState<SelfMarkState>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSolutions, setShowSolutions] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
 
   // Flatten questions for navigation
@@ -152,6 +156,19 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
     });
   };
 
+  const handleSelfMark = (questionId: string, marks: number, maxMarks: number) => {
+    const clampedMarks = Math.max(0, Math.min(marks, maxMarks));
+    setSelfMarks((prev) => ({
+      ...prev,
+      [questionId]: clampedMarks,
+    }));
+  };
+
+  // Calculate totals for self-marking
+  const totalSelfMarks = Object.values(selfMarks).reduce((sum, m) => sum + m, 0);
+  const questionsMarked = Object.keys(selfMarks).length;
+  const allQuestionsMarked = questionsMarked === allQuestions.length;
+
   const goToQuestion = (index: number) => {
     if (index >= 0 && index < allQuestions.length) {
       setCurrentQuestionIndex(index);
@@ -161,11 +178,8 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
   const handleSubmit = useCallback(async () => {
     if (isSubmitted) return;
     setIsSubmitted(true);
-
-    // In exam conditions mode, show solutions after submit
-    if (paper?.settings.examConditions) {
-      setShowSolutions(true);
-    }
+    setShowSolutions(true); // Always show solutions after submit for self-marking
+    setCurrentQuestionIndex(0); // Go back to first question for marking
 
     // Save attempt to database
     try {
@@ -285,18 +299,33 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit / Results Button */}
           {!isSubmitted ? (
             <button
               onClick={handleSubmit}
               className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg font-medium hover:bg-[var(--color-accent-hover)]"
             >
-              Submit
+              Finish & Mark
             </button>
           ) : (
-            <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg font-medium">
-              Submitted
-            </span>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">
+                  {totalSelfMarks}/{paper.totalMarks}
+                </div>
+                <div className="text-xs text-[var(--color-text-muted)]">
+                  {questionsMarked}/{allQuestions.length} marked
+                </div>
+              </div>
+              {allQuestionsMarked && (
+                <button
+                  onClick={() => setShowResults(true)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600"
+                >
+                  View Results
+                </button>
+              )}
+            </div>
           )}
         </div>
       </header>
@@ -311,6 +340,7 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                 const isAnswered = !!answers[q.id]?.trim();
                 const isCurrent = index === currentQuestionIndex;
                 const isFlagged = flaggedQuestions.has(q.id);
+                const isMarked = selfMarks[q.id] !== undefined;
 
                 return (
                   <button
@@ -319,14 +349,25 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                     className={`relative w-10 h-10 rounded-lg text-sm font-medium transition-all ${
                       isCurrent
                         ? 'bg-[var(--color-accent)] text-white'
+                        : isSubmitted && isMarked
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : isSubmitted
+                        ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                         : isAnswered
-                        ? 'bg-green-500/20 text-green-400'
+                        ? 'bg-blue-500/20 text-blue-400'
                         : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'
                     }`}
                   >
                     {q.questionNumber}
-                    {isFlagged && (
+                    {isFlagged && !isSubmitted && (
                       <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full" />
+                    )}
+                    {isSubmitted && isMarked && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
                     )}
                   </button>
                 );
@@ -335,14 +376,37 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
             {/* Section Legend */}
             <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
-              <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-                <span className="w-3 h-3 bg-green-500/20 rounded" />
-                <span>Answered</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mt-1">
-                <span className="w-3 h-3 bg-orange-500 rounded-full" />
-                <span>Flagged for review</span>
-              </div>
+              {!isSubmitted ? (
+                <>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+                    <span className="w-3 h-3 bg-blue-500/20 rounded" />
+                    <span>Has notes</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mt-1">
+                    <span className="w-3 h-3 bg-orange-500 rounded-full" />
+                    <span>Flagged</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+                    <span className="w-3 h-3 bg-green-500/20 border border-green-500/30 rounded" />
+                    <span>Marked</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mt-1">
+                    <span className="w-3 h-3 bg-yellow-500/20 border border-yellow-500/30 rounded" />
+                    <span>Needs marking</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                    <div className="text-sm font-medium text-[var(--color-text-primary)]">
+                      Score: {totalSelfMarks}/{paper.totalMarks}
+                    </div>
+                    <div className="text-xs text-[var(--color-text-muted)]">
+                      {Math.round((totalSelfMarks / paper.totalMarks) * 100)}%
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </aside>
@@ -376,8 +440,8 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                         <MarkBadge marks={currentQuestion.marks} size="md" />
                       )}
                     </div>
-                    <div className="text-[var(--color-text-primary)] whitespace-pre-wrap">
-                      {currentQuestion.content}
+                    <div className="text-[var(--color-text-primary)]">
+                      <MathRenderer content={currentQuestion.content} />
                     </div>
                   </div>
                   <button
@@ -395,41 +459,109 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                   </button>
                 </div>
 
-                {/* Answer Input */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-                    Your Answer
-                  </label>
-                  <textarea
-                    value={answers[currentQuestion.id] || ''}
-                    onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                    disabled={isSubmitted}
-                    rows={6}
-                    className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 disabled:opacity-50 resize-none"
-                    placeholder="Enter your answer here..."
-                  />
-                </div>
+                {/* Answer Input - only show before submission */}
+                {!isSubmitted && (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                      Your Answer (optional - for digital notes)
+                    </label>
+                    <textarea
+                      value={answers[currentQuestion.id] || ''}
+                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                      rows={6}
+                      className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 resize-none"
+                      placeholder="Type your answer here, or write on paper..."
+                    />
+                  </div>
+                )}
 
-                {/* Solution (if shown) */}
-                {(showSolutions || (!paper.settings.examConditions && isSubmitted)) && (
-                  <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
-                    <h3 className="font-bold text-[var(--color-text-primary)] mb-3">Model Solution</h3>
-                    <div className="bg-[var(--color-bg-primary)] rounded-lg p-4 text-[var(--color-text-primary)] whitespace-pre-wrap">
-                      {currentQuestion.solution}
+                {/* Solution and Mark Scheme - shown after submission */}
+                {showSolutions && (
+                  <div className="space-y-6">
+                    {/* Model Solution */}
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-5">
+                      <h3 className="font-bold text-green-400 mb-3 flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Model Solution
+                      </h3>
+                      <div className="text-[var(--color-text-primary)] leading-relaxed">
+                        <MathRenderer content={currentQuestion.solution} />
+                      </div>
                     </div>
 
-                    <h4 className="font-medium text-[var(--color-text-primary)] mt-4 mb-2">Mark Scheme</h4>
-                    <ul className="space-y-1">
-                      {currentQuestion.markScheme.map((point, index) => (
-                        <li
-                          key={index}
-                          className="flex items-start gap-2 text-[var(--color-text-secondary)]"
-                        >
-                          <span className="text-[var(--color-accent)]">•</span>
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Mark Scheme */}
+                    <div className="bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-xl p-5">
+                      <h4 className="font-bold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Mark Scheme
+                      </h4>
+                      <ul className="space-y-2">
+                        {currentQuestion.markScheme.map((point, index) => (
+                          <li
+                            key={index}
+                            className="flex items-start gap-3 text-[var(--color-text-secondary)] bg-[var(--color-bg-secondary)] rounded-lg px-4 py-2"
+                          >
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--color-accent)]/20 text-[var(--color-accent)] flex items-center justify-center text-xs font-medium">
+                              {index + 1}
+                            </span>
+                            <span className="flex-1"><MathRenderer content={point} /></span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Self-Marking Input */}
+                    <div className="bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-xl p-5">
+                      <h4 className="font-bold text-[var(--color-text-primary)] mb-3">
+                        Self-Mark This Question
+                      </h4>
+                      <p className="text-sm text-[var(--color-text-muted)] mb-4">
+                        Compare your answer to the mark scheme and award yourself marks.
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={currentQuestion.marks}
+                            value={selfMarks[currentQuestion.id] ?? ''}
+                            onChange={(e) => handleSelfMark(currentQuestion.id, parseInt(e.target.value) || 0, currentQuestion.marks)}
+                            className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"
+                            placeholder="0"
+                          />
+                          <span className="text-[var(--color-text-secondary)] font-medium">
+                            / {currentQuestion.marks}
+                          </span>
+                        </div>
+
+                        {/* Quick mark buttons */}
+                        <div className="flex gap-2">
+                          {[0, Math.floor(currentQuestion.marks / 2), currentQuestion.marks].map((mark) => (
+                            <button
+                              key={mark}
+                              onClick={() => handleSelfMark(currentQuestion.id, mark, currentQuestion.marks)}
+                              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                                selfMarks[currentQuestion.id] === mark
+                                  ? 'bg-[var(--color-accent)] text-white'
+                                  : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)]'
+                              }`}
+                            >
+                              {mark}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {selfMarks[currentQuestion.id] !== undefined && (
+                        <div className="mt-3 text-sm text-green-400">
+                          Marked: {selfMarks[currentQuestion.id]}/{currentQuestion.marks}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -468,58 +600,168 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
       </div>
 
       {/* Mobile Question Navigator */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-bg-secondary)] border-t border-[var(--color-border)] p-4">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => goToQuestion(currentQuestionIndex - 1)}
-            disabled={currentQuestionIndex === 0}
-            className="p-3 rounded-lg bg-[var(--color-bg-elevated)] disabled:opacity-50"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+      {!isSubmitted && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-bg-secondary)] border-t border-[var(--color-border)] p-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => goToQuestion(currentQuestionIndex - 1)}
+              disabled={currentQuestionIndex === 0}
+              className="p-3 rounded-lg bg-[var(--color-bg-elevated)] disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-          <div className="flex-1 mx-4 overflow-x-auto">
-            <div className="flex gap-2 justify-center">
-              {allQuestions.slice(
-                Math.max(0, currentQuestionIndex - 2),
-                Math.min(allQuestions.length, currentQuestionIndex + 3)
-              ).map((q, index) => {
-                const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
-                const isAnswered = !!answers[q.id]?.trim();
-                const isCurrent = actualIndex === currentQuestionIndex;
+            <div className="flex-1 mx-4 overflow-x-auto">
+              <div className="flex gap-2 justify-center">
+                {allQuestions.slice(
+                  Math.max(0, currentQuestionIndex - 2),
+                  Math.min(allQuestions.length, currentQuestionIndex + 3)
+                ).map((q, index) => {
+                  const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
+                  const isAnswered = !!answers[q.id]?.trim();
+                  const isCurrent = actualIndex === currentQuestionIndex;
 
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => goToQuestion(actualIndex)}
-                    className={`w-10 h-10 rounded-lg text-sm font-medium ${
-                      isCurrent
-                        ? 'bg-[var(--color-accent)] text-white'
-                        : isAnswered
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]'
-                    }`}
-                  >
-                    {q.questionNumber}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => goToQuestion(actualIndex)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium ${
+                        isCurrent
+                          ? 'bg-[var(--color-accent)] text-white'
+                          : isAnswered
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]'
+                      }`}
+                    >
+                      {q.questionNumber}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              onClick={() => goToQuestion(currentQuestionIndex + 1)}
+              disabled={currentQuestionIndex === allQuestions.length - 1}
+              className="p-3 rounded-lg bg-[var(--color-bg-elevated)] disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Results Modal */}
+      {showResults && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowResults(false)}
+          />
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl shadow-2xl">
+            {/* Header */}
+            <div className="sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Results</h2>
+                <button
+                  onClick={() => setShowResults(false)}
+                  className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Score Summary */}
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="text-center">
+                <div className="text-6xl font-bold text-[var(--color-text-primary)] mb-2">
+                  {totalSelfMarks}/{paper.totalMarks}
+                </div>
+                <div className="text-2xl font-medium text-[var(--color-accent)]">
+                  {Math.round((totalSelfMarks / paper.totalMarks) * 100)}%
+                </div>
+                <div className="mt-4 text-[var(--color-text-muted)]">
+                  {paper.paperName}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Question Breakdown */}
+            <div className="p-6">
+              <h3 className="font-bold text-[var(--color-text-primary)] mb-4">Question Breakdown</h3>
+              <div className="space-y-2">
+                {allQuestions.map((q, index) => {
+                  const marks = selfMarks[q.id] || 0;
+                  const percentage = (marks / q.marks) * 100;
+
+                  return (
+                    <div
+                      key={q.id}
+                      className="flex items-center gap-4 p-3 bg-[var(--color-bg-primary)] rounded-lg cursor-pointer hover:bg-[var(--color-bg-elevated)]"
+                      onClick={() => {
+                        setShowResults(false);
+                        goToQuestion(index);
+                      }}
+                    >
+                      <span className="w-8 h-8 rounded-lg bg-[var(--color-bg-elevated)] flex items-center justify-center text-sm font-medium text-[var(--color-text-secondary)]">
+                        {q.questionNumber}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-[var(--color-text-muted)] truncate">
+                          {q.subtopic}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-[var(--color-bg-elevated)] rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
+                              percentage >= 80
+                                ? 'bg-green-500'
+                                : percentage >= 50
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] w-16 text-right">
+                          {marks}/{q.marks}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="sticky bottom-0 bg-[var(--color-bg-secondary)] border-t border-[var(--color-border)] p-6">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowResults(false)}
+                  className="flex-1 py-3 border border-[var(--color-border)] rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors"
+                >
+                  Review Questions
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="flex-1 py-3 bg-[var(--color-accent)] text-white font-medium rounded-xl hover:bg-[var(--color-accent-hover)] transition-colors"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
             </div>
           </div>
-
-          <button
-            onClick={() => goToQuestion(currentQuestionIndex + 1)}
-            disabled={currentQuestionIndex === allQuestions.length - 1}
-            className="p-3 rounded-lg bg-[var(--color-bg-elevated)] disabled:opacity-50"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 }

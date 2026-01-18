@@ -1,353 +1,484 @@
 'use client';
 
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { EmbeddedCheckoutModal, useEmbeddedCheckout } from '@/components/stripe/EmbeddedCheckout';
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const }
-  }
-};
+type BillingInterval = 'monthly' | 'annual';
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
+interface PlanFeature {
+  text: string;
+  included: boolean;
+  highlight?: boolean;
+}
 
-const plans = [
+interface Plan {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  price: { monthly: number; annual: number };
+  priceKey: { monthly: string | null; annual: string | null };
+  features: PlanFeature[];
+  cta: string;
+  ctaLink?: string;
+  popular: boolean;
+  color: string;
+}
+
+const plans: Plan[] = [
   {
+    id: 'free',
     name: 'Free',
-    price: '0',
-    period: 'forever',
-    description: 'Perfect for getting started',
+    tagline: 'Try & Trust',
+    description: 'Perfect for trying out the platform',
+    price: { monthly: 0, annual: 0 },
+    priceKey: { monthly: null, annual: null },
     features: [
-      '10 questions per day',
-      'All subjects available',
-      'Basic progress tracking',
-      'Step-by-step solutions',
+      { text: '5 questions per day', included: true },
+      { text: 'All subjects (GCSE & A-Level)', included: true },
+      { text: 'Full worked solutions', included: true },
+      { text: 'Mixed difficulty only', included: true },
+      { text: 'Difficulty control', included: false },
+      { text: 'Custom past papers', included: false },
+      { text: 'Save question history', included: false },
     ],
     cta: 'Get Started',
-    href: '/gcse',
-    highlighted: false,
+    ctaLink: '/gcse',
+    popular: false,
+    color: 'gray',
   },
   {
-    name: 'Pro',
-    price: '4.99',
-    period: 'month',
-    description: 'Unlimited practice for serious students',
+    id: 'student_plus',
+    name: 'Student Plus',
+    tagline: 'Unlimited Practice',
+    description: 'Most popular for serious revision',
+    price: { monthly: 4.99, annual: 39.99 },
+    priceKey: { monthly: 'student_plus_monthly', annual: 'student_plus_annual' },
     features: [
-      'Unlimited questions',
-      'All subjects & exam boards',
-      'Advanced progress analytics',
-      'Step-by-step solutions',
-      'Paper builder',
-      'Priority support',
+      { text: 'Unlimited questions', included: true, highlight: true },
+      { text: 'Full difficulty control', included: true, highlight: true },
+      { text: 'Save question history', included: true },
+      { text: 'Bookmark questions', included: true },
+      { text: 'Regenerate variations', included: true },
+      { text: '3 custom papers per week', included: true },
+      { text: 'Timed exam mode', included: false },
+      { text: 'PDF downloads', included: false },
     ],
     cta: 'Start Free Trial',
-    href: '/gcse',
-    highlighted: true,
-    badge: 'Most Popular',
+    popular: true,
+    color: 'blue',
   },
   {
-    name: 'Pro Annual',
-    price: '29.99',
-    period: 'year',
-    description: 'Best value - save 50%',
+    id: 'exam_pro',
+    name: 'Exam Pro',
+    tagline: 'Real Exam Mode',
+    description: 'Full exam preparation suite',
+    price: { monthly: 8.99, annual: 69.99 },
+    priceKey: { monthly: 'exam_pro_monthly', annual: 'exam_pro_annual' },
     features: [
-      'Everything in Pro',
-      '50% discount',
-      'PDF export',
-      'Offline access (coming soon)',
+      { text: 'Everything in Student Plus', included: true },
+      { text: 'Unlimited custom papers', included: true, highlight: true },
+      { text: 'Timed exam mode', included: true, highlight: true },
+      { text: 'Downloadable PDFs', included: true },
+      { text: 'Examiner commentary', included: true },
+      { text: 'Synoptic papers', included: true },
+      { text: 'Priority generation', included: true },
     ],
     cta: 'Start Free Trial',
-    href: '/gcse',
-    highlighted: false,
-    badge: 'Best Value',
+    popular: false,
+    color: 'purple',
   },
 ];
 
-export default function PricingPage() {
+const examSeasonPass = {
+  id: 'exam_season',
+  name: 'Exam Season Pass',
+  tagline: '30-Day Boost',
+  description: 'Full Exam Pro access for 30 days. No subscription.',
+  price: 14.99,
+  priceKey: 'exam_season_pass',
+  features: [
+    'Everything in Exam Pro',
+    '30 days full access',
+    'No auto-renewal',
+    'Perfect for revision crunch',
+  ],
+};
+
+function PricingContent() {
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('annual');
+  const { user } = useAuth();
+  const { tier, subscription, openPortal } = useSubscription();
+  const { checkoutState, openCheckout, closeCheckout } = useEmbeddedCheckout();
+  const searchParams = useSearchParams();
+  const canceled = searchParams.get('canceled');
+
+  const handleSelectPlan = (plan: Plan, priceKey: string | null) => {
+    if (!priceKey) return;
+
+    const price = billingInterval === 'annual' ? plan.price.annual : plan.price.monthly;
+    openCheckout({
+      priceKey,
+      planName: plan.name,
+      price: `£${price}`,
+      interval: billingInterval === 'annual' ? 'year' : 'month',
+    });
+  };
+
+  const handleSelectExamSeason = () => {
+    openCheckout({
+      priceKey: examSeasonPass.priceKey,
+      planName: examSeasonPass.name,
+      price: `£${examSeasonPass.price}`,
+    });
+  };
+
+  const getAnnualSavings = (monthly: number, annual: number) => {
+    if (monthly === 0) return null;
+    const monthlyCost = monthly * 12;
+    const savings = Math.round(((monthlyCost - annual) / monthlyCost) * 100);
+    return savings;
+  };
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
-      {/* Navigation */}
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          backgroundColor: 'rgba(0,0,0,0.8)',
-          backdropFilter: 'saturate(180%) blur(20px)',
-          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-        }}
-      >
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontWeight: 600, fontSize: 20, color: '#f5f5f7', textDecoration: 'none' }}>
-            Past Papers
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <Link href="/#features" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>Features</Link>
-            <Link href="/#subjects" style={{ fontSize: 12, color: 'rgba(245,245,247,0.8)', textDecoration: 'none' }}>Subjects</Link>
-            <Link href="/pricing" style={{ fontSize: 12, color: '#f5f5f7', textDecoration: 'none', fontWeight: 500 }}>Pricing</Link>
+    <div className="min-h-screen bg-[#0a0a0a]">
+      {/* Header */}
+      <header className="border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-xl font-semibold text-white">
+              Past Papers
+            </Link>
+            <div className="flex items-center gap-4">
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-white/60 hover:text-white transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  {subscription && (
+                    <button
+                      onClick={() => openPortal()}
+                      className="text-white/60 hover:text-white transition-colors"
+                    >
+                      Manage Subscription
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-white/60 hover:text-white transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="bg-white text-[#0a0a0a] px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
-          <Link
-            href="/gcse"
-            style={{
-              backgroundColor: '#f5f5f7',
-              color: '#1d1d1f',
-              padding: '8px 16px',
-              borderRadius: 980,
-              fontSize: 14,
-              textDecoration: 'none',
-              fontWeight: 500,
-              display: 'inline-block',
-            }}
-          >
-            Get Started
-          </Link>
         </div>
-      </nav>
+      </header>
 
-      {/* Hero */}
-      <section style={{ paddingTop: 140, paddingBottom: 80 }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-          >
-            <motion.p
-              variants={fadeInUp}
-              style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86868b', marginBottom: 16 }}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Canceled notice */}
+        {canceled && (
+          <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-400 text-center">
+            Checkout was canceled. Feel free to try again when you&apos;re ready.
+          </div>
+        )}
+
+        {/* Hero */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+            Simple, transparent pricing
+          </h1>
+          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+            Choose the plan that fits your revision needs. All plans include full access to every subject and exam board.
+          </p>
+        </div>
+
+        {/* Billing toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-lg p-1 flex">
+            <button
+              onClick={() => setBillingInterval('monthly')}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingInterval === 'monthly'
+                  ? 'bg-white text-[#0a0a0a]'
+                  : 'text-white/60 hover:text-white'
+              }`}
             >
-              Pricing
-            </motion.p>
-            <motion.h1
-              variants={fadeInUp}
-              style={{
-                fontSize: 'clamp(36px, 6vw, 64px)',
-                fontWeight: 600,
-                color: '#f5f5f7',
-                marginBottom: 24,
-                letterSpacing: '-0.03em'
-              }}
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingInterval('annual')}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                billingInterval === 'annual'
+                  ? 'bg-white text-[#0a0a0a]'
+                  : 'text-white/60 hover:text-white'
+              }`}
             >
-              Simple pricing.
-              <br />
-              <span style={{
-                background: 'linear-gradient(90deg, #0071e3, #5856d6, #af52de)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                Unlimited practice.
+              Annual
+              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+                Save up to 35%
               </span>
-            </motion.h1>
-            <motion.p
-              variants={fadeInUp}
-              style={{ fontSize: 'clamp(17px, 2vw, 21px)', color: '#86868b', maxWidth: 560, margin: '0 auto' }}
-            >
-              Start free, upgrade when you need unlimited questions. No hidden fees.
-            </motion.p>
-          </motion.div>
+            </button>
+          </div>
         </div>
-      </section>
 
-      {/* Pricing Cards */}
-      <section style={{ paddingBottom: 120 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, alignItems: 'stretch' }}
-          >
-            {plans.map((plan) => (
-              <motion.div
-                key={plan.name}
-                variants={fadeInUp}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                style={{
-                  backgroundColor: plan.highlighted ? '#1d1d1f' : 'transparent',
-                  border: plan.highlighted ? '2px solid #0071e3' : '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 24,
-                  padding: 40,
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+        {/* Pricing cards */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {plans.map((plan) => {
+            const price = plan.price[billingInterval];
+            const priceKey = plan.priceKey[billingInterval];
+            const isCurrentPlan = tier === plan.id;
+            const savings = getAnnualSavings(plan.price.monthly, plan.price.annual);
+
+            return (
+              <div
+                key={plan.id}
+                className={`relative bg-[#111] border rounded-2xl p-8 ${
+                  plan.popular
+                    ? 'border-blue-500/50 ring-1 ring-blue-500/20'
+                    : 'border-white/[0.06]'
+                }`}
               >
-                {plan.badge && (
-                  <div style={{
-                    position: 'absolute',
-                    top: -12,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'linear-gradient(135deg, #0071e3, #5856d6)',
-                    color: 'white',
-                    padding: '6px 16px',
-                    borderRadius: 980,
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}>
-                    {plan.badge}
+                {/* Popular badge */}
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      Most Popular
+                    </span>
                   </div>
                 )}
 
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 24, fontWeight: 600, color: '#f5f5f7', marginBottom: 8 }}>{plan.name}</h3>
-                  <p style={{ fontSize: 14, color: '#86868b' }}>{plan.description}</p>
+                {/* Plan header */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
+                  <p className="text-sm text-white/40">{plan.tagline}</p>
                 </div>
 
-                <div style={{ marginBottom: 32 }}>
-                  <span style={{ fontSize: 48, fontWeight: 600, color: '#f5f5f7' }}>
-                    {plan.price === '0' ? 'Free' : `£${plan.price}`}
-                  </span>
-                  {plan.price !== '0' && (
-                    <span style={{ fontSize: 16, color: '#86868b' }}>/{plan.period}</span>
+                {/* Price */}
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white">
+                      {price === 0 ? 'Free' : `£${price}`}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-white/40">
+                        /{billingInterval === 'annual' ? 'year' : 'month'}
+                      </span>
+                    )}
+                  </div>
+                  {billingInterval === 'annual' && savings && (
+                    <p className="text-sm text-green-400 mt-1">
+                      Save {savings}% vs monthly
+                    </p>
                   )}
                 </div>
 
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, marginBottom: 32, flex: 1 }}>
-                  {plan.features.map((feature) => (
-                    <li key={feature} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, color: '#f5f5f7', fontSize: 15 }}>
-                      <svg style={{ width: 20, height: 20, color: '#22c55e', flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {feature}
+                {/* Description */}
+                <p className="text-white/60 text-sm mb-6">{plan.description}</p>
+
+                {/* CTA */}
+                {isCurrentPlan ? (
+                  <button
+                    disabled
+                    className="w-full py-3 rounded-lg font-medium bg-white/10 text-white/60 cursor-not-allowed"
+                  >
+                    Current Plan
+                  </button>
+                ) : plan.ctaLink ? (
+                  <Link
+                    href={plan.ctaLink}
+                    className="block w-full py-3 rounded-lg font-medium text-center bg-white/[0.06] text-white hover:bg-white/[0.1] transition-colors"
+                  >
+                    {plan.cta}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleSelectPlan(plan, priceKey)}
+                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                      plan.popular
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-white text-[#0a0a0a] hover:bg-white/90'
+                    }`}
+                  >
+                    {plan.cta}
+                  </button>
+                )}
+
+                {/* Features */}
+                <ul className="mt-8 space-y-3">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      {feature.included ? (
+                        <svg
+                          className={`w-5 h-5 ${
+                            feature.highlight ? 'text-green-400' : 'text-white/40'
+                          } flex-shrink-0 mt-0.5`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5 text-white/20 flex-shrink-0 mt-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      )}
+                      <span
+                        className={`text-sm ${
+                          feature.included
+                            ? feature.highlight
+                              ? 'text-white font-medium'
+                              : 'text-white/80'
+                            : 'text-white/30'
+                        }`}
+                      >
+                        {feature.text}
+                      </span>
                     </li>
                   ))}
                 </ul>
-
-                <Link
-                  href={plan.href}
-                  style={{
-                    display: 'block',
-                    textAlign: 'center',
-                    padding: '16px 24px',
-                    borderRadius: 980,
-                    fontSize: 17,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                    background: plan.highlighted
-                      ? 'linear-gradient(135deg, #0071e3, #5856d6)'
-                      : 'transparent',
-                    color: plan.highlighted ? 'white' : '#0071e3',
-                    border: plan.highlighted ? 'none' : '1px solid #0071e3',
-                  }}
-                >
-                  {plan.cta}
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+              </div>
+            );
+          })}
         </div>
-      </section>
 
-      {/* FAQ Section */}
-      <section style={{ padding: '80px 0', backgroundColor: '#0a0a0a' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-          >
-            <motion.h2
-              variants={fadeInUp}
-              style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, color: '#f5f5f7', marginBottom: 48, textAlign: 'center' }}
-            >
-              Frequently Asked Questions
-            </motion.h2>
-
-            {[
-              {
-                q: 'How does the free plan work?',
-                a: 'The free plan gives you 10 question generations per day across all subjects and exam boards. Your progress is tracked and you get full step-by-step solutions.',
-              },
-              {
-                q: 'Can I cancel anytime?',
-                a: 'Yes! You can cancel your subscription at any time. You\'ll continue to have access until the end of your billing period.',
-              },
-              {
-                q: 'What payment methods do you accept?',
-                a: 'We accept all major credit and debit cards, including Visa, Mastercard, and American Express.',
-              },
-              {
-                q: 'Is there a free trial?',
-                a: 'Yes! Pro plans come with a 7-day free trial. You can cancel anytime during the trial and won\'t be charged.',
-              },
-              {
-                q: 'What subjects are available?',
-                a: 'We support 12 subjects including Mathematics, Physics, Chemistry, Biology, Computer Science, Economics, Business, Psychology, Geography, History, English Literature, and Further Maths.',
-              },
-            ].map((faq, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                style={{
-                  marginBottom: 24,
-                  paddingBottom: 24,
-                  borderBottom: '1px solid rgba(255,255,255,0.1)'
-                }}
+        {/* Exam Season Pass */}
+        <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-8 mb-16">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-xl font-semibold text-white">{examSeasonPass.name}</h3>
+                <span className="bg-orange-500/20 text-orange-400 text-xs font-medium px-2 py-1 rounded-full">
+                  {examSeasonPass.tagline}
+                </span>
+              </div>
+              <p className="text-white/60 mb-4">{examSeasonPass.description}</p>
+              <ul className="flex flex-wrap gap-4">
+                {examSeasonPass.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
+                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="text-3xl font-bold text-white">£{examSeasonPass.price}</div>
+              <span className="text-white/40 text-sm">one-time payment</span>
+              <button
+                onClick={handleSelectExamSeason}
+                disabled={tier === 'exam_season'}
+                className="mt-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: '#f5f5f7', marginBottom: 12 }}>{faq.q}</h3>
-                <p style={{ fontSize: 15, color: '#86868b', lineHeight: 1.6 }}>{faq.a}</p>
-              </motion.div>
-            ))}
-          </motion.div>
+                {tier === 'exam_season' ? 'Already Active' : 'Get Exam Season Pass'}
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
 
-      {/* CTA Section */}
-      <section style={{ padding: '80px 0', textAlign: 'center' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 24px' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, color: '#f5f5f7', marginBottom: 24 }}>
-            Ready to start practicing?
+        {/* FAQ */}
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-white text-center mb-8">
+            Frequently Asked Questions
           </h2>
-          <p style={{ fontSize: 17, color: '#86868b', marginBottom: 32 }}>
-            Join thousands of students using AI-powered practice to ace their exams.
-          </p>
-          <Link
-            href="/gcse"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              background: 'linear-gradient(135deg, #0071e3, #5856d6)',
-              color: 'white',
-              padding: '16px 32px',
-              borderRadius: 980,
-              fontSize: 17,
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Start Practicing Free
-            <svg style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
+          <div className="space-y-6">
+            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
+              <h3 className="font-medium text-white mb-2">Can I cancel anytime?</h3>
+              <p className="text-white/60 text-sm">
+                Yes! You can cancel your subscription at any time. You&apos;ll continue to have access until the end of your billing period.
+              </p>
+            </div>
+            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
+              <h3 className="font-medium text-white mb-2">Is there a free trial?</h3>
+              <p className="text-white/60 text-sm">
+                Yes, monthly plans come with a 7-day free trial. You won&apos;t be charged until the trial ends, and you can cancel anytime.
+              </p>
+            </div>
+            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
+              <h3 className="font-medium text-white mb-2">What subjects are included?</h3>
+              <p className="text-white/60 text-sm">
+                All plans include access to every subject we support: Maths, Physics, Chemistry, Biology, Computer Science, Economics, Business, Psychology, Geography, History, and English Literature for both GCSE and A-Level.
+              </p>
+            </div>
+            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
+              <h3 className="font-medium text-white mb-2">Which exam boards do you cover?</h3>
+              <p className="text-white/60 text-sm">
+                We generate questions matching AQA, Edexcel, and OCR exam board styles. Each question is tailored to the specific exam board&apos;s format and marking criteria.
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
+      </main>
 
       {/* Footer */}
-      <footer style={{ padding: '32px 0', backgroundColor: '#000000', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, fontSize: 13, color: '#86868b' }}>
-          <div>&copy; 2025 Past Papers. All rights reserved.</div>
-          <div>Not affiliated with AQA, Edexcel, Pearson, or OCR.</div>
+      <footer className="border-t border-white/[0.06] py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white/40 text-sm">
+          <p>&copy; {new Date().getFullYear()} Past Papers. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Embedded Checkout Modal */}
+      {checkoutState?.isOpen && (
+        <EmbeddedCheckoutModal
+          priceKey={checkoutState.priceKey}
+          planName={checkoutState.planName}
+          price={checkoutState.price}
+          interval={checkoutState.interval}
+          userId={user?.id}
+          onClose={closeCheckout}
+          onSuccess={() => {
+            closeCheckout();
+            window.location.href = '/subscription/success';
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="animate-pulse text-white/60">Loading...</div>
+      </div>
+    }>
+      <PricingContent />
+    </Suspense>
   );
 }

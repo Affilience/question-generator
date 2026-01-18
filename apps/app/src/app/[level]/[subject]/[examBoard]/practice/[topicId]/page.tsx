@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTopicByIdSubjectBoardAndLevel, getExamBoardInfo, getExamBoardsByLevel } from '@/lib/topics';
-import { getTopicProgress } from '@/lib/progress';
-import { Topic, TopicProgress, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { useSyncedProgress } from '@/hooks/useSyncedProgress';
+import { Topic, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { SubtopicGrid } from '@/components/SubtopicGrid';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
@@ -19,9 +19,17 @@ export default function TopicPage() {
   const examBoard = params.examBoard as string;
   const topicId = params.topicId as string;
 
+  // All hooks must be called before any conditional returns
   const [topic, setTopic] = useState<Topic | null>(null);
-  const [progress, setProgress] = useState<TopicProgress | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const { getTopicProgress, loading: progressLoading } = useSyncedProgress();
+
+  useEffect(() => {
+    const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+    setTopic(foundTopic || null);
+  }, [topicId, subject, examBoard, level]);
+
+  // Get progress using the synced hook
+  const progress = getTopicProgress(topicId);
 
   // Validate level
   if (!validLevels.includes(level as QualificationLevel)) {
@@ -46,13 +54,6 @@ export default function TopicPage() {
 
   const examBoardInfo = getExamBoardInfo(examBoard as ExamBoard);
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
-
-  useEffect(() => {
-    setMounted(true);
-    const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
-    setTopic(foundTopic || null);
-    setProgress(getTopicProgress(topicId));
-  }, [topicId, subject, examBoard, level]);
 
   if (!topic) {
     return (
@@ -102,7 +103,7 @@ export default function TopicPage() {
             </div>
           )}
 
-          {mounted && progress && progress.attempted > 0 && (
+          {!progressLoading && progress && progress.attempted > 0 && (
             <div className="flex gap-3 sm:gap-4 animate-fade-in">
               <div className="bg-[#1a1a1a] rounded-lg px-3 sm:px-4 py-2 border border-[#2a2a2a]">
                 <span className="text-base sm:text-lg font-semibold text-white">{progress.attempted}</span>

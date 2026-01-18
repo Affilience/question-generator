@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 import { Difficulty } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 
@@ -10,6 +11,23 @@ interface CachedQuestion {
   markScheme: string[];
   diagram?: DiagramSpec;  // Include diagram in cache
   cachedAt: number;
+}
+
+// Database row type for question_cache table
+interface QuestionCacheRow {
+  id: string;
+  cache_key: string;
+  subtopic: string;
+  difficulty: string;
+  content: string;
+  solution: string;
+  marks: number;
+  mark_scheme: string[];
+  diagram: DiagramSpec | null;
+  content_hash: string;
+  created_at: string;
+  accessed_at: string;
+  access_count: number;
 }
 
 interface CacheConfig {
@@ -34,6 +52,30 @@ function getRedisClient(): Redis | null {
   }
 
   return new Redis({ url, token });
+}
+
+// Initialize Supabase client for cache fallback
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceKey) {
+    return null;
+  }
+
+  return createClient(url, serviceKey);
+}
+
+// Generate a simple hash for content deduplication
+function hashContent(content: string): string {
+  // Simple hash function for deduplication
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
 }
 
 // Generate cache key
@@ -72,6 +114,7 @@ function calculateSimilarity(str1: string, str2: string): number {
 
 /**
  * Get a cached question with improved diversity
+ * Uses Redis if available, falls back to Supabase
  * @param excludeContentPrefixes - Array of first 100 chars of questions to exclude (to avoid repeats)
  */
 export async function getCachedQuestion(
@@ -80,9 +123,32 @@ export async function getCachedQuestion(
   difficulty: Difficulty,
   excludeContentPrefixes?: string | string[]
 ): Promise<CachedQuestion | null> {
+  // Try Redis first
   const redis = getRedisClient();
-  if (!redis) return null;
+  if (redis) {
+    const result = await getCachedQuestionFromRedis(redis, topicId, subtopic, difficulty, excludeContentPrefixes);
+    if (result) return result;
+  }
 
+  // Fall back to Supabase
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    return getCachedQuestionFromSupabase(supabase, topicId, subtopic, difficulty, excludeContentPrefixes);
+  }
+
+  return null;
+}
+
+/**
+ * Get cached question from Redis
+ */
+async function getCachedQuestionFromRedis(
+  redis: Redis,
+  topicId: string,
+  subtopic: string,
+  difficulty: Difficulty,
+  excludeContentPrefixes?: string | string[]
+): Promise<CachedQuestion | null> {
   try {
     const key = getCacheKey(topicId, subtopic, difficulty);
     const cached = await redis.get<CachedQuestion[]>(key);
@@ -133,13 +199,106 @@ export async function getCachedQuestion(
     const randomIndex = Math.floor(Math.random() * candidatePool.length);
     return candidatePool[randomIndex];
   } catch (error) {
-    console.error('Cache read error:', error);
+    console.error('Redis cache read error:', error);
+    return null;
+  }
+}
+
+/**
+ * Get cached question from Supabase
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getCachedQuestionFromSupabase(
+  supabase: any,
+  topicId: string,
+  subtopic: string,
+  difficulty: Difficulty,
+  excludeContentPrefixes?: string | string[]
+): Promise<CachedQuestion | null> {
+  try {
+    const key = getCacheKey(topicId, subtopic, difficulty);
+    const normalizedSubtopic = subtopic.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+
+    // Normalize exclusions to array
+    const exclusions = Array.isArray(excludeContentPrefixes)
+      ? excludeContentPrefixes
+      : excludeContentPrefixes
+        ? [excludeContentPrefixes]
+        : [];
+
+    // Calculate expiry date
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() - DEFAULT_CONFIG.cacheExpiryDays);
+
+    // Query for cached questions, ordered by access_count (LRU-style)
+    const { data: cached, error } = await supabase
+      .from('question_cache')
+      .select('*')
+      .eq('cache_key', key)
+      .eq('subtopic', normalizedSubtopic)
+      .eq('difficulty', difficulty)
+      .gte('created_at', expiryDate.toISOString())
+      .order('access_count', { ascending: true })
+      .order('accessed_at', { ascending: true })
+      .limit(DEFAULT_CONFIG.maxQuestionsPerKey);
+
+    if (error || !cached || cached.length === 0) {
+      return null;
+    }
+
+    // Type the cached data
+    const cachedRows = cached as QuestionCacheRow[];
+
+    // Filter out excluded questions
+    const validQuestions = cachedRows.filter((q: QuestionCacheRow) => {
+      const prefix = q.content.substring(0, 100);
+      if (exclusions.includes(prefix)) {
+        return false;
+      }
+      for (const excl of exclusions) {
+        if (calculateSimilarity(q.content.substring(0, 150), excl) > 0.7) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (validQuestions.length === 0) {
+      return null;
+    }
+
+    // Pick from the least accessed questions (LRU-style)
+    const oldestThird = Math.ceil(validQuestions.length / 3);
+    const candidatePool = validQuestions.slice(0, Math.max(oldestThird, 1));
+    const selected = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+    // Update access count asynchronously
+    supabase
+      .from('question_cache')
+      .update({
+        accessed_at: new Date().toISOString(),
+        access_count: selected.access_count + 1,
+      })
+      .eq('id', selected.id)
+      .then(() => {});
+
+    return {
+      content: selected.content,
+      solution: selected.solution,
+      marks: selected.marks,
+      markScheme: selected.mark_scheme,
+      diagram: selected.diagram || undefined,
+      cachedAt: new Date(selected.created_at).getTime(),
+    };
+  } catch (error) {
+    console.error('Supabase cache read error:', error);
     return null;
   }
 }
 
 /**
  * Cache a generated question
+ * Stores in both Redis (if available) and Supabase for redundancy
  */
 export async function cacheQuestion(
   topicId: string,
@@ -148,8 +307,29 @@ export async function cacheQuestion(
   question: Omit<CachedQuestion, 'cachedAt'>
 ): Promise<void> {
   const redis = getRedisClient();
-  if (!redis) return;
+  const supabase = getSupabaseClient();
 
+  // Try to cache in Redis
+  if (redis) {
+    await cacheQuestionToRedis(redis, topicId, subtopic, difficulty, question);
+  }
+
+  // Also cache in Supabase (even if Redis is available, for redundancy)
+  if (supabase) {
+    await cacheQuestionToSupabase(supabase, topicId, subtopic, difficulty, question);
+  }
+}
+
+/**
+ * Cache question to Redis
+ */
+async function cacheQuestionToRedis(
+  redis: Redis,
+  topicId: string,
+  subtopic: string,
+  difficulty: Difficulty,
+  question: Omit<CachedQuestion, 'cachedAt'>
+): Promise<void> {
   try {
     const key = getCacheKey(topicId, subtopic, difficulty);
     const existing = await redis.get<CachedQuestion[]>(key) || [];
@@ -186,7 +366,74 @@ export async function cacheQuestion(
       ex: DEFAULT_CONFIG.cacheExpiryDays * 24 * 60 * 60,
     });
   } catch (error) {
-    console.error('Cache write error:', error);
+    console.error('Redis cache write error:', error);
+  }
+}
+
+/**
+ * Cache question to Supabase
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function cacheQuestionToSupabase(
+  supabase: any,
+  topicId: string,
+  subtopic: string,
+  difficulty: Difficulty,
+  question: Omit<CachedQuestion, 'cachedAt'>
+): Promise<void> {
+  try {
+    const key = getCacheKey(topicId, subtopic, difficulty);
+    const normalizedSubtopic = subtopic.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+    const contentHash = hashContent(question.content);
+
+    // Upsert to avoid duplicates (based on cache_key + content_hash)
+    const { error } = await supabase
+      .from('question_cache')
+      .upsert({
+        cache_key: key,
+        subtopic: normalizedSubtopic,
+        difficulty,
+        content: question.content,
+        solution: question.solution,
+        marks: question.marks,
+        mark_scheme: question.markScheme,
+        diagram: question.diagram || null,
+        content_hash: contentHash,
+      }, {
+        onConflict: 'cache_key,content_hash',
+        ignoreDuplicates: true,
+      });
+
+    if (error) {
+      console.error('Supabase cache write error:', error);
+    }
+
+    // Clean up old entries if we have too many for this key
+    // Keep only the most recent N questions per cache_key
+    const { data: countData } = await supabase
+      .from('question_cache')
+      .select('id', { count: 'exact' })
+      .eq('cache_key', key);
+
+    if (countData && countData.length > DEFAULT_CONFIG.maxQuestionsPerKey) {
+      // Delete oldest entries
+      const deleteCount = countData.length - DEFAULT_CONFIG.maxQuestionsPerKey;
+      const { data: toDelete } = await supabase
+        .from('question_cache')
+        .select('id')
+        .eq('cache_key', key)
+        .order('accessed_at', { ascending: true })
+        .limit(deleteCount);
+
+      if (toDelete && toDelete.length > 0) {
+        await supabase
+          .from('question_cache')
+          .delete()
+          .in('id', toDelete.map((d: { id: string }) => d.id));
+      }
+    }
+  } catch (error) {
+    console.error('Supabase cache write error:', error);
   }
 }
 
@@ -195,26 +442,47 @@ export async function cacheQuestion(
  */
 export async function getCacheStats(): Promise<{
   enabled: boolean;
+  redisEnabled: boolean;
+  supabaseEnabled: boolean;
   totalKeys?: number;
   error?: string;
 }> {
   const redis = getRedisClient();
+  const supabase = getSupabaseClient();
 
-  if (!redis) {
-    return { enabled: false };
+  let redisEnabled = false;
+  let supabaseEnabled = false;
+  let totalKeys = 0;
+
+  // Check Redis
+  if (redis) {
+    try {
+      await redis.ping();
+      redisEnabled = true;
+    } catch {
+      // Redis not available
+    }
   }
 
-  try {
-    // Get approximate key count (Upstash doesn't support DBSIZE directly)
-    // This is a simple check that the connection works
-    await redis.ping();
-    return { enabled: true };
-  } catch (error) {
-    return {
-      enabled: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+  // Check Supabase
+  if (supabase) {
+    try {
+      const { count } = await supabase
+        .from('question_cache')
+        .select('*', { count: 'exact', head: true });
+      supabaseEnabled = true;
+      totalKeys = count || 0;
+    } catch {
+      // Supabase not available or table doesn't exist
+    }
   }
+
+  return {
+    enabled: redisEnabled || supabaseEnabled,
+    redisEnabled,
+    supabaseEnabled,
+    totalKeys,
+  };
 }
 
 /**
@@ -226,15 +494,41 @@ export async function getCacheCount(
   difficulty: Difficulty
 ): Promise<number> {
   const redis = getRedisClient();
-  if (!redis) return 0;
+  const supabase = getSupabaseClient();
 
-  try {
-    const key = getCacheKey(topicId, subtopic, difficulty);
-    const cached = await redis.get<CachedQuestion[]>(key);
-    return cached?.length || 0;
-  } catch {
-    return 0;
+  // Try Redis first
+  if (redis) {
+    try {
+      const key = getCacheKey(topicId, subtopic, difficulty);
+      const cached = await redis.get<CachedQuestion[]>(key);
+      if (cached && cached.length > 0) {
+        return cached.length;
+      }
+    } catch {
+      // Fall through to Supabase
+    }
   }
+
+  // Try Supabase
+  if (supabase) {
+    try {
+      const key = getCacheKey(topicId, subtopic, difficulty);
+      const normalizedSubtopic = subtopic.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+
+      const { count } = await supabase
+        .from('question_cache')
+        .select('*', { count: 'exact', head: true })
+        .eq('cache_key', key)
+        .eq('subtopic', normalizedSubtopic)
+        .eq('difficulty', difficulty);
+
+      return count || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  return 0;
 }
 
 /**
@@ -246,18 +540,41 @@ export async function clearCache(
   difficulty?: Difficulty
 ): Promise<boolean> {
   const redis = getRedisClient();
-  if (!redis) return false;
+  const supabase = getSupabaseClient();
 
-  try {
-    if (topicId && subtopic && difficulty) {
+  let success = false;
+
+  // Clear from Redis
+  if (redis && topicId && subtopic && difficulty) {
+    try {
       const key = getCacheKey(topicId, subtopic, difficulty);
       await redis.del(key);
+      success = true;
+    } catch (error) {
+      console.error('Redis cache clear error:', error);
     }
-    return true;
-  } catch (error) {
-    console.error('Cache clear error:', error);
-    return false;
   }
+
+  // Clear from Supabase
+  if (supabase && topicId && subtopic && difficulty) {
+    try {
+      const key = getCacheKey(topicId, subtopic, difficulty);
+      const normalizedSubtopic = subtopic.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+
+      await supabase
+        .from('question_cache')
+        .delete()
+        .eq('cache_key', key)
+        .eq('subtopic', normalizedSubtopic)
+        .eq('difficulty', difficulty);
+
+      success = true;
+    } catch (error) {
+      console.error('Supabase cache clear error:', error);
+    }
+  }
+
+  return success;
 }
 
 /**

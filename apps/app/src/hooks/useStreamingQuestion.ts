@@ -8,6 +8,7 @@ interface StreamingState {
   streamedContent: string;
   question: Question | null;
   error: string | null;
+  upgradeNeeded: boolean;
 }
 
 // Throttle updates to align with browser refresh rate
@@ -67,6 +68,7 @@ export function useStreamingQuestion() {
     streamedContent: '',
     question: null,
     error: null,
+    upgradeNeeded: false,
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -99,6 +101,7 @@ export function useStreamingQuestion() {
       streamedContent: '',
       question: null,
       error: null,
+      upgradeNeeded: false,
     });
 
     try {
@@ -114,6 +117,16 @@ export function useStreamingQuestion() {
 
       if (!response.ok) {
         const data = await response.json();
+        // Check if this is an upgrade-related error
+        if (data.upgrade || response.status === 429) {
+          setState(prev => ({
+            ...prev,
+            isStreaming: false,
+            error: data.error || 'Daily limit reached',
+            upgradeNeeded: true,
+          }));
+          return null;
+        }
         throw new Error(data.error || 'Failed to generate question');
       }
 
@@ -126,6 +139,7 @@ export function useStreamingQuestion() {
           streamedContent: question.content,
           question,
           error: null,
+          upgradeNeeded: false,
         });
         return question;
       }
@@ -178,6 +192,7 @@ export function useStreamingQuestion() {
                   streamedContent: data.question.content,
                   question: data.question,
                   error: null,
+                  upgradeNeeded: false,
                 });
                 return data.question;
               }

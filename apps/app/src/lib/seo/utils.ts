@@ -8,6 +8,7 @@ import {
   getQualificationInfo,
   getExamBoardsBySubjectAndLevel,
 } from '@/lib/topics';
+import { getPracticals } from '@/lib/practicals';
 import type { ExamBoard, QualificationLevel, Subject, Topic } from '@/types';
 
 /**
@@ -526,4 +527,87 @@ export function getBoardlessBreadcrumbs(params: {
   }
 
   return crumbs;
+}
+
+/**
+ * Generate all static params for practical pages (SEO target for required practicals)
+ * /gcse/physics/aqa/practicals/aqa-gcse-physics-rp1
+ */
+export function getAllPracticalParams(): {
+  level: string;
+  subject: string;
+  examBoard: string;
+  practicalId: string;
+}[] {
+  const params: {
+    level: string;
+    subject: string;
+    examBoard: string;
+    practicalId: string;
+  }[] = [];
+
+  // Only science subjects have practicals
+  const practicalSubjects: Subject[] = ['physics', 'chemistry', 'biology'];
+
+  for (const qual of qualifications) {
+    for (const subj of practicalSubjects) {
+      for (const board of examBoards) {
+        const practicals = getPracticals(subj, board.id, qual.id);
+
+        for (const practical of practicals) {
+          params.push({
+            level: qual.id,
+            subject: subj,
+            examBoard: board.id,
+            practicalId: practical.id,
+          });
+        }
+      }
+    }
+  }
+
+  return params;
+}
+
+/**
+ * Get breadcrumbs for practical pages
+ */
+export function getPracticalBreadcrumbs(params: {
+  level: string;
+  subject: string;
+  examBoard: string;
+  practicalName: string;
+}): BreadcrumbItem[] {
+  const crumbs: BreadcrumbItem[] = [{ label: 'Home', href: '/' }];
+
+  const qual = getQualificationInfo(params.level as QualificationLevel);
+  crumbs.push({ label: qual?.name || params.level.toUpperCase(), href: `/${params.level}` });
+
+  const subj = getSubjectInfo(params.subject as Subject);
+  crumbs.push({ label: subj?.name || params.subject, href: `/${params.level}/${params.subject}` });
+
+  const board = getExamBoardInfo(params.examBoard as ExamBoard);
+  crumbs.push({ label: board?.name || params.examBoard.toUpperCase(), href: `/${params.level}/${params.subject}/${params.examBoard}` });
+
+  crumbs.push({ label: 'Required Practicals', href: `/${params.level}/${params.subject}/${params.examBoard}?tab=practicals` });
+
+  crumbs.push({ label: params.practicalName, href: '#', current: true });
+
+  return crumbs;
+}
+
+/**
+ * Get related practicals for internal linking on practical pages
+ */
+export function getRelatedPracticals(
+  subject: Subject,
+  examBoard: ExamBoard,
+  level: QualificationLevel,
+  currentPracticalId: string,
+  limit: number = 4
+) {
+  const allPracticals = getPracticals(subject, examBoard, level);
+  return allPracticals
+    .filter(p => p.id !== currentPracticalId)
+    .slice(0, limit);
 }
