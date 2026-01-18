@@ -1,0 +1,46 @@
+# Past Papers - AI-Generated Exam Practice
+
+> Past Papers is an AI-powered educational platform providing unlimited GCSE and A-Level practice questions with step-by-step solutions.
+
+## What We Offer
+
+- Unlimited AI-generated exam questions for GCSE and A-Level students
+- Questions matching AQA, Edexcel, and OCR exam board specifications
+- Step-by-step solutions with proper mark scheme notation (M1, A1, B1)
+- Coverage of 12+ subjects including Maths, Physics, Chemistry, Biology, English Literature
+- Progress tracking and topic mastery indicators
+
+## Key Features
+
+- **Infinite Practice**: Never run out of questions - AI generates fresh questions for every subtopic
+- **Exam-Accurate**: Questions match real exam style, difficulty, and mark allocation
+- **Full Solutions**: Every question includes detailed working and examiner-style mark schemes
+- **Required Practicals**: Complete coverage of practical assessment requirements
+
+## Subjects Covered
+
+### GCSE (Ages 14-16)
+- Mathematics, Physics, Chemistry, Biology
+- English Literature, History, Geography
+- Psychology, Economics, Computer Science
+
+### A-Level (Ages 16-18)
+- Mathematics, Further Maths, Physics, Chemistry, Biology
+- Economics, Psychology, English Literature
+
+## Exam Boards
+
+- AQA (Assessment and Qualifications Alliance)
+- Edexcel (Pearson)
+- OCR (Oxford, Cambridge and RSA)
+
+## Website Structure
+
+- `/gcse` - All GCSE subjects
+- `/a-level` - All A-Level subjects
+- `/gcse/{subject}/{examBoard}` - Subject-specific practice
+- `/pricing` - Subscription options
+
+## Contact
+
+Website: https://pastpapers.co
