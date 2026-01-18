@@ -72,26 +72,6 @@ const plans: Plan[] = [
     popular: true,
     color: 'blue',
   },
-  {
-    id: 'exam_pro',
-    name: 'Exam Pro',
-    tagline: 'Real Exam Mode',
-    description: 'Full exam preparation suite',
-    price: { monthly: 8.99, annual: 69.99 },
-    priceKey: { monthly: 'exam_pro_monthly', annual: 'exam_pro_annual' },
-    features: [
-      { text: 'Everything in Student Plus', included: true },
-      { text: 'Unlimited custom papers', included: true, highlight: true },
-      { text: 'Timed exam mode', included: true, highlight: true },
-      { text: 'Downloadable PDFs', included: true },
-      { text: 'Examiner commentary', included: true },
-      { text: 'Synoptic papers', included: true },
-      { text: 'Priority generation', included: true },
-    ],
-    cta: 'Start Free Trial',
-    popular: false,
-    color: 'purple',
-  },
 ];
 
 const examSeasonPass = {
@@ -240,7 +220,7 @@ function PricingContent() {
         </div>
 
         {/* Pricing cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
           {plans.map((plan) => {
             const price = plan.price[billingInterval];
             const priceKey = plan.priceKey[billingInterval];

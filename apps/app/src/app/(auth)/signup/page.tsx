@@ -193,7 +193,7 @@ export default function SignupPage() {
 
         {/* Skip for now */}
         <p className="text-center text-white/30 text-sm mt-6">
-          <Link href="/gcse" className="hover:text-white/50 transition-colors">
+          <Link href="/start" className="hover:text-white/50 transition-colors">
             Continue without an account
           </Link>
         </p>

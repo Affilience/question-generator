@@ -3,24 +3,18 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
-
-// Subject card data with accurate subtopic counts
-const subjects = [
-  { name: 'Mathematics', subtopics: '45+', icon: '∑', href: '/gcse/maths' },
-  { name: 'Physics', subtopics: '38+', icon: '⚛', href: '/gcse/physics' },
-  { name: 'Chemistry', subtopics: '42+', icon: '⚗', href: '/gcse/chemistry' },
-  { name: 'Biology', subtopics: '40+', icon: '🧬', href: '/gcse/biology' },
-  { name: 'Economics', subtopics: '28+', icon: '📈', href: '/a-level/economics' },
-  { name: 'Psychology', subtopics: '32+', icon: '🧠', href: '/gcse/psychology' },
-  { name: 'History', subtopics: '35+', icon: '📜', href: '/gcse/history' },
-  { name: 'English Lit', subtopics: '24+', icon: '📚', href: '/gcse/english-literature' },
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { TypingDemo } from '@/components/marketing/TypingDemo';
+import { AnimatedStats } from '@/components/marketing/AnimatedStats';
+import { HowItWorksSteps } from '@/components/marketing/HowItWorksSteps';
+import { AnimatedSubjectsGrid } from '@/components/marketing/AnimatedSubjectsGrid';
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const prefersReducedMotion = useReducedMotion();
+  const { user, loading: authLoading } = useAuth();
 
   // Parallax effect for hero (disabled if user prefers reduced motion)
   const heroY = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -80]);
@@ -132,12 +126,31 @@ export default function HomePage() {
           </div>
 
           {/* Desktop CTA */}
-          <Link
-            href="#choose-level"
-            className="hidden md:inline-flex bg-white text-[#0a0a0a] px-5 py-2 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
-          >
-            Get Started
-          </Link>
+          <div className="hidden md:flex items-center gap-3">
+            {!authLoading && (
+              user ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  Log in
+                </Link>
+              )
+            )}
+            <Link
+              href="/signup"
+              className="bg-white text-[#0a0a0a] px-5 py-2 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
+            >
+              Get Started
+            </Link>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -193,8 +206,28 @@ export default function HomePage() {
                       {link.label}
                     </Link>
                   ))}
+                  <div className="border-t border-white/10 my-3" />
+                  {!authLoading && (
+                    user ? (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                      >
+                        Dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                      >
+                        Log in
+                      </Link>
+                    )
+                  )}
                   <Link
-                    href="#choose-level"
+                    href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                     className="bg-white text-[#0a0a0a] px-6 py-3.5 rounded-full text-center font-medium mt-4"
                   >
@@ -269,7 +302,7 @@ export default function HomePage() {
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link
-                href="#choose-level"
+                href="/signup"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
               >
                 Start Practicing Free
@@ -335,143 +368,15 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={scaleIn}
-              className="max-w-2xl mx-auto"
-            >
-              {/* Question Card */}
-              <div className="bg-[#111] rounded-2xl border border-white/[0.06] overflow-hidden">
-                {/* Header */}
-                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-medium rounded">
-                      AQA
-                    </span>
-                    <span className="px-2.5 py-1 bg-violet-500/10 text-violet-400 text-xs font-medium rounded">
-                      GCSE Maths
-                    </span>
-                  </div>
-                  <span className="text-white/40 text-sm">Medium difficulty</span>
-                </div>
-
-                {/* Question Content */}
-                <div className="p-5 sm:p-6">
-                  <div className="text-white/40 text-sm mb-3">
-                    Algebra — Quadratic Equations
-                  </div>
-                  <div className="text-white text-lg leading-relaxed mb-5">
-                    Solve the quadratic equation by factorisation:
-                  </div>
-                  <div className="bg-white/[0.03] rounded-xl p-5 mb-5 text-center border border-white/[0.04]">
-                    <span className="text-white text-xl sm:text-2xl font-mono">
-                      x² + 5x + 6 = 0
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/40">Show your working clearly.</span>
-                    <span className="text-blue-400 font-medium">[3 marks]</span>
-                  </div>
-                </div>
-
-                {/* Solution Preview */}
-                <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-                  <div className="bg-gradient-to-r from-blue-500/5 to-violet-500/5 rounded-xl p-4 border border-white/[0.04]">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-white/80 text-sm font-medium">Step-by-step solution included</span>
-                      </div>
-                      <span className="text-white/40 text-sm">+ M1/A1 mark scheme</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Features below demo */}
-              <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-4">
-                {[
-                  { icon: '⚡', text: 'Instant generation' },
-                  { icon: '🎯', text: 'Exam-accurate' },
-                  { icon: '📝', text: 'Full solutions' },
-                ].map(item => (
-                  <div key={item.text} className="text-center py-4 px-2 rounded-xl bg-white/[0.02]">
-                    <div className="text-xl mb-1.5" aria-hidden="true">{item.icon}</div>
-                    <div className="text-white/60 text-xs sm:text-sm">{item.text}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            <TypingDemo />
           </div>
         </section>
 
-        {/* Level Selector */}
-        <section id="choose-level" className="py-20 md:py-28 bg-[#0a0a0a]" aria-labelledby="level-heading">
-          <div className="max-w-6xl mx-auto px-5 sm:px-6">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={fadeInUp}
-              className="text-center mb-12"
-            >
-              <h2 id="level-heading" className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
-                Choose your level
-              </h2>
-              <p className="text-white/50 text-lg">
-                Select your qualification to browse subjects
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl mx-auto"
-            >
-              {/* GCSE Card */}
-              <motion.div variants={scaleIn}>
-                <Link
-                  href="/gcse"
-                  className="block bg-[#111] border border-white/[0.06] hover:border-blue-500/30 rounded-2xl p-6 sm:p-8 relative overflow-hidden group transition-colors"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400" aria-hidden="true" />
-                  <div className="text-3xl sm:text-4xl font-bold text-white mb-2">GCSE</div>
-                  <div className="text-sm text-blue-400 font-medium mb-1">Years 10-11</div>
-                  <div className="text-sm text-white/40 mb-6">Ages 14-16</div>
-                  <div className="inline-flex items-center gap-2 text-sm text-blue-400 font-medium">
-                    Browse subjects
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              </motion.div>
-
-              {/* A-Level Card */}
-              <motion.div variants={scaleIn}>
-                <Link
-                  href="/a-level"
-                  className="block bg-[#111] border border-white/[0.06] hover:border-violet-500/30 rounded-2xl p-6 sm:p-8 relative overflow-hidden group transition-colors"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-violet-400" aria-hidden="true" />
-                  <div className="text-3xl sm:text-4xl font-bold text-white mb-2">A-Level</div>
-                  <div className="text-sm text-violet-400 font-medium mb-1">Years 12-13</div>
-                  <div className="text-sm text-white/40 mb-6">Ages 16-18</div>
-                  <div className="inline-flex items-center gap-2 text-sm text-violet-400 font-medium">
-                    Browse subjects
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              </motion.div>
-            </motion.div>
+        {/* Stats Section */}
+        <section className="py-16 md:py-20 bg-[#0a0a0a] border-y border-white/[0.06]" aria-labelledby="stats-heading">
+          <div className="max-w-4xl mx-auto px-5 sm:px-6">
+            <h2 id="stats-heading" className="sr-only">Platform Statistics</h2>
+            <AnimatedStats />
           </div>
         </section>
 
@@ -617,28 +522,7 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={staggerContainer}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
-            >
-              {subjects.map((subject) => (
-                <motion.div key={subject.name} variants={scaleIn}>
-                  <Link
-                    href={subject.href}
-                    className="block bg-neutral-50 hover:bg-neutral-100 rounded-xl p-5 sm:p-6 text-center transition-colors group"
-                  >
-                    <div className="text-3xl sm:text-4xl mb-3 group-hover:scale-110 transition-transform" aria-hidden="true">
-                      {subject.icon}
-                    </div>
-                    <h3 className="font-semibold text-neutral-900 text-sm sm:text-base mb-1">{subject.name}</h3>
-                    <p className="text-neutral-500 text-xs sm:text-sm">{subject.subtopics} subtopics</p>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
+            <AnimatedSubjectsGrid />
           </div>
         </section>
 
@@ -660,27 +544,7 @@ export default function HomePage() {
               </h2>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
-            >
-              {[
-                { num: '1', title: 'Pick a topic', desc: 'Choose your subject, exam board, and specific subtopic.' },
-                { num: '2', title: 'Generate questions', desc: 'Get instant, unique questions at your chosen difficulty.' },
-                { num: '3', title: 'Learn from solutions', desc: 'Review step-by-step working and mark schemes.' },
-              ].map((step) => (
-                <motion.div key={step.num} variants={fadeInUp} className="text-center">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-white text-xl font-semibold flex items-center justify-center mx-auto mb-5">
-                    {step.num}
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                  <p className="text-white/50">{step.desc}</p>
-                </motion.div>
-              ))}
-            </motion.div>
+            <HowItWorksSteps />
           </div>
         </section>
 
@@ -708,7 +572,7 @@ export default function HomePage() {
               </motion.p>
               <motion.div variants={fadeInUp}>
                 <Link
-                  href="/gcse"
+                  href="/signup"
                   className="inline-flex items-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
                 >
                   Start Practicing Free
@@ -757,6 +621,13 @@ export default function HomePage() {
                 <Link href="/gcse/maths/ocr" className="text-white/40 hover:text-white text-sm transition-colors">OCR</Link>
               </nav>
             </div>
+          </div>
+
+          {/* Legal Links */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm">
+            <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="text-white/40 hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="mailto:support@pastpapers.co" className="text-white/40 hover:text-white transition-colors">Contact</Link>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06] text-sm text-white/30">
             <div>&copy; 2026 Past Papers. All rights reserved.</div>
