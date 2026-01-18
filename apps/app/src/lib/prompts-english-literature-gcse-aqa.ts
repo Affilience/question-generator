@@ -1517,12 +1517,24 @@ IMPORTANT - EXTRACT RULES:
 - Model answer should demonstrate the target level's characteristics
 - Model answer MUST include specific, accurate quotations from the text
 
-Return valid JSON:
+Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme:
 {
   "content": "question text with extract context if applicable",
   "marks": number,
   "solution": "model answer at appropriate level with embedded quotations",
-  "markScheme": ["Level descriptors and indicative content points"]
+  "markScheme": [
+    "Level 6 (26-30 marks): Critical, exploratory, conceptualised response. Judicious use of precise references. Sophisticated analysis of writer's methods. Compelling exploration of context. Perceptive understanding of different interpretations.",
+    "Level 5 (21-25 marks): Thoughtful, developed response. Well-chosen references. Thoughtful analysis of writer's methods. Clear understanding of context. Thoughtful consideration of different interpretations.",
+    "Level 4 (16-20 marks): Clear, explained response. Effective references. Clear analysis of writer's methods. Understanding of context. Clear awareness of interpretations.",
+    "Level 3 (11-15 marks): Some understanding shown. References support range of points. Explained/commented analysis. Some awareness of context.",
+    "Level 2 (6-10 marks): Supported response. References support comments. Some awareness of methods. Some awareness of context.",
+    "Level 1 (1-5 marks): Simple, limited comments. Simple reference to details. Simple identification of method.",
+    "Indicative content (not exhaustive):",
+    "- Analysis of [specific theme/character] through key quotations",
+    "- Writer's use of [specific techniques: imagery, structure, language]",
+    "- Contextual significance of [historical/social factors]",
+    "- Alternative interpretations of [aspect of text]"
+  ]
 }`;
 }
 

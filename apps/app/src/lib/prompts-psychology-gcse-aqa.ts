@@ -1662,12 +1662,20 @@ ${topicGuidance}
 5. For application questions, include a realistic scenario
 6. For evaluation, expect GRAVES-style points
 
-Return valid JSON:
+Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme for extended response questions (9+ marks):
 {
   "content": "question text",
   "marks": number,
   "solution": "model answer",
-  "markScheme": ["point 1", "point 2", ...]
+  "markScheme": [
+    "Level 4 (10-12 marks): Knowledge is accurate and detailed. Evaluation is thorough and effective. Specialist terminology used appropriately. Answer is clear, coherent and focused.",
+    "Level 3 (7-9 marks): Knowledge is mostly accurate with some detail. Evaluation is mostly effective. Some specialist terminology. Mostly clear and organised.",
+    "Level 2 (4-6 marks): Some relevant knowledge. Evaluation is limited. Some terminology, not always appropriate. Lacks clarity in places.",
+    "Level 1 (1-3 marks): Limited knowledge with inaccuracies. Evaluation absent or ineffective. Little terminology. Answer lacks focus.",
+    "Indicative content:",
+    "- AO1 (Description): Key features of theory/study with accurate details",
+    "- AO3 (Evaluation): GRAVES points - Generalisability, Reliability, Application, Validity, Ethics, Supporting studies"
+  ]
 }`;
 }
 

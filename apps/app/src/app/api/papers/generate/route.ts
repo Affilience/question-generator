@@ -55,12 +55,15 @@ function getFineTunedModel(subject: Subject, level: QualificationLevel, board: E
 // Get max tokens based on subject type and question marks
 function getMaxTokens(subject: Subject, marks: number): number {
   if (isEssaySubject(subject)) {
-    if (marks <= 4) return 800;
-    if (marks <= 8) return 1200;
-    if (marks <= 12) return 2000;
-    return 3500;
+    if (marks <= 4) return 1500;
+    if (marks <= 8) return 2500;
+    if (marks <= 12) return 4000;
+    return 6000; // 16-25 mark essays need full level descriptors and indicative content
   }
-  return 800;
+  // Quantitative subjects
+  if (marks <= 4) return 1500;
+  if (marks <= 8) return 2000;
+  return 3000;
 }
 
 /**

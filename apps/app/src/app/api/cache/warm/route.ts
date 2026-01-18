@@ -138,7 +138,7 @@ async function warmCache(
         ],
         response_format: { type: 'json_object' },
         temperature: 0.8, // Higher for variety
-        max_tokens: 500, // Reduced for speed
+        max_tokens: 1500, // Adequate for GCSE Maths with solutions
       });
 
       const responseContent = completion.choices[0]?.message?.content;

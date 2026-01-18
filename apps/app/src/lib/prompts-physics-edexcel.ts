@@ -1114,15 +1114,22 @@ Requirements:
 - Correct physics terminology
 - For calculations: equation, substitution, answer WITH UNIT
 - Standard SI units
-- Mark scheme with M (method) and A (accuracy) marks
 - Use \\n for newlines
+
+## Mark Scheme Format (CRITICAL - MUST FOLLOW)
+- ALWAYS use M1/A1/B1 notation - never Level-based or plain bullet points for short questions
+- M1: Method mark (correct equation selected or approach)
+- A1: Accuracy mark (correct calculation/answer) - typically follows M1
+- B1: Independent mark (correct value stated without method)
+- Calculation questions MUST have: M1 (equation) + A1 (substitution) + A1 (answer with unit)
+- Multi-part: "(a) M1:", "(b) A1:" etc.
 
 Edexcel-specific:
 - Students have equation sheet access (state if equation needed is/isn't provided)
 - Units required for numerical answers
 - Topic 1 (Key Concepts) underpins all questions
 
-Return this exact JSON structure:
+Return this exact JSON structure (markScheme MUST use M1/A1/B1 format):
 {"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution with units","markScheme":["M1: Selects correct equation","A1: Correct substitution","A1: Correct answer with unit"]}`;
 }
 

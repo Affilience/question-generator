@@ -998,12 +998,20 @@ ${difficultyGuidance[difficulty]}
 3. Mark scheme must be detailed and aligned with AQA conventions
 4. For hard questions: Include multiple case studies, statistics, and balanced evaluation
 
-Return valid JSON:
+Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme for 9-mark essays:
 {
   "content": "question text",
   "marks": number,
   "solution": "model answer with specific details",
-  "markScheme": ["point 1", "point 2", ...]
+  "markScheme": [
+    "Level 3 (7-9 marks): Demonstrates detailed knowledge and understanding. Applies understanding to offer thorough, relevant explanations with clear links. Shows thorough geographical skills in interpreting/analysing data.",
+    "Level 2 (4-6 marks): Demonstrates clear knowledge and understanding. Applies understanding with relevant explanations. Shows clear geographical skills.",
+    "Level 1 (1-3 marks): Demonstrates basic knowledge and understanding. Limited application. Basic geographical skills shown.",
+    "Indicative content:",
+    "- [Case study 1]: specific details, statistics, location",
+    "- [Case study 2]: specific details, statistics, location",
+    "- Evaluation of impacts/effectiveness with evidence"
+  ]
 }`;
 }
 

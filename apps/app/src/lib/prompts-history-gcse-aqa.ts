@@ -2708,12 +2708,23 @@ ${difficultyGuidance[difficulty]}
 ${knowledgeContext}
 **Important**: Model answers MUST include specific historical details (dates, names, statistics, events).
 
-Return valid JSON:
+Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme for essays (8+ marks):
 {
   "content": "question text",
   "marks": number,
   "solution": "model answer with specific historical details",
-  "markScheme": ["point 1", "point 2", ...]
+  "markScheme": [
+    "Level 4 (13-16 marks): Complex explanation of stated factor AND other factors. Answer demonstrates detailed, accurate knowledge. Answer is well-organised and reaches a substantiated judgement.",
+    "Level 3 (9-12 marks): Developed explanation of stated factor AND other factors. Answer demonstrates accurate knowledge. Answer shows some organisation and attempts a judgement.",
+    "Level 2 (5-8 marks): Simple explanation of stated factor OR other factors. Some accurate knowledge demonstrated. Limited organisation.",
+    "Level 1 (1-4 marks): Basic explanation. Limited knowledge. Lacks organisation.",
+    "SPaG (4 marks): Spelling, punctuation, grammar and use of specialist terminology.",
+    "Indicative content:",
+    "- [Factor 1]: specific evidence and explanation",
+    "- [Factor 2]: specific evidence and explanation",
+    "- [Factor 3]: specific evidence and explanation",
+    "- Substantiated judgement weighing relative importance"
+  ]
 }`;
 }
 

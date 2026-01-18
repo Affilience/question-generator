@@ -40,14 +40,18 @@ function getFineTunedModel(subject: Subject, level: QualificationLevel, board: E
 function getMaxTokens(subject: Subject, difficulty: Difficulty): number {
   if (isEssaySubject(subject)) {
     switch (difficulty) {
-      case 'easy': return 1200;   // Short explanations
-      case 'medium': return 2000; // Extended responses
-      case 'hard': return 3500;   // Full essay answers with detailed mark schemes
+      case 'easy': return 2500;   // Short explanations with level descriptors
+      case 'medium': return 4000; // Extended responses with full mark schemes
+      case 'hard': return 6000;   // Full essay answers with detailed level descriptors and indicative content
     }
   }
 
-  // Quantitative subjects need less tokens
-  return 800;
+  // Quantitative subjects (maths, physics, chemistry, etc.)
+  switch (difficulty) {
+    case 'easy': return 1500;
+    case 'medium': return 2000;
+    case 'hard': return 3000;   // Complex multi-part questions need more space
+  }
 }
 
 // Get mark range - uses essay config if available, otherwise defaults

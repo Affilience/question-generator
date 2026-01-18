@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       ],
       response_format: { type: 'json_object' },
       temperature: 0.75,
-      max_tokens: 800,
+      max_tokens: 2000, // Adequate for GCSE Maths with detailed solutions
       stream: true,
     });
 

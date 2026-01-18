@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       ],
       response_format: { type: 'json_object' },
       temperature: 0.7,
-      max_tokens: 2500, // More tokens for detailed A-Level examples
+      max_tokens: 4000, // Adequate for detailed A-Level worked examples
     });
 
     const responseContent = completion.choices[0]?.message?.content;

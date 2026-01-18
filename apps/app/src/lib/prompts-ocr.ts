@@ -761,23 +761,23 @@ Marks: ${markRange.min}-${markRange.max}
 - Multi-part: "(a)... [2]  (b)... [3]"
 - Can include tick box format with reasoning component
 
-## Mark Types
-- M: Method (correct process, even with arithmetic errors)
-- A: Accuracy (correct answer after method)
-- B: Independent (correct value without method)
-- E: Explanation (mathematical reasoning)
+## Mark Scheme Format (CRITICAL - MUST FOLLOW)
+- ALWAYS use M1/A1/B1/E1 notation - never plain text bullet points
+- M1: Method mark (correct process, even with arithmetic errors)
+- A1: Accuracy mark (correct answer following method) - MUST have M1 before A1
+- B1: Independent mark (correct value without needing method shown)
+- E1: Explanation mark (mathematical reasoning stated)
 
-## Abbreviations to use
-- oe: or equivalent
-- ft: follow through
-- dep: dependent on previous mark
-- cao: correct answer only
-- isw: ignore subsequent working
+## Mark Scheme Rules
+- Calculation questions MUST have at least M1 (method) + A1 (accuracy)
+- Multi-part questions: prefix with "(a) M1:", "(b) A1:" etc.
+- Include "oe" (or equivalent), "ft" (follow through) where appropriate
+- Match number of marks to mark scheme entries
 
 ${topicGuidance ? topicGuidance.slice(0, 400) : ''}
 
-Return this exact JSON structure:
-{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First method mark","A1: Accuracy mark"]}`;
+Return this exact JSON structure (markScheme MUST use M1/A1/B1/E1 format):
+{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: Correct method shown","A1: Correct final answer"]}`;
 }
 
 /**

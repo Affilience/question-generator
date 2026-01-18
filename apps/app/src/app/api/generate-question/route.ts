@@ -546,7 +546,7 @@ export async function POST(request: NextRequest) {
         ],
         response_format: { type: 'json_object' },
         temperature: 0.5,
-        max_tokens: 600,
+        max_tokens: 3000, // Practicals need detailed method descriptions and mark schemes
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -1439,7 +1439,7 @@ export async function POST(request: NextRequest) {
       ],
       response_format: { type: 'json_object' },
       temperature: 0.5,
-      max_tokens: 1000,
+      max_tokens: 6000,
     });
 
     const responseContent = completion.choices[0]?.message?.content;
