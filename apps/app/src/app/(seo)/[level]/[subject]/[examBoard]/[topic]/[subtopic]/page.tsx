@@ -8,7 +8,7 @@ import {
   getBreadcrumbs,
   generateSEOTitle,
   generateSEODescription,
-  getAllSubtopicParams,
+  getIndexedSubtopicParams,
   slugify,
   unslugify,
   getRelatedTopics,
@@ -36,9 +36,10 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  // Return all subtopic params for SSG
-  // Pages are generated but noindex by default unless in allowlist
-  return getAllSubtopicParams();
+  // Only pre-generate indexed subtopic pages (with SEO value)
+  // Non-indexed pages will be generated on-demand via ISR
+  // This reduces build time from 6+ minutes to under 1 minute
+  return getIndexedSubtopicParams();
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -93,7 +94,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export const dynamic = 'force-static';
+// Allow dynamic generation for non-indexed pages (ISR)
+export const dynamicParams = true;
 export const revalidate = 86400; // Revalidate daily
 
 export default async function SubtopicPage({ params }: PageProps) {

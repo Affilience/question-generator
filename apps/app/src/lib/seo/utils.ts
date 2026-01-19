@@ -163,6 +163,46 @@ export function getAllSubtopicParams(): {
 }
 
 /**
+ * Get only INDEXED subtopic params for static generation
+ * This dramatically reduces build time by only pre-rendering pages with SEO value
+ * Non-indexed pages will be generated on-demand (ISR)
+ */
+export function getIndexedSubtopicParams(): {
+  level: string;
+  subject: string;
+  examBoard: string;
+  topic: string;
+  subtopic: string;
+}[] {
+  // Import here to avoid circular dependency
+  const { INDEXED_BOARDLESS_SUBTOPICS } = require('./indexed-pages');
+
+  const params: {
+    level: string;
+    subject: string;
+    examBoard: string;
+    topic: string;
+    subtopic: string;
+  }[] = [];
+
+  // For each indexed subtopic, generate params for all exam boards
+  // (the page will handle redirects for non-indexed board variants)
+  for (const indexed of INDEXED_BOARDLESS_SUBTOPICS) {
+    for (const board of examBoards) {
+      params.push({
+        level: indexed.level,
+        subject: indexed.subject,
+        examBoard: board.id,
+        topic: indexed.topic,
+        subtopic: indexed.subtopic,
+      });
+    }
+  }
+
+  return params;
+}
+
+/**
  * Get breadcrumb items for any SEO page
  */
 export interface BreadcrumbItem {
