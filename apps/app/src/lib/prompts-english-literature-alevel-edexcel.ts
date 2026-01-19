@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // EDEXCEL A-LEVEL ENGLISH LITERATURE SPECIFICATION DETAILS (9ET0)
 // ============================================================================
 
+const EDEXCEL_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Analysis, interpretation | Explore how a poet presents a theme in a single unseen poem |
+| **Medium** | Synthesis, critical engagement | Construct sustained argument with critical interpretation for a single text |
+| **Hard** | Evaluation, comparative synthesis | Compare texts across periods with sophisticated critical engagement |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires comparison across different literary periods (AO4)
+- Must evaluate competing critical interpretations (AO5)
+- Demands sophisticated contextual understanding across periods (AO3)
+- Requires sustained, perceptive argument throughout
+- No single "correct" interpretation - student must construct and defend their own reading
+
+**Easy (20 marks):** Unseen poetry - analyse methods and meanings in a single poem
+**Medium (35 marks):** Single text essay - sustained argument with critical engagement
+**Hard (40 marks):** Comparative essay - compare texts across periods with sophisticated critical debate
+`;
+
 const EDEXCEL_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES = `
 ## Edexcel A-Level English Literature Assessment Objectives
 
@@ -264,6 +285,8 @@ ${textKnowledge}
 
   return `You are an expert Edexcel A-Level English Literature examiner creating exam-style questions.
 
+${EDEXCEL_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_ALEVEL_ENG_LIT_MARK_SCHEME}
@@ -327,7 +350,7 @@ export function getEdexcelALevelEnglishLiteratureQuestionPrompt(topic: Topic, di
 - Some discussion of effects
 - Some appropriate terminology
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 35-mark essay question requiring Level 4-5 response.
 
@@ -351,7 +374,7 @@ For Poetry:
 Include critical quotations for debate:
 - "'[Academic/critical statement about the text].' How far do you agree..."
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 40-mark comparative question requiring Level 5 response.
 
@@ -374,7 +397,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include sophisticated critical framing for comparison.
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel A-Level English Literature question.

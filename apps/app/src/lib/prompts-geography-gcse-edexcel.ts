@@ -37,6 +37,21 @@ const EDEXCEL_GCSE_GEOG_ASSESSMENT_OBJECTIVES = `
 - **Suggest**: Apply your knowledge to propose a reason (AO2/AO3)
 - **Assess**: Use evidence to determine relative importance; weigh up and conclude (AO3)
 - **Evaluate**: Review information; bring together arguments; reach a conclusion (AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, description | Name features, state facts, describe patterns from maps/data |
+| **Medium** | Explanation, application, interpretation | Explain causes/effects, interpret data, apply concepts to case studies |
+| **Hard** | Evaluation, synthesis, judgement | Assess management strategies, weigh competing factors, reach substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of effectiveness (of strategies, responses, management approaches)
+- Must consider multiple perspectives (economic, social, environmental)
+- Demands integration of case study knowledge with conceptual understanding
+- Requires sustained argument reaching a justified conclusion
+- Must weigh up advantages and disadvantages before making judgement
 `;
 
 // ============================================================================
@@ -1056,7 +1071,7 @@ export function getEdexcelGCSEGeographyQuestionPrompt(topic: Topic, difficulty: 
 - "Name [type/example]" [1 mark]
 - "Describe [pattern/distribution]" [2-3 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring explanation or application (AO2/AO3).
 
@@ -1068,7 +1083,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include specific facts, statistics, or case study references in the model answer.
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an 8-mark extended writing question requiring evaluation (AO3).
 
@@ -1087,7 +1102,7 @@ The model answer MUST include:
 - Multiple perspectives (successes AND limitations)
 - Clear evaluation with supported conclusion
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel GCSE Geography A question.

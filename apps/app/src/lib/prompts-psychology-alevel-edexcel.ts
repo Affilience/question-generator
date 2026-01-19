@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // EDEXCEL A-LEVEL PSYCHOLOGY SPECIFICATION DETAILS (9PS0)
 // ============================================================================
 
+const EDEXCEL_ALEVEL_PSYCH_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, description, identification | Define, describe, identify features; straightforward knowledge retrieval |
+| **Medium** | Application, explanation, basic evaluation | Explain in context; compare approaches; assess with some development |
+| **Hard** | Synthesis, critical evaluation, judgement | Discuss debates; evaluate comprehensively; construct balanced arguments with judgement |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires sustained argument balancing AO1 and AO3 throughout
+- Demands evaluation of Issues and Debates (e.g., nature vs nurture, reductionism vs holism)
+- Must weigh competing explanations/theories and reach justified conclusions
+- Requires critical analysis of methodological issues and research evidence
+- No single "correct" position - student must construct and defend their own argument
+
+**Easy (2-6 marks):** Knowledge recall - define, describe, identify with development
+**Medium (8-12 marks):** Application and evaluation - explain, compare, or assess with developing evaluation
+**Hard (16-20 marks):** Critical discussion - sustained argument with thorough AO3 and clear judgement
+`;
+
 const EDEXCEL_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES = `
 ## Edexcel A-Level Psychology Assessment Objectives
 
@@ -2094,6 +2115,8 @@ export function getEdexcelALevelPsychologySystemPrompt(topic: Topic, difficulty:
 
   return `You are an expert Edexcel A-Level Psychology examiner creating exam-style questions.
 
+${EDEXCEL_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_ALEVEL_PSYCH_QUESTION_TEMPLATES}
@@ -2169,7 +2192,7 @@ export function getEdexcelALevelPsychologyQuestionPrompt(topic: Topic, difficult
 
 ${topicGuidance.easy}
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring assessment, evaluation, or application (AO2/AO3).
 
@@ -2197,7 +2220,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 ${topicGuidance.medium}
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 16-20 mark extended response question requiring integration of issues and debates.
 
@@ -2232,7 +2255,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 ${topicGuidance.hard}
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel A-Level Psychology question.

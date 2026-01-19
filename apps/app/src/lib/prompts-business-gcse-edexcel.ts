@@ -44,6 +44,21 @@ const EDEXCEL_GCSE_BUS_ASSESSMENT_OBJECTIVES = `
 - **Evaluate**: Review and respond to information; weigh up to reach conclusions (AO3b)
 - **Discuss**: Consider different perspectives before reaching a conclusion (AO3b)
 
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, basic comprehension | Single concept, direct knowledge retrieval, no context needed, straightforward definitions |
+| **Medium** | Application, analysis, interpretation | Apply knowledge to business scenario, explain cause/effect relationships, interpret data, link concepts |
+| **Hard** | Evaluation, synthesis, sustained judgement | Weigh competing factors, make justified recommendations, analyse complex scenarios, construct balanced arguments with conclusion |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires weighing multiple factors against each other
+- No single "correct" answer - student must justify their position
+- Demands integration of knowledge from multiple topic areas
+- Requires awareness of context and stakeholder perspectives
+- Must reach and justify a conclusion or recommendation
+
 ### Assessment Overview
 - Both papers are externally examined
 - Each paper is 50% of the qualification
@@ -2607,7 +2622,7 @@ export function getEdexcelGCSEBusinessQuestionPrompt(topic: Topic, difficulty: D
 - For explains: develop using Point → Explanation → Impact chain
 - For calculations: show all working clearly with formula
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an ANALYSIS question requiring chains of reasoning (AO2/AO3a).
 
@@ -2633,7 +2648,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Specific context (what they do, size, situation)
 - Clear issue/decision to analyse
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an EVALUATION question requiring balanced judgement (AO3b).
 
@@ -2669,7 +2684,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - For 9-mark justify: two clear options to compare
 - Relevant context (market, competition, current situation)
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel GCSE Business question.
@@ -2844,14 +2859,17 @@ To ensure diverse questions, apply these parameters:
 IMPORTANT: Create a realistic, believable UK business scenario. Use realistic British business names and contexts that a GCSE student would find engaging and relatable.`;
 }
 
-// Helper function for mark ranges
+/**
+ * Business GCSE mark ranges based on Edexcel specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 4 };
+      return { min: 1, max: 4 };   // Define, state, identify, outline, simple explain
     case 'medium':
-      return { min: 6, max: 6 };
+      return { min: 5, max: 6 };   // Analyse, application questions
     case 'hard':
-      return { min: 9, max: 12 };
+      return { min: 9, max: 12 };  // Evaluate, extended response (justify/recommend)
   }
 }

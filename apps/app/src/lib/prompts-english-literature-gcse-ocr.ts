@@ -469,7 +469,7 @@ export function getOCRGCSEEnglishLiteratureQuestionPrompt(topic: Topic, difficul
 - Band 4 (21-27): Competent, clear response; secure understanding; appropriate references
 - Band 3 (14-20): Some personal response; some understanding; some relevant references
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 40-mark essay question with extract.
 
@@ -491,7 +491,7 @@ Include these OCR-specific phrases:
 - "...in the play/novel as a whole"
 - "Remember to include in your answer relevant comment on [author]'s methods"
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 40-45 mark question (40 marks + 5 AO4 for Shakespeare) requiring Band 5-6 response.
 
@@ -513,7 +513,7 @@ Include: "Remember to include in your answer relevant comment on [author]'s meth
 - Sophisticated understanding of contextual factors
 - Effective and consistently controlled vocabulary and sentences
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const textKnowledgePrompt = textKnowledge

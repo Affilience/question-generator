@@ -10,6 +10,27 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 // AQA A-LEVEL ENGLISH LITERATURE A SPECIFICATION DETAILS (7712)
 // ============================================================================
 
+const AQA_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Analysis, basic interpretation | Focused passage analysis, single-text understanding |
+| **Medium** | Synthesis, critical engagement | Construct conceptualised essay with critical interpretation and contextual links |
+| **Hard** | Evaluation, comparative synthesis, interpretive debate | Complex comparative analysis requiring AO5 debate on competing interpretations |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluating competing CRITICAL INTERPRETATIONS (named critics) and taking a position
+- Must synthesise understanding across multiple texts and contexts (AO4)
+- Demands perceptive, sophisticated analysis of form, structure and language (AO2)
+- Requires perceptive understanding of contexts in shaping meanings (AO3)
+- No single "correct" reading - student must engage productively with interpretive debate
+
+**Easy (15-20 marks):** Focused analysis - explore a specific aspect with clear argument
+**Medium (25 marks):** Conceptualised essay - sustained argument with critical engagement (Band 5)
+**Hard (25-30 marks):** Complex comparative - sophisticated critical debate, evaluating interpretations (Band 6)
+`;
+
 const AQA_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level English Literature A Assessment Objectives
 
@@ -475,6 +496,8 @@ ${textKnowledge}
 
   return `You are an expert AQA A-Level English Literature A examiner creating exam-style questions.
 
+${AQA_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_ENG_LIT_MARK_SCHEME}
@@ -539,7 +562,7 @@ export function getAQAALevelEnglishLiteratureQuestionPrompt(topic: Topic, diffic
 - Band 4 (14-17): Clear arguments; appropriate textual support; clear analysis of methods
 - Band 3 (10-13): Some arguments; some textual support; some analysis
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 25-mark essay question requiring conceptualised response.
 
@@ -568,7 +591,7 @@ Include these AQA-specific phrases:
 - "In the light of this statement..."
 - "You must relate your discussion to relevant contextual factors"
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 25-mark question requiring Band 6 response with sophisticated critical engagement.
 
@@ -593,7 +616,7 @@ Include sophisticated critical framing:
 - "'[Academic/critical quotation].' Examine/Discuss this view..."
 - Reference to specific critical approaches where appropriate
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const textKnowledgePrompt = textKnowledge
@@ -641,12 +664,17 @@ Return valid JSON:
 }
 
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  // AQA A-Level English Literature mark allocations
+  // Easy: Focused analysis questions (15 marks)
+  // Medium: Standard essay questions (25 marks)
+  // Hard: Complex comparative/synoptic essays (25 marks, but with Band 6 expectations)
+  // Note: Most AQA English Lit questions are 25 marks - difficulty is differentiated by cognitive demand
   switch (difficulty) {
     case 'easy':
-      return { min: 15, max: 15 };
+      return { min: 15, max: 20 }; // Focused analysis, passage-based
     case 'medium':
-      return { min: 25, max: 25 };
+      return { min: 25, max: 25 }; // Standard essay
     case 'hard':
-      return { min: 25, max: 25 };
+      return { min: 25, max: 30 }; // Complex comparative with sophisticated critical engagement
   }
 }

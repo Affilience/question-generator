@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // OCR A-LEVEL GEOGRAPHY SPECIFICATION DETAILS (H481)
 // ============================================================================
 
+const OCR_ALEVEL_GEOG_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, explanation, basic application | Explain processes (e.g., water/carbon cycle flows, coastal processes), outline characteristics, describe patterns with supporting data |
+| **Medium** | Analysis, application, evaluation | Examine relationships between factors, assess significance of processes, apply concepts to case studies, make connections across topics |
+| **Hard** | Synthesis, critical evaluation, synoptic thinking | Evaluate major geographical debates, synthesise evidence across the specification, construct arguments addressing uncertainty and multiple futures |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires explicit synoptic links across all specification areas
+- Demands critical engagement with geographical concepts (systems, feedback, thresholds, risk)
+- Must evaluate different players' attitudes and actions on contested issues
+- Requires consideration of futures and uncertainties in geographical systems
+- No single correct answer - demands weighing evidence and reaching substantiated judgements
+
+**Easy (4-6 marks):** Demonstrate knowledge of specific geographical processes or concepts. Questions test recall and understanding with requirement for specific examples.
+**Medium (12-16 marks):** Apply knowledge to examine issues, assess significance, or compare approaches. Requires analysis and evaluation with case study support.
+**Hard (33 marks):** Synoptic essays requiring comprehensive knowledge, explicit connections across the specification, and sophisticated evaluation of geographical debates.
+`;
+
 const OCR_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level Geography Assessment Objectives
 
@@ -1706,6 +1727,8 @@ export function getOCRALevelGeographySystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert OCR A-Level Geography examiner creating exam-style questions.
 
+${OCR_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_GEOG_QUESTION_TEMPLATES}
@@ -1771,7 +1794,7 @@ export function getOCRALevelGeographyQuestionPrompt(topic: Topic, difficulty: Di
 - Point identified [1 mark]
 - Development/example/elaboration [1 mark]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an extended response requiring analysis and evaluation (AO1/AO2).
 
@@ -1793,7 +1816,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Level 2 (5-9): Some knowledge; limited analysis; basic evaluation
 - Level 1 (1-4): Limited knowledge; minimal analysis; no real evaluation
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 33-mark synoptic essay for Geographical Debates (AO1 + AO2).
 
@@ -1820,7 +1843,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 ${OCR_SYNOPTIC_ESSAY_GUIDANCE}
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level Geography question.

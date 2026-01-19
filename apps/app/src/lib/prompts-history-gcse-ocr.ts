@@ -41,6 +41,21 @@ const OCR_GCSE_HIST_ASSESSMENT_OBJECTIVES = `
 - **How far**: Reach a judgement about extent
 - **How useful**: Evaluate sources
 - **How convincing**: Evaluate interpretations
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, description | Describe features, state facts, identify characteristics from memory |
+| **Medium** | Explanation, source analysis, interpretation | Explain causes/consequences, analyse source utility, interpret evidence |
+| **Hard** | Evaluation, synthesis, sustained judgement | Assess interpretations, evaluate extent/significance, construct sustained arguments with conclusion |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of multiple factors and their relative importance
+- Must critically assess sources or interpretations (not just describe them)
+- Demands synthesis of knowledge across different aspects of a period/topic
+- Requires reaching and sustaining a judgement throughout the response
+- Must consider counter-arguments and weigh evidence before concluding
 `;
 
 const OCR_GCSE_HIST_QUESTION_TEMPLATES = `
@@ -991,9 +1006,9 @@ The question should be worth ${markRange.min}-${markRange.max} marks.
 3. **Clear Mark Allocation**: State marks in square brackets
 4. **Historical Accuracy**: Use specific dates, names, statistics from the topic knowledge provided
 5. **Appropriate Difficulty**:
-   - Easy: Describe/knowledge questions (4-5 marks)
-   - Medium: Explain or source questions (10 marks)
-   - Hard: Extended response (18 marks)
+   - Easy: Describe/knowledge questions - recall and identification (4-5 marks)
+   - Medium: Explain or source questions - analysis and interpretation (10 marks)
+   - Hard: Extended response requiring sustained evaluation, analytical judgement, and comprehensive knowledge (18 marks)
 
 ## Response Format
 Return JSON with:
@@ -1017,7 +1032,7 @@ export function getOCRGCSEHistoryQuestionPrompt(topic: Topic, difficulty: Diffic
 - "Describe two features of..." [4 marks]
 - "What can you learn from this source about...?" [5 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an explain or source-based question (AO2/AO3).
 
@@ -1026,7 +1041,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - "How useful is this source for understanding...?" [10 marks]
 - "How convincing is this interpretation about...?" [10 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an 18-mark extended response (AO1/AO2).
 
@@ -1042,7 +1057,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Level 2 (4-6): Basic; some knowledge
 - Level 1 (1-3): Limited; minimal knowledge
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   // Include relevant topic knowledge section if available
@@ -1074,14 +1089,18 @@ Return valid JSON:
 }`;
 }
 
+/**
+ * History GCSE mark ranges based on OCR B specification question types.
+ * Ranges provide flexibility while matching typical exam question formats.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 4, max: 5 };
+      return { min: 4, max: 5 };   // Describe features, what can you learn - basic knowledge
     case 'medium':
-      return { min: 10, max: 10 };
+      return { min: 8, max: 10 };  // Explain, source analysis, interpretation questions
     case 'hard':
-      return { min: 18, max: 18 };
+      return { min: 16, max: 18 }; // Extended response requiring sustained analysis, evaluation, and judgement
   }
 }
 

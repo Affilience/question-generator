@@ -14,6 +14,27 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 // AQA A-LEVEL GEOGRAPHY SPECIFICATION DETAILS (7037)
 // ============================================================================
 
+const AQA_ALEVEL_GEOG_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, explanation, basic application | Explain processes, outline features, describe patterns |
+| **Medium** | Analysis, interpretation, evaluation | Analyse data/maps, apply theory to case studies, evaluate factors |
+| **Hard** | Synthesis, judgement, synoptic thinking | Evaluate competing theories, assess extent of claims, construct balanced arguments |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires synoptic thinking across multiple topic areas
+- Demands evaluation of competing geographical theories (Massey, Harvey, Wallerstein)
+- Must use multiple case studies to support a balanced argument
+- Requires explicit judgement with "to what extent" conclusions
+- No single "correct" answer - student must construct and defend a geographical argument
+
+**Easy (4-6 marks):** Explanation - describe/explain processes with supporting detail
+**Medium (9 marks):** Application/analysis - apply theory to case study with some evaluation
+**Hard (20 marks):** Extended response - evaluate with synoptic links, balanced argument, substantiated conclusion
+`;
+
 const AQA_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level Geography Assessment Objectives
 
@@ -2648,6 +2669,8 @@ export function getAQAALevelGeographySystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert AQA A-Level Geography examiner creating exam-style questions.
 
+${AQA_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_GEOG_THEORIES}
@@ -2707,7 +2730,7 @@ The model answer should include:
 - Development with specific examples
 - Relevant statistics where appropriate
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an application question requiring analysis (AO1/AO2).
 
@@ -2724,7 +2747,7 @@ The model answer MUST include:
 
 Include specific place/case study detail where appropriate.
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 20-mark extended response requiring evaluation (AO1 + AO2).
 
@@ -2754,7 +2777,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Well-structured paragraphs with logical progression
 - Strong conclusion directly addressing "to what extent" or similar
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const enhancedMarkSchemeGuidance = getEnhancedEssayMarkSchemePrompt('geography', difficulty);

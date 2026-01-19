@@ -196,6 +196,189 @@ export function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number
   }
 }
 
+// ============================================================================
+// MARK SCHEME GUIDANCE - SHARED ACROSS ALL SUBJECTS
+// ============================================================================
+
+/**
+ * Comprehensive mark scheme conventions used across exam boards.
+ */
+export const MARK_SCHEME_CONVENTIONS = `
+## Mark Scheme Conventions
+
+### Mark Types (Sciences & Maths)
+| Mark | Name | Description | Example |
+|------|------|-------------|---------|
+| **M** | Method | Correct approach/strategy, awarded even with arithmetic errors | M1: Uses v² = u² + 2as |
+| **A** | Accuracy | Correct answer/execution, usually depends on earning M mark | A1: Correct substitution and calculation |
+| **B** | Independent | Standalone mark, not dependent on method | B1: States correct unit (m/s) |
+| **C** | Communication | Quality of written explanation (extended responses) | C1: Logical argument with correct terminology |
+
+### Mark Scheme Symbols
+| Symbol | Meaning | Usage |
+|--------|---------|-------|
+| **oe** | "or equivalent" | Accept mathematically equivalent forms (e.g., 0.5 oe accepts ½) |
+| **owtte** | "or words to that effect" | Accept answers conveying the same meaning |
+| **cao** | "correct answer only" | No alternatives accepted, must be exact |
+| **ft** | "follow through" | Award mark for correct method using incorrect earlier value |
+| **ecf** | "error carried forward" | Same as ft - accept consistent errors from earlier parts |
+| **isw** | "ignore subsequent working" | Mark correct answer even if student continues incorrectly |
+| **awrt** | "answers which round to" | Accept values that round to the given answer |
+| **dep** | "dependent" | Mark depends on earning a previous mark |
+
+### Level of Response (Extended Writing)
+For 6+ mark questions requiring extended writing:
+- **Level 3 (5-6 marks):** Comprehensive, accurate, well-organised with correct terminology
+- **Level 2 (3-4 marks):** Reasonable explanation, mostly accurate, some structure
+- **Level 1 (1-2 marks):** Basic points, limited accuracy, minimal structure
+- **0 marks:** No relevant content
+`;
+
+/**
+ * Guidance for handling alternative acceptable answers in mark schemes.
+ */
+export const ALTERNATIVE_ANSWERS_GUIDANCE = `
+## Alternative Acceptable Answers
+
+### Principles
+1. **Mathematical equivalence:** Accept any mathematically equivalent form
+   - Fractions/decimals/percentages: 0.25 = ¼ = 25%
+   - Surds: √8 = 2√2
+   - Factored forms: x² - 4 = (x+2)(x-2)
+
+2. **Scientific notation:** Accept equivalent representations
+   - 0.00045 = 4.5 × 10⁻⁴
+   - 2,500,000 = 2.5 × 10⁶
+
+3. **Units:** Accept equivalent units with correct conversion
+   - 1500m = 1.5km (if conversion shown or implied)
+   - 2 hours 30 minutes = 2.5 hours = 150 minutes
+
+4. **Rounding:** Specify acceptable precision
+   - "awrt 3.46" accepts 3.456, 3.4567, etc.
+   - State if exact answer required: "Must be 7/3 not 2.33..."
+
+### Mark Scheme Format for Alternatives
+\`\`\`
+A1: 45 or 9/20 or 0.45 (accept equivalent fractions/decimals)
+B1: Increases (accept: goes up, rises, gets larger, gets bigger)
+M1: Uses Pythagoras / uses a² + b² = c² (accept any correct rearrangement)
+\`\`\`
+
+### Common Alternative Phrasings (Sciences)
+- "Particles move faster" = "particles have more kinetic energy" = "particles vibrate more"
+- "More collisions" = "higher collision frequency" = "particles collide more often"
+- "Reaction speeds up" = "rate increases" = "reaction is faster"
+`;
+
+/**
+ * Guidance for negative marking and contradiction handling.
+ */
+export const NEGATIVE_MARKING_GUIDANCE = `
+## Negative Marking and Contradictions
+
+### When to Apply Negative Marking
+1. **Direct contradiction:** Student gives correct answer then contradicts it
+   - "The pH is 7, so it's acidic" → 0 marks (7 is neutral, not acidic)
+
+2. **Multiple answers given:** Student lists several answers hoping one is correct
+   - If question asks for ONE answer and student gives multiple, mark FIRST answer only
+   - Exception: If ALL answers are correct, award the mark
+
+3. **Correct working, wrong conclusion:**
+   - Award method marks but withhold final accuracy mark
+   - "x = 4... therefore x = 5" → M marks awarded, A0
+
+### When NOT to Apply Negative Marking
+1. **Irrelevant additional information:** Ignore if doesn't contradict
+   - "The force is 20N. Forces are measured in Newtons." → Still award mark
+
+2. **Crossed out work:** Do not mark crossed-out work unless no other answer given
+
+3. **Working in margins:** Mark all relevant working wherever written
+
+### Mark Scheme Format
+\`\`\`
+B1: States temperature increases
+    Do NOT award if student also states temperature decreases
+    Ignore references to other variables
+
+A1: 42 cao
+    If multiple values given, mark first value only
+    Do not award if correct answer subsequently changed
+\`\`\`
+`;
+
+/**
+ * Guidance for questions with multiple valid solution methods.
+ */
+export const MULTI_METHOD_GUIDANCE = `
+## Multiple Valid Methods
+
+### Principle
+Award full marks for ANY valid mathematical/scientific method that reaches the correct answer, even if different from the "expected" approach.
+
+### Examples
+
+**Simultaneous Equations** - All methods earn equal credit:
+- Substitution method: M1 M1 A1
+- Elimination method: M1 M1 A1
+- Graphical method (if exact): M1 M1 A1
+- Matrix method: M1 M1 A1
+
+**Quadratic Solutions** - All methods earn equal credit:
+- Factorisation: M1 A1
+- Quadratic formula: M1 A1
+- Completing the square: M1 A1
+- Graphical (if exact values obtainable): M1 A1
+
+**Trigonometry** - Accept:
+- Sine rule OR cosine rule (if both applicable)
+- Right-angle trig OR general trig
+- Area = ½ab sin C OR Area = ½ × base × height
+
+### Mark Scheme Format
+\`\`\`
+M1: Valid method to find x
+    - Substitution into equation 1 or 2 OR
+    - Multiply equations to eliminate x or y OR
+    - Rearrange to form quadratic OR
+    - Any other valid algebraic approach
+
+A1: x = 3 (from correct method)
+    Award for correct answer from any valid method
+    ft their method if M1 earned
+\`\`\`
+
+### Error Carried Forward (ECF) with Multiple Methods
+- If student uses an unconventional but valid method, apply ECF to subsequent steps
+- Award method marks for correct application even if arithmetic error made earlier
+- Final accuracy mark requires correct answer OR correct follow-through
+
+### Special Cases
+**"Show that" questions:**
+- Method shown must lead logically to given answer
+- Alternative valid proofs are acceptable
+- Must see sufficient working (not just statement of result)
+
+**Calculator vs Non-calculator:**
+- On non-calculator papers, method must be shown for full credit
+- On calculator papers, correct answer without working may earn full marks (unless question states "show your working")
+`;
+
+/**
+ * Get combined mark scheme guidance for prompts.
+ */
+export function getMarkSchemeGuidance(): string {
+  return `${MARK_SCHEME_CONVENTIONS}
+
+${ALTERNATIVE_ANSWERS_GUIDANCE}
+
+${NEGATIVE_MARKING_GUIDANCE}
+
+${MULTI_METHOD_GUIDANCE}`;
+}
+
 /**
  * Diagram schema documentation for prompts.
  */

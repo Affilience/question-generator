@@ -1939,6 +1939,62 @@ Extended response questions assess:
 - Missing constant of integration: Lose A mark
 - Wrong units: Usually lose final A mark
 - Rounding too early: May lose accuracy
+
+### Worked Examples with Mark Schemes
+
+**Example 1: Factor Theorem (4 marks)**
+*Question:* f(x) = x³ - 2x² - 5x + 6. Show that (x - 1) is a factor of f(x) and hence factorise f(x) completely.
+
+*Mark Scheme:*
+- M1: Substitutes x = 1 into f(x)
+- A1: f(1) = 1 - 2 - 5 + 6 = 0, confirming (x - 1) is a factor
+- M1: Performs polynomial division or compares coefficients
+- A1: f(x) = (x - 1)(x² - x - 6) = (x - 1)(x - 3)(x + 2) (cao)
+
+**Example 2: Differentiation and Stationary Points (5 marks)**
+*Question:* Find the coordinates of the stationary point on y = x³ - 3x² + 4 and determine its nature.
+
+*Mark Scheme:*
+- M1: Differentiates: dy/dx = 3x² - 6x
+- M1: Sets dy/dx = 0 and solves
+- A1: x = 0 or x = 2
+- A1: Coordinates: (0, 4) and (2, 0)
+- A1: Uses second derivative or gradient test to identify (0, 4) as max, (2, 0) as min
+
+**Example 3: Trigonometric Identity (4 marks)**
+*Question:* Prove that (sin θ + cos θ)² ≡ 1 + 2sin θ cos θ
+
+*Mark Scheme:*
+- M1: Expands LHS: sin²θ + 2sin θ cos θ + cos²θ
+- A1: Uses sin²θ + cos²θ = 1
+- A1: = 1 + 2sin θ cos θ
+- A1: = RHS, QED (complete proof required for final mark)
+
+**Example 4: Integration to Find Area (6 marks)**
+*Question:* Find the area enclosed between y = x² and y = 4x - x² for x ≥ 0
+
+*Mark Scheme:*
+- M1: Finds intersection points: x² = 4x - x², so 2x² = 4x, x(x - 2) = 0
+- A1: x = 0 and x = 2
+- M1: Sets up integral: ∫₀² [(4x - x²) - x²] dx = ∫₀² (4x - 2x²) dx
+- M1: Integrates correctly
+- A1: [2x² - (2x³)/3]₀²
+- A1: Area = 8 - 16/3 = 8/3 square units (cao)
+
+**Example 5: Binomial Expansion (4 marks)**
+*Question:* Find the coefficient of x³ in the expansion of (2 + 3x)⁵
+
+*Mark Scheme:*
+- M1: Identifies term using ⁵C₃ × 2² × (3x)³
+- A1: ⁵C₃ = 10
+- A1: 10 × 4 × 27x³ = 1080x³
+- A1: Coefficient = 1080 (cao)
+
+### Alternative Acceptable Forms
+- Exact values (surds, fractions, π) preferred over decimals
+- Equivalent algebraic forms accepted (e.g., 2(x - 1) same as 2x - 2)
+- Trigonometric answers may be given in degrees or radians as specified
+- Integration constants required for indefinite integrals
 `;
 
 // ============================================================================
@@ -2239,7 +2295,7 @@ export function getOCRGCSEFurtherMathsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Key Formulae Reference
 ${OCR_FSMQ_KEY_FORMULAE}

@@ -3,12 +3,45 @@
 // and official mark schemes
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Economics mark ranges based on OCR specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 5 };    // Short data response questions
+    case 'medium':
+      return { min: 8, max: 12 };   // Explain/analyse questions
+    case 'hard':
+      return { min: 15, max: 25 };  // Evaluate/discuss essay questions
+  }
+}
 
 // ============================================================================
 // OCR A-LEVEL ECONOMICS SPECIFICATION DETAILS (H460)
 // Based on official OCR specification and past paper analysis
 // ============================================================================
+
+const OCR_ALEVEL_ECON_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, definition, basic explanation | Define terms, outline concepts, explain simple relationships |
+| **Medium** | Analysis, application, data interpretation | Apply theory to case studies, analyse diagrams/data, chain of reasoning |
+| **Hard** | Evaluation, judgement, synoptic thinking | Evaluate policies/strategies, weigh competing arguments, reach justified conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of competing economic theories/business strategies
+- Demands application to real-world contexts with justified judgements
+- Must weigh costs and benefits and reach substantiated conclusions
+- Requires synoptic thinking across multiple topic areas
+- No single "correct" answer - student must construct and defend their position
+
+**Easy (2-5 marks):** Knowledge and understanding
+**Medium (8-12 marks):** Application and analysis
+**Hard (15-25 marks):** Evaluation with justified judgement
+`;
 
 const OCR_ALEVEL_ECON_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level Economics Assessment Objectives
@@ -317,6 +350,8 @@ export function getOCRALevelEconomicsSystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert OCR A-Level Economics examiner creating exam-style questions.
 
+${OCR_ALEVEL_ECON_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_ECON_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_ECON_QUESTION_TEMPLATES}
@@ -371,7 +406,7 @@ export function getOCRALevelEconomicsQuestionPrompt(topic: Topic, difficulty: Di
 - For calculations: method + accuracy marks
 - For diagrams: specify marking for labels/curves
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring analysis with chains of reasoning (AO2/AO3).
 
@@ -391,7 +426,7 @@ Use levels of response:
 
 Include indicative content listing analytical points expected
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a question requiring comprehensive evaluation (AO3/AO4).
 
@@ -416,7 +451,7 @@ Include comprehensive indicative content with:
 - Possible lines of evaluation
 - Types of conclusion that might be reached
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level Economics question.

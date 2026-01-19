@@ -4,6 +4,49 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+/**
+ * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 3 };   // Short answer, single concept, direct substitution
+    case 'medium':
+      return { min: 4, max: 5 };   // Multi-step, equation rearrangement, application
+    case 'hard':
+      return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default:
+      return { min: 2, max: 5 };
+  }
+}
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const OCR_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, substitute into equations, identify quantities from diagrams |
+| **Medium** | Application, multi-step calculation, explanation | Apply equations to novel contexts, rearrange and combine formulae, explain physical phenomena |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse experimental data, evaluate methods, derive relationships, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining mechanics with electricity)
+- Demands analysis of unfamiliar experimental contexts or data
+- Must evaluate experimental methods and suggest quantitative improvements
+- Requires extended mathematical reasoning or derivations from first principles
+- No single approach - student must select and justify methodology
+- May involve approximations, assumptions, or limiting cases
+
+**Easy (2-3 marks):** Knowledge recall, direct substitution, single-concept calculations
+**Medium (4-5 marks):** Multi-step problems, equation rearrangement, application to new contexts
+**Hard (6-8 marks):** Extended response with derivation, analysis, evaluation, or synoptic reasoning
+`;
+
 // ============================================================================
 // OCR A-LEVEL PHYSICS SPECIFICATION DETAILS (H556)
 // Based on official OCR specification and past paper analysis
@@ -262,10 +305,13 @@ export function getOCRALevelPhysicsCompactPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `You are an expert OCR A-Level Physics examiner creating an exam-style question.
 
 ${OCR_ALEVEL_PHYSICS_PRINCIPLES}
+
+${OCR_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE}
 
 Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
@@ -274,9 +320,11 @@ Difficulty: ${difficulty}
 ${topicGuidance}
 
 DIFFICULTY GUIDE:
-- Easy (3-4 marks): Direct recall or single-step calculation, tests one concept
-- Medium (4-6 marks): Multi-step calculation or explanation, links concepts
-- Hard (6-8 marks): Complex multi-part question requiring synthesis of ideas
+- Easy (2-3 marks): Direct recall or single-step calculation, tests one concept
+- Medium (4-5 marks): Multi-step calculation or explanation, links concepts
+- Hard (6-8 marks): Complex multi-part question requiring synthesis of ideas across topics, unfamiliar contexts, extended analysis or evaluation
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Create ONE exam-style question that:
 1. Uses authentic OCR A-Level Physics language and command words
@@ -1335,6 +1383,39 @@ Questions may require students to:
 - Correct physics expressed differently
 - Equivalent valid methods
 - Indicated in mark scheme with 'OR'
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Physics calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Motion problems**
+Accept any valid SUVAT combination or energy method:
+- v² = u² + 2as OR ½mv² = mgh + ½mu²
+- Different equation selection: all earn full marks
+
+**Example 2: Circular motion**
+Accept:
+- F = mv²/r approach
+- F = mω²r approach
+- Angular momentum method where applicable
+
+**Example 3: Electric fields**
+Accept:
+- F = Eq direct calculation
+- Energy approach: W = qV
+- Field gradient method for non-uniform fields
+
+**Example 4: Thermal physics**
+Accept:
+- pV = nRT manipulations
+- pV/T = constant method
+- Kinetic theory approach
+
+**Example 5: Waves and optics**
+Accept:
+- Young's double slit formula: λ = xs/D
+- Path difference method
+- Phase difference calculation
 `;
 
 // ============================================================================

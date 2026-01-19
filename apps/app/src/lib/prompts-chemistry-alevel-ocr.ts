@@ -13,6 +13,42 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+// Ranges are non-overlapping to ensure consistent difficulty progression
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy': return { min: 2, max: 3 };   // Short answer, single concept, direct recall
+    case 'medium': return { min: 4, max: 5 }; // Multi-step, combines concepts, application
+    case 'hard': return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default: return { min: 2, max: 5 };
+  }
+}
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const OCR_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, draw simple structures, balance equations, identify functional groups |
+| **Medium** | Application, multi-step calculation, explanation | Apply concepts to novel reactions, multi-step calculations (titrations, Hess cycles), explain trends and mechanisms |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse spectroscopic data, evaluate synthetic routes, design experiments, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining thermodynamics with kinetics)
+- Demands analysis of unfamiliar reaction contexts or experimental data
+- Must evaluate practical methods and suggest quantitative improvements
+- Requires extended calculation chains with multiple conversions
+- Requires mechanism reasoning in unfamiliar contexts
+- No single approach - student must select and justify methodology
+
+**Easy (2-3 marks):** Knowledge recall, simple structure drawing, single-step calculations
+**Medium (4-5 marks):** Multi-step calculations, mechanism drawing, application to new contexts
+**Hard (6-8 marks):** Extended response with analysis, synthesis route design, or spectroscopic interpretation
+`;
+
 // ============================================================================
 // OCR A-LEVEL CHEMISTRY ASSESSMENT OBJECTIVES (OFFICIAL)
 // ============================================================================
@@ -286,6 +322,37 @@ OCR Mark Scheme Conventions:
 - Strong focus on synoptic assessment in Paper 3
 - Context-based questions common
 - Multi-step calculations expected
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Chemistry calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Enthalpy calculations**
+Accept both:
+- Hess's Law algebraic manipulation
+- Energy cycle diagram method
+
+**Example 2: Buffer pH calculations**
+Accept both:
+- Henderson-Hasselbalch equation: pH = pKa + log([A⁻]/[HA])
+- Direct Ka expression manipulation
+
+**Example 3: Titration calculations**
+Accept any valid route:
+- n = c × V then use mole ratio
+- Direct ratio method from balanced equation
+- Working via mass calculation
+
+**Example 4: Rate constant determination**
+Accept both:
+- Graphical method (gradient of appropriate plot)
+- Direct calculation from integrated rate equation
+
+**Example 5: Born-Haber cycles**
+Accept:
+- Diagram-based approach
+- Algebraic manipulation of enthalpy terms
+- Either direction around the cycle
 `;
 
 const OCR_CHEMISTRY_PAGS = `
@@ -2913,15 +2980,17 @@ export function getOCRALevelChemistryCompactPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
-    easy: 'AS standard, 2-4 marks, single concept',
-    medium: 'Full A-Level, 4-6 marks, multi-step',
-    hard: 'Challenging, 6-8 marks, synoptic'
+    easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
+    medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
+    hard: 'Challenging A-Level, 6-8 marks, synoptic thinking across topics, unfamiliar contexts, requires extended analysis, evaluation or synthesis'
   };
 
   return `Generate an OCR A-Level Chemistry A question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
+${OCR_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ${OCR_CHEMISTRY_DATA_SHEET}
@@ -2930,6 +2999,7 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Paper: ${topic.paperRestriction || 'Any'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match OCR exam style
@@ -2984,6 +3054,7 @@ export function getOCRALevelChemistryCalculationPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A calculation question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -2994,6 +3065,7 @@ ${OCR_CHEMISTRY_DATA_SHEET}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Provide all necessary data
@@ -3016,6 +3088,7 @@ export function getOCRALevelChemistryExplainPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A explanation question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3024,6 +3097,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Respond with JSON:
 {
@@ -3041,6 +3115,7 @@ export function getOCRALevelChemistryGraphPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A graph/data question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3049,6 +3124,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Include graph or data table with analysis questions.
 
@@ -3068,6 +3144,7 @@ export function getOCRALevelChemistryComparePrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A comparison question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3076,6 +3153,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Require both similarities AND differences.
 
@@ -3095,6 +3173,7 @@ export function getOCRALevelChemistryMechanismPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A mechanism question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3103,6 +3182,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Correct curly arrows
@@ -3125,6 +3205,7 @@ export function getOCRALevelChemistryPracticalPrompt(
 ): string {
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an OCR A-Level Chemistry A practical question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3135,6 +3216,7 @@ ${OCR_CHEMISTRY_PAGS}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Assess practical skills from relevant PAG.
 

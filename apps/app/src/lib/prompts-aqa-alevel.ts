@@ -2,9 +2,24 @@ import { Difficulty, Topic } from '@/types';
 import {
   getVarietyParameters,
   getVarietyInstructions,
-  getMarkRangeForDifficulty,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
+/**
+ * A-Level Maths mark ranges.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };
+    case 'medium':
+      return { min: 5, max: 8 };
+    case 'hard':
+      return { min: 8, max: 12 };
+    default:
+      return { min: 2, max: 8 };
+  }
+}
 
 /**
  * AQA A-Level Mathematics (7357) Question Generation Prompts.
@@ -1072,8 +1087,8 @@ export function getAQAALevelCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
 ${paperContext}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${AQA_ALEVEL_KEY_VALUES}
 

@@ -4,12 +4,45 @@
 // Specification: H446 (First teaching September 2015)
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Computer Science mark ranges based on OCR specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };    // Short answer questions
+    case 'medium':
+      return { min: 6, max: 9 };    // Application and algorithm questions
+    case 'hard':
+      return { min: 12, max: 20 };  // Extended response and programming questions
+  }
+}
 
 // ============================================================================
 // OCR A-LEVEL COMPUTER SCIENCE SPECIFICATION DETAILS (H446)
 // Based on official OCR specification and past paper analysis
 // ============================================================================
+
+const OCR_ALEVEL_CS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, tracing | Define terms, identify components, trace algorithms |
+| **Medium** | Application, implementation, analysis | Write code for given problems, analyse algorithm efficiency, explain data structures |
+| **Hard** | Design, evaluation, optimisation | Design algorithms/systems, evaluate trade-offs, optimise solutions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires designing solutions to novel problems
+- Demands evaluation of algorithmic efficiency and trade-offs
+- Must consider real-world constraints and edge cases
+- Requires integration of theory with practical implementation
+- No single optimal solution - student must justify design choices
+
+**Easy (1-4 marks):** Knowledge recall and algorithm tracing
+**Medium (4-9 marks):** Implementation and analysis
+**Hard (9-20 marks):** Design and evaluation with justification
+`;
 
 const OCR_ALEVEL_CS_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level Computer Science Assessment Objectives
@@ -3539,6 +3572,8 @@ export function getOCRALevelComputerScienceSystemPrompt(topic: Topic, difficulty
 
   return `You are an expert OCR A-Level Computer Science examiner creating exam-style questions for specification H446.
 
+${OCR_ALEVEL_CS_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_CS_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_CS_REFERENCE_LANGUAGE}
@@ -3612,7 +3647,7 @@ export function getOCRALevelComputerScienceQuestionPrompt(topic: Topic, difficul
   const difficultyGuidance = {
     easy: `Create a foundational question testing core knowledge.
 
-**Question Types for Easy:**
+**Question Types for Easy (2-4 marks):**
 - "Define [term]" [2 marks]
 - "State the purpose of [component]" [2 marks]
 - "Identify [feature] from [code/diagram]" [2 marks]
@@ -3624,11 +3659,11 @@ export function getOCRALevelComputerScienceQuestionPrompt(topic: Topic, difficul
 - Include acceptable alternatives
 - Key technical terms required
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring analysis and application.
 
-**Question Types for Medium:**
+**Question Types for Medium (6-9 marks):**
 - "Trace the algorithm and show the output when [input]" [4-6 marks]
 - "Explain how [data structure/algorithm] works" [4-6 marks]
 - "Write a function to [task]" [6-8 marks]
@@ -3643,11 +3678,11 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Accept any reasonable pseudocode or programming syntax
 - Note where partial credit applies
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a challenging question requiring evaluation and synthesis.
 
-**Question Types for Hard:**
+**Question Types for Hard (12-20 marks):**
 - "Write an algorithm to [complex task]" [10-15 marks]
   - May require advanced data structures, recursion, or graph algorithms
 - "*Discuss [technical topic]" [12-20 marks - extended response]
@@ -3665,7 +3700,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Include indicative content for extended questions
 - Accept any reasonable pseudocode or real language
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level Computer Science question.

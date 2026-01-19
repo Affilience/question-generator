@@ -11,6 +11,27 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 // Based on official AQA specification and past paper analysis
 // ============================================================================
 
+const AQA_ALEVEL_BUS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, definition, basic explanation | Define terms, outline concepts, explain simple relationships |
+| **Medium** | Analysis, application, data interpretation | Apply theory to case studies, analyse diagrams/data, chain of reasoning |
+| **Hard** | Evaluation, judgement, synoptic thinking | Evaluate policies/strategies, weigh competing arguments, reach justified conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of competing economic theories/business strategies
+- Demands application to real-world contexts with justified judgements
+- Must weigh costs and benefits and reach substantiated conclusions
+- Requires synoptic thinking across multiple topic areas
+- No single "correct" answer - student must construct and defend their position
+
+**Easy (2-5 marks):** Knowledge and understanding
+**Medium (8-12 marks):** Application and analysis
+**Hard (15-25 marks):** Evaluation with justified judgement
+`;
+
 const AQA_ALEVEL_BUS_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level Business Assessment Objectives
 
@@ -372,6 +393,8 @@ export function getAQAALevelBusinessSystemPrompt(topic: Topic, difficulty: Diffi
 
   return `You are an expert AQA A-Level Business examiner creating exam-style questions.
 
+${AQA_ALEVEL_BUS_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_BUS_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_BUS_QUESTION_TEMPLATES}
@@ -430,7 +453,7 @@ export function getAQAALevelBusinessQuestionPrompt(topic: Topic, difficulty: Dif
 - Explanation: Knowledge (1-2) + Development (1-2) + Context (1-2)
 - Calculation: Formula (1) + Working (1-2) + Answer with units (1)
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring analysis with chains of reasoning (AO2/AO3).
 
@@ -448,7 +471,7 @@ Use levels of response:
 
 Include indicative content listing key analytical points
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a question requiring evaluation and judgement (AO3/AO4).
 
@@ -468,7 +491,7 @@ Use levels of response:
 
 Include indicative content with arguments for and against
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const enhancedMarkSchemeGuidance = getEnhancedEssayMarkSchemePrompt('business', difficulty);

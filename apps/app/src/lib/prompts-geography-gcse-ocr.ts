@@ -38,6 +38,21 @@ const OCR_GCSE_GEOG_ASSESSMENT_OBJECTIVES = `
 - **Assess**: Weigh up the importance/success; reach a judgement (AO3)
 - **Evaluate**: Review evidence; reach a substantiated conclusion (AO3)
 - **Justify**: Support a case with evidence; explain why chosen (AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, description | Name features, state facts, describe patterns from maps/data |
+| **Medium** | Explanation, application, interpretation | Explain causes/effects, interpret data, apply concepts to case studies |
+| **Hard** | Evaluation, synthesis, judgement | Assess management strategies, weigh competing factors, reach substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of effectiveness (of strategies, responses, management approaches)
+- Must consider multiple perspectives (economic, social, environmental)
+- Demands integration of case study knowledge with conceptual understanding
+- Requires sustained argument reaching a justified conclusion
+- Must weigh up advantages and disadvantages before making judgement
 `;
 
 // ============================================================================
@@ -1111,7 +1126,7 @@ export function getOCRGCSEGeographyQuestionPrompt(topic: Topic, difficulty: Diff
 - "Identify [features/characteristics]" [2 marks]
 - "Describe [pattern/distribution]" [2-3 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring explanation or application (AO2/AO3).
 
@@ -1123,7 +1138,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include specific facts, statistics, or case study references in the model answer.
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an 8-mark extended writing question requiring evaluation (AO3).
 
@@ -1142,7 +1157,7 @@ The model answer MUST include:
 - Multiple perspectives (successes AND limitations)
 - Clear evaluation with supported conclusion
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR GCSE Geography B question.
@@ -1173,13 +1188,17 @@ Return valid JSON:
 }`;
 }
 
+/**
+ * Geography GCSE mark ranges based on OCR B specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 3 };
+      return { min: 1, max: 3 };   // State, identify, describe - basic knowledge recall
     case 'medium':
-      return { min: 4, max: 6 };
+      return { min: 4, max: 6 };   // Explain, suggest, apply - application and analysis
     case 'hard':
-      return { min: 8, max: 8 };
+      return { min: 7, max: 8 };   // Evaluate, assess - extended response requiring judgement
   }
 }

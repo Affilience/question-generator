@@ -2,7 +2,19 @@
 // Tailored to OCR Gateway specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Biology mark ranges based on OCR Gateway specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Application and data questions
+    case 'hard':
+      return { min: 6, max: 9 };    // Extended response questions
+  }
+}
 
 // ============================================================================
 // OCR GATEWAY GCSE BIOLOGY A SPECIFICATION DETAILS (J247)
@@ -416,6 +428,7 @@ export function getOCRBiologyCompactPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `You are an expert OCR Gateway GCSE Biology examiner creating an exam-style question.
 
@@ -427,27 +440,27 @@ Difficulty: ${difficulty}
 
 ${topicGuidance}
 
-DIFFICULTY GUIDE:
-- Easy (1-2 marks): Recall, definitions, simple identifications
-- Medium (3-4 marks): Application, simple calculations, explanations
-- Hard (5-6 marks): Multi-step problems, extended explanations, data analysis
+DIFFICULTY AND MARK ALLOCATION:
+- Easy: 1-3 marks (Recall, definitions, simple identifications)
+- Medium: 4-6 marks (Application, calculations, explanations)
+- Hard: 6-9 marks (Multi-step problems, extended explanations, data analysis)
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
 Create ONE exam-style question that:
 1. Uses authentic OCR Gateway GCSE Biology language
 2. Tests understanding appropriate to GCSE level
-3. Includes proper mark allocation
-4. Matches the difficulty level specified
+3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
+4. Matches the ${difficulty} difficulty level
 5. May include real-world context (Gateway approach)
 
-OUTPUT FORMAT (use exact headers):
-**Question:**
-[Question text with mark allocation in brackets, e.g. [3]]
-
-**Mark Scheme:**
-[Marking points - one point per mark available]
-
-**Explanation:**
-[Full worked answer with clear reasoning]`;
+Return a JSON object with this exact structure:
+{
+  "content": "The full question text including mark allocation [X marks]",
+  "marks": <number between ${markRange.min} and ${markRange.max}>,
+  "solution": "Full worked answer with clear reasoning",
+  "markScheme": ["Mark point 1", "Mark point 2", ...]
+}`;
 }
 
 // Generate extended response question prompt

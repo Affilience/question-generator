@@ -10,6 +10,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // Based on official Edexcel specification and past paper analysis
 // ============================================================================
 
+const EDEXCEL_ALEVEL_BUS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, definition, basic explanation | Define terms, outline concepts, explain simple relationships |
+| **Medium** | Analysis, application, data interpretation | Apply theory to case studies, analyse diagrams/data, chain of reasoning |
+| **Hard** | Evaluation, judgement, synoptic thinking | Evaluate policies/strategies, weigh competing arguments, reach justified conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of competing economic theories/business strategies
+- Demands application to real-world contexts with justified judgements
+- Must weigh costs and benefits and reach substantiated conclusions
+- Requires synoptic thinking across multiple topic areas
+- No single "correct" answer - student must construct and defend their position
+
+**Easy (2-5 marks):** Knowledge and understanding
+**Medium (8-12 marks):** Application and analysis
+**Hard (15-25 marks):** Evaluation with justified judgement
+`;
+
 const EDEXCEL_ALEVEL_BUS_ASSESSMENT_OBJECTIVES = `
 ## Edexcel A-Level Business Assessment Objectives
 
@@ -364,6 +385,8 @@ export function getEdexcelALevelBusinessSystemPrompt(topic: Topic, difficulty: D
 
   return `You are an expert Edexcel A-Level Business examiner creating exam-style questions.
 
+${EDEXCEL_ALEVEL_BUS_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_ALEVEL_BUS_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_ALEVEL_BUS_QUESTION_TEMPLATES}
@@ -416,7 +439,7 @@ export function getEdexcelALevelBusinessQuestionPrompt(topic: Topic, difficulty:
 - Explanations: Knowledge (1-2) + Development (1-2)
 - Calculations: Formula + Working + Answer with units
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring analysis (AO2/AO3).
 
@@ -432,7 +455,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include indicative content
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a question requiring evaluation (AO3/AO4).
 
@@ -450,7 +473,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include detailed indicative content
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel A-Level Business question.

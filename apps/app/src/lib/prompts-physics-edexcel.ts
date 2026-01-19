@@ -1,5 +1,17 @@
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Physics mark ranges based on Edexcel specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Calculation and application questions
+    case 'hard':
+      return { min: 6, max: 9 };    // Extended response and multi-step calculations
+  }
+}
 
 /**
  * Edexcel GCSE Physics (1PH0) Question Generation Prompts.
@@ -1104,7 +1116,7 @@ export function getEdexcelPhysicsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${questionTypeHint}
 
@@ -1189,6 +1201,8 @@ Generate a genuinely ORIGINAL Edexcel GCSE Physics question with the following s
 ${difficultyGuidance}
 
 **Mark Range:** ${markRange.min}-${markRange.max} marks
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Critical Requirements
 
@@ -1328,7 +1342,7 @@ ${EDEXCEL_PHYSICS_CONSTANTS}
 ${EDEXCEL_PHYSICS_WORKED_EXAMPLES}
 
 Topic: ${topic.name} - ${selectedSubtopic}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Structure
 
@@ -1416,7 +1430,7 @@ export function getEdexcelPhysicsGraphPrompt(
   return `Generate an Edexcel GCSE Physics GRAPH INTERPRETATION question. Return ONLY valid JSON.
 
 Topic: ${topic.name} - ${selectedSubtopic}
-Marks: ${markRange}
+YOU MUST allocate marks between the values specified for this difficulty level.
 
 ## Graph Types in Physics
 - Distance-time (gradient = speed)
@@ -1749,7 +1763,7 @@ ${EDEXCEL_CORE_PRACTICALS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Method
 - Describe the method step by step
@@ -1791,7 +1805,7 @@ ${EDEXCEL_CORE_PRACTICALS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Variables
 - Identify the independent variable
@@ -1834,7 +1848,7 @@ ${EDEXCEL_PHYSICS_EQUATION_SHEET}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Results
 - Calculate values from data (use equation)
@@ -1875,7 +1889,7 @@ ${EDEXCEL_CORE_PRACTICALS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Errors/Evaluation
 - Identify sources of error

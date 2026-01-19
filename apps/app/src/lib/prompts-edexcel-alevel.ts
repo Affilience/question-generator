@@ -759,8 +759,8 @@ export function getEdexcelALevelCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
 ${paperContext}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Original A-Level standard question (not GCSE)

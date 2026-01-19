@@ -12,6 +12,23 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+/**
+ * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 3 };   // Short answer, single concept, direct substitution
+    case 'medium':
+      return { min: 4, max: 5 };   // Multi-step, equation rearrangement, application
+    case 'hard':
+      return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default:
+      return { min: 2, max: 5 };
+  }
+}
+
 // ============================================================================
 // EDEXCEL A-LEVEL PHYSICS SPECIFICATION OVERVIEW (9PH0)
 // ============================================================================
@@ -3002,6 +3019,32 @@ Paper 3 Section A focuses on practical skills:
 `;
 
 // ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const EDEXCEL_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, substitute into equations, identify quantities from diagrams |
+| **Medium** | Application, multi-step calculation, explanation | Apply equations to novel contexts, rearrange and combine formulae, explain physical phenomena |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse experimental data, evaluate methods, derive relationships, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining mechanics with electricity)
+- Demands analysis of unfamiliar experimental contexts or data
+- Must evaluate experimental methods and suggest quantitative improvements
+- Requires extended mathematical reasoning or derivations from first principles
+- No single approach - student must select and justify methodology
+- May involve approximations, assumptions, or limiting cases
+
+**Easy (2-3 marks):** Knowledge recall, direct substitution, single-concept calculations
+**Medium (4-5 marks):** Multi-step problems, equation rearrangement, application to new contexts
+**Hard (6-8 marks):** Extended response with derivation, analysis, evaluation, or synoptic reasoning
+`;
+
+// ============================================================================
 // EDEXCEL A-LEVEL PHYSICS ASSESSMENT OBJECTIVES (OFFICIAL)
 // ============================================================================
 
@@ -3292,6 +3335,39 @@ Data Booklet:
 Edexcel provides a formula booklet in exams. Some equations are given, others must be recalled.
 Given: F = GMm/r², E = hf, ε = -N(dΦ/dt), etc.
 Must recall: v = fλ, E = ½mv², p = mv, V = IR, etc.
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Physics calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Kinematics problems**
+Accept any valid combination of SUVAT equations that reaches correct answer.
+- Different equation selection for same result: all earn full marks
+- Energy methods vs kinematic methods: both valid
+
+**Example 2: Circuit analysis**
+Accept both:
+- Kirchhoff's laws approach
+- Series/parallel simplification method
+- Potential divider method where applicable
+
+**Example 3: Forces and motion**
+Accept:
+- Component resolution method
+- Vector diagram method
+- Energy/work approach
+
+**Example 4: Wave calculations**
+Accept:
+- v = fλ directly applied
+- Path difference approach for interference
+- Phase difference method
+
+**Example 5: SHM problems**
+Accept:
+- Energy conservation approach: ½kx² = ½mv²
+- Kinematic approach using a = -ω²x
+- Direct application of SHM equations
 `;
 
 // Topic-specific guidance
@@ -3430,21 +3506,25 @@ export function getEdexcelALevelPhysicsCompactPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
-    easy: 'AS standard, 2-4 marks, single concept, direct application',
-    medium: 'Full A-Level, 4-6 marks, may combine concepts, multi-step',
-    hard: 'Challenging A-Level, 6-8 marks, synoptic, unfamiliar context'
+    easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward substitution',
+    medium: 'Full A-Level, 4-5 marks, combines concepts, multi-step reasoning or equation rearrangement',
+    hard: 'Challenging A-Level, 6-8 marks, synoptic thinking across topics, unfamiliar contexts, requires extended analysis, evaluation or synthesis of multiple physics principles'
   };
 
   return `Generate an Edexcel A-Level Physics question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
+${EDEXCEL_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 Topic: ${topic.name}
 Focus: ${focusArea}
 Paper: ${topic.paperRestriction || 'Not specified'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match Edexcel A-Level exam style

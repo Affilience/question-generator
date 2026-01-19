@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // OCR A-LEVEL ENGLISH LITERATURE SPECIFICATION DETAILS (H472)
 // ============================================================================
 
+const OCR_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Analysis, identification, close reading | Analyse specific passages, identify literary techniques, explain how meanings are shaped in focused extracts |
+| **Medium** | Interpretation, contextual analysis, evaluation | Discuss significance of passages to whole texts, engage with critical perspectives, develop sustained arguments about themes/characters |
+| **Hard** | Synthesis, sophisticated interpretation, comparative evaluation | Compare texts across topic areas, evaluate critical debates with original interpretive positions, synthesise analysis across multiple texts and contexts |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires sophisticated engagement with multiple critical interpretations (AO5)
+- Demands synthesis of contextual understanding across literary movements and periods
+- Must develop original, defensible interpretive positions on contested critical debates
+- Requires comparative analysis showing illuminating connections across texts
+- No single "correct" reading - demands confident navigation of critical complexity
+
+**Easy (20 marks):** Focused passage analysis demonstrating competent understanding of how meanings are shaped. Requires clear textual support and awareness of context.
+**Medium (30 marks):** Sustained essay requiring accomplished analysis of whole texts, thoughtful engagement with contexts, and evaluation of different interpretations.
+**Hard (30-60 marks):** Complex questions requiring sophisticated argument, illuminating analysis, confident original interpretations, and synthesis across multiple texts within topic areas.
+`;
+
 const OCR_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level English Literature Assessment Objectives
 
@@ -245,6 +266,8 @@ ${textKnowledge}
 
   return `You are an expert OCR A-Level English Literature examiner creating exam-style questions.
 
+${OCR_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_ENG_LIT_MARK_SCHEME}
@@ -310,7 +333,7 @@ export function getOCRALevelEnglishLiteratureQuestionPrompt(topic: Topic, diffic
 
 For SHAKESPEARE: Include actual passage text. For OTHER TEXTS: Provide location references.
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 30-mark essay question requiring Level 5 response.
 
@@ -339,7 +362,7 @@ Include OCR-specific phrases:
 - "Using your knowledge of the play/text as a whole..."
 - "Show how far you agree with this view"
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 30-60 mark question requiring Level 6 response.
 
@@ -366,7 +389,7 @@ Include sophisticated critical framing relevant to the topic area:
 - For Women in Literature: engage with feminist critical approaches
 - For American Literature: engage with debates about the American Dream, modernism, etc.
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level English Literature question.

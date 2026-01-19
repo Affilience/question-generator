@@ -3,12 +3,45 @@
 // and official mark schemes
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Economics mark ranges based on AQA specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 5 };    // Short data response questions
+    case 'medium':
+      return { min: 8, max: 12 };   // Explain/analyse questions
+    case 'hard':
+      return { min: 15, max: 25 };  // Evaluate/discuss essay questions
+  }
+}
 
 // ============================================================================
 // AQA A-LEVEL ECONOMICS SPECIFICATION DETAILS (7136)
 // Based on official AQA specification and past paper analysis
 // ============================================================================
+
+const AQA_ALEVEL_ECON_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, definition, basic explanation | Define terms, outline concepts, explain simple relationships |
+| **Medium** | Analysis, application, data interpretation | Apply theory to case studies, analyse diagrams/data, chain of reasoning |
+| **Hard** | Evaluation, judgement, synoptic thinking | Evaluate policies/strategies, weigh competing arguments, reach justified conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of competing economic theories/business strategies
+- Demands application to real-world contexts with justified judgements
+- Must weigh costs and benefits and reach substantiated conclusions
+- Requires synoptic thinking across multiple topic areas
+- No single "correct" answer - student must construct and defend their position
+
+**Easy (2-5 marks):** Knowledge and understanding
+**Medium (8-12 marks):** Application and analysis
+**Hard (15-25 marks):** Evaluation with justified judgement
+`;
 
 const AQA_ALEVEL_ECON_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level Economics Assessment Objectives
@@ -371,6 +404,8 @@ export function getAQAALevelEconomicsSystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert AQA A-Level Economics examiner creating exam-style questions.
 
+${AQA_ALEVEL_ECON_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_ECON_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_ECON_QUESTION_TEMPLATES}
@@ -429,7 +464,7 @@ export function getAQAALevelEconomicsQuestionPrompt(topic: Topic, difficulty: Di
 - For diagram questions: marks for correct diagram + explanation
 - Include acceptable alternative answers
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring analysis with chains of reasoning (AO2/AO3).
 
@@ -448,7 +483,7 @@ Use levels of response where appropriate:
 For data response: require specific use of data from extracts
 Include indicative content listing key points
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a question requiring evaluation and judgement (AO3/AO4).
 
@@ -475,7 +510,7 @@ For 25-mark:
 
 Include indicative content with arguments for and against
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an AQA A-Level Economics question.

@@ -7,8 +7,23 @@ import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 import {
   getVarietyParameters,
-  getMarkRangeForDifficulty,
 } from './prompts-common';
+
+/**
+ * GCSE Economics mark ranges.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 4 };
+    case 'medium':
+      return { min: 4, max: 6 };
+    case 'hard':
+      return { min: 6, max: 9 };
+    default:
+      return { min: 1, max: 6 };
+  }
+}
 
 // ============================================================================
 // OCR GCSE ECONOMICS SPECIFICATION DETAILS (J205)
@@ -2315,7 +2330,7 @@ export function getOCRGCSEEconomicsQuestionPrompt(topic: Topic, difficulty: Diff
 - Give precise economic definition
 - Use appropriate terminology
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an AO2/AO3 question requiring application and analysis.
 
@@ -2338,7 +2353,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 **For context, create a brief scenario (2-3 sentences) that sets up the question.**
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an AO4 question requiring evaluation (extended response).
 
@@ -2365,7 +2380,7 @@ Include indicative content
 
 **Create a question that could realistically appear on an OCR GCSE Economics paper.**
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR GCSE Economics question.

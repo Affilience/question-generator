@@ -9,6 +9,43 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+// Local mark range function for A-Level Chemistry
+// Ranges are non-overlapping to ensure consistent difficulty progression
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy': return { min: 2, max: 3 };   // Short answer, single concept, direct recall
+    case 'medium': return { min: 4, max: 5 }; // Multi-step, combines concepts, application
+    case 'hard': return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default: return { min: 2, max: 5 };
+  }
+}
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const AQA_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, draw simple structures, balance equations, identify functional groups |
+| **Medium** | Application, multi-step calculation, explanation | Apply concepts to novel reactions, multi-step calculations (titrations, Hess cycles), explain trends and mechanisms |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse spectroscopic data, evaluate synthetic routes, design experiments, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining thermodynamics with kinetics)
+- Demands analysis of unfamiliar reaction contexts or experimental data
+- Must evaluate practical methods and suggest quantitative improvements
+- Requires extended calculation chains with multiple conversions
+- Requires mechanism reasoning in unfamiliar contexts
+- No single approach - student must select and justify methodology
+
+**Easy (2-3 marks):** Knowledge recall, simple structure drawing, single-step calculations
+**Medium (4-5 marks):** Multi-step calculations, mechanism drawing, application to new contexts
+**Hard (6-8 marks):** Extended response with analysis, synthesis route design, or spectroscopic interpretation
+`;
+
 // ============================================================================
 // AQA A-LEVEL CHEMISTRY ASSESSMENT OBJECTIVES (OFFICIAL)
 // ============================================================================
@@ -741,6 +778,62 @@ const AQA_ALEVEL_CHEMISTRY_COMMAND_WORDS = `
 - **ora** = "or reverse argument"
 - **ignore** = this statement does not gain or lose marks
 - **reject** = this answer is wrong and scores no marks
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Chemistry calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Enthalpy calculations**
+*Question:* Calculate the enthalpy change for: C(s) + O₂(g) → CO₂(g)
+Given: CO(g) + ½O₂(g) → CO₂(g), ΔH = -283 kJ mol⁻¹
+       C(s) + ½O₂(g) → CO(g), ΔH = -111 kJ mol⁻¹
+
+*Method A (Hess's Law - algebraic manipulation):*
+- M1: Target = Equation 2 + Equation 1
+- A1: ΔH = -111 + (-283) = -394 kJ mol⁻¹
+
+*Method B (Hess's Law - cycle diagram):*
+- M1: Draws correct energy cycle
+- M1: Correct route identification
+- A1: ΔH = -394 kJ mol⁻¹
+
+**Both methods receive full credit.**
+
+**Example 2: Concentration calculations**
+*Question:* Calculate pH of 0.1 mol dm⁻³ ethanoic acid (Ka = 1.8 × 10⁻⁵)
+
+*Method A (using Ka expression directly):*
+- M1: Ka = [H⁺]²/[HA], assumes [H⁺]² << 0.1
+- M1: [H⁺] = √(Ka × c) = √(1.8 × 10⁻⁶)
+- A1: pH = -log(1.34 × 10⁻³) = 2.87
+
+*Method B (quadratic solution):*
+- M1: Ka = x²/(0.1-x)
+- M1: Solves quadratic
+- A1: pH = 2.87
+
+**Full marks for either approach.**
+
+**Example 3: Rate calculations**
+*Question:* Determine rate constant from half-life data.
+
+*Method A (using t₁/₂ = ln2/k):*
+- Accept direct application of integrated rate equation
+
+*Method B (graphical - ln[A] vs t):*
+- Accept gradient method from first-order plot
+
+**Example 4: Yield calculations**
+For percentage yield problems, accept:
+- Method A: (actual/theoretical) × 100
+- Method B: Working backwards from limiting reagent
+- Method C: Using atom economy combined with mass data
+
+**Example 5: Titration calculations**
+Accept any valid route:
+- Moles → concentration
+- Concentration → moles → mass
+- Direct ratio method using balanced equation
 `;
 
 // ============================================================================
@@ -2988,15 +3081,17 @@ export function getAQAALevelChemistryCompactPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
-    easy: 'AS standard, 2-4 marks, single concept, direct application',
-    medium: 'Full A-Level, 4-6 marks, may combine concepts, multi-step',
-    hard: 'Challenging A-Level, 6-8 marks, synoptic, unfamiliar context'
+    easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
+    medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
+    hard: 'Challenging A-Level, 6-8 marks, synoptic thinking across topics, unfamiliar contexts, requires extended analysis, evaluation or synthesis'
   };
 
   return `Generate an AQA A-Level Chemistry question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
+${AQA_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ${AQA_ALEVEL_CHEMISTRY_DATA_SHEET}
@@ -3005,6 +3100,7 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Paper: ${topic.paperRestriction || 'Not specified'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match AQA A-Level exam style and command words
@@ -3034,9 +3130,11 @@ export function getAQAALevelChemistryEnhancedPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate a detailed AQA A-Level Chemistry question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
+${AQA_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ## Reference Data (USE FOR ACCURATE CALCULATIONS)
@@ -3050,6 +3148,7 @@ ${AQA_ALEVEL_CHEMISTRY_WORKED_EXAMPLES}
 Topic: ${topic.name}
 Subtopic: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Create a question that:
 - Uses authentic AQA A-Level command words
@@ -3112,6 +3211,7 @@ export function getAQAALevelChemistryCalculationPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry calculation question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3123,6 +3223,7 @@ ${AQA_ALEVEL_CHEMISTRY_FORMULAE}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Calculation Requirements:
 - Provide all necessary data with appropriate precision
@@ -3153,6 +3254,7 @@ export function getAQAALevelChemistryExplainPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry explanation question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3161,6 +3263,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Explanation Question Types:
 - "Explain why..." (give chemical reasons)
@@ -3187,6 +3290,7 @@ export function getAQAALevelChemistryGraphPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry graph or data analysis question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3195,6 +3299,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Graph/Data Analysis Types:
 - Rate-concentration graphs
@@ -3226,6 +3331,7 @@ export function getAQAALevelChemistryComparePrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry comparison question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3234,6 +3340,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Comparison Guidelines:
 - Use "Compare", "Compare and contrast"
@@ -3260,6 +3367,7 @@ export function getAQAALevelChemistryMechanismPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry mechanism question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3268,6 +3376,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Mechanism Requirements (AQA Specific):
 - Show curly arrows correctly
@@ -3301,6 +3410,7 @@ export function getAQAALevelChemistryPracticalPrompt(
 ): string {
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an AQA A-Level Chemistry practical/experimental question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3311,6 +3421,7 @@ ${AQA_ALEVEL_CHEMISTRY_REQUIRED_PRACTICALS}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Practical Skills Assessed:
 - Planning investigations

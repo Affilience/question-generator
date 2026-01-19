@@ -16,6 +16,31 @@ import {
  */
 
 // ============================================================================
+// EDEXCEL A-LEVEL FURTHER MATHS COGNITIVE CHALLENGE
+// ============================================================================
+
+const EDEXCEL_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, standard methods, single-step | Apply standard procedures, single concept, routine calculations |
+| **Medium** | Multi-step problem solving, method selection | Chain multiple techniques, select appropriate methods, prove standard results |
+| **Hard** | Proof construction, novel applications, synthesis | Construct proofs from first principles, apply to unfamiliar contexts, synthesise across topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires constructing mathematical proofs with logical rigour
+- Demands selection and combination of techniques from across the specification
+- Must handle abstract concepts and generalise to unfamiliar cases
+- Requires extended chains of mathematical reasoning
+- No single approach - student must devise their own proof strategy
+
+**Easy (2-4 marks):** Standard calculations and routine procedures
+**Medium (5-8 marks):** Multi-step problems and standard proofs
+**Hard (9-15 marks):** Proof construction and novel problem-solving
+`;
+
+// ============================================================================
 // EDEXCEL A-LEVEL FURTHER MATHS ASSESSMENT OBJECTIVES (OFFICIAL)
 // ============================================================================
 
@@ -182,6 +207,58 @@ For misreading which does not alter the character of a question or materially si
 - Deduct TWO from any A or B marks gained
 - Do not deduct from M marks
 - Apply this only once per question
+
+### Worked Examples with Mark Schemes
+
+**Example 1: De Moivre's Theorem (5 marks)**
+*Question:* Use De Moivre's theorem to express cos(4θ) in terms of cos(θ) only.
+
+*Mark Scheme:*
+- M1: Expands (cos θ + i sin θ)⁴ using binomial theorem or De Moivre
+- A1: cos⁴θ + 4cos³θ(i sinθ) + 6cos²θ(i sinθ)² + 4cosθ(i sinθ)³ + (i sinθ)⁴
+- M1: Identifies real part as cos(4θ)
+- A1: cos(4θ) = cos⁴θ - 6cos²θ sin²θ + sin⁴θ
+- A1: Uses sin²θ = 1 - cos²θ to get cos(4θ) = 8cos⁴θ - 8cos²θ + 1 (cao)
+
+**Example 2: Proof by Induction for Matrices (6 marks)**
+*Question:* Prove by induction that A^n = ((2^n, 0), (2^n - 1, 1)) where A = ((2, 0), (1, 1))
+
+*Mark Scheme:*
+- B1: Verifies base case n = 1: A¹ = ((2, 0), (1, 1)) matches formula ✓
+- M1: Assumes formula true for n = k
+- M1: Considers A^(k+1) = A^k × A
+- A1: Correct multiplication: ((2^k × 2, 0), ((2^k - 1)×2 + 1, 1))
+- A1: Simplifies to ((2^(k+1), 0), (2^(k+1) - 1, 1))
+- E1: Concludes true for n = 1, and if true for k then true for k+1, hence true for all n ∈ ℤ⁺ by induction
+
+**Example 3: Hyperbolic Functions (6 marks)**
+*Question:* Show that arcosh(x) = ln(x + √(x² - 1)) for x ≥ 1
+
+*Mark Scheme:*
+- M1: Lets y = arcosh(x), so cosh(y) = x
+- M1: Uses cosh(y) = (e^y + e^(-y))/2 = x
+- A1: Rearranges to e^(2y) - 2xe^y + 1 = 0
+- M1: Applies quadratic formula with e^y as variable
+- A1: e^y = x ± √(x² - 1)
+- A1: Takes y = ln(x + √(x² - 1)) (positive root as y ≥ 0) (cso)
+
+**Example 4: Polar Coordinates and Integration (7 marks)**
+*Question:* Find the area enclosed by the curve r = 2cos(θ) for 0 ≤ θ ≤ π/2
+
+*Mark Scheme:*
+- B1: States area formula A = (1/2)∫r² dθ
+- M1: Sets up A = (1/2)∫₀^(π/2) 4cos²θ dθ
+- M1: Uses cos²θ = (1 + cos(2θ))/2
+- A1: A = ∫₀^(π/2) (1 + cos(2θ)) dθ
+- M1: Integrates correctly
+- A1: A = [θ + sin(2θ)/2]₀^(π/2)
+- A1: A = π/2 (cao)
+
+### Alternative Acceptable Forms
+- Complex answers: Cartesian (a + bi), modulus-argument (r(cosθ + i sinθ)), exponential (re^(iθ))
+- Hyperbolic inverse: arsinh/arcosh notation OR logarithmic form
+- Vector equations: Any valid parametric form with consistent parameter
+- Eigenvalues: Any scalar multiple of eigenvector accepted
 `;
 
 // ============================================================================
@@ -1743,6 +1820,8 @@ const EDEXCEL_FM_QUESTION_PRINCIPLES = `# Edexcel A-Level Further Mathematics: Q
 
 ${EDEXCEL_FM_ASSESSMENT_OBJECTIVES}
 
+${EDEXCEL_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_FM_EXAM_STRUCTURE}
 
 ${EDEXCEL_FM_MARK_SCHEME}
@@ -2027,7 +2106,7 @@ export function getEdexcelALevelFurtherMathsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Difficulty: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${EDEXCEL_FM_KEY_FORMULAE}
 

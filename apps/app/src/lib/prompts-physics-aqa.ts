@@ -1,8 +1,24 @@
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
 import {
-  getMarkRangeForDifficulty,
   getDiagramDocsForSubject,
 } from './prompts-common';
+
+/**
+ * GCSE-specific mark range function for Physics AQA.
+ * GCSE questions typically have lower mark ranges than A-Level.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };
+    case 'medium':
+      return { min: 4, max: 6 };
+    case 'hard':
+      return { min: 6, max: 9 };
+    default:
+      return { min: 1, max: 6 };
+  }
+}
 
 /**
  * AQA GCSE Physics (8463) Question Generation Prompts.
@@ -1057,7 +1073,7 @@ export function getAQAPhysicsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${questionTypeHint}
 
@@ -1131,6 +1147,8 @@ Generate a genuinely ORIGINAL AQA GCSE Physics question with the following speci
 ${difficultyGuidance}
 
 **Mark Range:** ${markRange.min}-${markRange.max} marks
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Critical Requirements
 
@@ -1597,7 +1615,7 @@ export function getAQAPhysicsGraphPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Difficulty: ${difficulty}
-Marks: ${markRange}
+YOU MUST allocate marks between the values specified for this difficulty level.
 
 ## Graph Question Types in Physics
 
@@ -1662,7 +1680,7 @@ export function getAQAPhysicsCalculationPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Complexity: ${complexityGuidance}
-Marks: ${markRange}
+YOU MUST allocate marks between the values specified for this difficulty level.
 
 ${AQA_PHYSICS_EQUATION_SHEET}
 

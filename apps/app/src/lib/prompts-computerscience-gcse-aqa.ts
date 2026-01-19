@@ -4,7 +4,19 @@
 // Comprehensive version with detailed topic knowledge and worked examples
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Computer Science mark ranges based on AQA specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Application and explanation questions
+    case 'hard':
+      return { min: 6, max: 8 };    // Extended response and programming questions
+  }
+}
 
 // ============================================================================
 // AQA GCSE COMPUTER SCIENCE SPECIFICATION DETAILS (8525)
@@ -2052,12 +2064,12 @@ export function getAQAGCSEComputerScienceQuestionPrompt(
   const difficultyGuidance = {
     easy: `Create an AO1 question testing basic knowledge recall.
 
-**Question Types for Easy (1-2 marks):**
+**Question Types for Easy (1-3 marks):**
 - "Define what is meant by [term]" [1-2 marks]
-- "State two features of [concept]" [2 marks]
+- "State two features of [concept]" [2-3 marks]
 - "Identify which of the following..." [1 mark]
-- "Convert [number] from binary to denary" [2 marks]
-- "Name the [component/process]" [1 mark]
+- "Convert [number] from binary to denary" [2-3 marks]
+- "Name the [component/process]" [1-2 marks]
 
 **Mark Scheme Format:**
 - One clear mark point per mark
@@ -2066,14 +2078,14 @@ export function getAQAGCSEComputerScienceQuestionPrompt(
 
     medium: `Create an AO2 question requiring application of knowledge.
 
-**Question Types for Medium (3-4 marks):**
-- "Complete the trace table for the algorithm shown below" [3-4 marks]
+**Question Types for Medium (4-6 marks):**
+- "Complete the trace table for the algorithm shown below" [4-5 marks]
   (Include: code snippet, trace table with headers, note about unused rows)
-- "Explain how [process] works" [3-4 marks]
-- "Write code to [task]" [3-4 marks]
-- "State the output when the input is [value]" [2-3 marks]
-- "Calculate the file size of..." [3 marks]
-- "Write an SQL query to..." [3-4 marks]
+- "Explain how [process] works" [4-5 marks]
+- "Write code to [task]" [4-6 marks]
+- "State the output when the input is [value]" [4-5 marks]
+- "Calculate the file size of..." [4 marks]
+- "Write an SQL query to..." [4-5 marks]
 
 **Mark Scheme Format:**
 - For trace tables: 1 mark per correctly completed row
@@ -2083,12 +2095,12 @@ export function getAQAGCSEComputerScienceQuestionPrompt(
 
     hard: `Create an AO3 question requiring analysis, evaluation, or complex programming.
 
-**Question Types for Hard (5-8 marks):**
+**Question Types for Hard (6-8 marks):**
 - "Write a program that..." [6-8 marks]
   (Complex requirements with validation, loops, arrays)
-- "The code contains errors. Identify and correct them" [4-6 marks]
+- "The code contains errors. Identify and correct them" [6-8 marks]
 - "Discuss the [ethical/legal/social] implications of..." [6 marks - extended response]
-- "Evaluate [approach A] and [approach B] for [scenario]" [6 marks]
+- "Evaluate [approach A] and [approach B] for [scenario]" [6-8 marks]
 - "Design an algorithm to..." [6-8 marks]
 
 **Mark Scheme Format:**
@@ -2105,7 +2117,7 @@ ${AQA_CS_PRINCIPLES}
 **Topic**: ${topic.name}
 **Subtopic**: ${subtopic || 'General'}
 **Difficulty**: ${difficulty}
-**Mark Range**: ${markRange.min}-${markRange.max} marks
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${topicGuidance}
 

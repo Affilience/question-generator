@@ -10,6 +10,27 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 // AQA A-LEVEL PSYCHOLOGY SPECIFICATION DETAILS (7182)
 // ============================================================================
 
+const AQA_ALEVEL_PSYCH_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, basic explanation | Identify, name, outline concepts; straightforward knowledge retrieval |
+| **Medium** | Application, explanation, basic evaluation | Apply knowledge to scenarios; explain processes; outline strengths/limitations |
+| **Hard** | Analysis, evaluation, synthesis | Discuss theories critically; evaluate research comprehensively; weigh competing explanations |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires balanced AO1 (knowledge) AND AO3 (evaluation) throughout
+- Demands critical analysis of research methodology, samples, and ecological validity
+- Must weigh competing theoretical explanations and reach justified conclusions
+- Requires application of Issues and Debates (e.g., determinism, reductionism, ethics)
+- No single "correct" conclusion - student must construct argument using evidence
+
+**Easy (2-6 marks):** Knowledge recall - identify, outline, describe with brief elaboration
+**Medium (8 marks):** Application and evaluation - explain in context with evaluation points
+**Hard (16 marks):** Critical discussion - thorough AO1 + effective AO3 throughout
+`;
+
 const AQA_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level Psychology Assessment Objectives
 
@@ -2679,6 +2700,8 @@ export function getAQAALevelPsychologySystemPrompt(topic: Topic, difficulty: Dif
 
   return `You are an expert AQA A-Level Psychology examiner creating exam-style questions.
 
+${AQA_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_PSYCH_QUESTION_TEMPLATES}
@@ -2751,7 +2774,7 @@ export function getAQAALevelPsychologyQuestionPrompt(topic: Topic, difficulty: D
 
 ${topicGuidance.easy}
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring application or evaluation (AO2/AO3).
 
@@ -2774,7 +2797,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 ${topicGuidance.medium}
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 16-mark essay question requiring discussion/evaluation (AO1 + AO3).
 
@@ -2800,7 +2823,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 ${topicGuidance.hard}
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const enhancedMarkSchemeGuidance = getEnhancedEssayMarkSchemePrompt('psychology', difficulty);

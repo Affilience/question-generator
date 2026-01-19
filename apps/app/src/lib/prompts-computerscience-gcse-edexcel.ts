@@ -4,7 +4,19 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/computer-science-2020.html
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Computer Science mark ranges based on Edexcel specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Application and explanation questions
+    case 'hard':
+      return { min: 6, max: 8 };    // Extended response and programming questions
+  }
+}
 
 // ============================================================================
 // EDEXCEL GCSE COMPUTER SCIENCE SPECIFICATION DETAILS (1CP2)
@@ -2358,29 +2370,29 @@ export function getEdexcelGCSEComputerScienceQuestionPrompt(
   const difficultyGuidance = {
     easy: `Create an AO1 question testing basic knowledge.
 
-**Question Types for Easy:**
+**Question Types for Easy (1-3 marks):**
 - "Define the term [term]" (1-2 marks)
-- "State one advantage of..." (1 mark)
-- "Give two reasons why..." (2 marks)
-- "Convert [number] from binary to denary" (2 marks)
-- "Name one type of malware" (1 mark)
+- "State one advantage of..." (1-2 marks)
+- "Give two reasons why..." (2-3 marks)
+- "Convert [number] from binary to denary" (2-3 marks)
+- "Name one type of malware" (1-2 marks)
 
 **Mark Scheme Format:**
 - One clear mark point per mark
 - Include acceptable alternatives
 - Brief, factual responses expected
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`,
 
     medium: `Create an AO2 application question.
 
-**Question Types for Medium:**
-- "Explain how [concept] works" (3-4 marks)
-- "Describe the process of..." (3-4 marks)
-- "State the output when this code is executed with input [X]" (2-3 marks)
-- "Complete the Python code to..." (3-4 marks)
-- "Calculate the file size of..." (3-4 marks)
-- "Write an SQL query to..." (3-4 marks)
+**Question Types for Medium (4-6 marks):**
+- "Explain how [concept] works" (4-5 marks)
+- "Describe the process of..." (4-5 marks)
+- "State the output when this code is executed with input [X]" (4-5 marks)
+- "Complete the Python code to..." (4-6 marks)
+- "Calculate the file size of..." (4-5 marks)
+- "Write an SQL query to..." (4-5 marks)
 
 **Mark Scheme Format:**
 - Mark points for each key concept
@@ -2388,11 +2400,11 @@ Marks: ${markRange.min}-${markRange.max}`,
 - For calculations: show working for method marks
 - Note any acceptable variations
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`,
 
     hard: `Create an AO3 analysis/evaluation question.
 
-**Question Types for Hard:**
+**Question Types for Hard (6-8 marks):**
 - "Write a Python program that..." (6-8 marks)
   - Include clear requirements
   - May need validation
@@ -2409,7 +2421,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - For code: mark for key functionality points
 - Accept alternative correct solutions
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`
   };
 
   return `Generate an Edexcel GCSE Computer Science question.

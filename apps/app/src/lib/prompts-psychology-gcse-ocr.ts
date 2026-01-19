@@ -37,6 +37,21 @@ const OCR_GCSE_PSYCH_ASSESSMENT_OBJECTIVES = `
 - **Explain**: Give reasons; make clear (AO1/AO2)
 - **Evaluate**: Consider strengths/weaknesses; judgement (AO3)
 - **Discuss**: Present different viewpoints; reach conclusion (AO1/AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, recognition | Name terms, state features, identify components from memory |
+| **Medium** | Description, explanation, application | Describe processes in detail, explain how/why, apply to scenarios |
+| **Hard** | Evaluation, critical analysis, synthesis | Assess strengths/limitations, compare approaches, make judgements about evidence quality |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires critical evaluation of psychological research (methodology, ethics, validity)
+- Must balance multiple perspectives (biological vs social explanations)
+- Demands application of evaluative skills (reliability, generalisability, ecological validity)
+- Requires sustained argument with evidence from studies
+- Must reach justified conclusions about theories or research
 `;
 
 const OCR_GCSE_PSYCH_QUESTION_TEMPLATES = `
@@ -1349,7 +1364,7 @@ export function getOCRGCSEPsychologyQuestionPrompt(topic: Topic, difficulty: Dif
 - Features of theories/studies
 - Basic concepts from the specification
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring description, explanation, or application (AO1/AO2).
 
@@ -1370,7 +1385,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Explain: Point (1) + Explanation (1) + Elaboration (1) + Example/Link (1)
 - Application: Knowledge shown (up to 2) + Application to scenario (up to 2)
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 13-mark synoptic extended response (AO1 + AO3).
 
@@ -1400,7 +1415,7 @@ Marks: ${markRange.min}-${markRange.max}`,
   - Evaluation points to make
   - Possible synoptic links
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR GCSE Psychology question.
@@ -1434,14 +1449,18 @@ Return valid JSON:
 // HELPER FUNCTIONS
 // ============================================================================
 
+/**
+ * Psychology GCSE mark ranges based on OCR specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 3 };
+      return { min: 1, max: 3 };   // State, identify, outline - basic recall
     case 'medium':
-      return { min: 4, max: 6 };
+      return { min: 4, max: 8 };   // Describe, explain, apply to scenario
     case 'hard':
-      return { min: 13, max: 13 };
+      return { min: 10, max: 15 }; // Evaluate, discuss, extended response requiring analysis and judgement
   }
 }
 

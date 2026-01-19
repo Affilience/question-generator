@@ -39,6 +39,21 @@ const EDEXCEL_GCSE_HIST_ASSESSMENT_OBJECTIVES = `
 - **How useful**: Evaluate the source for a specific enquiry
 - **How far do you agree**: Make and support a judgement
 - **Give two things you can infer**: Deduce from source
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, description | Describe features, infer from sources, state facts from memory |
+| **Medium** | Explanation, source analysis, interpretation | Explain causes/consequences, analyse source utility, interpret evidence |
+| **Hard** | Evaluation, synthesis, sustained judgement | Assess "how far" questions, evaluate interpretations, construct sustained arguments with conclusion |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of multiple factors and their relative importance
+- Must critically assess sources or interpretations (not just describe them)
+- Demands synthesis of knowledge across different aspects of a period/topic
+- Requires reaching and sustaining a judgement throughout the response
+- Must consider counter-arguments and weigh evidence before concluding
 `;
 
 const EDEXCEL_GCSE_HIST_QUESTION_TEMPLATES = `
@@ -1337,7 +1352,7 @@ export function getEdexcelGCSEHistoryQuestionPrompt(topic: Topic, difficulty: Di
 - "Describe two features of..." [4 marks]
 - "Give two things you can infer from Source A about..." [4 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an explain or source-based question (AO1/AO2/AO3).
 
@@ -1345,7 +1360,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - "Explain why [event/development occurred]" [12 marks]
 - "How useful are Sources A and B for an enquiry into...?" [8 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 16-mark extended response requiring evaluation (AO1/AO2).
 
@@ -1361,7 +1376,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Note: 16-mark questions also carry 4 SPaG marks.
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   // Include relevant topic knowledge section if available

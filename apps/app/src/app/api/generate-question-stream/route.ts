@@ -1240,14 +1240,14 @@ export async function POST(request: NextRequest) {
           markScheme: cached.markScheme,
         };
 
-        // Simulate streaming by sending content in chunks with realistic typing speed
+        // Simulate streaming by sending content in chunks with fast but smooth typing speed
         const readable = new ReadableStream({
           async start(controller) {
             const content = cached.content;
-            const chunkSize = 2; // Smaller chunks for smoother typing
-            const baseDelayMs = 35; // Base delay between chunks
-            // Add some randomness to make it feel more natural
-            const getDelay = () => baseDelayMs + Math.floor(Math.random() * 20);
+            const chunkSize = 4; // Larger chunks for faster display
+            const baseDelayMs = 8; // Fast base delay between chunks
+            // Add minimal randomness to keep it smooth
+            const getDelay = () => baseDelayMs + Math.floor(Math.random() * 4);
 
             // Stream the content in chunks
             for (let i = 0; i < content.length; i += chunkSize) {
@@ -1339,8 +1339,8 @@ export async function POST(request: NextRequest) {
       let contentComplete = false;
       let pendingContent = '';
       let lastFlushTime = Date.now();
-      const FLUSH_INTERVAL = 50; // Flush every 50ms for smooth typing
-      const MIN_CHARS = 3; // Or when we have at least 3 chars
+      const FLUSH_INTERVAL = 15; // Flush every 15ms for fast display
+      const MIN_CHARS = 5; // Or when we have at least 5 chars
 
       // Helper to flush pending content
       const flushContent = (controller: ReadableStreamDefaultController) => {

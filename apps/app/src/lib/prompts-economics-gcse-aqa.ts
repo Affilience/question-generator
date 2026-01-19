@@ -7,8 +7,24 @@ import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 import {
   getVarietyParameters,
-  getMarkRangeForDifficulty,
 } from './prompts-common';
+
+/**
+ * Economics GCSE mark ranges based on AQA specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };   // Define, state, identify - basic recall and understanding
+    case 'medium':
+      return { min: 4, max: 6 };   // Explain, calculate, apply - application and analysis
+    case 'hard':
+      return { min: 7, max: 9 };   // Analyse, evaluate - extended response requiring judgement
+    default:
+      return { min: 1, max: 6 };
+  }
+}
 
 // ============================================================================
 // AQA GCSE ECONOMICS SPECIFICATION DETAILS (8136)
@@ -54,6 +70,21 @@ Both papers contain:
 - At least 10% of marks reward quantitative skills
 - Both papers require extended responses
 - Requires application of knowledge across the course
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, basic comprehension | Define terms, state features, identify economic concepts from memory |
+| **Medium** | Application, analysis, interpretation | Apply concepts to scenarios, explain economic relationships, analyse data |
+| **Hard** | Evaluation, synthesis, sustained judgement | Evaluate policies, assess economic impacts, construct arguments weighing costs and benefits |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of economic policies considering multiple stakeholders
+- Must weigh competing economic objectives (e.g., growth vs environment)
+- Demands understanding of economic trade-offs and opportunity costs
+- Requires sustained argument with economic reasoning throughout
+- Must reach justified conclusions about economic issues
 `;
 
 const AQA_GCSE_ECON_QUESTION_TEMPLATES = `
@@ -3113,7 +3144,7 @@ export function getAQAGCSEEconomicsQuestionPrompt(topic: Topic, difficulty: Diff
 - For explains: develop using Point → Explanation → Impact chain
 - For calculations: show all working clearly with correct units
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an ANALYSIS question requiring chains of reasoning (AO2/AO3).
 
@@ -3136,7 +3167,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 **For context, create a brief economic scenario (2-3 sentences) or use real data.**
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an EVALUATION question requiring balanced judgement (AO3).
 
@@ -3159,7 +3190,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Economic terminology throughout
 - Reference to real-world examples or data where appropriate
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an AQA GCSE Economics question.

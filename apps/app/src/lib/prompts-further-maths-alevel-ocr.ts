@@ -14,6 +14,31 @@ import {
  */
 
 // ============================================================================
+// OCR A-LEVEL FURTHER MATHS COGNITIVE CHALLENGE
+// ============================================================================
+
+const OCR_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, standard methods, single-step | Apply standard procedures, single concept, routine calculations |
+| **Medium** | Multi-step problem solving, method selection | Chain multiple techniques, select appropriate methods, prove standard results |
+| **Hard** | Proof construction, novel applications, synthesis | Construct proofs from first principles, apply to unfamiliar contexts, synthesise across topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires constructing mathematical proofs with logical rigour
+- Demands selection and combination of techniques from across the specification
+- Must handle abstract concepts and generalise to unfamiliar cases
+- Requires extended chains of mathematical reasoning
+- No single approach - student must devise their own proof strategy
+
+**Easy (2-4 marks):** Standard calculations and routine procedures
+**Medium (5-8 marks):** Multi-step problems and standard proofs
+**Hard (9-15 marks):** Proof construction and novel problem-solving
+`;
+
+// ============================================================================
 // OCR A-LEVEL FURTHER MATHS KEY CONTENT
 // ============================================================================
 
@@ -198,6 +223,59 @@ const OCR_FM_MARK_SCHEME = `
 - Proof by induction must include all required steps for full marks
 - Vector equations may be expressed in different equivalent parametric forms
 - Hyperbolic function answers may use inverse notation (arsinh, arcosh) or logarithmic form
+
+### Worked Examples with Mark Schemes
+
+**Example 1: Complex Number Roots (5 marks)**
+*Question:* Find the cube roots of z = 8i, expressing answers in the form re^(iθ)
+
+*Mark Scheme:*
+- B1: Writes 8i = 8e^(iπ/2) (modulus-argument form)
+- M1: Applies z^(1/3) = 8^(1/3) × e^(i(π/2 + 2kπ)/3) for k = 0, 1, 2
+- A1: First root: 2e^(iπ/6)
+- A1: Second root: 2e^(i5π/6)
+- A1: Third root: 2e^(i3π/2) or 2e^(-iπ/2) (all three roots cao)
+
+**Example 2: Vectors and Planes (6 marks)**
+*Question:* Find the shortest distance from point P(1, 2, 3) to the plane 2x - y + 2z = 9
+
+*Mark Scheme:*
+- B1: Identifies normal vector n = (2, -1, 2)
+- M1: Uses formula d = |ax₀ + by₀ + cz₀ - d|/√(a² + b² + c²)
+- A1: Substitutes: |2(1) - 1(2) + 2(3) - 9|/√(4 + 1 + 4)
+- A1: Numerator = |2 - 2 + 6 - 9| = |-3| = 3
+- A1: Denominator = √9 = 3
+- A1: Distance = 1 unit (cao)
+
+**Example 3: Maclaurin Series (6 marks)**
+*Question:* Find the Maclaurin series for ln(1 + x) up to and including the term in x⁴
+
+*Mark Scheme:*
+- M1: Differentiates f(x) = ln(1 + x) repeatedly
+- A1: f'(x) = 1/(1+x), f''(x) = -1/(1+x)², f'''(x) = 2/(1+x)³, f⁽⁴⁾(x) = -6/(1+x)⁴
+- B1: States f(0) = 0
+- A1: Evaluates f'(0) = 1, f''(0) = -1, f'''(0) = 2, f⁽⁴⁾(0) = -6
+- M1: Applies Maclaurin formula
+- A1: ln(1 + x) = x - x²/2 + x³/3 - x⁴/4 + ... (cao)
+
+**Example 4: Differential Equations (8 marks)**
+*Question:* Solve dy/dx + y tan(x) = sec(x), given y = 2 when x = 0
+
+*Mark Scheme:*
+- M1: Identifies as first-order linear, finds integrating factor
+- A1: I.F. = e^∫tan(x)dx = sec(x)
+- M1: Multiplies through by I.F.
+- A1: d/dx(y sec(x)) = sec²(x)
+- M1: Integrates both sides
+- A1: y sec(x) = tan(x) + C
+- M1: Applies boundary condition y(0) = 2
+- A1: C = 2, giving y = sin(x) + 2cos(x) (cao)
+
+### Alternative Method Guidance
+- Vector distance: parametric line method equally valid
+- Complex roots: De Moivre's theorem or direct approach both accepted
+- Integration: substitution and parts may both be valid depending on integral
+- Differential equations: separation of variables where applicable equally valid
 
 ### Misread Rule
 For misreading which does not alter the character of a question or materially simplify it:
@@ -1867,6 +1945,8 @@ const OCR_FM_QUESTION_PRINCIPLES = `# OCR A-Level Further Mathematics: Question 
 
 ${OCR_FM_ASSESSMENT_OBJECTIVES}
 
+${OCR_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE}
+
 ${OCR_FM_EXAM_STRUCTURE}
 
 ${OCR_FM_MARK_SCHEME}
@@ -2100,7 +2180,7 @@ export function getOCRALevelFurtherMathsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${OCR_FM_KEY_FORMULAE}
 

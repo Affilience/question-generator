@@ -31,6 +31,21 @@ const EDEXCEL_GCSE_ENG_LIT_ASSESSMENT_OBJECTIVES = `
 - Extract-based essay (19th-century novel, 40 marks)
 - Comparative poetry essay (Poetry anthology, 30 marks)
 - Single poem analysis + comparison (Unseen poetry, 15+15 marks)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recognition, basic analysis, supported response | Identify techniques, basic analysis of extract/poem, reference to text |
+| **Medium** | Developed analysis, interpretation, contextual understanding | Analyse language/structure/form, explore meanings, consider context |
+| **Hard** | Critical evaluation, conceptualised response, synthesis | Exploratory argument, confident analysis of writer's methods, perceptive exploration of ideas |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires assured, cogent engagement with the whole text (not just extract)
+- Must develop a conceptualised argument rather than point-by-point analysis
+- Demands confident analysis of writer's methods with thoughtful terminology
+- Requires sustained personal interpretation with judicious textual support
+- Must integrate context as perceptive exploration, not surface-level facts
 `;
 
 const EDEXCEL_GCSE_ENG_LIT_MARK_SCHEME = `
@@ -1011,7 +1026,7 @@ export function getEdexcelGCSEEnglishLiteratureQuestionPrompt(topic: Topic, diff
 - Level 2 (4-6): Some awareness; some references
 - Level 1 (1-3): Simple comments; limited reference
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 30-40 mark essay question (with or without extract).
 
@@ -1035,7 +1050,7 @@ For Poetry comparison:
 - Level 2 (9-16): Some response; some understanding; some references
 - Level 1 (1-8): Simple; limited understanding; limited references
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 40-48 mark question (40 marks + up to 8 AO4) requiring sophisticated analysis.
 
@@ -1057,7 +1072,7 @@ Include requirement: "You must refer to the context of the play/novel in your an
 - Perceptive exploration of contextual factors
 - Effective control of meaning; highly accurate spelling and punctuation
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const textKnowledgePrompt = textKnowledge
@@ -1097,13 +1112,18 @@ Return valid JSON:
 }`;
 }
 
+/**
+ * English Literature GCSE mark ranges based on Edexcel specification.
+ * Ranges reflect question types: unseen poetry (15), text essays (30-40), extended comparison (40-48).
+ * Note: English Lit has fixed mark questions tied to specific formats.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 15, max: 15 };
+      return { min: 15, max: 20 }; // Unseen poetry analysis, focused extract questions
     case 'medium':
-      return { min: 30, max: 40 };
+      return { min: 25, max: 40 }; // Single text essay, character/theme analysis
     case 'hard':
-      return { min: 40, max: 48 };
+      return { min: 40, max: 50 }; // Extended comparison, full essay requiring synthesis and evaluation
   }
 }

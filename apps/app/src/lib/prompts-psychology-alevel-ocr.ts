@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // OCR A-LEVEL PSYCHOLOGY SPECIFICATION DETAILS (H567)
 // ============================================================================
 
+const OCR_ALEVEL_PSYCH_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, outline, basic description | Outline concepts, describe studies, identify features |
+| **Medium** | Application, comparison, basic evaluation | Explain in context; compare approaches/studies; evaluate with some development |
+| **Hard** | Synthesis, critical evaluation, synoptic judgement | Discuss debates; evaluate comprehensively; synoptic analysis across specification |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires synoptic thinking across components and topics
+- Demands sustained critical evaluation with clear judgement throughout
+- Must compare and evaluate core studies with contemporary research
+- Requires application of psychological knowledge to real-world issues
+- No single "correct" position - student must construct balanced, evidence-based arguments
+
+**Easy (2-6 marks):** Knowledge recall - outline, describe, identify with basic development
+**Medium (8-12 marks):** Application and evaluation - explain, compare, evaluate with developing critique
+**Hard (15-20 marks):** Synoptic discussion - sustained argument drawing across specification with thorough AO3
+`;
+
 const OCR_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level Psychology Assessment Objectives
 
@@ -1125,6 +1146,8 @@ export function getOCRALevelPsychologySystemPrompt(topic: Topic, difficulty: Dif
 
   return `You are an expert OCR A-Level Psychology examiner creating exam-style questions.
 
+${OCR_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_PSYCH_QUESTION_TEMPLATES}
@@ -1184,7 +1207,7 @@ export function getOCRALevelPsychologyQuestionPrompt(topic: Topic, difficulty: D
 - 2 marks: Identification + brief elaboration
 - 4 marks: Detailed description with key points
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring evaluation or comparison (AO3).
 
@@ -1204,7 +1227,7 @@ Include indicative content covering:
 - Evaluation points for AO3
 - Use of research evidence
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 15-20 mark extended response.
 
@@ -1226,7 +1249,7 @@ Include indicative content covering:
 - Issues and debates integration
 - Synoptic links where appropriate
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level Psychology question.

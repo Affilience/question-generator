@@ -10,6 +10,27 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 // AQA A-LEVEL HISTORY SPECIFICATION DETAILS (7042)
 // ============================================================================
 
+const AQA_ALEVEL_HIST_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, explanation | Single factor, direct knowledge retrieval, causal explanation |
+| **Medium** | Analysis, interpretation, evaluation of sources | Source evaluation using provenance, content, and context |
+| **Hard** | Synthesis, evaluation, sustained judgement | Weigh multiple historiographical interpretations, construct balanced arguments, reach substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluating competing historiographical interpretations (named historians)
+- Demands synthesis across multiple factors and time periods
+- Must construct a thesis and sustain an argument throughout
+- Requires explicit judgement with substantiation
+- No single "correct" answer - student must justify their position using evidence and historical reasoning
+
+**Easy (8 marks):** Direct recall and explanation - identify reasons/factors and explain how they caused an outcome
+**Medium (12 marks):** Source analysis - requires evaluating reliability, utility, and limitations using context
+**Hard (25 marks):** Historiographical synthesis - requires engaging with academic debates and reaching independent conclusions
+`;
+
 const AQA_ALEVEL_HIST_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level History Assessment Objectives
 
@@ -1788,6 +1809,8 @@ export function getAQAALevelHistorySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert AQA A-Level History examiner creating exam-style questions.
 
+${AQA_ALEVEL_HIST_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_HIST_QUESTION_TEMPLATES}
@@ -1848,7 +1871,7 @@ export function getAQAALevelHistoryQuestionPrompt(topic: Topic, difficulty: Diff
 - Explain causal links, not just describe
 - Show understanding of historical context
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a source analysis question (AO2).
 
@@ -1873,7 +1896,7 @@ Sources should:
 - Consider limitations and bias
 - Reach overall judgement on value
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 25-mark extended essay question requiring evaluation (AO1).
 
@@ -1896,7 +1919,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Substantiated judgement in conclusion
 - Synoptic links where appropriate
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const enhancedMarkSchemeGuidance = getEnhancedEssayMarkSchemePrompt('history', difficulty);

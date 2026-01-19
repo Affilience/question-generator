@@ -38,6 +38,21 @@ const EDEXCEL_GCSE_PSYCH_ASSESSMENT_OBJECTIVES = `
 - **Explain**: Give reasons; make clear (AO1/AO2)
 - **Evaluate**: Consider strengths/weaknesses to judge (AO3)
 - **Discuss**: Present arguments; reach conclusion (AO1/AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, recognition | Name terms, state features, identify components from memory |
+| **Medium** | Description, explanation, application | Describe processes in detail, explain how/why, apply to scenarios |
+| **Hard** | Evaluation, critical analysis, synthesis | Assess strengths/limitations, compare approaches, make judgements about evidence quality |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires critical evaluation of psychological research (methodology, ethics, validity)
+- Must balance multiple perspectives (biological vs social explanations)
+- Demands application of evaluative skills (reliability, generalisability, ecological validity)
+- Requires sustained argument with evidence from studies
+- Must reach justified conclusions about theories or research
 `;
 
 const EDEXCEL_GCSE_PSYCH_QUESTION_TEMPLATES = `
@@ -1114,7 +1129,7 @@ export function getEdexcelGCSEPsychologyQuestionPrompt(topic: Topic, difficulty:
 - 1 mark per correct point
 - Accept equivalent wording
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring description or application (AO1/AO2).
 
@@ -1132,7 +1147,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Award marks for: identification, explanation, elaboration, application
 - Be specific about what earns each mark
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 9-mark extended writing question (AO1 + AO3).
 
@@ -1152,7 +1167,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Use of psychological terminology
 - Clear conclusion
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel GCSE Psychology question.
@@ -1350,13 +1365,17 @@ OUTPUT FORMAT (use exact headers):
 [Full worked answer with clear reasoning and psychological terminology]`;
 }
 
+/**
+ * Psychology GCSE mark ranges based on Edexcel specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 3 };
+      return { min: 1, max: 3 };   // Define, identify, outline - basic recall
     case 'medium':
-      return { min: 4, max: 6 };
+      return { min: 4, max: 6 };   // Describe, explain, apply to scenario
     case 'hard':
-      return { min: 9, max: 9 };
+      return { min: 9, max: 12 };  // Evaluate, discuss, extended response requiring analysis and judgement
   }
 }

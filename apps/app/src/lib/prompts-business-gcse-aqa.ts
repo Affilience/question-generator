@@ -44,6 +44,21 @@ const AQA_GCSE_BUS_ASSESSMENT_OBJECTIVES = `
 - **Evaluate**: Judge from available evidence; consider various viewpoints to reach a conclusion (AO3)
 - **Justify**: Support a case with evidence/argument (AO3)
 - **Recommend**: Suggest a course of action with reasons (AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, basic comprehension | Single concept, direct knowledge retrieval, no context needed, straightforward definitions |
+| **Medium** | Application, analysis, interpretation | Apply knowledge to business scenario, explain cause/effect relationships, interpret data, link concepts |
+| **Hard** | Evaluation, synthesis, sustained judgement | Weigh competing factors, make justified recommendations, analyse complex scenarios, construct balanced arguments with conclusion |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires weighing multiple factors against each other
+- No single "correct" answer - student must justify their position
+- Demands integration of knowledge from multiple topic areas
+- Requires awareness of context and stakeholder perspectives
+- Must reach and justify a conclusion or recommendation
 `;
 
 const AQA_GCSE_BUS_QUESTION_TEMPLATES = `
@@ -1968,7 +1983,7 @@ export function getAQAGCSEBusinessQuestionPrompt(topic: Topic, difficulty: Diffi
 - For explains: develop using Point → Explanation → Impact chain
 - For calculations: show all working clearly
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an ANALYSIS question requiring chains of reasoning (AO2/AO3).
 
@@ -1991,7 +2006,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 **For context, create a brief business scenario (2-3 sentences) that sets up the analysis question.**
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an EVALUATION question requiring balanced judgement (AO3).
 
@@ -2027,7 +2042,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Clear decision/dilemma to evaluate
 - For 12-mark: two clear options to compare
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an AQA GCSE Business question.
@@ -2143,13 +2158,17 @@ IMPORTANT: Create a realistic, believable scenario that a real GCSE student coul
 }
 
 // Helper function for mark ranges
+/**
+ * Business GCSE mark ranges based on AQA specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 4 };
+      return { min: 1, max: 4 };   // Define, state, identify, simple explain
     case 'medium':
-      return { min: 6, max: 6 };
+      return { min: 5, max: 6 };   // Analyse, application questions
     case 'hard':
-      return { min: 9, max: 12 };
+      return { min: 9, max: 12 };  // Evaluate, extended response (justify/recommend)
   }
 }

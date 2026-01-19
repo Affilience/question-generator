@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // EDEXCEL A-LEVEL GEOGRAPHY SPECIFICATION DETAILS (9GE0)
 // ============================================================================
 
+const EDEXCEL_ALEVEL_GEOG_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, explanation, basic understanding | Explain processes (e.g., coastal erosion, plate tectonics), describe patterns, outline characteristics using specific terminology |
+| **Medium** | Analysis, application, evaluation | Analyse data/resources, assess relative importance of factors, compare case studies, apply knowledge to unfamiliar contexts |
+| **Hard** | Synthesis, critical evaluation, judgement | Evaluate complex geographical debates, synthesise evidence across multiple scales/contexts, reach substantiated judgements on contested issues |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of knowledge across multiple topics (synoptic thinking)
+- Demands critical evaluation of geographical theories (Rostow, Wallerstein, Harvey, Massey)
+- No single "correct" answer - requires weighing competing perspectives and evidence
+- Must construct original arguments using detailed case study evidence
+- Requires awareness of scale interactions (local/regional/national/global)
+
+**Easy (4-8 marks):** Demonstrate knowledge of geographical processes and concepts with specific examples. Questions test understanding and ability to explain.
+**Medium (8-12 marks):** Apply knowledge to analyse data, assess importance of factors, or compare contrasting examples. Requires evaluation and judgement.
+**Hard (20 marks):** Synthesise knowledge across topics to evaluate complex geographical issues. Demands sustained argument with evidence-based conclusions.
+`;
+
 const EDEXCEL_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES = `
 ## Edexcel A-Level Geography Assessment Objectives
 
@@ -1667,6 +1688,8 @@ export function getEdexcelALevelGeographySystemPrompt(topic: Topic, difficulty: 
 
   return `You are an expert Edexcel A-Level Geography examiner creating exam-style questions.
 
+${EDEXCEL_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_ALEVEL_GEOG_QUESTION_TEMPLATES}
@@ -1726,7 +1749,7 @@ export function getEdexcelALevelGeographyQuestionPrompt(topic: Topic, difficulty
 - Use specific terminology
 - Can reference a brief figure/data
 
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 **Example 4-mark answer structure:**
 Point 1 + development/example = 2 marks
@@ -1756,7 +1779,7 @@ Point 2 + development/example = 2 marks`,
 - Level 2 (5-8): Some knowledge; partial analysis; some evaluation
 - Level 1 (1-4): Basic knowledge; limited analysis; little evaluation
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 20-mark extended response requiring evaluation (AO1 + AO2).
 
@@ -1786,7 +1809,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Theoretical framework references
 - Substantiated conclusion
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel A-Level Geography question.

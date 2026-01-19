@@ -2,7 +2,19 @@
 // Tailored to AQA specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Biology mark ranges based on AQA specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };    // Short answer questions
+    case 'medium':
+      return { min: 6, max: 9 };    // Extended response questions
+    case 'hard':
+      return { min: 15, max: 25 };  // Essay questions
+  }
+}
 
 // ============================================================================
 // AQA A-LEVEL BIOLOGY SPECIFICATION DETAILS (7402)
@@ -180,6 +192,32 @@ const AQA_SPECIFICATION_OVERVIEW = `
 - Reported as Pass or Not Classified
 - Based on teacher assessment of 12 Required Practicals
 - Competencies: CPAC 1-5 (Common Practical Assessment Criteria)
+`;
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const AQA_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, label diagrams, recall processes, simple magnification calculations |
+| **Medium** | Application, data interpretation, explanation | Apply concepts to unfamiliar organisms, interpret graphs and tables, explain adaptations and processes |
+| **Hard** | Analysis, evaluation, synthesis, essay writing | Analyse experimental data, evaluate methods, design investigations, synoptic essays linking multiple topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., linking genetics with evolution)
+- Demands analysis of unfamiliar experimental data or contexts
+- Must evaluate experimental design and suggest improvements
+- Requires extended written responses with clear scientific reasoning
+- Essay questions requiring synthesis across the specification
+- No single approach - student must select and justify methodology
+
+**Easy (2-4 marks):** Knowledge recall, simple labelling, basic calculations
+**Medium (6-9 marks):** Data interpretation, explanation questions, application to new contexts
+**Hard (15-25 marks):** Extended response essays, experimental evaluation, synoptic analysis
 `;
 
 const AQA_ASSESSMENT_OBJECTIVES = `
@@ -3672,6 +3710,38 @@ Mark Scheme Conventions:
   - Level 1 (1-2 marks): Basic understanding, limited terminology
 - 25-mark essays: indicative content with levels
 
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Biology calculations and explanations often have multiple valid approaches. Award full marks for ANY correct method.
+
+**Example 1: Magnification calculations**
+Accept:
+- Magnification = Image size ÷ Actual size (then rearrange)
+- Direct substitution into rearranged formula
+- Triangle method if working shown
+
+**Example 2: Water potential calculations**
+Accept:
+- Ψ = Ψs + Ψp direct calculation
+- Working through from concentration data
+- Graphical interpolation method
+
+**Example 3: Cardiac output**
+Accept both:
+- CO = SV × HR
+- SV = CO ÷ HR (rearranged)
+
+**Example 4: Chi-squared calculations**
+Accept:
+- Full table method
+- Condensed formula application: Σ(O-E)²/E
+
+**Example 5: Ecological sampling**
+Accept alternative valid methods for:
+- Quadrat placement (random vs systematic)
+- Density calculations (per quadrat vs per m²)
+- Simpson's Index formula variations (D or 1-D)
+
 ## Key Definitions (A-Level Standard)
 
 **Biological Molecules:**
@@ -3799,10 +3869,13 @@ export function getAQAALevelBiologyCompactPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `You are an expert AQA A-Level Biology examiner creating an exam-style question.
 
 ${AQA_ALEVEL_BIOLOGY_PRINCIPLES}
+
+${AQA_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE}
 
 Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
@@ -3810,26 +3883,26 @@ Difficulty: ${difficulty}
 
 ${topicGuidance}
 
-DIFFICULTY GUIDE:
-- Easy (1-3 marks): Recall, definitions, simple applications
-- Medium (4-6 marks): Detailed explanations, data analysis, short calculations
-- Hard (7+ marks): Extended responses, synoptic, complex calculations
+DIFFICULTY AND MARK ALLOCATION:
+- Easy: 2-4 marks (Recall, definitions, simple applications)
+- Medium: 6-9 marks (Detailed explanations, data analysis)
+- Hard: 15-25 marks (Extended responses with level descriptors, synoptic essays, complex multi-part questions)
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
 Create ONE exam-style question that:
 1. Uses authentic AQA A-Level Biology language
 2. Tests understanding appropriate to A-Level standard
-3. Includes proper mark allocation
-4. Matches the difficulty level specified
+3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
+4. Matches the ${difficulty} difficulty level
 
-OUTPUT FORMAT (use exact headers):
-**Question:**
-[Question text with mark allocation in brackets, e.g. [4 marks]]
-
-**Mark Scheme:**
-[Marking points - one point per mark available]
-
-**Explanation:**
-[Full worked answer with clear reasoning]`;
+Return a JSON object with this exact structure:
+{
+  "content": "The full question text including mark allocation [X marks]",
+  "marks": <number between ${markRange.min} and ${markRange.max}>,
+  "solution": "Full worked answer with clear reasoning",
+  "markScheme": ["Mark point 1", "Mark point 2", ...]
+}`;
 }
 
 // Generate extended response question prompt

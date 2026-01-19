@@ -4,12 +4,45 @@
 // Comprehensive version with detailed topic knowledge and worked examples
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Computer Science mark ranges based on AQA specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };    // Short answer questions
+    case 'medium':
+      return { min: 6, max: 9 };    // Application and algorithm questions
+    case 'hard':
+      return { min: 12, max: 20 };  // Extended response and programming questions
+  }
+}
 
 // ============================================================================
 // AQA A-LEVEL COMPUTER SCIENCE SPECIFICATION DETAILS (7517)
 // Based on official AQA specification and past paper analysis
 // ============================================================================
+
+const AQA_ALEVEL_CS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, tracing | Define terms, identify components, trace algorithms |
+| **Medium** | Application, implementation, analysis | Write code for given problems, analyse algorithm efficiency, explain data structures |
+| **Hard** | Design, evaluation, optimisation | Design algorithms/systems, evaluate trade-offs, optimise solutions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires designing solutions to novel problems
+- Demands evaluation of algorithmic efficiency and trade-offs
+- Must consider real-world constraints and edge cases
+- Requires integration of theory with practical implementation
+- No single optimal solution - student must justify design choices
+
+**Easy (1-4 marks):** Knowledge recall and algorithm tracing
+**Medium (4-9 marks):** Implementation and analysis
+**Hard (9-20 marks):** Design and evaluation with justification
+`;
 
 const AQA_ALEVEL_CS_ASSESSMENT_OBJECTIVES = `
 ## AQA A-Level Computer Science Assessment Objectives
@@ -2966,6 +2999,8 @@ export function getAQAALevelComputerScienceSystemPrompt(topic: Topic, difficulty
 
   return `You are an expert AQA A-Level Computer Science examiner creating exam-style questions.
 
+${AQA_ALEVEL_CS_COGNITIVE_CHALLENGE}
+
 ${AQA_ALEVEL_CS_ASSESSMENT_OBJECTIVES}
 
 ${AQA_ALEVEL_CS_PSEUDOCODE}
@@ -3006,49 +3041,49 @@ export function getAQAALevelComputerScienceQuestionPrompt(topic: Topic, difficul
   const difficultyGuidance = {
     easy: `Create a question testing fundamental A-Level knowledge.
 
-**Question Types for Easy:**
-- "Define [term]" [2 marks]
-- "State the time complexity of [algorithm]" [1-2 marks]
-- "Identify the [component/feature] of..." [2 marks]
-- "Convert [expression] to Reverse Polish Notation" [2-3 marks]
-- "State one advantage/disadvantage of..." [2 marks]
+**Question Types for Easy (2-4 marks):**
+- "Define [term]" [2-3 marks]
+- "State the time complexity of [algorithm]" [2-3 marks]
+- "Identify the [component/feature] of..." [2-4 marks]
+- "Convert [expression] to Reverse Polish Notation" [3-4 marks]
+- "State one advantage/disadvantage of..." [2-4 marks]
 
 **Mark Scheme Format:**
 - One clear mark point per mark
 - Include acceptable alternatives
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`,
 
     medium: `Create a question requiring application and analysis.
 
-**Question Types for Medium:**
-- "Trace the algorithm with input [X] and state the output" [4-6 marks]
-- "Explain how [data structure/algorithm] works" [4-6 marks]
-- "Write SQL to [query specification]" [4-6 marks]
-- "Show how [data structure] would store [data]" [4-6 marks]
-- "Simplify the Boolean expression [expression]" [3-5 marks]
-- "Normalise the following table to 3NF" [5-8 marks]
-- "Convert [number] to normalised floating point" [4-6 marks]
-- "Write a function using map/filter/reduce to..." [4-6 marks]
+**Question Types for Medium (6-9 marks):**
+- "Trace the algorithm with input [X] and state the output" [6-8 marks]
+- "Explain how [data structure/algorithm] works" [6-8 marks]
+- "Write SQL to [query specification]" [6-8 marks]
+- "Show how [data structure] would store [data]" [6-8 marks]
+- "Simplify the Boolean expression [expression]" [6-7 marks]
+- "Normalise the following table to 3NF" [7-9 marks]
+- "Convert [number] to normalised floating point" [6-8 marks]
+- "Write a function using map/filter/reduce to..." [6-9 marks]
 
 **Mark Scheme Format:**
 - Award marks for each correct step/point
 - Accept alternative correct solutions
 - Note key concepts required
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`,
 
     hard: `Create a challenging question requiring synthesis and evaluation.
 
-**Question Types for Hard:**
-- "Write an algorithm to [complex task]" [8-12 marks]
+**Question Types for Hard (12-20 marks):**
+- "Write an algorithm to [complex task]" [12-16 marks]
   - May require recursion, OOP, or advanced data structures
-- "Discuss [technical/ethical topic]" [9-15 marks - extended response]
-- "Design a solution for [complex problem]" [10-15 marks]
-- "Prove that [algorithm] has complexity O(X)" [6-9 marks]
-- "Design a class hierarchy for..." [8-12 marks]
-- "Using Dijkstra's algorithm, find..." [6-10 marks]
-- "Design a finite state machine that..." [6-10 marks]
+- "Discuss [technical/ethical topic]" [15-20 marks - extended response]
+- "Design a solution for [complex problem]" [15-20 marks]
+- "Prove that [algorithm] has complexity O(X)" [12-15 marks]
+- "Design a class hierarchy for..." [12-16 marks]
+- "Using Dijkstra's algorithm, find..." [12-16 marks]
+- "Design a finite state machine that..." [12-16 marks]
 
 **Mark Scheme Format:**
 - For extended response: use levels of response (4 levels)
@@ -3056,7 +3091,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Include indicative content
 - Accept alternative correct solutions
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`
   };
 
   return `Generate an AQA A-Level Computer Science question.

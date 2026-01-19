@@ -8,9 +8,42 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+// Local mark range function for A-Level Chemistry
+// Ranges are non-overlapping to ensure consistent difficulty progression
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy': return { min: 2, max: 3 };   // Short answer, single concept, direct recall
+    case 'medium': return { min: 4, max: 5 }; // Multi-step, combines concepts, application
+    case 'hard': return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default: return { min: 2, max: 5 };
+  }
+}
+
 // ============================================================================
-// EDEXCEL A-LEVEL CHEMISTRY ASSESSMENT OBJECTIVES
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
 // ============================================================================
+
+const EDEXCEL_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, draw simple structures, balance equations, identify functional groups |
+| **Medium** | Application, multi-step calculation, explanation | Apply concepts to novel reactions, multi-step calculations (titrations, Hess cycles), explain trends and mechanisms |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse spectroscopic data, evaluate synthetic routes, design experiments, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining thermodynamics with kinetics)
+- Demands analysis of unfamiliar reaction contexts or experimental data
+- Must evaluate practical methods and suggest quantitative improvements
+- Requires extended calculation chains with multiple conversions
+- Requires mechanism reasoning in unfamiliar contexts
+- No single approach - student must select and justify methodology
+
+**Easy (2-3 marks):** Knowledge recall, simple structure drawing, single-step calculations
+**Medium (4-5 marks):** Multi-step calculations, mechanism drawing, application to new contexts
+**Hard (6-8 marks):** Extended response with analysis, synthesis route design, or spectroscopic interpretation
+`;
 
 // ============================================================================
 // EDEXCEL A-LEVEL CHEMISTRY ASSESSMENT OBJECTIVES (OFFICIAL)
@@ -309,6 +342,34 @@ ${EDEXCEL_ALEVEL_CHEMISTRY_COMMAND_WORDS}
 - Multiple choice in Paper 1 and Paper 2 (20 questions each)
 - Extended calculations common
 - Combined spectroscopy problems in Paper 2 and Paper 3
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Chemistry calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Enthalpy change via Hess's Law**
+Accept both:
+- Algebraic manipulation of given equations
+- Energy cycle diagram with correct route
+
+**Example 2: Concentration/pH calculations**
+Accept both:
+- Direct Ka expression with simplifying assumption
+- Full quadratic solution without assumption
+
+**Example 3: Electrode potential calculations**
+Accept both:
+- E°cell = E°(cathode) - E°(anode)
+- E°cell = E°(reduction, RHS) - E°(reduction, LHS)
+
+**Example 4: Organic structure determination**
+Accept any valid combination of spectroscopic data interpretation that leads to correct structure.
+
+**Example 5: Equilibrium constant calculations**
+Accept:
+- ICE table method
+- Stoichiometric ratio method
+- Direct substitution where appropriate
 `;
 
 const EDEXCEL_CHEMISTRY_CORE_PRACTICALS = `
@@ -2952,15 +3013,17 @@ export function getEdexcelALevelChemistryCompactPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
-    easy: 'AS standard, 2-4 marks, single concept',
-    medium: 'Full A-Level, 4-6 marks, multi-step',
-    hard: 'Challenging, 6-8 marks, synoptic'
+    easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
+    medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
+    hard: 'Challenging A-Level, 6-8 marks, synoptic thinking across topics, unfamiliar contexts, requires extended analysis, evaluation or synthesis'
   };
 
   return `Generate an Edexcel A-Level Chemistry question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
+${EDEXCEL_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ${EDEXCEL_CHEMISTRY_DATA_SHEET}
@@ -2969,6 +3032,7 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Paper: ${topic.paperRestriction || 'Any'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match Edexcel exam style
@@ -3023,6 +3087,7 @@ export function getEdexcelALevelChemistryCalculationPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry calculation question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3033,6 +3098,7 @@ ${EDEXCEL_CHEMISTRY_DATA_SHEET}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Provide all necessary data
@@ -3055,6 +3121,7 @@ export function getEdexcelALevelChemistryExplainPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry explanation question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3063,6 +3130,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Respond with JSON:
 {
@@ -3080,6 +3148,7 @@ export function getEdexcelALevelChemistryGraphPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry graph/data question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3088,6 +3157,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Include graph description or data table with analysis questions.
 
@@ -3107,6 +3177,7 @@ export function getEdexcelALevelChemistryComparePrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry comparison question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3115,6 +3186,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Must require similarities AND differences.
 
@@ -3134,6 +3206,7 @@ export function getEdexcelALevelChemistryMechanismPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry mechanism question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3144,6 +3217,7 @@ ${EDEXCEL_CHEMISTRY_ORGANIC_MECHANISMS}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Correct curly arrows starting from bonds or lone pairs
@@ -3167,6 +3241,7 @@ export function getEdexcelALevelChemistryPracticalPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry practical question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3177,6 +3252,7 @@ ${EDEXCEL_CHEMISTRY_CORE_PRACTICALS}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Assess practical skills: planning, analysis, evaluation.
 
@@ -3196,6 +3272,7 @@ export function getEdexcelALevelChemistrySynopticPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry synoptic question (Paper 3 style).
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3206,6 +3283,7 @@ ${EDEXCEL_CHEMISTRY_SYNOPTIC_LINKS}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Link concepts from at least 2 different topic areas
@@ -3229,6 +3307,7 @@ export function getEdexcelALevelChemistrySpectroscopyPrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry spectroscopy/analysis question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3239,6 +3318,7 @@ ${EDEXCEL_CHEMISTRY_DATA_SHEET}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - ${difficulty === 'hard' ? 'Combined MS, IR, and NMR data' : 'Single technique (MS, IR, or NMR)'}
@@ -3295,6 +3375,7 @@ export function getEdexcelALevelChemistryWorkedExamplePrompt(
 ): string {
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `Generate an Edexcel A-Level Chemistry question in the style of official past papers.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
@@ -3307,6 +3388,7 @@ ${EDEXCEL_CHEMISTRY_DATA_SHEET}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match the style of Edexcel mark schemes

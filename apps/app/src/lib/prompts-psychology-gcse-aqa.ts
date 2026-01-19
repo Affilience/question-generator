@@ -38,6 +38,21 @@ const AQA_GCSE_PSYCH_ASSESSMENT_OBJECTIVES = `
 - **Apply**: Use knowledge in a context (AO2)
 - **Evaluate**: Consider strengths/limitations; make judgement (AO3)
 - **Discuss**: Present key points with some evaluation (AO1/AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, recognition | Name terms, state features, identify components from memory |
+| **Medium** | Description, explanation, application | Describe processes in detail, explain how/why, apply to scenarios |
+| **Hard** | Evaluation, critical analysis, synthesis | Assess strengths/limitations, compare approaches, make judgements about evidence quality |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires critical evaluation of psychological research (methodology, ethics, validity)
+- Must balance multiple perspectives (biological vs social explanations)
+- Demands application of evaluative skills (reliability, generalisability, ecological validity)
+- Requires sustained argument with evidence from studies
+- Must reach justified conclusions about theories or research
 `;
 
 const AQA_GCSE_PSYCH_QUESTION_TEMPLATES = `
@@ -1571,7 +1586,7 @@ export function getAQAGCSEPsychologyQuestionPrompt(topic: Topic, difficulty: Dif
 - 1 mark per correct identification
 - Credit accurate terminology
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring explanation or application (AO1/AO2).
 
@@ -1599,7 +1614,7 @@ Include realistic scenarios where students must apply psychological knowledge:
 - Application to scenario (AO2)
 - Clear link between theory and context
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 9-mark extended writing question (AO1 + AO3).
 
@@ -1641,7 +1656,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Gibson vs Gregory theories of perception
 - Brain plasticity
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an AQA GCSE Psychology question.
@@ -1701,7 +1716,7 @@ ${AQA_GCSE_PSYCH_ASSESSMENT_OBJECTIVES}
 Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${topicGuidance}
 
@@ -2014,13 +2029,17 @@ OUTPUT FORMAT:
 // HELPER FUNCTIONS
 // ============================================================================
 
+/**
+ * Psychology GCSE mark ranges based on AQA specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 3 };
+      return { min: 1, max: 3 };   // Identify, state, outline - basic recall
     case 'medium':
-      return { min: 4, max: 6 };
+      return { min: 4, max: 6 };   // Describe, explain, apply to scenario
     case 'hard':
-      return { min: 9, max: 9 };
+      return { min: 9, max: 12 };  // Evaluate, discuss, extended response requiring analysis and judgement
   }
 }

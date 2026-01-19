@@ -1,18 +1,23 @@
 /**
- * Pre-generate questions to warm the cache
+ * Pre-generate questions to warm the cache (HIGH QUALITY VERSION)
  *
- * This script generates questions for all topic/subtopic/difficulty combinations
- * and stores them in the Redis cache for instant retrieval.
+ * This script generates questions using OpenAI GPT-4o-mini with FULL exam board prompts
+ * - Same model as live generation
+ * - Same prompts as live generation
+ * - Same quality as live generation
+ * - Questions served instantly from cache
  *
  * Usage:
  *   npx tsx scripts/pre-generate-questions.ts [options]
  *
  * Options:
- *   --subject=maths|physics|chemistry  Only generate for specific subject
- *   --level=gcse|a-level               Only generate for specific level
- *   --board=aqa|edexcel|ocr            Only generate for specific exam board
- *   --count=N                          Questions per combination (default: 10)
- *   --dry-run                          Show what would be generated without doing it
+ *   --subject=maths|physics|chemistry|...  Only generate for specific subject
+ *   --level=gcse|a-level                   Only generate for specific level
+ *   --board=aqa|edexcel|ocr                Only generate for specific exam board
+ *   --topic=topic-id                       Only generate for specific topic
+ *   --count=N                              Questions per combination (default: 5)
+ *   --dry-run                              Show what would be generated without doing it
+ *   --fast                                 Use Groq for faster but lower quality (not recommended)
  */
 
 import { config } from 'dotenv';
@@ -21,26 +26,12 @@ import { resolve } from 'path';
 // Load environment variables
 config({ path: resolve(__dirname, '../.env.local') });
 
+import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { Redis } from '@upstash/redis';
 import { Difficulty, Topic, Subject, ExamBoard, QualificationLevel } from '../src/types';
-
-// Import all topic data
-import { aqaTopics } from '../src/lib/topics-aqa';
-import { edexcelTopics } from '../src/lib/topics-edexcel';
-import { ocrTopics } from '../src/lib/topics-ocr';
-import { aqaALevelTopics } from '../src/lib/topics-alevel-aqa';
-import { edexcelALevelTopics } from '../src/lib/topics-alevel-edexcel';
-import { ocrALevelTopics } from '../src/lib/topics-alevel-ocr';
-import { aqaPhysicsTopics } from '../src/lib/topics-physics-aqa';
-import { edexcelPhysicsTopics } from '../src/lib/topics-physics-edexcel';
-import { ocrPhysicsTopics } from '../src/lib/topics-physics-ocr';
-import { aqaALevelPhysicsTopics } from '../src/lib/topics-physics-alevel-aqa';
-import { edexcelALevelPhysicsTopics } from '../src/lib/topics-physics-alevel-edexcel';
-import { ocrALevelPhysicsTopics } from '../src/lib/topics-physics-alevel-ocr';
-import { aqaChemistryTopics } from '../src/lib/topics-chemistry-gcse-aqa';
-import { edexcelChemistryTopics } from '../src/lib/topics-chemistry-gcse-edexcel';
-import { ocrChemistryTopics } from '../src/lib/topics-chemistry-gcse-ocr';
+import { getTopicsBySubjectBoardAndLevel } from '../src/lib/topics';
+import { getSystemPromptForSubject, getUserPromptForSubject } from '../src/lib/prompt-router';
 
 // Types
 interface CachedQuestion {
@@ -48,6 +39,8 @@ interface CachedQuestion {
   solution: string;
   marks: number;
   markScheme: string[];
+  difficulty: Difficulty;
+  subtopic: string;
   cachedAt: number;
 }
 
@@ -55,48 +48,34 @@ interface GenerationConfig {
   subject?: Subject;
   level?: QualificationLevel;
   board?: ExamBoard;
+  topicId?: string;
   questionsPerCombo: number;
   dryRun: boolean;
+  useFastMode: boolean;
 }
-
-// Topic mapping
-const TOPIC_MAP: Record<string, Record<string, Record<string, Topic[]>>> = {
-  maths: {
-    gcse: {
-      aqa: aqaTopics,
-      edexcel: edexcelTopics,
-      ocr: ocrTopics,
-    },
-    'a-level': {
-      aqa: aqaALevelTopics,
-      edexcel: edexcelALevelTopics,
-      ocr: ocrALevelTopics,
-    },
-  },
-  physics: {
-    gcse: {
-      aqa: aqaPhysicsTopics,
-      edexcel: edexcelPhysicsTopics,
-      ocr: ocrPhysicsTopics,
-    },
-    'a-level': {
-      aqa: aqaALevelPhysicsTopics,
-      edexcel: edexcelALevelPhysicsTopics,
-      ocr: ocrALevelPhysicsTopics,
-    },
-  },
-  chemistry: {
-    gcse: {
-      aqa: aqaChemistryTopics,
-      edexcel: edexcelChemistryTopics,
-      ocr: ocrChemistryTopics,
-    },
-  },
-};
 
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 
+// All subjects available in the system
+const ALL_SUBJECTS: Subject[] = [
+  'maths', 'physics', 'chemistry', 'biology',
+  'computer-science', 'economics', 'business',
+  'psychology', 'geography', 'history', 'english-literature',
+  'further-maths'
+];
+
+const ALL_LEVELS: QualificationLevel[] = ['gcse', 'a-level'];
+const ALL_BOARDS: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
+
 // Initialize clients
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY environment variable is not set');
+  }
+  return new OpenAI({ apiKey });
+}
+
 function getGroqClient(): Groq {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -114,59 +93,16 @@ function getRedisClient(): Redis {
   return new Redis({ url, token });
 }
 
-function getCacheKey(subject: string, level: string, topicId: string, subtopic: string, difficulty: Difficulty): string {
+function getCacheKey(subject: string, level: string, board: string, topicId: string, subtopic: string, difficulty: Difficulty): string {
   const normalizedSubtopic = subtopic
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
+    .replace(/[^a-z0-9]/g, '-')
     .substring(0, 50);
-  return `questions:${subject}:${level}:${topicId}:${normalizedSubtopic}:${difficulty}`;
+  return `q:${subject}:${level}:${board}:${topicId}:${normalizedSubtopic}:${difficulty}`;
 }
 
-function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
-  switch (difficulty) {
-    case 'easy': return { min: 1, max: 2 };
-    case 'medium': return { min: 3, max: 4 };
-    case 'hard': return { min: 5, max: 6 };
-  }
-}
-
-function buildPrompt(
-  subject: Subject,
-  level: QualificationLevel,
-  board: ExamBoard,
-  topic: Topic,
-  subtopic: string,
-  difficulty: Difficulty
-): string {
-  const markRange = getMarkRange(difficulty);
-  const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
-  const boardUpper = board.toUpperCase();
-
-  const difficultyDesc = difficulty === 'easy'
-    ? 'Simple, 1-2 steps, grades 1-3'
-    : difficulty === 'medium'
-    ? 'Moderate, 2-3 steps, grades 4-5'
-    : 'Challenging, multi-step, grades 6-9';
-
-  return `Generate a ${boardUpper} ${levelDisplay} ${subject} exam question. Return ONLY valid JSON.
-
-Topic: ${topic.name} - ${subtopic}
-Difficulty: ${difficultyDesc}
-Marks: ${markRange.min}-${markRange.max}
-
-Requirements:
-- Original question matching ${boardUpper} exam style
-- Clear, unambiguous wording
-- Worked solution with steps
-- Mark scheme with M (method) and A (accuracy) marks
-- Use $...$ for LaTeX math notation
-
-Return exactly this JSON structure:
-{"content":"Question text","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: Method mark","A1: Accuracy mark"]}`;
-}
-
-async function generateQuestion(
-  groq: Groq,
+async function generateQuestionOpenAI(
+  openai: OpenAI,
   subject: Subject,
   level: QualificationLevel,
   board: ExamBoard,
@@ -174,20 +110,24 @@ async function generateQuestion(
   subtopic: string,
   difficulty: Difficulty
 ): Promise<CachedQuestion | null> {
-  const prompt = buildPrompt(subject, level, board, topic, subtopic, difficulty);
+  // Use the SAME prompt router as live generation
+  const systemPrompt = getSystemPromptForSubject(subject, level, board, topic, difficulty, subtopic);
+  const userPrompt = getUserPromptForSubject(subject, level, board, topic, difficulty, subtopic);
+
+  if (!systemPrompt || !userPrompt) {
+    console.error(`  No prompt available for ${subject}/${level}/${board}`);
+    return null;
+  }
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
-        {
-          role: 'system',
-          content: `You are an expert ${level === 'a-level' ? 'A-Level' : 'GCSE'} ${subject} examiner. Generate exam-style questions. Respond ONLY with valid JSON.`
-        },
-        { role: 'user', content: prompt }
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
       ],
-      temperature: 0.8,
-      max_tokens: 800,
+      temperature: 0.7,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
 
@@ -200,11 +140,63 @@ async function generateQuestion(
       content: parsed.content || '',
       solution: parsed.solution || '',
       marks: parsed.marks || 3,
-      markScheme: parsed.markScheme || [],
+      markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
+      difficulty,
+      subtopic,
       cachedAt: Date.now(),
     };
   } catch (error) {
-    console.error(`  Error generating question:`, error);
+    console.error(`  Error:`, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+async function generateQuestionGroq(
+  groq: Groq,
+  subject: Subject,
+  level: QualificationLevel,
+  board: ExamBoard,
+  topic: Topic,
+  subtopic: string,
+  difficulty: Difficulty
+): Promise<CachedQuestion | null> {
+  // Use the SAME prompt router as live generation
+  const systemPrompt = getSystemPromptForSubject(subject, level, board, topic, difficulty, subtopic);
+  const userPrompt = getUserPromptForSubject(subject, level, board, topic, difficulty, subtopic);
+
+  if (!systemPrompt || !userPrompt) {
+    console.error(`  No prompt available for ${subject}/${level}/${board}`);
+    return null;
+  }
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 2500,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return null;
+
+    const parsed = JSON.parse(content);
+
+    return {
+      content: parsed.content || '',
+      solution: parsed.solution || '',
+      marks: parsed.marks || 3,
+      markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
+      difficulty,
+      subtopic,
+      cachedAt: Date.now(),
+    };
+  } catch (error) {
+    console.error(`  Error:`, error instanceof Error ? error.message : error);
     return null;
   }
 }
@@ -218,7 +210,7 @@ async function getCacheCount(redis: Redis, key: string): Promise<number> {
   }
 }
 
-async function addToCache(redis: Redis, key: string, question: CachedQuestion): Promise<void> {
+async function addToCache(redis: Redis, key: string, question: CachedQuestion): Promise<boolean> {
   try {
     const existing = await redis.get<CachedQuestion[]>(key) || [];
 
@@ -226,20 +218,25 @@ async function addToCache(redis: Redis, key: string, question: CachedQuestion): 
     const isDuplicate = existing.some(q =>
       q.content.substring(0, 100) === question.content.substring(0, 100)
     );
-    if (isDuplicate) return;
+    if (isDuplicate) {
+      return false;
+    }
 
     const updated = [question, ...existing].slice(0, 20);
     await redis.set(key, updated, { ex: 60 * 24 * 60 * 60 }); // 60 days
+    return true;
   } catch (error) {
-    console.error(`  Cache write error:`, error);
+    console.error(`  Cache error:`, error);
+    return false;
   }
 }
 
 function parseArgs(): GenerationConfig {
   const args = process.argv.slice(2);
   const config: GenerationConfig = {
-    questionsPerCombo: 10,
+    questionsPerCombo: 5,
     dryRun: false,
+    useFastMode: false,
   };
 
   for (const arg of args) {
@@ -249,78 +246,110 @@ function parseArgs(): GenerationConfig {
       config.level = arg.split('=')[1] as QualificationLevel;
     } else if (arg.startsWith('--board=')) {
       config.board = arg.split('=')[1] as ExamBoard;
+    } else if (arg.startsWith('--topic=')) {
+      config.topicId = arg.split('=')[1];
     } else if (arg.startsWith('--count=')) {
       config.questionsPerCombo = parseInt(arg.split('=')[1], 10);
     } else if (arg === '--dry-run') {
       config.dryRun = true;
+    } else if (arg === '--fast') {
+      config.useFastMode = true;
     }
   }
 
   return config;
 }
 
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function main() {
   const config = parseArgs();
 
-  console.log('🚀 Question Pre-Generation Script');
-  console.log('================================\n');
+  console.log('🚀 Question Pre-Generation Script (High Quality)');
+  console.log('================================================\n');
 
-  if (config.dryRun) {
-    console.log('DRY RUN MODE - No questions will be generated\n');
+  if (config.useFastMode) {
+    console.log('⚠️  FAST MODE: Using Groq llama-3.3-70b (slightly lower quality)\n');
+  } else {
+    console.log('✨ QUALITY MODE: Using OpenAI GPT-4o-mini (same as live generation)\n');
   }
 
+  if (config.dryRun) {
+    console.log('📋 DRY RUN MODE - No questions will be generated\n');
+  }
+
+  let openai: OpenAI | null = null;
   let groq: Groq | null = null;
   let redis: Redis | null = null;
 
   if (!config.dryRun) {
     try {
-      groq = getGroqClient();
+      if (config.useFastMode) {
+        groq = getGroqClient();
+        console.log('✓ Connected to Groq');
+      } else {
+        openai = getOpenAIClient();
+        console.log('✓ Connected to OpenAI');
+      }
       redis = getRedisClient();
-      console.log('✓ Connected to Groq and Redis\n');
+      console.log('✓ Connected to Redis\n');
     } catch (error) {
-      console.error('Failed to initialize clients:', error);
+      console.error('Failed to initialize:', error);
       process.exit(1);
     }
   }
 
-  // Calculate totals
+  // Statistics
   let totalCombinations = 0;
-  let totalQuestions = 0;
   let generated = 0;
   let skipped = 0;
   let errors = 0;
+  let noTopics = 0;
+  const startTime = Date.now();
 
-  const subjects = config.subject ? [config.subject] : Object.keys(TOPIC_MAP) as Subject[];
+  const subjects = config.subject ? [config.subject] : ALL_SUBJECTS;
+  const levels = config.level ? [config.level] : ALL_LEVELS;
+  const boards = config.board ? [config.board] : ALL_BOARDS;
 
   for (const subject of subjects) {
-    const levels = config.level
-      ? [config.level]
-      : Object.keys(TOPIC_MAP[subject] || {}) as QualificationLevel[];
-
     for (const level of levels) {
-      const boards = config.board
-        ? [config.board]
-        : Object.keys(TOPIC_MAP[subject]?.[level] || {}) as ExamBoard[];
-
       for (const board of boards) {
-        const topics = TOPIC_MAP[subject]?.[level]?.[board] || [];
+        // Get topics for this combination
+        const topics = getTopicsBySubjectBoardAndLevel(subject, board, level);
+
+        if (topics.length === 0) {
+          noTopics++;
+          continue;
+        }
+
+        // Filter by topic ID if specified
+        const filteredTopics = config.topicId
+          ? topics.filter(t => t.id === config.topicId)
+          : topics;
+
+        if (filteredTopics.length === 0) continue;
 
         console.log(`\n📚 ${subject.toUpperCase()} - ${level.toUpperCase()} - ${board.toUpperCase()}`);
-        console.log(`   ${topics.length} topics found`);
+        console.log(`   ${filteredTopics.length} topics, ${filteredTopics.reduce((sum, t) => sum + t.subtopics.length, 0)} subtopics`);
 
-        for (const topic of topics) {
+        for (const topic of filteredTopics) {
+          if (config.dryRun) {
+            console.log(`\n   📖 ${topic.name}`);
+            for (const subtopic of topic.subtopics) {
+              console.log(`      - ${subtopic}`);
+            }
+            totalCombinations += topic.subtopics.length * DIFFICULTIES.length;
+            continue;
+          }
+
           for (const subtopic of topic.subtopics) {
             for (const difficulty of DIFFICULTIES) {
               totalCombinations++;
-              const cacheKey = getCacheKey(subject, level, topic.id, subtopic, difficulty);
+              const cacheKey = getCacheKey(subject, level, board, topic.id, subtopic, difficulty);
 
-              if (config.dryRun) {
-                console.log(`   Would generate for: ${topic.name} > ${subtopic} [${difficulty}]`);
-                totalQuestions += config.questionsPerCombo;
-                continue;
-              }
-
-              // Check existing cache count
+              // Check existing cache
               const existing = await getCacheCount(redis!, cacheKey);
               const needed = Math.max(0, config.questionsPerCombo - existing);
 
@@ -329,33 +358,34 @@ async function main() {
                 continue;
               }
 
-              process.stdout.write(`   ${topic.name} > ${subtopic.substring(0, 30)}... [${difficulty}]: `);
+              const shortSubtopic = subtopic.length > 30 ? subtopic.substring(0, 27) + '...' : subtopic;
+              process.stdout.write(`   ${shortSubtopic.padEnd(30)} [${difficulty.substring(0, 1).toUpperCase()}]: `);
 
+              let successCount = 0;
               for (let i = 0; i < needed; i++) {
-                const question = await generateQuestion(
-                  groq!,
-                  subject,
-                  level,
-                  board,
-                  topic,
-                  subtopic,
-                  difficulty
-                );
+                const question = config.useFastMode
+                  ? await generateQuestionGroq(groq!, subject, level, board, topic, subtopic, difficulty)
+                  : await generateQuestionOpenAI(openai!, subject, level, board, topic, subtopic, difficulty);
 
                 if (question) {
-                  await addToCache(redis!, cacheKey, question);
-                  generated++;
-                  process.stdout.write('.');
+                  const added = await addToCache(redis!, cacheKey, question);
+                  if (added) {
+                    generated++;
+                    successCount++;
+                    process.stdout.write('✓');
+                  } else {
+                    process.stdout.write('·'); // Duplicate
+                  }
                 } else {
                   errors++;
-                  process.stdout.write('x');
+                  process.stdout.write('✗');
                 }
 
-                // Small delay to avoid rate limiting
-                await new Promise(r => setTimeout(r, 100));
+                // Rate limiting
+                await sleep(config.useFastMode ? 200 : 500);
               }
 
-              console.log(` (${needed} new)`);
+              console.log(` +${successCount}/${needed} (${existing} cached)`);
             }
           }
         }
@@ -363,20 +393,30 @@ async function main() {
     }
   }
 
-  console.log('\n================================');
+  const duration = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
+
+  console.log('\n================================================');
   console.log('📊 Summary');
-  console.log('================================');
-  console.log(`Total combinations: ${totalCombinations}`);
+  console.log('================================================');
+  console.log(`Mode: ${config.useFastMode ? 'Fast (Groq)' : 'Quality (OpenAI GPT-4o-mini)'}`);
+  console.log(`Duration: ${duration} minutes`);
+  console.log(`Combinations checked: ${totalCombinations}`);
 
   if (config.dryRun) {
-    console.log(`Would generate: ${totalQuestions} questions`);
+    console.log(`Would generate: ${totalCombinations * config.questionsPerCombo} questions (max)`);
   } else {
     console.log(`Generated: ${generated} questions`);
-    console.log(`Skipped (already cached): ${skipped} combinations`);
+    console.log(`Skipped (enough cached): ${skipped}`);
     console.log(`Errors: ${errors}`);
+    if (generated > 0) {
+      const costEstimate = config.useFastMode
+        ? (generated * 0.0005).toFixed(2)
+        : (generated * 0.002).toFixed(2);
+      console.log(`Estimated cost: ~$${costEstimate}`);
+    }
   }
 
-  console.log('\n✓ Done!');
+  console.log('\n✅ Done!');
 }
 
 main().catch(console.error);

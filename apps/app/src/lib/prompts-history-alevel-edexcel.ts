@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // EDEXCEL A-LEVEL HISTORY SPECIFICATION DETAILS (9HI0)
 // ============================================================================
 
+const EDEXCEL_ALEVEL_HIST_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, explanation, basic interpretation | Identify factors, explain causation, evaluate single interpretation |
+| **Medium** | Analysis, source evaluation, contextual judgement | Evaluate multiple sources for reliability and utility using own knowledge |
+| **Hard** | Synthesis, sustained judgement, historiographical analysis | Construct and sustain analytical argument, weigh multiple factors, reach substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires constructing and sustaining an analytical argument throughout
+- Demands weighing multiple factors against each other
+- Must reach a substantiated judgement that directly answers the question
+- Requires synthesis of wide-ranging knowledge across the period
+- No single "correct" answer - student must justify their position with detailed evidence
+
+**Easy (5-8 marks):** Direct explanation or interpretation evaluation - clear focus on one aspect
+**Medium (12 marks):** Source analysis - evaluate sources for a specific historical enquiry using content, provenance, context
+**Hard (20 marks):** Extended essay - sustained analytical argument with clear judgement throughout
+`;
+
 const EDEXCEL_ALEVEL_HIST_ASSESSMENT_OBJECTIVES = `
 ## Edexcel A-Level History Assessment Objectives
 
@@ -1088,6 +1109,8 @@ export function getEdexcelALevelHistorySystemPrompt(topic: Topic, difficulty: Di
 
   return `You are an expert Edexcel A-Level History examiner creating exam-style questions.
 
+${EDEXCEL_ALEVEL_HIST_COGNITIVE_CHALLENGE}
+
 ${EDEXCEL_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_ALEVEL_HIST_QUESTION_TEMPLATES}
@@ -1147,7 +1170,7 @@ For 8-mark questions, include a brief historical interpretation/extract (2-3 sen
 - Identify 2-3 key points with specific evidence
 - Use dates, names, statistics from topic knowledge
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a source-based analysis question (AO2).
 
@@ -1168,7 +1191,7 @@ Sources should offer different types of evidence or perspectives.
 - Use own knowledge to test reliability and utility
 - Consider limitations and reach judgement
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 20-mark extended essay question (AO1).
 
@@ -1190,7 +1213,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Balanced argument with counter-arguments
 - Substantiated judgement in conclusion
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an Edexcel A-Level History question.

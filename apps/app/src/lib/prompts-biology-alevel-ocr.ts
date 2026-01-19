@@ -2,7 +2,19 @@
 // Tailored to OCR specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Biology mark ranges based on OCR specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };    // Short answer questions
+    case 'medium':
+      return { min: 6, max: 9 };    // Extended response questions
+    case 'hard':
+      return { min: 15, max: 25 };  // Essay questions
+  }
+}
 
 // ============================================================================
 // OCR A-LEVEL BIOLOGY A SPECIFICATION DETAILS (H420)
@@ -559,6 +571,32 @@ This module underpins all other modules and is assessed throughout all papers.
   - Sustainability
   - Sustainable resource management
   - In situ and ex situ conservation
+`;
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const OCR_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, label diagrams, recall processes, simple magnification calculations |
+| **Medium** | Application, data interpretation, explanation | Apply concepts to unfamiliar organisms, interpret graphs and tables, explain adaptations and processes |
+| **Hard** | Analysis, evaluation, synthesis, essay writing | Analyse experimental data, evaluate methods, design investigations, synoptic essays linking multiple topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., linking genetics with evolution)
+- Demands analysis of unfamiliar experimental data or contexts
+- Must evaluate experimental design and suggest improvements
+- Requires extended written responses with clear scientific reasoning
+- Essay questions requiring synthesis across the specification
+- No single approach - student must select and justify methodology
+
+**Easy (2-4 marks):** Knowledge recall, simple labelling, basic calculations
+**Medium (6-9 marks):** Data interpretation, explanation questions, application to new contexts
+**Hard (15-25 marks):** Extended response essays, experimental evaluation, synoptic analysis
 `;
 
 // ============================================================================
@@ -2884,6 +2922,40 @@ Mark Scheme Conventions:
 - (AW) = alternative wording acceptable
 - (ORA) = or reverse argument
 
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Biology calculations and explanations often have multiple valid approaches. Award full marks for ANY correct method.
+
+**Example 1: Magnification and measurement**
+Accept:
+- Direct formula application
+- Rearranged formula application
+- Working via scale bar calibration
+
+**Example 2: Photosynthesis rate calculations**
+Accept:
+- Volume of gas/time
+- Number of bubbles/time (with appropriate caveats)
+- Rate from graph gradient
+
+**Example 3: Statistical analysis**
+Accept:
+- Chi-squared: full table OR condensed formula
+- Standard deviation: manual calculation OR stated from calculator
+- Spearman's rank: full method with tied ranks handled
+
+**Example 4: Genetic ratios**
+Accept:
+- Punnett square method
+- Probability multiplication method
+- Chi-squared to test ratios
+
+**Example 5: Hardy-Weinberg calculations**
+Accept:
+- Working from p² + 2pq + q² = 1
+- Working from p + q = 1 first
+- Either direction of calculation
+
 ## Key Definitions (A-Level Standard)
 
 **Module 2 - Foundations:**
@@ -3008,10 +3080,13 @@ export function getOCRALevelBiologyCompactPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `You are an expert OCR A-Level Biology examiner creating an exam-style question.
 
 ${OCR_ALEVEL_BIOLOGY_PRINCIPLES}
+
+${OCR_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE}
 
 Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
@@ -3019,26 +3094,26 @@ Difficulty: ${difficulty}
 
 ${topicGuidance}
 
-DIFFICULTY GUIDE:
-- Easy (1-3 marks): Recall, definitions, simple applications
-- Medium (4-6 marks): Detailed explanations, data analysis
-- Hard (7+ marks): Extended responses, synoptic questions
+DIFFICULTY AND MARK ALLOCATION:
+- Easy: 2-4 marks (Recall, definitions, simple applications)
+- Medium: 6-9 marks (Detailed explanations, data analysis)
+- Hard: 15-25 marks (Extended responses with level descriptors, synoptic essays, complex multi-part questions)
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
 Create ONE exam-style question that:
 1. Uses authentic OCR A-Level Biology language
 2. Tests understanding appropriate to A-Level standard
-3. Includes proper mark allocation
-4. Matches the difficulty level specified
+3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
+4. Matches the ${difficulty} difficulty level
 
-OUTPUT FORMAT (use exact headers):
-**Question:**
-[Question text with mark allocation in brackets, e.g. [4]]
-
-**Mark Scheme:**
-[Marking points - one point per mark available]
-
-**Explanation:**
-[Full worked answer with clear reasoning]`;
+Return a JSON object with this exact structure:
+{
+  "content": "The full question text including mark allocation [X marks]",
+  "marks": <number between ${markRange.min} and ${markRange.max}>,
+  "solution": "Full worked answer with clear reasoning",
+  "markScheme": ["Mark point 1", "Mark point 2", ...]
+}`;
 }
 
 // Generate extended response question prompt

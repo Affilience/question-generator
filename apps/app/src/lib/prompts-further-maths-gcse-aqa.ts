@@ -140,6 +140,106 @@ const AQA_FM_GCSE_EXAM_STRUCTURE = `
 `;
 
 // ============================================================================
+// MARK SCHEME GUIDANCE - FURTHER MATHS SPECIFIC
+// ============================================================================
+
+const AQA_FM_GCSE_MARK_SCHEME_GUIDANCE = `
+## Mark Scheme Conventions for AQA Further Mathematics
+
+### Mark Types
+| Mark | Name | Description | Example |
+|------|------|-------------|---------|
+| **M** | Method | Correct approach, awarded even with arithmetic errors | M1: Uses factor theorem correctly |
+| **A** | Accuracy | Correct execution, usually depends on earning M mark | A1: Correct value of k |
+| **B** | Independent | Standalone mark, not dependent on method | B1: Correct sketch with key features |
+
+### Mark Scheme Symbols
+| Symbol | Meaning | Usage |
+|--------|---------|-------|
+| **oe** | "or equivalent" | Accept equivalent forms (e.g., 2√3 oe accepts √12) |
+| **cao** | "correct answer only" | Exact form required |
+| **ft** | "follow through" | Award for correct method using wrong earlier value |
+| **isw** | "ignore subsequent working" | Mark correct answer even if student continues wrongly |
+| **awrt** | "answers which round to" | Accept values rounding to given answer |
+| **dep** | "dependent" | Mark depends on earning a previous mark |
+
+### Worked Examples with Mark Schemes
+
+**Example 1: Factor Theorem (4 marks)**
+*Question:* f(x) = x³ + kx² - 4x - 12. Given that (x + 2) is a factor of f(x), find the value of k.
+
+*Mark Scheme:*
+- M1: Substitutes x = -2 into f(x) and sets equal to 0
+- A1: -8 + 4k + 8 - 12 = 0 (correct substitution)
+- M1: Solves linear equation for k
+- A1: k = 3 (cao)
+
+*Alternative Method (equally valid):*
+- M1: Performs polynomial division of f(x) by (x + 2)
+- A1: Sets remainder equal to 0
+- M1: Solves for k
+- A1: k = 3 (cao)
+
+**Example 2: Differentiation Optimisation (5 marks)**
+*Question:* A rectangle has perimeter 20 cm. Find the maximum area.
+
+*Mark Scheme:*
+- M1: Sets up perimeter equation: 2x + 2y = 20
+- A1: Expresses area in terms of one variable: A = x(10 - x) = 10x - x²
+- M1: Differentiates: dA/dx = 10 - 2x
+- M1: Sets derivative equal to zero and solves
+- A1: Maximum area = 25 cm² (cao)
+
+**Example 3: Completing the Square (3 marks)**
+*Question:* Write x² + 6x - 4 in the form (x + a)² + b
+
+*Mark Scheme:*
+- M1: Identifies a = 3 (half of coefficient of x)
+- A1: (x + 3)² seen or implied
+- A1: b = -13 (cao) giving (x + 3)² - 13
+
+**Example 4: Matrix Transformation (4 marks)**
+*Question:* Find the matrix representing a rotation of 90° anticlockwise about the origin.
+
+*Mark Scheme:*
+- M1: Recognises form of rotation matrix OR uses effect on (1,0) and (0,1)
+- A1: First column correct: (0, 1)ᵀ
+- A1: Second column correct: (-1, 0)ᵀ
+- A1: Complete matrix $\\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix}$ (cao)
+
+### Multiple Valid Methods
+
+**Quadratic Equations** - Award equal marks for:
+- Factorisation (if factorisable)
+- Quadratic formula
+- Completing the square
+- Graphical method (if exact values obtainable)
+
+**Finding Turning Points** - Accept:
+- Setting dy/dx = 0
+- Completing the square
+- Using -b/2a for vertex of parabola
+
+**Solving Simultaneous Equations** - Accept:
+- Substitution method
+- Elimination method
+- Matrix method (for linear systems)
+
+### Error Carried Forward (ECF)
+- Apply ECF when student uses incorrect value from earlier part correctly
+- Example: If part (a) answer is wrong but used correctly in part (b), award M marks in (b)
+- Final A mark in (b) requires either correct answer OR correct follow-through
+
+### Common Acceptable Alternatives
+| Standard Form | Also Accept |
+|---------------|-------------|
+| $\\frac{3\\sqrt{2}}{2}$ | $\\frac{3}{\\sqrt{2}}$ (unrationalised) if not specified |
+| $x = 2 \\pm \\sqrt{3}$ | $x = 2 + \\sqrt{3}$ and $x = 2 - \\sqrt{3}$ separately |
+| $(x - 3)(x + 2)$ | $(x + 2)(x - 3)$ (order doesn't matter) |
+| $\\frac{dy}{dx} = 2x$ | $y' = 2x$ or $f'(x) = 2x$ |
+`;
+
+// ============================================================================
 // KEY FORMULAE - COMPREHENSIVE
 // ============================================================================
 
@@ -2533,7 +2633,7 @@ export function getAQAGCSEFurtherMathsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${AQA_FM_GCSE_KEY_FORMULAE}
 

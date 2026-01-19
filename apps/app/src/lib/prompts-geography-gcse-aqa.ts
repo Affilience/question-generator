@@ -38,6 +38,21 @@ const AQA_GCSE_GEOG_ASSESSMENT_OBJECTIVES = `
 - **To what extent**: Consider evidence; reach a supported judgement (AO3)
 - **Evaluate**: Review information; come to a conclusion (AO3)
 - **Discuss**: Present key points; consider different perspectives (AO2/AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, description | Name features, state facts, describe patterns from maps/data |
+| **Medium** | Explanation, application, interpretation | Explain causes/effects, interpret data, apply concepts to case studies |
+| **Hard** | Evaluation, synthesis, judgement | Assess management strategies, weigh competing factors, reach substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires evaluation of effectiveness (of strategies, responses, management approaches)
+- Must consider multiple perspectives (economic, social, environmental)
+- Demands integration of case study knowledge with conceptual understanding
+- Requires sustained argument reaching a justified conclusion
+- Must weigh up advantages and disadvantages before making judgement
 `;
 
 // ============================================================================
@@ -943,7 +958,7 @@ export function getAQAGCSEGeographyQuestionPrompt(topic: Topic, difficulty: Diff
 - "Define the term [concept]" [1 mark]
 - "Describe [pattern/characteristic]" [2-3 marks]
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a question requiring explanation or application (AO2/AO3).
 
@@ -955,7 +970,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 Include specific facts, statistics, or case study references in the model answer.
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 9-mark extended writing question requiring evaluation (AO3).
 
@@ -976,7 +991,7 @@ The model answer MUST include:
 
 Note: 9-mark questions also carry 3 additional SPaG marks in the real exam.
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an AQA GCSE Geography question.
@@ -1015,13 +1030,17 @@ Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme for 9-mark essays:
 }`;
 }
 
+/**
+ * Geography GCSE mark ranges based on AQA specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 3 };
+      return { min: 1, max: 3 };   // State, define, describe - basic knowledge recall
     case 'medium':
-      return { min: 4, max: 6 };
+      return { min: 4, max: 6 };   // Explain, suggest, apply - application and analysis
     case 'hard':
-      return { min: 9, max: 9 };
+      return { min: 8, max: 9 };   // Evaluate, assess, discuss - extended response requiring judgement
   }
 }

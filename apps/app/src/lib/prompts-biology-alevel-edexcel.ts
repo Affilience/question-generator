@@ -3,7 +3,19 @@
 // Comprehensive coverage of all 8 topics with detailed mark schemes
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// A-Level Biology mark ranges based on Edexcel specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 4 };    // Short answer questions
+    case 'medium':
+      return { min: 6, max: 9 };    // Extended response questions
+    case 'hard':
+      return { min: 15, max: 25 };  // Essay questions
+  }
+}
 
 // ============================================================================
 // EDEXCEL A-LEVEL BIOLOGY A SPECIFICATION DETAILS (9BI0)
@@ -41,6 +53,32 @@ Students will:
 - Understand how advances in biological science relate to society
 - Develop mathematical skills for biological contexts
 - Sustain and develop interest in biological science
+`;
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const EDEXCEL_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, label diagrams, recall processes, simple magnification calculations |
+| **Medium** | Application, data interpretation, explanation | Apply concepts to unfamiliar organisms, interpret graphs and tables, explain adaptations and processes |
+| **Hard** | Analysis, evaluation, synthesis, essay writing | Analyse experimental data, evaluate methods, design investigations, synoptic essays linking multiple topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., linking genetics with evolution)
+- Demands analysis of unfamiliar experimental data or contexts
+- Must evaluate experimental design and suggest improvements
+- Requires extended written responses with clear scientific reasoning
+- Essay questions requiring synthesis across the specification
+- No single approach - student must select and justify methodology
+
+**Easy (2-4 marks):** Knowledge recall, simple labelling, basic calculations
+**Medium (6-9 marks):** Data interpretation, explanation questions, application to new contexts
+**Hard (15-25 marks):** Extended response essays, experimental evaluation, synoptic analysis
 `;
 
 // ============================================================================
@@ -2486,6 +2524,38 @@ Mark Scheme Conventions:
 - Extended open response marked using levels
 - Paper 3 includes synoptic essay
 
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Biology calculations and explanations often have multiple valid approaches. Award full marks for ANY correct method.
+
+**Example 1: Energy transfer calculations**
+Accept:
+- Efficiency = (output/input) × 100
+- Direct percentage calculation from trophic data
+- Working via GPP/NPP where appropriate
+
+**Example 2: Statistical tests**
+Accept:
+- Chi-squared: table method OR formula method
+- Standard deviation: step-by-step OR calculator function (if working shown)
+- Simpson's Index: D format OR 1-D format
+
+**Example 3: Magnification**
+Accept both:
+- M = I/A then rearrange as needed
+- Direct application of rearranged formula
+
+**Example 4: Respirometer calculations**
+Accept:
+- Rate from volume/time
+- Rate from distance moved/time (with syringe calibration)
+
+**Example 5: Productivity calculations**
+Accept:
+- NPP = GPP - R
+- Net production = I - (F + R)
+- Working forward OR backward through energy flow
+
 ## Key Definitions (A-Level Standard)
 
 **Topic 1 - Lifestyle:**
@@ -3775,10 +3845,13 @@ export function getEdexcelALevelBiologyCompactPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   return `You are an expert Edexcel A-Level Biology examiner creating an exam-style question.
 
 ${EDEXCEL_ALEVEL_BIOLOGY_PRINCIPLES}
+
+${EDEXCEL_ALEVEL_BIOLOGY_COGNITIVE_CHALLENGE}
 
 Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
@@ -3786,26 +3859,26 @@ Difficulty: ${difficulty}
 
 ${topicGuidance}
 
-DIFFICULTY GUIDE:
-- Easy (1-3 marks): Recall, definitions, simple applications
-- Medium (4-6 marks): Detailed explanations, data analysis
-- Hard (7+ marks): Extended responses, synoptic questions
+DIFFICULTY AND MARK ALLOCATION:
+- Easy: 2-4 marks (Recall, definitions, simple applications)
+- Medium: 6-9 marks (Detailed explanations, data analysis)
+- Hard: 15-25 marks (Extended responses with level descriptors, synoptic essays, complex multi-part questions)
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
 Create ONE exam-style question that:
 1. Uses authentic Edexcel A-Level Biology language
 2. Tests understanding appropriate to A-Level standard
-3. Includes proper mark allocation
-4. Matches the difficulty level specified
+3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
+4. Matches the ${difficulty} difficulty level
 
-OUTPUT FORMAT (use exact headers):
-**Question:**
-[Question text with mark allocation in brackets, e.g. (4)]
-
-**Mark Scheme:**
-[Marking points - one point per mark available]
-
-**Explanation:**
-[Full worked answer with clear reasoning]`;
+Return a JSON object with this exact structure:
+{
+  "content": "The full question text including mark allocation [X marks]",
+  "marks": <number between ${markRange.min} and ${markRange.max}>,
+  "solution": "Full worked answer with clear reasoning",
+  "markScheme": ["Mark point 1", "Mark point 2", ...]
+}`;
 }
 
 // Generate extended response question prompt

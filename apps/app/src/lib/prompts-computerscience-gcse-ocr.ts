@@ -4,7 +4,19 @@
 // Specification: J277 (First teaching September 2020)
 
 import { Difficulty, Topic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Computer Science mark ranges based on OCR specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Application and explanation questions
+    case 'hard':
+      return { min: 6, max: 8 };    // Extended response and programming questions
+  }
+}
 
 // ============================================================================
 // OCR GCSE COMPUTER SCIENCE SPECIFICATION DETAILS (J277)

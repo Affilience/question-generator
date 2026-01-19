@@ -21,6 +21,31 @@ import {
  */
 
 // ============================================================================
+// AQA A-LEVEL FURTHER MATHS COGNITIVE CHALLENGE
+// ============================================================================
+
+const AQA_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, standard methods, single-step | Apply standard procedures, single concept, routine calculations |
+| **Medium** | Multi-step problem solving, method selection | Chain multiple techniques, select appropriate methods, prove standard results |
+| **Hard** | Proof construction, novel applications, synthesis | Construct proofs from first principles, apply to unfamiliar contexts, synthesise across topics |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires constructing mathematical proofs with logical rigour
+- Demands selection and combination of techniques from across the specification
+- Must handle abstract concepts and generalise to unfamiliar cases
+- Requires extended chains of mathematical reasoning
+- No single approach - student must devise their own proof strategy
+
+**Easy (2-4 marks):** Standard calculations and routine procedures
+**Medium (5-8 marks):** Multi-step problems and standard proofs
+**Hard (9-15 marks):** Proof construction and novel problem-solving
+`;
+
+// ============================================================================
 // AQA A-LEVEL FURTHER MATHS ASSESSMENT OBJECTIVES
 // ============================================================================
 
@@ -241,6 +266,60 @@ const AQA_FM_COMMAND_WORDS = `
 - isw: "ignore subsequent working" - don't penalise extra work
 - cao: "correct answer only" - no follow through
 - dep: dependent on previous mark(s)
+
+### Worked Examples with Mark Schemes
+
+**Example 1: Complex Numbers (5 marks)**
+*Question:* Express (2 + 3i)/(1 - i) in the form a + bi where a, b are real.
+
+*Mark Scheme:*
+- M1: Multiplies numerator and denominator by conjugate (1 + i)
+- A1: Correct numerator expansion: (2 + 3i)(1 + i) = 2 + 2i + 3i + 3i² = 2 + 5i - 3 = -1 + 5i
+- A1: Correct denominator: (1 - i)(1 + i) = 1 - i² = 2
+- M1: Divides to find a and b
+- A1: Final answer: -1/2 + 5i/2 (cao)
+
+**Example 2: Proof by Induction (6 marks)**
+*Question:* Prove by induction that Σ(r=1 to n) r² = n(n+1)(2n+1)/6
+
+*Mark Scheme:*
+- B1: Base case: n = 1, LHS = 1, RHS = 1(2)(3)/6 = 1 ✓
+- M1: Assumes result true for n = k (inductive hypothesis)
+- M1: Considers n = k + 1, adds (k+1)² to both sides
+- A1: Correct algebra: k(k+1)(2k+1)/6 + (k+1)² = (k+1)[k(2k+1) + 6(k+1)]/6
+- A1: Simplifies to (k+1)(k+2)(2k+3)/6
+- E1: Conclusion: states result true for n = 1 and if true for k then true for k+1, so true for all n ∈ ℕ by induction
+
+**Example 3: Matrices and Eigenvalues (7 marks)**
+*Question:* Find the eigenvalues and corresponding eigenvectors of A = ((3, 1), (1, 3))
+
+*Mark Scheme:*
+- M1: Forms characteristic equation det(A - λI) = 0
+- A1: (3-λ)² - 1 = 0, so λ² - 6λ + 8 = 0
+- A1: λ = 2 or λ = 4 (both eigenvalues correct)
+- M1: Substitutes λ = 2 into (A - λI)v = 0
+- A1: Eigenvector for λ = 2: v = k(1, -1) or equivalent
+- M1: Substitutes λ = 4 into (A - λI)v = 0
+- A1: Eigenvector for λ = 4: v = k(1, 1) or equivalent
+
+**Example 4: Differential Equations (8 marks)**
+*Question:* Solve d²y/dx² + 4dy/dx + 4y = e^(-2x), given y = 0 and dy/dx = 1 when x = 0
+
+*Mark Scheme:*
+- M1: Forms auxiliary equation m² + 4m + 4 = 0
+- A1: m = -2 (repeated root)
+- A1: Complementary function: y_c = (A + Bx)e^(-2x)
+- M1: Tries particular integral y_p = Cx²e^(-2x) (due to repeated root)
+- A1: Correctly finds C = 1/2, so y_p = (1/2)x²e^(-2x)
+- M1: Applies boundary conditions to general solution
+- A1: Correct value of A = 0
+- A1: Correct value of B = 1, giving y = (x + x²/2)e^(-2x) (cao)
+
+### Alternative Methods
+- For complex number division, polar form methods are equally valid
+- Matrix eigenvalue problems can use row reduction or cofactors for larger matrices
+- Differential equations may be solved using integrating factors where applicable
+- In proofs, logical equivalent statements are acceptable if mathematically rigorous
 `;
 
 // ============================================================================
@@ -2223,6 +2302,8 @@ const AQA_FM_QUESTION_PRINCIPLES = `# AQA A-Level Further Mathematics: Question 
 
 ${AQA_FM_ASSESSMENT_OBJECTIVES}
 
+${AQA_ALEVEL_FURTHER_MATHS_COGNITIVE_CHALLENGE}
+
 ${AQA_FM_EXAM_STRUCTURE}
 
 ${AQA_FM_COMMAND_WORDS}
@@ -2464,7 +2545,7 @@ export function getAQAALevelFurtherMathsCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ${AQA_FM_KEY_FORMULAE}
 

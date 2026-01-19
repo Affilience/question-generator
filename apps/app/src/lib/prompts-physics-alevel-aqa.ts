@@ -22,6 +22,23 @@
 import { Difficulty, Topic } from '@/types';
 import { getDiagramDocsForSubject } from './prompts-common';
 
+/**
+ * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 2, max: 3 };   // Short answer, single concept, direct substitution
+    case 'medium':
+      return { min: 4, max: 5 };   // Multi-step, equation rearrangement, application
+    case 'hard':
+      return { min: 6, max: 8 };   // Extended response, synoptic, unfamiliar contexts
+    default:
+      return { min: 2, max: 5 };
+  }
+}
+
 // ============================================================================
 // AQA A-LEVEL PHYSICS PAPER STRUCTURE AND MARK ALLOCATION
 // ============================================================================
@@ -248,6 +265,32 @@ const AQA_ALEVEL_PHYSICS_MATHEMATICAL_SKILLS = `
 5. Incorrect rearrangement of equations
 6. Confusing log₁₀ and ln
 7. Not squaring the denominator in inverse square laws
+`;
+
+// ============================================================================
+// COGNITIVE CHALLENGE BY DIFFICULTY LEVEL
+// ============================================================================
+
+const AQA_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, basic calculation, identification | State definitions, substitute into equations, identify quantities from diagrams |
+| **Medium** | Application, multi-step calculation, explanation | Apply equations to novel contexts, rearrange and combine formulae, explain physical phenomena |
+| **Hard** | Analysis, evaluation, synthesis, extended response | Analyse experimental data, evaluate methods, derive relationships, synoptic problem-solving |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires integration of concepts across multiple topics (e.g., combining mechanics with electricity)
+- Demands analysis of unfamiliar experimental contexts or data
+- Must evaluate experimental methods and suggest quantitative improvements
+- Requires extended mathematical reasoning or derivations from first principles
+- No single approach - student must select and justify methodology
+- May involve approximations, assumptions, or limiting cases
+
+**Easy (2-3 marks):** Knowledge recall, direct substitution, single-concept calculations
+**Medium (4-5 marks):** Multi-step problems, equation rearrangement, application to new contexts
+**Hard (6-8 marks):** Extended response with derivation, analysis, evaluation, or synoptic reasoning
 `;
 
 // ============================================================================
@@ -1000,6 +1043,59 @@ const AQA_ALEVEL_PHYSICS_COMMAND_WORDS = `
 | AW | Alternative wording |
 | OR | Alternative acceptable answer |
 | MAX | Maximum marks available |
+
+### Multi-Method Questions: Equal Credit for Valid Approaches
+
+Physics calculations often have multiple valid solution paths. Award full marks for ANY correct method.
+
+**Example 1: Finding velocity (SUVAT)**
+*Question:* An object accelerates uniformly from rest. After 5s it has travelled 50m. Find its final velocity.
+
+*Method A (using s = ½(u+v)t):*
+- M1: 50 = ½(0+v)(5)
+- A1: v = 20 m s⁻¹
+
+*Method B (using s = ut + ½at², then v = u + at):*
+- M1: 50 = 0 + ½a(25), so a = 4 m s⁻²
+- M1: v = 0 + 4(5)
+- A1: v = 20 m s⁻¹
+
+*Method C (using v² = u² + 2as):*
+- M1: v² = 0 + 2a(50), need a first
+- M1: From s = ½at², a = 4 m s⁻²
+- A1: v² = 400, v = 20 m s⁻¹
+
+**All methods receive full credit for correct execution.**
+
+**Example 2: Power calculation**
+*Question:* A 1500 kg car accelerates from rest to 30 m s⁻¹ in 10 s on a level road. Calculate the average power.
+
+*Method A (using P = Fv_avg):*
+- M1: a = 30/10 = 3 m s⁻², F = ma = 4500 N
+- M1: v_avg = 15 m s⁻¹
+- A1: P = 4500 × 15 = 67.5 kW
+
+*Method B (using P = Work/time):*
+- M1: Work = ΔKE = ½ × 1500 × 30² = 675 kJ
+- M1: P = 675000/10
+- A1: P = 67.5 kW
+
+**Both methods receive identical marks.**
+
+**Example 3: Resistor networks**
+*Question:* Calculate total resistance of parallel resistors.
+
+*Method A (using 1/R formula):*
+- Accept: 1/R_T = 1/R₁ + 1/R₂
+
+*Method B (using product/sum for two resistors):*
+- Accept: R_T = R₁R₂/(R₁ + R₂)
+
+**Example 4: Energy problems**
+For projectile/mechanics problems, accept:
+- Energy conservation approach: ½mv² = mgh
+- SUVAT kinematics: v² = u² + 2as
+- Forces and acceleration: F = ma combined with kinematics
 `;
 
 // =============================================================================
@@ -3142,15 +3238,17 @@ export function getAQAALevelPhysicsCompactPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
-    easy: 'AS standard, 2-4 marks, single concept, direct application',
-    medium: 'Full A-Level, 4-6 marks, may combine concepts, multi-step reasoning',
-    hard: 'Challenging A-Level, 6-8 marks, synoptic, unfamiliar context, extended analysis'
+    easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward substitution',
+    medium: 'Full A-Level, 4-5 marks, combines concepts, multi-step reasoning or equation rearrangement',
+    hard: 'Challenging A-Level, 6-8 marks, synoptic thinking across topics, unfamiliar contexts, requires extended analysis, evaluation or synthesis of multiple physics principles'
   };
 
   return `Generate an AQA A-Level Physics question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
+${AQA_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ${AQA_ALEVEL_PHYSICS_DATA_SHEET}
@@ -3161,6 +3259,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Paper: ${topic.paperRestriction || 'Not specified'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
+
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 Requirements:
 - Match AQA A-Level exam style and command words
@@ -3193,6 +3293,7 @@ export function getAQAALevelPhysicsEnhancedPrompt(
 
   return `Generate a detailed AQA A-Level Physics question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
+${AQA_ALEVEL_PHYSICS_COGNITIVE_CHALLENGE}
 ${topicGuidance}
 
 ## Reference Data (USE FOR ACCURATE CALCULATIONS)

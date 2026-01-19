@@ -6,7 +6,19 @@
 // - https://www.ocr.org.uk/Images/234600-specification-accredited-gcse-gateway-science-suite-physics-a-j249.pdf
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getMarkRangeForDifficulty, getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject } from './prompts-common';
+
+// GCSE Physics mark ranges based on OCR Gateway specification
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };    // Short answer/recall questions
+    case 'medium':
+      return { min: 4, max: 6 };    // Calculation and application questions
+    case 'hard':
+      return { min: 6, max: 9 };    // Extended response and multi-step calculations
+  }
+}
 
 // ============================================================================
 // OCR GATEWAY GCSE PHYSICS ASSESSMENT OBJECTIVES (OFFICIAL)
@@ -735,6 +747,8 @@ ${difficultyGuidance}
 
 **Mark Range:** ${markRange.min}-${markRange.max} marks
 
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
 ## Critical Requirements
 
 1. **ORIGINALITY:** Fresh question, not from past papers
@@ -857,7 +871,7 @@ ${topicGuidance}
 Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Calculation Question Requirements
 - Provide all necessary data with realistic values
@@ -1313,7 +1327,7 @@ ${OCR_PHYSICS_PAGS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Method
 - Describe the method step by step
@@ -1355,7 +1369,7 @@ ${OCR_PHYSICS_PAGS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Variables
 - Identify the independent variable
@@ -1398,7 +1412,7 @@ ${OCR_PHYSICS_EQUATION_SHEET}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Results
 - Calculate values from data (use equation)
@@ -1439,7 +1453,7 @@ ${OCR_PHYSICS_PAGS_DATA}
 Practical: ${practical.name}
 Description: ${practical.description}
 Difficulty: ${difficulty}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Question Types for Errors/Evaluation
 - Identify sources of error

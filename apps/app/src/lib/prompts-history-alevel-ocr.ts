@@ -9,6 +9,27 @@ import { getDiagramDocsForSubject } from './prompts-common';
 // OCR A-LEVEL HISTORY A SPECIFICATION DETAILS (H505)
 // ============================================================================
 
+const OCR_ALEVEL_HIST_COGNITIVE_CHALLENGE = `
+## Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, explanation, basic analysis | Identify and explain factors, features, or significance |
+| **Medium** | Analysis, interpretation evaluation | Evaluate interpretations against historical evidence, analyse source utility |
+| **Hard** | Synthesis, sustained judgement, historiographical debate | Construct thematic argument across the period, weigh interpretations, substantiated conclusions |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires thematic analysis across a substantial period of history
+- Demands sustained analytical argument with explicit judgement throughout
+- Must weigh competing historiographical interpretations using extracts
+- Requires synthesis of wide-ranging evidence to support a coherent thesis
+- No single "correct" answer - student must construct and defend their own interpretation
+
+**Easy (10 marks):** Explanation questions - identify factors and explain their significance
+**Medium (25 marks):** Period essay - analytical argument with judgement throughout
+**Hard (30 marks):** Interpretations essay - evaluate historiographical extracts using contextual knowledge
+`;
+
 const OCR_ALEVEL_HIST_ASSESSMENT_OBJECTIVES = `
 ## OCR A-Level History A Assessment Objectives
 
@@ -968,6 +989,8 @@ export function getOCRALevelHistorySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert OCR A-Level History examiner creating exam-style questions.
 
+${OCR_ALEVEL_HIST_COGNITIVE_CHALLENGE}
+
 ${OCR_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}
 
 ${OCR_ALEVEL_HIST_QUESTION_TEMPLATES}
@@ -1027,7 +1050,7 @@ export function getOCRALevelHistoryQuestionPrompt(topic: Topic, difficulty: Diff
 - Use dates, names, statistics from topic knowledge
 - Explain causal links clearly
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a period essay question requiring analysis and judgement (AO1).
 
@@ -1049,7 +1072,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Balanced argument
 - Substantiated judgement
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 30-mark interpretations or source enquiry question (AO2/AO3).
 
@@ -1073,7 +1096,7 @@ For source enquiry, include TWO primary source extracts with provenance details.
 - Compare different views
 - Reach judgement on merits
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR A-Level History question.

@@ -3,9 +3,24 @@ import {
   getVarietyParameters,
   getVarietyInstructions,
   getDifficultyGuidance,
-  getMarkRangeForDifficulty,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
+/**
+ * GCSE Maths mark ranges.
+ */
+function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  switch (difficulty) {
+    case 'easy':
+      return { min: 1, max: 3 };
+    case 'medium':
+      return { min: 3, max: 5 };
+    case 'hard':
+      return { min: 5, max: 8 };
+    default:
+      return { min: 1, max: 5 };
+  }
+}
 
 /**
  * Edexcel GCSE Mathematics (1MA1) Question Generation Prompts.
@@ -681,7 +696,7 @@ export function getEdexcelCompactPrompt(
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
-Marks: ${markRange.min}-${markRange.max}
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
 ## Edexcel Style (CRITICAL)
 - Problem-solving focus with realistic context

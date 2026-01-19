@@ -43,6 +43,21 @@ const OCR_GCSE_BUS_ASSESSMENT_OBJECTIVES = `
 - **Evaluate**: Judge from available evidence; consider viewpoints to reach conclusions (AO3)
 - **Assess**: Make an informed judgement about value or importance (AO3)
 - **Recommend**: Advise on a course of action with justification (AO3)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recall, identification, basic comprehension | Single concept, direct knowledge retrieval, no context needed, straightforward definitions |
+| **Medium** | Application, analysis, interpretation | Apply knowledge to business scenario, explain cause/effect relationships, interpret data, link concepts |
+| **Hard** | Evaluation, synthesis, sustained judgement | Weigh competing factors, make justified recommendations, analyse complex scenarios, construct balanced arguments with conclusion |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires weighing multiple factors against each other
+- No single "correct" answer - student must justify their position
+- Demands integration of knowledge from multiple topic areas
+- Requires awareness of context and stakeholder perspectives
+- Must reach and justify a conclusion or recommendation
 `;
 
 const OCR_GCSE_BUS_QUESTION_TEMPLATES = `
@@ -2159,7 +2174,7 @@ export function getOCRGCSEBusinessQuestionPrompt(topic: Topic, difficulty: Diffi
 - For explains: develop using Point → Explanation → Impact chain
 - For calculations: show all working clearly
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create an ANALYSIS question requiring chains of reasoning (AO2/AO3).
 
@@ -2182,7 +2197,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 
 **Create a brief business scenario (2-4 sentences) that sets up the analysis question.**
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create an EVALUATION question requiring balanced judgement (AO3).
 
@@ -2212,7 +2227,7 @@ Marks: ${markRange.min}-${markRange.max}`,
 - Clear decision/dilemma to evaluate
 - For 12-mark: two clear options to compare
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   return `Generate an OCR GCSE Business question.
@@ -2384,14 +2399,17 @@ To ensure diverse questions, apply these parameters:
 IMPORTANT: Create a realistic, believable scenario that a real GCSE student in the UK could engage with.`;
 }
 
-// Helper function for mark ranges specific to OCR
+/**
+ * Business GCSE mark ranges based on OCR specification question types.
+ * Ranges are non-overlapping to ensure consistent difficulty progression.
+ */
 function getOCRMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 1, max: 4 };
+      return { min: 1, max: 4 };   // Define, state, identify, outline
     case 'medium':
-      return { min: 6, max: 8 };
+      return { min: 5, max: 8 };   // Analyse, explain, application questions
     case 'hard':
-      return { min: 10, max: 12 };
+      return { min: 9, max: 12 };  // Evaluate, extended response
   }
 }

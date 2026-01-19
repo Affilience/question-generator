@@ -32,6 +32,21 @@ const AQA_GCSE_ENG_LIT_ASSESSMENT_OBJECTIVES = `
 - Named poem + comparison (Poetry anthology, 30 marks)
 - Single poem analysis (Unseen poetry, 24 marks)
 - Comparison of two unseen poems (8 marks)
+
+### Cognitive Challenge by Difficulty Level
+
+| Difficulty | Cognitive Skills | Question Characteristics |
+|------------|------------------|-------------------------|
+| **Easy** | Recognition, basic analysis, supported response | Identify techniques, basic analysis of extract, reference to text |
+| **Medium** | Developed analysis, interpretation, contextual understanding | Analyse language/structure/form, explore meanings, consider context |
+| **Hard** | Critical evaluation, conceptualised response, synthesis | Exploratory argument, critical analysis of writer's methods, perceptive contextual understanding |
+
+**What makes "hard" cognitively challenging (not just more marks):**
+- Requires critical, exploratory engagement with the whole text (not just extract)
+- Must develop a conceptualised argument rather than point-by-point analysis
+- Demands perceptive analysis of writer's methods with judicious terminology
+- Requires sustained personal interpretation with convincing textual support
+- Must integrate context as critical understanding, not just "bolted on" facts
 `;
 
 const AQA_GCSE_ENG_LIT_MARK_SCHEME = `
@@ -1435,7 +1450,7 @@ export function getAQAGCSEEnglishLiteratureQuestionPrompt(topic: Topic, difficul
 - Level 2 (3-4): Some comparison; some analysis
 - Level 1 (1-2): Simple links; limited analysis
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     medium: `Create a 30-mark essay question (with or without extract).
 
@@ -1460,7 +1475,7 @@ Include "Write about:" bullet points:
 - Level 2 (6-10): Supported response with references
 - Level 1 (1-5): Simple, limited comments
 
-Marks: ${markRange.min}-${markRange.max}`,
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
     hard: `Create a 34-mark question (30 marks + 4 AO4) requiring sophisticated analysis.
 
@@ -1486,7 +1501,7 @@ Include "Write about:" bullet points guiding towards:
 - Judicious use of terminology and references
 - Sophisticated written expression
 
-Marks: ${markRange.min}-${markRange.max}`
+YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
   };
 
   const textKnowledgePrompt = textKnowledge
@@ -1538,13 +1553,18 @@ Return valid JSON with PROPER LEVEL DESCRIPTOR mark scheme:
 }`;
 }
 
+/**
+ * English Literature GCSE mark ranges based on AQA specification.
+ * Ranges reflect question types: poetry comparison (8), essays (30), extended essays (30+4 SPaG).
+ * Note: English Lit has fixed mark questions tied to specific formats.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 8, max: 8 };
+      return { min: 8, max: 15 };  // Poetry comparison, extract-based analysis
     case 'medium':
-      return { min: 30, max: 30 };
+      return { min: 25, max: 30 }; // Single text essay, character/theme analysis
     case 'hard':
-      return { min: 34, max: 34 };
+      return { min: 30, max: 34 }; // Extended essay requiring synthesis, evaluation, and SPaG
   }
 }
