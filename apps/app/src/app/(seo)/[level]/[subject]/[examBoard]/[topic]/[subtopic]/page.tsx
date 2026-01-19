@@ -36,11 +36,14 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  // Only pre-generate indexed subtopic pages (with SEO value)
-  // Non-indexed pages will be generated on-demand via ISR
-  // This reduces build time from 6+ minutes to under 1 minute
-  return getIndexedSubtopicParams();
+  // Don't pre-generate ANY subtopic pages at build time
+  // All subtopic pages will be generated on-demand via ISR
+  // This keeps build size under Vercel's 75MB deployment limit
+  return [];
 }
+
+// Enable ISR - pages generated on first request, cached for 1 day
+export const revalidate = 86400; // 24 hours
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
