@@ -403,8 +403,7 @@ import { getAQAChemistryRequiredPracticalPrompt } from '@/lib/prompts-chemistry-
 import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic } from '@/types';
 
-// Configure for edge runtime for faster cold starts
-export const runtime = 'edge';
+// Using Node.js runtime (default) - Edge runtime has 1MB limit which is exceeded by prompt imports
 
 // Question types for all subjects
 type QuestionType = 'auto' | 'multiple-choice' | 'calculation' | 'explain' | 'compare' | 'extended' | 'graph' | 'proof' | 'show-that';

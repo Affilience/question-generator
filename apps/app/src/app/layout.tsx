@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     template: '%s | Past Papers',
   },
   description: "AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
