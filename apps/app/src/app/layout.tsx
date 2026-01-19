@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CommandPalette } from "@/components/ui/CommandPalette";
+import { CookieConsent } from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
                 {children}
               </div>
               <CommandPalette />
+              <CookieConsent />
             </ThemeProvider>
           </SubscriptionProvider>
         </AuthProvider>
