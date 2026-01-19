@@ -870,8 +870,8 @@ const ELIZABETHAN_ENGLAND_KNOWLEDGE = `
 - **William Cecil (Lord Burghley)**: Chief minister 1558-1598; cautious; Protestant
 - **Robert Cecil**: Son of William; took over as chief minister
 - **Francis Walsingham**: Spymaster; uncovered plots against Elizabeth
-- **Robert Dudley (Earl of Leicester)**: Elizabeth's favorite; possible suitor
-- **Robert Devereux (Earl of Essex)**: Later favorite; executed 1601 for rebellion
+- **Robert Dudley (Earl of Leicester)**: Elizabeth's favourite; possible suitor
+- **Robert Devereux (Earl of Essex)**: Later favourite; executed 1601 for rebellion
 
 **Privy Council:**
 - About 19 members; met almost daily

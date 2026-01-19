@@ -3138,7 +3138,7 @@ ${AQA_ALEVEL_ALGORITHMS_KNOWLEDGE}
 **Subtopic**: ${subtopic}
 **Difficulty**: ${difficulty}
 
-Create a question asking students to write or analyze an algorithm. May involve:
+Create a question asking students to write or analyse an algorithm. May involve:
 - Recursion
 - Graph algorithms (Dijkstra's, DFS, BFS, A*)
 - Sorting/searching algorithms

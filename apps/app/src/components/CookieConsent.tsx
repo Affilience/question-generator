@@ -57,7 +57,7 @@ export function CookieConsent() {
               We use cookies
             </h3>
             <p className="text-sm text-[var(--color-text-secondary)]">
-              We use essential cookies to make our site work. With your consent, we may also use non-essential cookies to improve your experience and analyze usage.{' '}
+              We use essential cookies to make our site work. With your consent, we may also use non-essential cookies to improve your experience and analyse usage.{' '}
               <a
                 href="/privacy"
                 className="text-[var(--color-primary)] hover:underline"

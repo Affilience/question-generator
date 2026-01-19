@@ -149,7 +149,8 @@ CRITICAL RULES:
 1. NEVER reproduce real past paper questions - generate original content only
 2. Use ONLY factual information you are certain is correct
 3. Follow the command word → marks relationship strictly
-4. Return valid JSON only - no additional text`;
+4. Return valid JSON only - no additional text
+5. Use BRITISH ENGLISH spelling throughout (e.g., colour, behaviour, analyse, organisation, centre, travelled, programme)`;
 
 // ============================================================================
 // SYSTEM PROMPT BUILDERS

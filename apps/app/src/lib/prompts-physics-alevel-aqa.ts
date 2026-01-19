@@ -1962,7 +1962,7 @@ Synoptic questions are a key feature of AQA A-Level Physics Paper 3. They assess
 | Primary Topic | Secondary Topic | Connection |
 |--------------|-----------------|------------|
 | SHM | Gravitational fields | Satellite oscillations, pendulums |
-| Thermal physics | Fields | Gas behavior in varying g |
+| Thermal physics | Fields | Gas behaviour in varying g |
 | Capacitors | Nuclear decay | Both involve exponential decay |
 | Circular motion | Magnetic fields | Charged particles in B-field |
 | Waves | Particles | Wave-particle duality |
@@ -2010,7 +2010,7 @@ This requires:
 - Wave on string (v = √(T/μ))
 
 **Pattern 3: Capacitors + Thermal Physics**
-"A capacitor discharges through a thermistor. Describe and explain how the discharge behavior changes."
+"A capacitor discharges through a thermistor. Describe and explain how the discharge behaviour changes."
 
 This requires:
 - Capacitor discharge (V = V₀e^(-t/RC))
@@ -2261,7 +2261,7 @@ const AQA_ALEVEL_PHYSICS_SPECIFICATION_CONTENT = `
 **4.9 Materials**
 - Hooke's law F = kx
 - Elastic strain energy E = ½Fx = ½kx²
-- Elastic and plastic behavior
+- Elastic and plastic behaviour
 
 **4.10 Bulk properties of solids**
 - Density ρ = m/V

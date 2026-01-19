@@ -2017,7 +2017,7 @@ const OCR_ALEVEL_CS_SOFTWARE = `
 
 *Multi-level Feedback Queue*
 - Multiple queues with different priorities
-- Processes move between queues based on behavior
+- Processes move between queues based on behaviour
 
 ### Types of Operating System
 
@@ -2094,7 +2094,7 @@ Software emulation of a computer system
 - Examples: C, Pascal
 
 *Object-Oriented*
-- Objects with state and behavior
+- Objects with state and behaviour
 - Encapsulation, inheritance, polymorphism
 - Examples: Java, C++, Python
 
@@ -3782,7 +3782,7 @@ export function getOCRALevelAlgorithmPrompt(topic: Topic, difficulty: Difficulty
 **Subtopic**: ${subtopic}
 **Difficulty**: ${difficulty}
 
-Create a question asking students to write or analyze an algorithm. May involve:
+Create a question asking students to write or analyse an algorithm. May involve:
 - Graph algorithms (Dijkstra's, A*, DFS, BFS, Prim's, Kruskal's)
 - Tree operations (traversals, insertion, deletion, balancing)
 - Searching and sorting (with complexity analysis)
