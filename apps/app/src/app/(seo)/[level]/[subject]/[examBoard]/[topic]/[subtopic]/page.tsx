@@ -275,10 +275,23 @@ export default async function SubtopicPage({ params }: PageProps) {
               {seoContent?.introduction ? (
                 <div className="whitespace-pre-wrap">{seoContent.introduction}</div>
               ) : (
-                <p>
-                  {subtopicName} is part of the {topicData.name} unit in the {boardInfo.name} {qualInfo.name} {subjectInfo.name} specification.
-                  Questions on this topic typically appear across all papers and can range from straightforward calculations to complex multi-step problems.
-                </p>
+                <>
+                  <p>
+                    {subtopicName} is part of the {topicData.name} unit in the {boardInfo.name} {qualInfo.name} {subjectInfo.name} specification.
+                    This topic appears regularly in {boardInfo.name} exams and understanding it thoroughly is essential for achieving top grades.
+                  </p>
+                  <p>
+                    Questions on {subtopicName} can range from straightforward recall and application questions worth 1-2 marks,
+                    to more challenging extended response questions worth 6 or more marks. The {boardInfo.name} mark scheme rewards
+                    clear working, correct use of technical terminology, and well-structured answers.
+                  </p>
+                  <p>
+                    To master this topic, practise a variety of question types and difficulty levels. Our AI-generated questions
+                    match the {boardInfo.name} {qualInfo.name} exam style, helping you become familiar with how questions are
+                    phrased and what examiners expect. Each question includes a detailed solution showing the full working and
+                    mark allocation, so you can learn from your mistakes and improve your technique.
+                  </p>
+                </>
               )}
               <div className="grid sm:grid-cols-2 gap-4 not-prose mt-6">
                 <div className="bg-[var(--color-bg-elevated)] rounded-lg p-4 border border-[var(--color-border)]">
