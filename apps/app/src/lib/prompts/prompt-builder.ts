@@ -315,6 +315,7 @@ function formatSubject(subject: Subject): string {
     'history': 'History',
     'english-literature': 'English Literature',
     'further-maths': 'Further Mathematics',
+    'combined-science': 'Combined Science',
   };
   return names[subject] || subject;
 }

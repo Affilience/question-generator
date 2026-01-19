@@ -2,7 +2,7 @@ import { DiagramSpec } from './diagram';
 
 export type ExamBoard = 'aqa' | 'edexcel' | 'ocr';
 export type QualificationLevel = 'gcse' | 'a-level';
-export type Subject = 'maths' | 'physics' | 'chemistry' | 'biology' | 'computer-science' | 'economics' | 'business' | 'psychology' | 'geography' | 'history' | 'english-literature' | 'further-maths';
+export type Subject = 'maths' | 'physics' | 'chemistry' | 'biology' | 'combined-science' | 'computer-science' | 'economics' | 'business' | 'psychology' | 'geography' | 'history' | 'english-literature' | 'further-maths';
 
 export interface SubjectInfo {
   id: Subject;

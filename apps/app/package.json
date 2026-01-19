@@ -21,6 +21,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "@upstash/redis": "^1.36.1",
+    "@vercel/analytics": "^1.6.1",
     "animejs": "^4.2.2",
     "axios": "^1.13.2",
     "canvas-confetti": "^1.9.4",

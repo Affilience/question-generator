@@ -108,6 +108,11 @@ const EXAM_BOARD_SPECS: Record<string, string> = {
   'further-maths-a-level-aqa': '7367',
   'further-maths-a-level-edexcel': '9FM0',
   'further-maths-a-level-ocr': 'H245',
+
+  // Combined Science specifications (GCSE only - worth 2 GCSEs)
+  'combined-science-gcse-aqa': '8464',      // AQA GCSE Combined Science: Trilogy
+  'combined-science-gcse-edexcel': '1SC0',  // Edexcel GCSE Combined Science
+  'combined-science-gcse-ocr': 'J250',      // OCR Gateway GCSE Combined Science A
 };
 
 // ============================================================================
@@ -226,6 +231,7 @@ function formatSubjectName(subject: Subject): string {
     'history': 'History',
     'english-literature': 'English Literature',
     'further-maths': 'Further Mathematics',
+    'combined-science': 'Combined Science',
   };
   return names[subject] || subject;
 }
@@ -331,4 +337,7 @@ export const ENHANCED_SYSTEM_PROMPTS: Record<string, string> = {
   // Further Maths
   'further-maths-gcse': getEnhancedSystemPrompt('further-maths', 'aqa', 'gcse'),
   'further-maths-a-level': getEnhancedSystemPrompt('further-maths', 'aqa', 'a-level'),
+
+  // Combined Science (GCSE only - covers Biology, Chemistry, Physics across 6 papers)
+  'combined-science-gcse': getEnhancedSystemPrompt('combined-science', 'aqa', 'gcse'),
 };

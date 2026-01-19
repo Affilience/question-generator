@@ -29,6 +29,11 @@ const subjectInfo: Partial<Record<Subject, { name: string; icon: string; color: 
     icon: '🧬',
     color: 'bg-emerald-500',
   },
+  'combined-science': {
+    name: 'Combined Science',
+    icon: '🔬',
+    color: 'bg-cyan-500',
+  },
 };
 
 export function SubjectSelector({

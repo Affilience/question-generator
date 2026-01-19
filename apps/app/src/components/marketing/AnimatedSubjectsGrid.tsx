@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { animate, stagger } from 'animejs';
 
 const subjects = [
-  { name: 'Mathematics', subtopics: '45+', icon: '∑', href: '/gcse/maths' },
+  { name: 'Mathematics', subtopics: '45+', icon: '📐', href: '/gcse/maths' },
+  { name: 'Combined Science', subtopics: '70+', icon: '🔬', href: '/gcse/combined-science' },
   { name: 'Physics', subtopics: '38+', icon: '⚛', href: '/gcse/physics' },
   { name: 'Chemistry', subtopics: '42+', icon: '⚗', href: '/gcse/chemistry' },
   { name: 'Biology', subtopics: '40+', icon: '🧬', href: '/gcse/biology' },
-  { name: 'Economics', subtopics: '28+', icon: '📈', href: '/a-level/economics' },
   { name: 'Psychology', subtopics: '32+', icon: '🧠', href: '/gcse/psychology' },
   { name: 'History', subtopics: '35+', icon: '📜', href: '/gcse/history' },
   { name: 'English Lit', subtopics: '24+', icon: '📚', href: '/gcse/english-literature' },

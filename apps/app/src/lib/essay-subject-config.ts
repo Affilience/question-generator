@@ -3424,6 +3424,7 @@ const boardSpecificConfigs: Record<Subject, SubjectBoardConfigs | null> = {
   'further-maths': null,
   'physics': null,  // 6-mark extended response only (not full essay)
   'chemistry': null,  // 6-mark extended response only (not full essay)
+  'combined-science': null,  // 6-mark extended response only (not full essay)
 };
 
 // Legacy configs for subjects not yet converted to board-specific
@@ -3441,6 +3442,7 @@ const legacyConfigs: Record<Subject, { gcse: DifficultyConfigs; alevel: Difficul
   'further-maths': null,
   'physics': null,
   'chemistry': null,
+  'combined-science': null,  // 6-mark extended response only (not full essay)
 };
 
 /**
@@ -3492,6 +3494,7 @@ const essayConfigs: Record<Subject, boolean> = {
   'further-maths': false,
   'physics': false,  // 6-mark extended response only
   'chemistry': false,  // 6-mark extended response only
+  'combined-science': false,  // 6-mark extended response only
 };
 
 /**

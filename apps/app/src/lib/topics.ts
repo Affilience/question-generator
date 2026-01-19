@@ -104,6 +104,11 @@ import { aqaALevelFurtherMathsTopics, getAQAALevelFurtherMathsTopicById } from '
 import { edexcelALevelFurtherMathsTopics, getEdexcelALevelFurtherMathsTopicById } from './topics-further-maths-alevel-edexcel';
 import { ocrALevelFurtherMathsTopics, getOCRALevelFurtherMathsTopicById } from './topics-further-maths-alevel-ocr';
 
+// GCSE Combined Science (AQA, Edexcel, and OCR) - GCSE only, no A-Level equivalent
+import { aqaCombinedScienceTopics, getAQACombinedScienceTopicById } from './topics-combined-science-gcse-aqa';
+import { edexcelCombinedScienceTopics, getEdexcelCombinedScienceTopicById } from './topics-combined-science-gcse-edexcel';
+import { ocrCombinedScienceTopics, getOCRCombinedScienceTopicById } from './topics-combined-science-gcse-ocr';
+
 /**
  * Subject Definitions
  */
@@ -135,6 +140,13 @@ export const subjects: SubjectInfo[] = [
     fullName: 'Biology',
     description: 'Cells, organisms, ecology, genetics and evolution',
     icon: '🧬',
+  },
+  {
+    id: 'combined-science',
+    name: 'Combined Science',
+    fullName: 'Combined Science: Trilogy',
+    description: 'Biology, chemistry and physics combined - worth two GCSEs',
+    icon: '🔬',
   },
   {
     id: 'computer-science',
@@ -205,6 +217,7 @@ export function getAvailableSubjects(): SubjectInfo[] {
     if (s.id === 'physics') return true; // Physics available
     if (s.id === 'chemistry') return true; // Chemistry available
     if (s.id === 'biology') return true; // Biology available
+    if (s.id === 'combined-science') return true; // Combined Science available (GCSE only)
     if (s.id === 'computer-science') return true; // Computer Science available
     if (s.id === 'economics') return true; // Economics available
     if (s.id === 'business') return true; // Business available
@@ -250,7 +263,7 @@ export const examBoards: ExamBoardInfo[] = [
     description: 'One of the largest UK exam boards, known for clear specification structure',
     specCode: '8300',
     qualifications: ['gcse', 'a-level'],
-    subjects: ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'],
+    subjects: ['maths', 'physics', 'chemistry', 'biology', 'combined-science', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'],
   },
   {
     id: 'edexcel',
@@ -259,7 +272,7 @@ export const examBoards: ExamBoardInfo[] = [
     description: 'International exam board offering GCSEs and A-Levels worldwide',
     specCode: '1MA1',
     qualifications: ['gcse', 'a-level'],
-    subjects: ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'], // Note: Edexcel only offers A-Level Economics and A-Level Further Maths (not GCSE)
+    subjects: ['maths', 'physics', 'chemistry', 'biology', 'combined-science', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'], // Note: Edexcel only offers A-Level Economics and A-Level Further Maths (not GCSE)
   },
   {
     id: 'ocr',
@@ -268,7 +281,7 @@ export const examBoards: ExamBoardInfo[] = [
     description: 'Emphasises understanding of principles and analytical reasoning',
     specCode: 'J560',
     qualifications: ['gcse', 'a-level'],
-    subjects: ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'],
+    subjects: ['maths', 'physics', 'chemistry', 'biology', 'combined-science', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'],
   },
 ];
 
@@ -902,6 +915,25 @@ export function getTopicsBySubjectBoardAndLevel(
     return [];
   }
 
+  // Handle Combined Science (GCSE only - no A-Level equivalent)
+  if (subject === 'combined-science') {
+    // Combined Science is GCSE only
+    if (level === 'gcse') {
+      switch (examBoard) {
+        case 'aqa':
+          return aqaCombinedScienceTopics;
+        case 'edexcel':
+          return edexcelCombinedScienceTopics;
+        case 'ocr':
+          return ocrCombinedScienceTopics;
+        default:
+          return [];
+      }
+    }
+    // No A-Level Combined Science - students take separate sciences
+    return [];
+  }
+
   // Handle Computer Science
   if (subject === 'computer-science') {
     if (level === 'gcse') {
@@ -1254,6 +1286,18 @@ export function getTopicById(id: string): Topic | undefined {
   // Check OCR A-Level Biology topics
   const ocrALevelBiologyTopic = getOCRALevelBiologyTopicById(id);
   if (ocrALevelBiologyTopic) return ocrALevelBiologyTopic;
+
+  // Check AQA GCSE Combined Science topics
+  const aqaCombinedScienceTopic = getAQACombinedScienceTopicById(id);
+  if (aqaCombinedScienceTopic) return aqaCombinedScienceTopic;
+
+  // Check Edexcel GCSE Combined Science topics
+  const edexcelCombinedScienceTopic = getEdexcelCombinedScienceTopicById(id);
+  if (edexcelCombinedScienceTopic) return edexcelCombinedScienceTopic;
+
+  // Check OCR GCSE Combined Science topics
+  const ocrCombinedScienceTopic = getOCRCombinedScienceTopicById(id);
+  if (ocrCombinedScienceTopic) return ocrCombinedScienceTopic;
 
   // Check AQA GCSE Computer Science topics
   const aqaComputerScienceTopic = getAQAComputerScienceTopicById(id);

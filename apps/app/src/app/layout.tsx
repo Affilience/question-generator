@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CommandPalette } from "@/components/ui/CommandPalette";
@@ -57,6 +58,7 @@ export default function RootLayout({
             </ThemeProvider>
           </SubscriptionProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

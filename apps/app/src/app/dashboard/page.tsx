@@ -119,7 +119,7 @@ export default function DashboardPage() {
         <header className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/"
+              href="/start"
               className="back-link inline-flex items-center text-sm text-[#666666] hover:text-[#a1a1a1] transition-colors"
             >
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +251,7 @@ export default function DashboardPage() {
               Your dashboard will fill up with insights as you practice. Complete questions to see your progress, streaks, and areas to improve.
             </p>
             <Link
-              href="/"
+              href="/start"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-xl font-medium transition-all duration-300 hover:bg-[#60a5fa] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)]"
             >
               Choose a topic to start
