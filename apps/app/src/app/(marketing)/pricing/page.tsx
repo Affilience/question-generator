@@ -391,38 +391,6 @@ function PricingContent() {
           </div>
         </div>
 
-        {/* FAQ */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-white text-center mb-8">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-6">
-            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
-              <h3 className="font-medium text-white mb-2">Can I cancel anytime?</h3>
-              <p className="text-white/60 text-sm">
-                Yes! You can cancel your subscription at any time. You&apos;ll continue to have access until the end of your billing period.
-              </p>
-            </div>
-            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
-              <h3 className="font-medium text-white mb-2">Is there a free trial?</h3>
-              <p className="text-white/60 text-sm">
-                Yes, monthly plans come with a 7-day free trial. You won&apos;t be charged until the trial ends, and you can cancel anytime.
-              </p>
-            </div>
-            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
-              <h3 className="font-medium text-white mb-2">What subjects are included?</h3>
-              <p className="text-white/60 text-sm">
-                All plans include access to every subject we support: Maths, Physics, Chemistry, Biology, Computer Science, Economics, Business, Psychology, Geography, History, and English Literature for both GCSE and A-Level.
-              </p>
-            </div>
-            <div className="bg-[#111] border border-white/[0.06] rounded-xl p-6">
-              <h3 className="font-medium text-white mb-2">Which exam boards do you cover?</h3>
-              <p className="text-white/60 text-sm">
-                We generate questions matching AQA, Edexcel, and OCR exam board styles. Each question is tailored to the specific exam board&apos;s format and marking criteria.
-              </p>
-            </div>
-          </div>
-        </div>
       </main>
 
       {/* Footer */}
