@@ -404,6 +404,43 @@ export function getRelatedSubtopics(
     .slice(0, limit);
 }
 
+/**
+ * Get cross-topic subtopics for internal linking
+ * Returns subtopics from OTHER topics in the same subject/board/level
+ * This improves internal link structure for SEO
+ */
+export function getCrossTopicSubtopics(
+  subject: Subject,
+  examBoard: ExamBoard,
+  level: QualificationLevel,
+  currentTopicId: string,
+  limit: number = 6
+): { topicId: string; topicName: string; subtopic: string; slug: string }[] {
+  const allTopics = getTopicsBySubjectBoardAndLevel(subject, examBoard, level);
+  const otherTopics = allTopics.filter(t => t.id !== currentTopicId);
+
+  const results: { topicId: string; topicName: string; subtopic: string; slug: string }[] = [];
+
+  // Get 1-2 subtopics from each other topic until we have enough
+  for (const topic of otherTopics) {
+    if (results.length >= limit) break;
+
+    // Take first 2 subtopics from each topic (or fewer if topic has less)
+    const subtopicsToAdd = topic.subtopics.slice(0, 2);
+    for (const subtopic of subtopicsToAdd) {
+      if (results.length >= limit) break;
+      results.push({
+        topicId: topic.id,
+        topicName: topic.name,
+        subtopic,
+        slug: slugify(subtopic),
+      });
+    }
+  }
+
+  return results;
+}
+
 // ============================================================================
 // BOARDLESS SEO HELPERS (Model A)
 // ============================================================================

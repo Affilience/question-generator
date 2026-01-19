@@ -13,6 +13,7 @@ import {
   unslugify,
   getRelatedTopics,
   getRelatedSubtopics,
+  getCrossTopicSubtopics,
 } from '@/lib/seo/utils';
 import {
   getSubjectInfo,
@@ -149,6 +150,13 @@ export default async function SubtopicPage({ params }: PageProps) {
     4
   );
   const relatedSubtopics = getRelatedSubtopics(topicData, subtopic, 6);
+  const crossTopicSubtopics = getCrossTopicSubtopics(
+    subject as Subject,
+    examBoard as ExamBoard,
+    level as QualificationLevel,
+    topic,
+    6
+  );
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-deepest)]">
@@ -355,6 +363,36 @@ export default async function SubtopicPage({ params }: PageProps) {
                   >
                     <span>{relTopic.icon}</span>
                     <span>{relTopic.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Cross-Topic Subtopics - Links to subtopics from other topics for better internal linking */}
+          {crossTopicSubtopics.length > 0 && (
+            <section className="mb-10">
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
+                More {boardInfo.name} {qualInfo.name} {subjectInfo.name} Practice
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {crossTopicSubtopics.map((item) => (
+                  <Link
+                    key={`${item.topicId}-${item.slug}`}
+                    href={`/${level}/${subject}/${examBoard}/${item.topicId}/${item.slug}`}
+                    className="flex items-center justify-between px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg text-sm hover:border-[var(--color-accent)]/50 transition-colors group"
+                  >
+                    <div>
+                      <span className="text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent)]">
+                        {item.subtopic}
+                      </span>
+                      <span className="text-[var(--color-text-muted)] text-xs ml-2">
+                        {item.topicName}
+                      </span>
+                    </div>
+                    <svg className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 ))}
               </div>
