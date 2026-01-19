@@ -88,14 +88,7 @@ function SubscriptionSuccessContent() {
                 Your subscription is now active. You have full access to all the features included in your plan.
               </p>
 
-              {subscription?.isTrialing && (
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
-                  <p className="text-blue-400 text-sm">
-                    Your 7-day free trial has started. You won&apos;t be charged until it ends.
-                  </p>
-                </div>
-              )}
-
+              
               <div className="space-y-3">
                 <Link
                   href="/gcse"

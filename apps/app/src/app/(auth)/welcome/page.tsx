@@ -34,7 +34,7 @@ const tiers = [
       '3 practice papers/week',
       'Priority support',
     ],
-    cta: 'Start 7-day Free Trial',
+    cta: 'Get Started',
     highlighted: true,
   },
 ];

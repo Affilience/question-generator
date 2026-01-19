@@ -68,7 +68,7 @@ const plans: Plan[] = [
       { text: 'Timed exam mode', included: false },
       { text: 'PDF downloads', included: false },
     ],
-    cta: 'Start Free Trial',
+    cta: 'Get Started',
     popular: true,
     color: 'blue',
   },
