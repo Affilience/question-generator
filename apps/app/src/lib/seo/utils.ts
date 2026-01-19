@@ -13,13 +13,36 @@ import type { ExamBoard, QualificationLevel, Subject, Topic } from '@/types';
 
 /**
  * Convert a string to URL-friendly slug
+ * Handles mathematical expressions like "i² = -1" or "y - y1 = m(x - x1)"
  */
 export function slugify(text: string): string {
   return text
     .toLowerCase()
+    // Replace common math symbols with words
+    // Handle ² followed by a letter (e.g., i²r → i-squared-r)
+    .replace(/²([a-z])/g, '-squared-$1')
+    .replace(/²/g, '-squared')
+    // Handle ³ followed by a letter
+    .replace(/³([a-z])/g, '-cubed-$1')
+    .replace(/³/g, '-cubed')
+    .replace(/√/g, 'sqrt-')
+    // Handle ^2 and ^3 notation
+    .replace(/\^2([a-z])/g, '-squared-$1')
+    .replace(/\^2/g, '-squared')
+    .replace(/\^3([a-z])/g, '-cubed-$1')
+    .replace(/\^3/g, '-cubed')
+    // Handle comparison/equality operators
+    .replace(/\s*=\s*/g, '-equals-')
+    .replace(/\s*<\s*/g, '-less-than-')
+    .replace(/\s*>\s*/g, '-greater-than-')
+    // Remove remaining special characters
     .replace(/[^a-z0-9\s-]/g, '')
+    // Replace whitespace with hyphens
     .replace(/\s+/g, '-')
+    // Collapse multiple hyphens
     .replace(/-+/g, '-')
+    // Remove leading/trailing hyphens
+    .replace(/^-+|-+$/g, '')
     .trim();
 }
 

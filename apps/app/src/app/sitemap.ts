@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getAllSubjectParams, getAllPracticalParams } from '@/lib/seo/utils';
 
-const BASE_URL = 'https://past-papers.co.uk';
+const BASE_URL = 'https://www.past-papers.co.uk';
 
 /**
  * SEO SITEMAP STRATEGY

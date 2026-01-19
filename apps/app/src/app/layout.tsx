@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://past-papers.co.uk'),
+  metadataBase: new URL('https://www.past-papers.co.uk'),
   title: {
     default: 'Past Papers - AI Practice Questions for GCSE & A-Level',
     template: '%s | Past Papers',

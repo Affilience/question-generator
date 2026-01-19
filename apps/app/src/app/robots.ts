@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://past-papers.co.uk/sitemap.xml',
+    sitemap: 'https://www.past-papers.co.uk/sitemap.xml',
   };
 }

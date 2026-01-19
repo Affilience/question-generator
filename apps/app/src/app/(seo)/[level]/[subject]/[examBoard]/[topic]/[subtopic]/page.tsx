@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
@@ -127,8 +127,9 @@ export default async function SubtopicPage({ params }: PageProps) {
   const isIndexedPage = shouldIndexSubtopic(level, subject, examBoard, topic, subtopic);
 
   // Non-indexed pages redirect directly to practice (no SEO content needed)
+  // Use permanentRedirect (308) instead of redirect (307) for SEO - tells search engines this is permanent
   if (!isIndexedPage) {
-    redirect(`/${level}/${subject}/${examBoard}/practice/${topic}/${subtopic}`);
+    permanentRedirect(`/${level}/${subject}/${examBoard}/practice/${topic}/${subtopic}`);
   }
 
   // Fetch SEO content and sample questions from database
