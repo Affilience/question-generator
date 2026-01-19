@@ -30,7 +30,6 @@
     "katex": "^0.16.27",
     "next": "16.1.1",
     "openai": "^6.16.0",
-    "pdf-img-convert": "^2.0.0",
     "pdf-parse": "^2.4.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
