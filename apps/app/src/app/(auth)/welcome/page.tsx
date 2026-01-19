@@ -14,7 +14,7 @@ const tiers = [
     priceKey: null,
     description: 'Get started with limited practice',
     features: [
-      '5 questions per day',
+      '15 questions per day',
       'Random difficulty only',
       'Full solutions included',
       'All subjects available',

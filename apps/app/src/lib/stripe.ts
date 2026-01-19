@@ -33,7 +33,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
   bookmarks: boolean;
 }> = {
   free: {
-    questionsPerDay: 5,
+    questionsPerDay: 15,
     papersPerWeek: 0,
     difficultyControl: false,
     timedExamMode: false,

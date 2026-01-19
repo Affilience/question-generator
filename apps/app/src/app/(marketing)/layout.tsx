@@ -19,9 +19,6 @@ export const metadata: Metadata = {
     title: 'Past Papers - Infinite AI-Generated Exam Questions',
     description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic.',
   },
-  alternates: {
-    canonical: '/',
-  },
 };
 
 export default function MarketingLayout({

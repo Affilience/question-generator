@@ -9,6 +9,7 @@ import {
   generateSEOTitle,
   generateSEODescription,
   getAllExamBoardParams,
+  slugify,
 } from '@/lib/seo/utils';
 import {
   getSubjectInfo,
@@ -197,7 +198,7 @@ export default async function ExamBoardPage({ params }: PageProps) {
           <div className="flex flex-wrap gap-2">
             {topics.slice(0, 3).flatMap(topic =>
               topic.subtopics.slice(0, 3).map(subtopic => {
-                const slug = subtopic.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+                const slug = slugify(subtopic);
                 return (
                   <Link
                     key={`${topic.id}-${slug}`}

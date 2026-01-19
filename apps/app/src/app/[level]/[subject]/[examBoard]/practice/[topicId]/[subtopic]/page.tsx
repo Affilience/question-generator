@@ -229,7 +229,34 @@ export default function SubtopicPracticePage() {
   }
 
   // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
-  const subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  let subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+
+  // If no exact match, try fuzzy matching for backwards compatibility
+  // This handles URLs generated with the old incorrect slugification that
+  // stripped special characters like = instead of converting to -equals-
+  if (!subtopicName && !isRandom) {
+    // Generate what the old broken slugification would have produced
+    const brokenSlugify = (s: string) => s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+
+    const fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
+
+    if (fuzzyMatch) {
+      // Redirect to the correct URL
+      const correctSlug = slugify(fuzzyMatch);
+      router.replace(`/${level}/${subject}/${examBoard}/practice/${topicId}/${correctSlug}`);
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-[#666666]">Redirecting...</div>
+        </div>
+      );
+    }
+  }
 
   // Validate subtopic exists (unless random)
   if (!isRandom && !subtopicName) {

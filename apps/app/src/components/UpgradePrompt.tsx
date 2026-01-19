@@ -17,7 +17,7 @@ interface UpgradePromptProps {
 const PROMPT_CONFIG = {
   daily_limit: {
     title: "You've reached your daily limit",
-    description: "Free accounts can generate 5 questions per day. Upgrade to Student Plus for unlimited questions!",
+    description: "Free accounts can generate 15 questions per day. Upgrade to Student Plus for unlimited questions!",
     highlight: 'Unlimited questions',
     icon: '⚡',
   },

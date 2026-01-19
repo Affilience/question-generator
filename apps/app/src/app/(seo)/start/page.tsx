@@ -123,7 +123,7 @@ export default function StartPage() {
             Free to Start
           </h2>
           <p className="text-[var(--color-text-secondary)] mb-4 max-w-xl mx-auto">
-            Practice up to 5 questions per day for free. No account required to get started.
+            Practice up to 15 questions per day for free. No account required to get started.
             Create an account to track your progress and unlock more features.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[var(--color-text-muted)]">

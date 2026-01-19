@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Terms of Service for Past Papers - AI-generated exam practice questions.',
+  alternates: {
+    canonical: '/terms',
+  },
 };
 
 export default function TermsPage() {
@@ -77,7 +80,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-white mb-4">4. Subscriptions and Payments</h2>
             <div className="text-white/60 space-y-4">
               <p>
-                <strong className="text-white/80">Free Tier:</strong> Limited to 5 questions per day with random difficulty.
+                <strong className="text-white/80">Free Tier:</strong> Limited to 15 questions per day with random difficulty.
               </p>
               <p>
                 <strong className="text-white/80">Paid Subscriptions:</strong> Billed monthly or annually as indicated at checkout.

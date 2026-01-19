@@ -120,9 +120,30 @@ export default async function SubtopicPage({ params }: PageProps) {
     notFound();
   }
 
-  // Find the actual subtopic name
-  const subtopicName = topicData.subtopics.find(s => slugify(s) === subtopic);
+  // Find the actual subtopic name - first try exact match
+  let subtopicName = topicData.subtopics.find(s => slugify(s) === subtopic);
+
+  // If no exact match, try fuzzy matching for backwards compatibility
+  // This handles URLs generated with the old incorrect slugification that
+  // stripped special characters like = instead of converting to -equals-
   if (!subtopicName) {
+    // Generate what the old broken slugification would have produced
+    const brokenSlugify = (s: string) => s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+
+    const fuzzyMatch = topicData.subtopics.find(s => brokenSlugify(s) === subtopic);
+
+    if (fuzzyMatch) {
+      // Redirect to the correct URL
+      const correctSlug = slugify(fuzzyMatch);
+      permanentRedirect(`/${level}/${subject}/${examBoard}/${topic}/${correctSlug}`);
+    }
+
     notFound();
   }
 
