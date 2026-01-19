@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Past Papers',
+  title: 'Privacy Policy',
   description: 'Privacy Policy for Past Papers - AI-generated exam practice questions.',
 };
 
