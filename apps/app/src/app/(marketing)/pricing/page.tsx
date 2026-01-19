@@ -89,13 +89,25 @@ const examSeasonPass = {
   ],
 };
 
+// Small component that uses useSearchParams - isolated in its own Suspense
+function CanceledNotice() {
+  const searchParams = useSearchParams();
+  const canceled = searchParams.get('canceled');
+
+  if (!canceled) return null;
+
+  return (
+    <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-400 text-center">
+      Checkout was canceled. Feel free to try again when you&apos;re ready.
+    </div>
+  );
+}
+
 function PricingContent() {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('annual');
   const { user } = useAuth();
   const { tier, subscription, openPortal } = useSubscription();
   const { checkoutState, openCheckout, closeCheckout } = useEmbeddedCheckout();
-  const searchParams = useSearchParams();
-  const canceled = searchParams.get('canceled');
 
   const handleSelectPlan = (plan: Plan, priceKey: string | null) => {
     if (!priceKey) return;
@@ -125,8 +137,234 @@ function PricingContent() {
   };
 
   return (
+    <>
+      {/* Billing toggle */}
+      <div className="flex justify-center mb-12">
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-lg p-1 flex">
+          <button
+            onClick={() => setBillingInterval('monthly')}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+              billingInterval === 'monthly'
+                ? 'bg-white text-[#0a0a0a]'
+                : 'text-white/60 hover:text-white'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingInterval('annual')}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              billingInterval === 'annual'
+                ? 'bg-white text-[#0a0a0a]'
+                : 'text-white/60 hover:text-white'
+            }`}
+          >
+            Annual
+            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+              Save up to 35%
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Pricing cards */}
+      <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+        {plans.map((plan) => {
+          const price = plan.price[billingInterval];
+          const priceKey = plan.priceKey[billingInterval];
+          const isCurrentPlan = tier === plan.id;
+          const savings = getAnnualSavings(plan.price.monthly, plan.price.annual);
+
+          return (
+            <div
+              key={plan.id}
+              className={`relative bg-[#111] border rounded-2xl p-8 ${
+                plan.popular
+                  ? 'border-blue-500/50 ring-1 ring-blue-500/20'
+                  : 'border-white/[0.06]'
+              }`}
+            >
+              {/* Popular badge */}
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+
+              {/* Plan header */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
+                <p className="text-sm text-white/40">{plan.tagline}</p>
+              </div>
+
+              {/* Price */}
+              <div className="mb-6">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-white">
+                    {price === 0 ? 'Free' : `£${price}`}
+                  </span>
+                  {price > 0 && (
+                    <span className="text-white/40">
+                      /{billingInterval === 'annual' ? 'year' : 'month'}
+                    </span>
+                  )}
+                </div>
+                {billingInterval === 'annual' && savings && (
+                  <p className="text-sm text-green-400 mt-1">
+                    Save {savings}% vs monthly
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <p className="text-white/60 text-sm mb-6">{plan.description}</p>
+
+              {/* CTA */}
+              {isCurrentPlan ? (
+                <button
+                  disabled
+                  className="w-full py-3 rounded-lg font-medium bg-white/10 text-white/60 cursor-not-allowed"
+                >
+                  Current Plan
+                </button>
+              ) : plan.ctaLink ? (
+                <Link
+                  href={plan.ctaLink}
+                  className="block w-full py-3 rounded-lg font-medium text-center bg-white/[0.06] text-white hover:bg-white/[0.1] transition-colors"
+                >
+                  {plan.cta}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleSelectPlan(plan, priceKey)}
+                  className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                    plan.popular
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-white text-[#0a0a0a] hover:bg-white/90'
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              )}
+
+              {/* Features */}
+              <ul className="mt-8 space-y-3">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    {feature.included ? (
+                      <svg
+                        className={`w-5 h-5 ${
+                          feature.highlight ? 'text-green-400' : 'text-white/40'
+                        } flex-shrink-0 mt-0.5`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5 text-white/20 flex-shrink-0 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-sm ${
+                        feature.included
+                          ? feature.highlight
+                            ? 'text-white font-medium'
+                            : 'text-white/80'
+                          : 'text-white/30'
+                      }`}
+                    >
+                      {feature.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Exam Season Pass */}
+      <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-8 mb-16">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-xl font-semibold text-white">{examSeasonPass.name}</h3>
+              <span className="bg-orange-500/20 text-orange-400 text-xs font-medium px-2 py-1 rounded-full">
+                {examSeasonPass.tagline}
+              </span>
+            </div>
+            <p className="text-white/60 mb-4">{examSeasonPass.description}</p>
+            <ul className="flex flex-wrap gap-4">
+              {examSeasonPass.features.map((feature, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
+                  <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <div className="text-3xl font-bold text-white">£{examSeasonPass.price}</div>
+            <span className="text-white/40 text-sm">one-time payment</span>
+            <button
+              onClick={handleSelectExamSeason}
+              disabled={tier === 'exam_season'}
+              className="mt-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {tier === 'exam_season' ? 'Already Active' : 'Get Exam Season Pass'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Embedded Checkout Modal */}
+      {checkoutState?.isOpen && (
+        <EmbeddedCheckoutModal
+          priceKey={checkoutState.priceKey}
+          planName={checkoutState.planName}
+          price={checkoutState.price}
+          interval={checkoutState.interval}
+          userId={user?.id}
+          onClose={closeCheckout}
+          onSuccess={() => {
+            closeCheckout();
+            window.location.href = '/subscription/success';
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+export default function PricingPage() {
+  const { user } = useAuth();
+  const { subscription, openPortal } = useSubscription();
+
+  return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
+      {/* Header - always rendered */}
       <header className="border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -173,14 +411,12 @@ function PricingContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Canceled notice */}
-        {canceled && (
-          <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-400 text-center">
-            Checkout was canceled. Feel free to try again when you&apos;re ready.
-          </div>
-        )}
+        {/* Canceled notice - wrapped in its own Suspense */}
+        <Suspense fallback={null}>
+          <CanceledNotice />
+        </Suspense>
 
-        {/* Hero */}
+        {/* Hero with H1 - always rendered, outside Suspense */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Simple, transparent pricing
@@ -190,243 +426,16 @@ function PricingContent() {
           </p>
         </div>
 
-        {/* Billing toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-lg p-1 flex">
-            <button
-              onClick={() => setBillingInterval('monthly')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingInterval === 'monthly'
-                  ? 'bg-white text-[#0a0a0a]'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingInterval('annual')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                billingInterval === 'annual'
-                  ? 'bg-white text-[#0a0a0a]'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              Annual
-              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
-                Save up to 35%
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Pricing cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
-          {plans.map((plan) => {
-            const price = plan.price[billingInterval];
-            const priceKey = plan.priceKey[billingInterval];
-            const isCurrentPlan = tier === plan.id;
-            const savings = getAnnualSavings(plan.price.monthly, plan.price.annual);
-
-            return (
-              <div
-                key={plan.id}
-                className={`relative bg-[#111] border rounded-2xl p-8 ${
-                  plan.popular
-                    ? 'border-blue-500/50 ring-1 ring-blue-500/20'
-                    : 'border-white/[0.06]'
-                }`}
-              >
-                {/* Popular badge */}
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-
-                {/* Plan header */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
-                  <p className="text-sm text-white/40">{plan.tagline}</p>
-                </div>
-
-                {/* Price */}
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">
-                      {price === 0 ? 'Free' : `£${price}`}
-                    </span>
-                    {price > 0 && (
-                      <span className="text-white/40">
-                        /{billingInterval === 'annual' ? 'year' : 'month'}
-                      </span>
-                    )}
-                  </div>
-                  {billingInterval === 'annual' && savings && (
-                    <p className="text-sm text-green-400 mt-1">
-                      Save {savings}% vs monthly
-                    </p>
-                  )}
-                </div>
-
-                {/* Description */}
-                <p className="text-white/60 text-sm mb-6">{plan.description}</p>
-
-                {/* CTA */}
-                {isCurrentPlan ? (
-                  <button
-                    disabled
-                    className="w-full py-3 rounded-lg font-medium bg-white/10 text-white/60 cursor-not-allowed"
-                  >
-                    Current Plan
-                  </button>
-                ) : plan.ctaLink ? (
-                  <Link
-                    href={plan.ctaLink}
-                    className="block w-full py-3 rounded-lg font-medium text-center bg-white/[0.06] text-white hover:bg-white/[0.1] transition-colors"
-                  >
-                    {plan.cta}
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => handleSelectPlan(plan, priceKey)}
-                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                      plan.popular
-                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                        : 'bg-white text-[#0a0a0a] hover:bg-white/90'
-                    }`}
-                  >
-                    {plan.cta}
-                  </button>
-                )}
-
-                {/* Features */}
-                <ul className="mt-8 space-y-3">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <svg
-                          className={`w-5 h-5 ${
-                            feature.highlight ? 'text-green-400' : 'text-white/40'
-                          } flex-shrink-0 mt-0.5`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-5 h-5 text-white/20 flex-shrink-0 mt-0.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      )}
-                      <span
-                        className={`text-sm ${
-                          feature.included
-                            ? feature.highlight
-                              ? 'text-white font-medium'
-                              : 'text-white/80'
-                            : 'text-white/30'
-                        }`}
-                      >
-                        {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Exam Season Pass */}
-        <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-8 mb-16">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-semibold text-white">{examSeasonPass.name}</h3>
-                <span className="bg-orange-500/20 text-orange-400 text-xs font-medium px-2 py-1 rounded-full">
-                  {examSeasonPass.tagline}
-                </span>
-              </div>
-              <p className="text-white/60 mb-4">{examSeasonPass.description}</p>
-              <ul className="flex flex-wrap gap-4">
-                {examSeasonPass.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
-                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="text-3xl font-bold text-white">£{examSeasonPass.price}</div>
-              <span className="text-white/40 text-sm">one-time payment</span>
-              <button
-                onClick={handleSelectExamSeason}
-                disabled={tier === 'exam_season'}
-                className="mt-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {tier === 'exam_season' ? 'Already Active' : 'Get Exam Season Pass'}
-              </button>
-            </div>
-          </div>
-        </div>
-
+        {/* Dynamic pricing content */}
+        <PricingContent />
       </main>
 
-      {/* Footer */}
+      {/* Footer - always rendered */}
       <footer className="border-t border-white/[0.06] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white/40 text-sm">
           <p>&copy; {new Date().getFullYear()} Past Papers. All rights reserved.</p>
         </div>
       </footer>
-
-      {/* Embedded Checkout Modal */}
-      {checkoutState?.isOpen && (
-        <EmbeddedCheckoutModal
-          priceKey={checkoutState.priceKey}
-          planName={checkoutState.planName}
-          price={checkoutState.price}
-          interval={checkoutState.interval}
-          userId={user?.id}
-          onClose={closeCheckout}
-          onSuccess={() => {
-            closeCheckout();
-            window.location.href = '/subscription/success';
-          }}
-        />
-      )}
     </div>
-  );
-}
-
-export default function PricingPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="animate-pulse text-white/60">Loading...</div>
-      </div>
-    }>
-      <PricingContent />
-    </Suspense>
   );
 }
