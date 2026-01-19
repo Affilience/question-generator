@@ -42,8 +42,6 @@ export async function generateStaticParams() {
   return [];
 }
 
-// Enable ISR - pages generated on first request, cached for 1 day
-export const revalidate = 86400; // 24 hours
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
