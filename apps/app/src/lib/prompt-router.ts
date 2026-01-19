@@ -249,23 +249,6 @@ MODEL ANSWER:
         commandWords: ['Analyse', 'Evaluate', 'To what extent', 'Assess']
       };
 
-    case 'compare':
-      return {
-        questionGuidance: `
-QUESTION TYPE: COMPARE (${config.totalMarks} marks)
-- Identify similarities AND differences
-- Must address both items equally
-- Use comparative language
-- May need to evaluate relative merits`,
-        solutionGuidance: `
-MODEL ANSWER:
-- Point-by-point OR block comparison
-- Explicit comparative language (whereas, similarly, in contrast)
-- Cover both similarities and differences
-- Balanced treatment`,
-        commandWords: ['Compare', 'Compare and contrast', 'What are the differences between']
-      };
-
     case 'data_response':
       return {
         questionGuidance: `
@@ -281,24 +264,6 @@ MODEL ANSWER:
 - Link to wider knowledge
 - Evaluate where appropriate`,
         commandWords: ['Using the data', 'What does the source suggest', 'Interpret']
-      };
-
-    case 'discuss':
-      return {
-        questionGuidance: `
-QUESTION TYPE: DISCUSS/ESSAY (${config.totalMarks} marks)
-- Extended response requiring balanced argument
-- Consider multiple viewpoints
-- Use evidence and examples
-- Reach reasoned conclusion`,
-        solutionGuidance: `
-MODEL ANSWER:
-- Introduction setting out approach
-- Multiple developed paragraphs
-- Evidence-based arguments
-- Balanced evaluation
-- Clear conclusion`,
-        commandWords: ['Discuss', 'To what extent do you agree', 'Evaluate']
       };
 
     case 'short_essay':
@@ -318,7 +283,7 @@ MODEL ANSWER:
         commandWords: ['Explain', 'Describe', 'Outline the importance of']
       };
 
-    case 'long_essay':
+    case 'extended_essay':
     default:
       return {
         questionGuidance: `
