@@ -8,7 +8,7 @@ import { subjects, examBoards, getTopicsBySubjectBoardAndLevel } from '@/lib/top
 import type { Subject } from '@/types';
 
 export const metadata: Metadata = {
-  title: 'GCSE Practice Questions - All Subjects | Past Papers',
+  title: 'GCSE Practice Questions - All Subjects',
   description: 'Practice unlimited GCSE exam questions across all subjects. AI-generated questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
   keywords: ['GCSE', 'GCSE past papers', 'GCSE revision', 'GCSE practice questions', 'AQA GCSE', 'Edexcel GCSE', 'OCR GCSE'],
   alternates: {

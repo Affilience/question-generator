@@ -28,7 +28,7 @@ const alevelFaqs = [
 ];
 
 export const metadata: Metadata = {
-  title: 'A-Level Practice Questions - All Subjects | Past Papers',
+  title: 'A-Level Practice Questions - All Subjects',
   description: 'Practice unlimited A-Level exam questions across all subjects. AI-generated questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
   keywords: ['A-Level', 'A-Level past papers', 'A-Level revision', 'A-Level practice questions', 'AQA A-Level', 'Edexcel A-Level', 'OCR A-Level'],
   alternates: {

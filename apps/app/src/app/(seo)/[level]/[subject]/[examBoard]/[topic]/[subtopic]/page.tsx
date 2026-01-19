@@ -62,7 +62,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const subtopicName = unslugify(subtopic);
-  const title = `${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}: ${subtopicName} Practice Questions`;
+  // Keep title under 60 chars total (including "| Past Papers" template suffix)
+  // Format: "Subtopic - Board Level Subject" puts main keyword first for SEO
+  const title = `${subtopicName} - ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}`;
   const description = `Practice unlimited ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} questions on ${subtopicName}. AI-generated exam-style questions with step-by-step solutions.`;
 
   // Only index subtopics with verified search demand

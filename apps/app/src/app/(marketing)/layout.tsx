@@ -3,7 +3,7 @@ import { WebsiteJsonLd } from '@/components/seo';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Past Papers - Infinite AI-Generated Exam Questions | GCSE & A-Level',
+    default: 'Past Papers - AI Exam Questions for GCSE & A-Level',
     template: '%s | Past Papers',
   },
   description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic, matching AQA, Edexcel & OCR specifications exactly.',
