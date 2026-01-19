@@ -316,19 +316,28 @@ export function generateSEOTitle(params: {
   }
 
   if (parts.length === 0) {
-    return 'Practice Questions';
+    return 'Past Papers & Questions';
   }
 
-  // For subtopic pages, create a more keyword-rich title
+  // For subtopic pages, use shorter format (already handled in page.tsx)
   if (params.subtopic) {
-    return `${parts.join(' ')}: Practice Questions`;
+    return `${parts.join(' ')}: Questions`;
   }
 
-  return parts.join(' ');
+  // For topic pages, add "Questions" (noindex anyway, just for navigation)
+  if (params.topic) {
+    return `${parts.join(' ')} Questions`;
+  }
+
+  // For subject and board pages, add "Past Papers" to match high-volume keywords
+  // e.g., "AQA GCSE Maths Past Papers" matches "aqa gcse maths past papers" (4,400/mo)
+  // Template adds "| Past Papers" but redundancy is fine and keeps under 60 chars
+  return `${parts.join(' ')} Past Papers`;
 }
 
 /**
  * Generate SEO description for a page
+ * Includes both "past papers" and "questions" keywords for better search coverage
  */
 export function generateSEODescription(params: {
   level?: string;
@@ -357,7 +366,7 @@ export function generateSEODescription(params: {
   const context = parts.join(' ');
 
   if (params.subtopic) {
-    return `Practice unlimited ${context} questions on ${unslugify(params.subtopic)}. AI-generated exam-style questions with step-by-step solutions.`;
+    return `Free ${context} ${unslugify(params.subtopic)} questions and answers. Past paper style practice with mark schemes and worked solutions.`;
   }
 
   if (params.topic) {
@@ -365,14 +374,14 @@ export function generateSEODescription(params: {
       ? getTopicsBySubjectBoardAndLevel(params.subject as Subject, params.examBoard as ExamBoard, params.level as QualificationLevel)
       : [];
     const topic = topics.find(t => t.id === params.topic);
-    return `Practice ${context} ${topic?.name || params.topic} questions. Unlimited AI-generated exam-style questions with detailed solutions.`;
+    return `${context} ${topic?.name || params.topic} past paper questions. Practice exam-style questions with detailed mark schemes and solutions.`;
   }
 
   if (context) {
-    return `Practice unlimited ${context} exam questions. AI-generated questions matching the exact exam board style with step-by-step solutions.`;
+    return `Free ${context} past papers and practice questions. Unlimited exam-style questions with mark schemes, worked solutions, and instant feedback.`;
   }
 
-  return 'AI-generated exam questions for GCSE and A-Level students. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles.';
+  return 'Free GCSE and A-Level past papers and practice questions. AI-generated exam questions matching AQA, Edexcel, and OCR specifications.';
 }
 
 /**
