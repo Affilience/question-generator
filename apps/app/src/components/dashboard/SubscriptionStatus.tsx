@@ -38,6 +38,9 @@ export function SubscriptionStatus() {
 
   const display = TIER_DISPLAY[tier];
   const isFreeTier = tier === 'free';
+  const isStudentPlus = tier === 'student_plus';
+  const isExamPro = tier === 'exam_pro';
+  const canUpgrade = isFreeTier || isStudentPlus;
   const questionsUsed = dailyUsage.questionsGenerated;
   const questionsLimit = limits.questionsPerDay;
   const isUnlimited = questionsLimit === null;
@@ -83,23 +86,30 @@ export function SubscriptionStatus() {
           )}
         </div>
 
-        {isFreeTier ? (
-          <Link
-            href="/pricing"
-            className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Upgrade
-          </Link>
-        ) : (
-          <button
-            type="button"
-            onClick={handleManage}
-            disabled={portalLoading}
-            className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            {portalLoading ? 'Loading...' : 'Manage'}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {canUpgrade && (
+            <Link
+              href="/pricing"
+              className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+                isFreeTier
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                  : 'bg-purple-500 hover:bg-purple-600 text-white'
+              }`}
+            >
+              Upgrade
+            </Link>
+          )}
+          {!isFreeTier && (
+            <button
+              type="button"
+              onClick={handleManage}
+              disabled={portalLoading}
+              className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {portalLoading ? 'Loading...' : 'Manage'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Portal error message */}
@@ -129,13 +139,28 @@ export function SubscriptionStatus() {
       {isFreeTier && questionsUsed >= (questionsLimit || 5) && (
         <div className="mt-3 pt-3 border-t border-white/[0.06]">
           <p className="text-xs text-white/60 mb-2">
-            Want unlimited questions? Upgrade to Student Plus!
+            Want more questions? Upgrade to Student Plus!
           </p>
           <Link
             href="/pricing"
             className="text-xs text-blue-400 hover:text-blue-300 font-medium"
           >
             View plans →
+          </Link>
+        </div>
+      )}
+
+      {/* Upgrade prompt for Student Plus */}
+      {isStudentPlus && (
+        <div className="mt-3 pt-3 border-t border-white/[0.06]">
+          <p className="text-xs text-white/60 mb-2">
+            Get unlimited questions & 7 papers/week with Exam Pro
+          </p>
+          <Link
+            href="/pricing"
+            className="text-xs text-purple-400 hover:text-purple-300 font-medium"
+          >
+            Upgrade to Exam Pro →
           </Link>
         </div>
       )}
