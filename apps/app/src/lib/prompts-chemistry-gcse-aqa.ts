@@ -973,8 +973,11 @@ Generate a ${subtopic.toUpperCase()} question for this AQA GCSE Chemistry Requir
   "marks": <total marks as integer>,
   "solution": "Detailed answer with practical knowledge",
   "markScheme": ["B1/M1: mark description", "A1: mark description"],
-  "diagram": <optional DiagramSpec - include when question benefits from visual>
+  "diagram": <optional DiagramSpec - include when question has stimulus diagram shown WITH the question>,
+  "solutionDiagram": <REQUIRED DiagramSpec when question asks student to "draw", "sketch", or "use a diagram" - this shows the EXPECTED diagram in the mark scheme>
 }
+
+**IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
 ${getDiagramDocsForSubject('chemistry')}
 

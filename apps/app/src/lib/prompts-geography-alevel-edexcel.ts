@@ -1725,7 +1725,10 @@ Return JSON with:
 - "marks": Total marks
 - "solution": Detailed model answer at the appropriate level
 - "markScheme": Array of marking points or level descriptors
-- "diagram": <optional DiagramSpec - include when question benefits from visual>
+- "diagram": <optional DiagramSpec - include when question has stimulus diagram/figure shown WITH the question>
+- "solutionDiagram": <REQUIRED DiagramSpec when question asks student to "draw", "sketch", or "use a diagram" - this shows the EXPECTED diagram in the mark scheme>
+
+**IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
 ${getDiagramDocsForSubject('geography')}`;
 }

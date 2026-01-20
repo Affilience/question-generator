@@ -93,7 +93,10 @@ export interface Question {
   marks: number;
   solution: string;
   markScheme: string[];
+  /** Diagram shown with the question (stimulus material) */
   diagram?: DiagramSpec;
+  /** Diagram shown in the mark scheme (expected answer for "draw a diagram" questions) */
+  solutionDiagram?: DiagramSpec;
 }
 
 export type Difficulty = 'easy' | 'medium' | 'hard';

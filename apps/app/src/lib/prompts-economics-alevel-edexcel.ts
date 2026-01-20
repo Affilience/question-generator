@@ -448,7 +448,10 @@ Return a JSON object with:
 - "content": The question text (use \\n for line breaks)
 - "marks": Total marks for the question
 - "solution": Complete mark scheme with mark allocation
-- "diagram": <optional DiagramSpec - include when question benefits from visual>
+- "diagram": <optional DiagramSpec - include when question has stimulus diagram/figure shown WITH the question>
+- "solutionDiagram": <REQUIRED DiagramSpec when question asks student to "draw", "sketch", or "use a diagram" - this shows the EXPECTED diagram in the mark scheme>
+
+**IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
 ${getDiagramDocsForSubject('economics')}`;
 }
@@ -527,6 +530,22 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
 **Subtopic**: ${subtopic}
 **Difficulty**: ${difficulty}
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel A-Level Economics A (9EC0) specification.
+
+**DO NOT include Business Studies/Accounting concepts such as:**
+- Straight-line depreciation, reducing balance depreciation (accounting concepts)
+- Break-even analysis calculations
+- Cash flow forecasting
+- Balance sheets, profit and loss accounts
+- NPV, IRR, ARR, payback period calculations for individual investments
+- Boston Matrix, Ansoff Matrix (marketing models)
+- Ratio analysis (financial accounting)
+
+**In Economics, "depreciation" ONLY refers to CURRENCY depreciation (exchange rate falls), NOT accounting depreciation of assets.**
+
+**For the topic "${topic.name}", test ONLY these subtopics:** ${topic.subtopics.join(', ')}
+
 ${difficultyGuidance[difficulty]}
 
 ${enhancedMarkSchemeGuidance}
@@ -537,6 +556,7 @@ ${enhancedMarkSchemeGuidance}
 - For evaluation questions, reward judgement and balance
 - Specify diagram requirements where relevant
 - Include quantitative elements where appropriate
+- ONLY test content from the Edexcel A-Level Economics specification
 
 Return valid JSON:
 {

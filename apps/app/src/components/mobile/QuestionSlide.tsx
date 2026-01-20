@@ -305,6 +305,23 @@ export function QuestionSlide({
               <MathRenderer content={question.solution} />
             </div>
 
+            {/* Solution diagram (for "draw a diagram" questions) */}
+            {question.solutionDiagram && (
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">Expected Diagram</h4>
+                <div className="flex justify-center">
+                  <DiagramErrorBoundary>
+                    <DiagramRenderer
+                      spec={question.solutionDiagram}
+                      maxWidth={400}
+                      maxHeight={320}
+                      className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
+                    />
+                  </DiagramErrorBoundary>
+                </div>
+              </div>
+            )}
+
             {/* Mark scheme */}
             {question.markScheme.length > 0 && (
               <div className="mt-6 pt-6 border-t border-[var(--color-border)]">

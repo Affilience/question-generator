@@ -885,6 +885,7 @@ export function parseQuestionResponse(response: string): {
   solution: string;
   markScheme: string[];
   diagram?: DiagramSpec;
+  solutionDiagram?: DiagramSpec;
 } {
   try {
     let jsonStr = response;
@@ -913,6 +914,7 @@ export function parseQuestionResponse(response: string): {
       solution: parsed.solution || '',
       markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
       diagram: parsed.diagram || undefined,
+      solutionDiagram: parsed.solutionDiagram || undefined,
     };
   } catch (error) {
     console.error('Failed to parse question response:', error);
