@@ -2,13 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 import { SubscriptionTier, TIER_LIMITS } from '@/lib/subscription-types';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface Subscription {
   id: string;
@@ -46,6 +41,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { user, session } = useAuth();
+  const supabase = createClient();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [dailyUsage, setDailyUsage] = useState<DailyUsage>({
