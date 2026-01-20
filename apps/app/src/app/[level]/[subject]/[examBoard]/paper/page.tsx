@@ -44,15 +44,19 @@ export default function PaperGeneratorPage() {
   const [error, setError] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const { user } = useAuth();
   const { canGeneratePaper, tier, loading: subscriptionLoading } = useSubscription();
 
-  // Cleanup polling on unmount
+  // Cleanup polling and abort controller on unmount
   useEffect(() => {
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -105,6 +109,10 @@ export default function PaperGeneratorPage() {
     setGenerationProgress(null);
     setError(null);
 
+    // Create abort controller for this generation session
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     try {
       // Start the background job
       const startResponse = await fetch('/api/papers/start', {
@@ -120,6 +128,7 @@ export default function PaperGeneratorPage() {
           config,
           userId: user.id,
         }),
+        signal,
       });
 
       const startData = await startResponse.json();
@@ -138,8 +147,11 @@ export default function PaperGeneratorPage() {
 
       // Poll for status
       const pollStatus = async () => {
+        // Skip if aborted
+        if (signal.aborted) return;
+
         try {
-          const statusResponse = await fetch(`/api/papers/status/${jobId}`);
+          const statusResponse = await fetch(`/api/papers/status/${jobId}`, { signal });
           const statusData = await statusResponse.json();
 
           if (!statusResponse.ok) {
@@ -186,6 +198,10 @@ export default function PaperGeneratorPage() {
           }
           // If still processing or pending, continue polling
         } catch (err) {
+          // Ignore abort errors (component unmounted)
+          if (err instanceof Error && err.name === 'AbortError') {
+            return;
+          }
           // Stop polling on error
           if (pollingRef.current) {
             clearInterval(pollingRef.current);
@@ -205,6 +221,10 @@ export default function PaperGeneratorPage() {
       pollStatus();
 
     } catch (err) {
+      // Ignore abort errors (component unmounted)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       console.error('Paper generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
       setIsGenerating(false);
