@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -43,9 +43,19 @@ export default function PaperGeneratorPage() {
   const [generationProgress, setGenerationProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const { user } = useAuth();
   const { canGeneratePaper, tier, loading: subscriptionLoading } = useSubscription();
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   // Validate params
   if (!validLevels.includes(level as QualificationLevel)) {
@@ -96,7 +106,8 @@ export default function PaperGeneratorPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/papers/generate', {
+      // Start the background job
+      const startResponse = await fetch('/api/papers/start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,66 +122,84 @@ export default function PaperGeneratorPage() {
         }),
       });
 
-      // Check for non-streaming error responses (validation errors, subscription checks)
-      const contentType = response.headers.get('content-type');
-      if (contentType?.includes('application/json')) {
-        const data = await response.json();
-        if (!response.ok) {
-          if (data.upgrade) {
-            setShowUpgradePrompt(true);
-            setIsGenerating(false);
-            return;
-          }
-          throw new Error(data.error || 'Failed to generate paper');
+      const startData = await startResponse.json();
+
+      if (!startResponse.ok) {
+        if (startData.upgrade) {
+          setShowUpgradePrompt(true);
+          setIsGenerating(false);
+          return;
         }
+        throw new Error(startData.error || 'Failed to start paper generation');
       }
 
-      // Handle streaming response
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+      const { jobId, totalQuestions } = startData;
+      setGenerationProgress({ current: 0, total: totalQuestions });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      // Poll for status
+      const pollStatus = async () => {
+        try {
+          const statusResponse = await fetch(`/api/papers/status/${jobId}`);
+          const statusData = await statusResponse.json();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+          if (!statusResponse.ok) {
+            throw new Error(statusData.error || 'Failed to check status');
+          }
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
+          // Update progress
+          setGenerationProgress({
+            current: statusData.progress.current,
+            total: statusData.progress.total,
+          });
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.type === 'progress') {
-                setGenerationProgress({ current: data.current, total: data.total });
-              } else if (data.type === 'complete') {
-                // Store paper in localStorage for the take page
-                if (data.paper) {
-                  localStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.paper));
-                }
-                // Navigate to paper taking view
-                router.push(`/paper/take/${data.paperId}`);
-                return;
-              } else if (data.type === 'error') {
-                throw new Error(data.error);
-              }
-            } catch (parseError) {
-              console.error('Error parsing SSE data:', parseError);
+          if (statusData.status === 'completed') {
+            // Stop polling
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
             }
+
+            // Store paper in localStorage for the take page
+            if (statusData.paper) {
+              localStorage.setItem(`paper-${statusData.paperId}`, JSON.stringify(statusData.paper));
+            }
+
+            // Navigate to paper taking view
+            router.push(`/paper/take/${statusData.paperId}`);
+          } else if (statusData.status === 'failed') {
+            // Stop polling
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
+            }
+            throw new Error(statusData.error || 'Paper generation failed');
           }
+          // If still processing, continue polling
+        } catch (err) {
+          // Stop polling on error
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          throw err;
         }
-      }
+      };
+
+      // Start polling every 2 seconds
+      pollingRef.current = setInterval(pollStatus, 2000);
+
+      // Also do an immediate check
+      await pollStatus();
+
     } catch (err) {
       console.error('Paper generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
       setIsGenerating(false);
       setGenerationProgress(null);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
     }
   };
 
