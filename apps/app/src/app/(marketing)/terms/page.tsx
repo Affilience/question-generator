@@ -88,7 +88,7 @@ export default function TermsPage() {
               </p>
               <p>
                 <strong className="text-white/80">Refunds:</strong> We offer refunds within 7 days of purchase if you are not
-                satisfied with the service. Contact us at taylor@avarismarketing.com.
+                satisfied with the service. Contact us at support@past-papers.co.uk.
               </p>
               <p>
                 <strong className="text-white/80">Cancellation:</strong> You can cancel your subscription at any time from your
@@ -187,8 +187,8 @@ export default function TermsPage() {
             <div className="text-white/60 space-y-4">
               <p>
                 If you have any questions about these Terms of Service, please contact us at{' '}
-                <a href="mailto:taylor@avarismarketing.com" className="text-blue-400 hover:text-blue-300">
-                  taylor@avarismarketing.com
+                <a href="mailto:support@past-papers.co.uk" className="text-blue-400 hover:text-blue-300">
+                  support@past-papers.co.uk
                 </a>
               </p>
             </div>

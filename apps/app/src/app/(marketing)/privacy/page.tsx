@@ -95,8 +95,8 @@ export default function PrivacyPage() {
               </ul>
               <p className="mt-4">
                 To exercise these rights, please contact us at{' '}
-                <a href="mailto:taylor@avarismarketing.com" className="text-blue-400 hover:text-blue-300">
-                  taylor@avarismarketing.com
+                <a href="mailto:support@past-papers.co.uk" className="text-blue-400 hover:text-blue-300">
+                  support@past-papers.co.uk
                 </a>
               </p>
             </div>
@@ -138,8 +138,8 @@ export default function PrivacyPage() {
             <div className="text-white/60 space-y-4">
               <p>
                 If you have any questions about this Privacy Policy, please contact us at{' '}
-                <a href="mailto:taylor@avarismarketing.com" className="text-blue-400 hover:text-blue-300">
-                  taylor@avarismarketing.com
+                <a href="mailto:support@past-papers.co.uk" className="text-blue-400 hover:text-blue-300">
+                  support@past-papers.co.uk
                 </a>
               </p>
             </div>
