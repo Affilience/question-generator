@@ -18,6 +18,7 @@ import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE } 
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
+import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
 import {
   getQuestionConfig,
   isEssaySubject,
@@ -399,12 +400,45 @@ async function generateSingleQuestion(
   subject: Subject,
   examBoard: ExamBoard,
   qualification: QualificationLevel,
-  openai: ReturnType<typeof getOpenAIClient>
+  openai: ReturnType<typeof getOpenAIClient>,
+  userId?: string
 ): Promise<GeneratedQuestion> {
   const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
                 getTopicById(plan.topicId);
   const topicName = topic?.name || plan.topicId;
 
+  // QUESTION BANK: Try to find an existing question first
+  const criteria: QuestionCriteria = {
+    subject,
+    examBoard,
+    qualification,
+    topicId: plan.topicId,
+    subtopic: plan.subtopic,
+    difficulty: plan.difficulty,
+    marks: plan.marks,
+  };
+
+  const bankQuestion = await findExistingQuestion(criteria, userId || null);
+  if (bankQuestion) {
+    // Record that this user has seen this question
+    recordQuestionServed(bankQuestion.id, userId || null, 'paper').catch(console.error);
+
+    return {
+      id: plan.id,
+      questionNumber: '',
+      content: bankQuestion.content,
+      marks: bankQuestion.marks,
+      difficulty: plan.difficulty,
+      questionType: plan.questionType,
+      topicId: plan.topicId,
+      subtopic: plan.subtopic,
+      solution: bankQuestion.solution,
+      markScheme: bankQuestion.mark_scheme,
+      diagram: bankQuestion.diagram as unknown as DiagramSpec | undefined,
+    };
+  }
+
+  // No existing question found - generate new one
   const basePrompt = isEssaySubject(subject)
     ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
     : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
@@ -433,7 +467,7 @@ async function generateSingleQuestion(
 
     const questionData = parseQuestionResponse(responseContent);
 
-    return {
+    const generatedQuestion: GeneratedQuestion = {
       id: plan.id,
       questionNumber: '',
       content: questionData.content,
@@ -446,6 +480,22 @@ async function generateSingleQuestion(
       markScheme: questionData.markScheme,
       diagram: questionData.diagram as DiagramSpec | undefined,
     };
+
+    // QUESTION BANK: Store for reuse by other users
+    storeQuestion(
+      criteria,
+      generatedQuestion.content,
+      generatedQuestion.solution,
+      generatedQuestion.markScheme,
+      generatedQuestion.marks,
+      generatedQuestion.diagram as Record<string, unknown> | undefined
+    ).then(bankId => {
+      if (bankId && userId) {
+        recordQuestionServed(bankId, userId, 'paper').catch(console.error);
+      }
+    }).catch(console.error);
+
+    return generatedQuestion;
   } catch (error) {
     console.error('Failed to generate question:', error);
     return {
@@ -515,7 +565,7 @@ export async function POST(request: NextRequest) {
     // Generate questions one at a time, updating progress
     for (let i = 0; i < allPlans.length; i++) {
       const plan = allPlans[i];
-      const question = await generateSingleQuestion(plan, subject, examBoard, qualification, openai);
+      const question = await generateSingleQuestion(plan, subject, examBoard, qualification, openai, userId);
       generatedQuestions.push(question);
 
       // Update progress in database

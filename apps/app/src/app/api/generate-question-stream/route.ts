@@ -5,6 +5,7 @@ import { getPracticalById } from '@/lib/practicals';
 import { getCachedQuestion, cacheQuestion, getCacheCount } from '@/lib/questionCache';
 import { checkRateLimit, getClientIP, getRateLimitHeaders, RATE_LIMITS } from '@/lib/rate-limit';
 import { checkQuestionGenerationAllowed, incrementQuestionUsage, canControlDifficulty } from '@/lib/api/subscription-check';
+import { findExistingQuestion, storeQuestion, recordQuestionServed } from '@/lib/question-bank';
 import { Difficulty, ExamBoard, QualificationLevel, Subject, Practical, PracticalSubtopic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
@@ -1217,7 +1218,89 @@ export async function POST(request: NextRequest) {
       ? `practical:${practical!.subject}:${practical!.qualification}:${topicId}`
       : `${subject}:${qualification}:${topicId}`;
 
-    // Try cache first (but stream it for consistent UX)
+    // QUESTION BANK: Try to find an existing question the user hasn't seen
+    // This dramatically reduces API costs by reusing questions across users
+    if (!skipCache && !isPractical) {
+      const bankQuestion = await findExistingQuestion(
+        {
+          subject,
+          examBoard,
+          qualification,
+          topicId,
+          subtopic: effectiveSubtopic,
+          difficulty: effectiveDifficulty,
+        },
+        userId || null
+      );
+
+      if (bankQuestion) {
+        // Track usage for subscription limits
+        incrementQuestionUsage(userId || null, clientIP).catch(console.error);
+        // Record that this user has seen this question
+        recordQuestionServed(bankQuestion.id, userId || null, 'practice').catch(console.error);
+
+        if (stream) {
+          // Stream the question for consistent typing animation UX
+          const encoder = new TextEncoder();
+          const question = {
+            id: crypto.randomUUID(),
+            topicId,
+            difficulty: effectiveDifficulty,
+            content: bankQuestion.content,
+            solution: bankQuestion.solution,
+            marks: bankQuestion.marks,
+            markScheme: bankQuestion.mark_scheme,
+            ...(bankQuestion.diagram && { diagram: bankQuestion.diagram }),
+          };
+
+          const readable = new ReadableStream({
+            async start(controller) {
+              const content = bankQuestion.content;
+              const chunkSize = 4;
+              const baseDelayMs = 8;
+              const getDelay = () => baseDelayMs + Math.floor(Math.random() * 4);
+
+              for (let i = 0; i < content.length; i += chunkSize) {
+                const chunk = content.slice(i, i + chunkSize);
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
+                await new Promise(resolve => setTimeout(resolve, getDelay()));
+              }
+
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, question })}\n\n`));
+              controller.close();
+            },
+          });
+
+          return new Response(readable, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'X-Source': 'question-bank',
+            },
+          });
+        } else {
+          // Non-streaming response
+          return new Response(JSON.stringify({
+            id: crypto.randomUUID(),
+            topicId,
+            difficulty: effectiveDifficulty,
+            content: bankQuestion.content,
+            solution: bankQuestion.solution,
+            marks: bankQuestion.marks,
+            markScheme: bankQuestion.mark_scheme,
+            ...(bankQuestion.diagram && { diagram: bankQuestion.diagram }),
+          }), {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Source': 'question-bank',
+            },
+          });
+        }
+      }
+    }
+
+    // Try in-memory cache as secondary option
     // Only use cache if we have enough questions to avoid cycling
     const cacheCount = !skipCache ? await getCacheCount(cacheKey, effectiveSubtopic, effectiveDifficulty) : 0;
     const shouldTryCache = !skipCache && cacheCount >= 3; // Need at least 3 questions to avoid obvious cycling
@@ -1454,6 +1537,30 @@ export async function POST(request: NextRequest) {
                 ...(question.diagram && { diagram: question.diagram }),
               }).catch(console.error);
 
+              // QUESTION BANK: Store for reuse by other users
+              if (!isPractical) {
+                storeQuestion(
+                  {
+                    subject: effectiveSubject,
+                    examBoard: effectiveBoard,
+                    qualification: effectiveLevel,
+                    topicId,
+                    subtopic: effectiveSubtopic,
+                    difficulty: effectiveDifficulty,
+                  },
+                  question.content,
+                  question.solution,
+                  question.markScheme,
+                  question.marks,
+                  question.diagram as Record<string, unknown> | undefined
+                ).then(bankId => {
+                  // Record that this user has seen this question
+                  if (bankId && userId) {
+                    recordQuestionServed(bankId, userId, 'practice').catch(console.error);
+                  }
+                }).catch(console.error);
+              }
+
               // Track usage for subscription limits
               incrementQuestionUsage(userId || null, clientIP).catch(console.error);
 
@@ -1528,6 +1635,28 @@ export async function POST(request: NextRequest) {
       markScheme: question.markScheme,
       ...(question.diagram && { diagram: question.diagram }),
     }).catch(console.error);
+
+    // QUESTION BANK: Store for reuse by other users
+    if (!isPractical) {
+      const bankId = await storeQuestion(
+        {
+          subject: effectiveSubject,
+          examBoard: effectiveBoard,
+          qualification: effectiveLevel,
+          topicId,
+          subtopic: effectiveSubtopic,
+          difficulty: effectiveDifficulty,
+        },
+        question.content,
+        question.solution,
+        question.markScheme,
+        question.marks,
+        question.diagram as Record<string, unknown> | undefined
+      );
+      if (bankId && userId) {
+        await recordQuestionServed(bankId, userId, 'practice');
+      }
+    }
 
     // Track usage for subscription limits
     await incrementQuestionUsage(userId || null, clientIP);
