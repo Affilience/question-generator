@@ -66,16 +66,8 @@ export async function POST(request: NextRequest) {
       sessionParams.customer_email = email;
     }
 
-    // Add trial for monthly subscriptions (not one-time)
-    if (!isOneTime && priceKey.includes('monthly')) {
-      sessionParams.subscription_data = {
-        trial_period_days: 7,
-        metadata: { user_id: userId || '' },
-      };
-    }
-
-    // For annual, add metadata
-    if (!isOneTime && priceKey.includes('annual')) {
+    // Add subscription metadata
+    if (!isOneTime) {
       sessionParams.subscription_data = {
         metadata: { user_id: userId || '' },
       };

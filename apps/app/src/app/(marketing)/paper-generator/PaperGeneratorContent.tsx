@@ -139,7 +139,7 @@ export default function PaperGeneratorContent() {
                 href={user ? '/past-papers' : '/signup'}
                 className="w-full sm:w-auto px-8 py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors text-center"
               >
-                {user ? 'Create a Paper' : 'Start Free Trial'}
+                {user ? 'Create a Paper' : 'Get Started'}
               </Link>
               <Link
                 href="/pricing"

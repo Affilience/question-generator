@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
       priceId,
       successUrl,
       cancelUrl,
-      trialDays: priceKey.includes('monthly') ? 7 : undefined, // 7-day trial for monthly plans
     });
 
     return NextResponse.json({ url: session.url });
