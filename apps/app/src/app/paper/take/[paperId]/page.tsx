@@ -11,6 +11,7 @@ import {
 } from '@/types';
 import { MarkBadge, InlineMarks } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
+import { DiagramRenderer } from '@/components/DiagramRenderer';
 
 interface PaperTakePageProps {
   params: Promise<{ paperId: string }>;
@@ -378,6 +379,16 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                     <div className="text-[var(--color-text-primary)]">
                       <MathRenderer content={currentQuestion.content} />
                     </div>
+                    {currentQuestion.diagram && (
+                      <div className="mt-4 flex justify-center">
+                        <DiagramRenderer
+                          spec={currentQuestion.diagram}
+                          maxWidth={450}
+                          maxHeight={350}
+                          className="bg-[var(--color-bg-primary)] rounded-lg p-4"
+                        />
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => toggleFlagged(currentQuestion.id)}

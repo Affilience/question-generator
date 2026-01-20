@@ -94,19 +94,43 @@ export default function PaperGeneratorPage() {
     setError(null);
 
     try {
-      // Store config in session storage for the paper view
-      sessionStorage.setItem('paperConfig', JSON.stringify({
-        ...config,
-        examBoard,
-        level,
-        subject,
-        userId: user.id,
-      }));
+      // Generate paper via API
+      const response = await fetch('/api/papers/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          examBoard,
+          qualification: level,
+          subject,
+          paperName: `${examBoard.toUpperCase()} ${level === 'gcse' ? 'GCSE' : 'A-Level'} ${subjectData?.name || subject} Practice Paper`,
+          config,
+          userId: user.id,
+        }),
+      });
 
-      // Navigate to paper taking view
-      router.push(`/${level}/${subject}/${examBoard}/paper/take`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.upgrade) {
+          setShowUpgradePrompt(true);
+          setIsGenerating(false);
+          return;
+        }
+        throw new Error(data.error || 'Failed to generate paper');
+      }
+
+      // Store paper in localStorage for the take page
+      if (data.paper) {
+        localStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.paper));
+      }
+
+      // Navigate to paper taking view with the paper ID
+      router.push(`/paper/take/${data.paperId}`);
     } catch (err) {
-      setError('Failed to generate paper. Please try again.');
+      console.error('Paper generation error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
       setIsGenerating(false);
     }
   };
