@@ -91,9 +91,9 @@ export async function findExistingQuestion(
       return unseenQuestions[index] as BankQuestion;
     }
 
-    // If all questions have been seen, return least-served one anyway
-    // (better to repeat than to fail)
-    return questions[0] as BankQuestion;
+    // If all questions have been seen, return null to trigger new AI generation
+    // The new question will be stored in the bank for other users
+    return null;
   }
 
   // For anonymous users, just return the least-served question
