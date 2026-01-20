@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { TIER_LIMITS, SubscriptionTier } from '@/lib/stripe';
+import { TIER_LIMITS, SubscriptionTier } from '@/lib/subscription-types';
 
 // Create Supabase admin client for server-side operations
 function getSupabaseAdmin() {

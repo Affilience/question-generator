@@ -1,4 +1,10 @@
+import 'server-only';
 import Stripe from 'stripe';
+
+// Re-export types and constants from subscription-types for backwards compatibility
+// These can be imported from either location
+export type { SubscriptionTier } from './subscription-types';
+export { TIER_LIMITS, getTierFromPriceId } from './subscription-types';
 
 // Lazy-initialized server-side Stripe instance
 let stripeInstance: Stripe | null = null;
@@ -16,75 +22,7 @@ export function getStripe(): Stripe {
   return stripeInstance;
 }
 
-// Subscription tier types
-export type SubscriptionTier = 'free' | 'student_plus' | 'exam_pro' | 'exam_season';
-
-// Feature limits by tier
-export const TIER_LIMITS: Record<SubscriptionTier, {
-  questionsPerDay: number | null; // null = unlimited
-  papersPerWeek: number | null;
-  difficultyControl: boolean;
-  timedExamMode: boolean;
-  pdfDownloads: boolean;
-  examinerCommentary: boolean;
-  synopticPapers: boolean;
-  priorityGeneration: boolean;
-  saveHistory: boolean;
-  bookmarks: boolean;
-}> = {
-  free: {
-    questionsPerDay: 15,
-    papersPerWeek: 0,
-    difficultyControl: false,
-    timedExamMode: false,
-    pdfDownloads: false,
-    examinerCommentary: false,
-    synopticPapers: false,
-    priorityGeneration: false,
-    saveHistory: false,
-    bookmarks: false,
-  },
-  student_plus: {
-    questionsPerDay: null, // unlimited
-    papersPerWeek: 3,
-    difficultyControl: true,
-    timedExamMode: false,
-    pdfDownloads: false,
-    examinerCommentary: false,
-    synopticPapers: false,
-    priorityGeneration: false,
-    saveHistory: true,
-    bookmarks: true,
-  },
-  exam_pro: {
-    questionsPerDay: null,
-    papersPerWeek: null, // unlimited
-    difficultyControl: true,
-    timedExamMode: true,
-    pdfDownloads: true,
-    examinerCommentary: true,
-    synopticPapers: true,
-    priorityGeneration: true,
-    saveHistory: true,
-    bookmarks: true,
-  },
-  exam_season: {
-    // Same as exam_pro
-    questionsPerDay: null,
-    papersPerWeek: null,
-    difficultyControl: true,
-    timedExamMode: true,
-    pdfDownloads: true,
-    examinerCommentary: true,
-    synopticPapers: true,
-    priorityGeneration: true,
-    saveHistory: true,
-    bookmarks: true,
-  },
-};
-
 // Price IDs - these should match your Stripe dashboard
-// Replace with actual Stripe price IDs after creating products in Stripe
 export const STRIPE_PRICES = {
   student_plus_monthly: process.env.STRIPE_PRICE_STUDENT_PLUS_MONTHLY || 'price_student_plus_monthly',
   student_plus_annual: process.env.STRIPE_PRICE_STUDENT_PLUS_ANNUAL || 'price_student_plus_annual',
@@ -92,14 +30,6 @@ export const STRIPE_PRICES = {
   exam_pro_annual: process.env.STRIPE_PRICE_EXAM_PRO_ANNUAL || 'price_exam_pro_annual',
   exam_season_pass: process.env.STRIPE_PRICE_EXAM_SEASON_PASS || 'price_exam_season_pass',
 };
-
-// Map Stripe price IDs to tiers
-export function getTierFromPriceId(priceId: string): SubscriptionTier {
-  if (priceId.includes('student_plus')) return 'student_plus';
-  if (priceId.includes('exam_pro')) return 'exam_pro';
-  if (priceId.includes('exam_season')) return 'exam_season';
-  return 'free';
-}
 
 // Get or create a Stripe customer for a user
 export async function getOrCreateStripeCustomer(

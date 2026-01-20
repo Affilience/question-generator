@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { createClient } from '@supabase/supabase-js';
-import { SubscriptionTier, TIER_LIMITS } from '@/lib/stripe';
+import { SubscriptionTier, TIER_LIMITS } from '@/lib/subscription-types';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
