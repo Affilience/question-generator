@@ -38,7 +38,7 @@ export function EmbeddedCheckoutModal({
         body: JSON.stringify({
           priceKey,
           userId,
-          returnUrl: window.location.origin + '/subscription/success',
+          returnUrl: window.location.origin,
         }),
       });
 
