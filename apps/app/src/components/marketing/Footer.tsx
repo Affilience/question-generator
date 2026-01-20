@@ -20,7 +20,7 @@ const FOOTER_LINKS = {
   legal: [
     { href: '/privacy', label: 'Privacy Policy' },
     { href: '/terms', label: 'Terms of Service' },
-    { href: 'mailto:support@pastpapers.co', label: 'Contact' },
+    { href: 'mailto:taylor@avarismarketing.com', label: 'Contact' },
   ],
 };
 

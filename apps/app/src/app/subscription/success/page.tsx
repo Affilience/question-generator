@@ -109,7 +109,7 @@ function SubscriptionSuccessContent() {
 
         <p className="text-center text-white/30 text-sm mt-6">
           Need help?{' '}
-          <a href="mailto:support@past-papers.co.uk" className="text-blue-400 hover:text-blue-300">
+          <a href="mailto:taylor@avarismarketing.com" className="text-blue-400 hover:text-blue-300">
             Contact support
           </a>
         </p>
