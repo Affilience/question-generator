@@ -143,7 +143,15 @@ export default function PaperGeneratorPage() {
           const statusData = await statusResponse.json();
 
           if (!statusResponse.ok) {
-            throw new Error(statusData.error || 'Failed to check status');
+            // Stop polling on error
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
+            }
+            setError(statusData.error || 'Failed to check status');
+            setIsGenerating(false);
+            setGenerationProgress(null);
+            return;
           }
 
           // Update progress
@@ -172,16 +180,21 @@ export default function PaperGeneratorPage() {
               clearInterval(pollingRef.current);
               pollingRef.current = null;
             }
-            throw new Error(statusData.error || 'Paper generation failed');
+            setError(statusData.error || 'Paper generation failed');
+            setIsGenerating(false);
+            setGenerationProgress(null);
           }
-          // If still processing, continue polling
+          // If still processing or pending, continue polling
         } catch (err) {
           // Stop polling on error
           if (pollingRef.current) {
             clearInterval(pollingRef.current);
             pollingRef.current = null;
           }
-          throw err;
+          console.error('Polling error:', err);
+          setError(err instanceof Error ? err.message : 'Failed to check generation status');
+          setIsGenerating(false);
+          setGenerationProgress(null);
         }
       };
 
@@ -189,7 +202,7 @@ export default function PaperGeneratorPage() {
       pollingRef.current = setInterval(pollStatus, 2000);
 
       // Also do an immediate check
-      await pollStatus();
+      pollStatus();
 
     } catch (err) {
       console.error('Paper generation error:', err);

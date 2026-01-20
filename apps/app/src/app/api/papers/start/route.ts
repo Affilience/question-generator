@@ -111,15 +111,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Check QStash config
+  if (!process.env.QSTASH_TOKEN) {
+    console.error('QSTASH_TOKEN not configured');
+    return NextResponse.json(
+      { error: 'Paper generation service not configured. Please contact support.' },
+      { status: 500 }
+    );
+  }
+
   // Queue to QStash
   const qstash = new Client({
-    token: process.env.QSTASH_TOKEN!,
+    token: process.env.QSTASH_TOKEN,
   });
 
   // Get the base URL for the callback
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-                  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
-                  'http://localhost:3000';
+                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+  console.log('QStash callback URL:', `${baseUrl}/api/papers/process`);
 
   try {
     await qstash.publishJSON({
