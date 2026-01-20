@@ -2124,6 +2124,23 @@ ${OCR_GCSE_BUS_CALCULATION_FORMULAS}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the OCR GCSE Business specification.
+
+**DO NOT include Economics concepts such as:**
+- Macroeconomic theory (GDP, aggregate demand/supply, monetary/fiscal policy)
+- Economic diagrams (supply and demand curves, equilibrium analysis)
+- Price elasticity of demand/supply calculations
+- Market failure, externalities, public goods (economics theory)
+- International trade theory, comparative advantage
+
+**In GCSE Business, focus on PRACTICAL BUSINESS applications:**
+- "Interest rates" = how they affect business borrowing costs, NOT monetary policy
+- "Exchange rates" = impact on importers/exporters, NOT exchange rate theory
+- "The economy" = practical effects on businesses, NOT economic models
+
+**For the topic "${topic.name}", test ONLY these subtopics:** ${topic.subtopics.join(', ')}
+
 ## Question Requirements
 1. **GCSE Standard**: Appropriate for 14-16 year olds
 2. **Authentic OCR Style**: Match real OCR paper format exactly

@@ -1531,6 +1531,21 @@ ${WORKED_EXAMPLES}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA GCSE Psychology specification.
+
+**When testing biological content:**
+- Focus on PSYCHOLOGICAL applications, not detailed biology
+- Brain and neurons: Basic structure and function only, as in GCSE Psychology spec
+- Neurotransmitters: Role in behavior, NOT chemical properties
+
+**DO NOT include GCSE Biology content such as:**
+- Detailed cell biology or genetics
+- Detailed nervous system anatomy
+- Biochemical processes
+
+**For the topic "${topic.name}", test ONLY the psychology content in the specification.**
+
 ## Question Requirements
 1. **GCSE Standard**: Appropriate for 14-16 year olds
 2. **Authentic AQA Style**: Match real AQA paper format

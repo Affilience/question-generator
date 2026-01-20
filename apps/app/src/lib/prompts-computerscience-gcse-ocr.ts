@@ -3091,6 +3091,27 @@ export function getOCRComputerScienceSystemPrompt(
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the OCR GCSE Computer Science (J277) specification.
+
+**DO NOT include pure Mathematics content such as:**
+- Mathematical proofs or formal logic beyond basic Boolean algebra
+- Abstract number theory not directly related to computing
+- Statistical analysis or probability theory
+
+**Focus on APPLIED computing concepts:**
+- Binary/hexadecimal conversions as they apply to data representation
+- Boolean logic for logic gates and programming conditions
+- Basic algorithmic thinking without pure mathematical proofs
+
+**DO NOT include A-Level content such as:**
+- Big O notation or formal complexity analysis
+- Advanced data structures (trees, graphs, hash tables)
+- Object-oriented programming concepts beyond basic understanding
+- Functional programming concepts
+
+**For the topic "${topic.name}", test ONLY the GCSE-level computer science content in the specification.**
+
 ## Response Format
 Return a JSON object with:
 - "content": The question text (use \\n for line breaks, include code in \`\`\` blocks)

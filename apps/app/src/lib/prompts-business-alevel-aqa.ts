@@ -411,6 +411,26 @@ ${AQA_ALEVEL_BUS_ESSAY_GUIDANCE}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA A-Level Business specification.
+
+**DO NOT include Economics concepts such as:**
+- Macroeconomic theory (GDP, inflation rates, monetary policy, fiscal policy)
+- Aggregate demand/supply curves and equilibrium analysis
+- Price elasticity calculations and demand/supply curve analysis
+- Market structures from economics (perfect competition, monopoly theory)
+- Balance of payments, exchange rate theory, international trade theory
+- Economic growth models, Phillips curve, multiplier effects
+- Government intervention theory (taxation theory, subsidies in economic terms)
+
+**In Business, focus on PRACTICAL BUSINESS applications:**
+- "Interest rates" = how they affect business costs/investment decisions, NOT monetary policy theory
+- "Exchange rates" = impact on import/export businesses, NOT exchange rate determination theory
+- "Inflation" = impact on business costs and pricing, NOT causes and macroeconomic effects
+- "Government policy" = practical effects on businesses, NOT economic theory behind policies
+
+**For the topic "${topic.name}", test ONLY these subtopics:** ${topic.subtopics.join(', ')}
+
 ## Question Requirements
 1. **A-Level Standard**: Questions must reflect the depth and rigour expected at A-Level
 2. **Authentic AQA Style**: Match the exact language, format, and structure of real AQA papers

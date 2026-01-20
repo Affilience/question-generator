@@ -749,6 +749,14 @@ ${difficultyGuidance}
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the OCR Gateway GCSE Physics specification.
+
+**DO NOT include:**
+- A-Level Physics content beyond GCSE scope
+- Detailed engineering or technology applications
+- Chemistry content (bonding, reactions) beyond basic physics context
+
 ## Critical Requirements
 
 1. **ORIGINALITY:** Fresh question, not from past papers

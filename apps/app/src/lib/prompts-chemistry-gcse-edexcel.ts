@@ -739,6 +739,23 @@ DIFFICULTY AND MARK ALLOCATION:
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel GCSE Chemistry specification.
+
+**DO NOT include Biology concepts such as:**
+- Enzyme function or metabolic pathways (photosynthesis details, respiration steps)
+- Biological applications of molecules beyond basic nutrition
+- Cell biology, organelles, or biological membranes
+- Ecological applications beyond basic environmental chemistry
+
+**Focus ONLY on GCSE Chemistry content:**
+- Chemical reactions, equations, and calculations
+- Atomic structure and the periodic table
+- Bonding, structure, and properties of matter
+- Chemical analysis and practical techniques
+- Energy changes, rates, and equilibrium
+- Organic chemistry basics
+
 Create ONE exam-style question that:
 1. Uses authentic Edexcel GCSE Chemistry language and command words
 2. Tests understanding appropriate to GCSE level

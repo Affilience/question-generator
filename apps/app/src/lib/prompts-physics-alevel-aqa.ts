@@ -3262,6 +3262,22 @@ Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA A-Level Physics specification.
+
+**For optional topics (Engineering Physics, Medical Physics, etc.):**
+- Test the PHYSICS PRINCIPLES, not engineering design or medical diagnosis
+- Engineering Physics: Test moment of inertia, rotational kinetics, thermodynamics - NOT specific engine designs or materials science
+- Medical Physics: Test X-ray physics, ultrasound principles, imaging physics - NOT medical diagnoses or treatment protocols
+
+**DO NOT include:**
+- Detailed engineering specifications or industrial applications
+- Medical diagnostic criteria or treatment decisions
+- Pure mathematics proofs beyond A-Level Physics requirements
+- Chemistry content (bonding, reactions) unless directly relevant to physics context
+
+**For the topic "${topic.name}", test ONLY the physics content in the specification.**
+
 Requirements:
 - Match AQA A-Level exam style and command words
 - Use appropriate level of mathematical rigour

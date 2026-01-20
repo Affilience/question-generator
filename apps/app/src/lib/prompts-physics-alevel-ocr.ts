@@ -326,6 +326,21 @@ DIFFICULTY GUIDE:
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the OCR A-Level Physics A specification.
+
+**For applied topics:**
+- Test the PHYSICS PRINCIPLES, not engineering design or medical diagnosis
+- Applied contexts should test underlying physics, not practical engineering
+
+**DO NOT include:**
+- Detailed engineering specifications or industrial applications
+- Medical diagnostic criteria or treatment decisions
+- Pure mathematics proofs beyond A-Level Physics requirements
+- Chemistry content (bonding, reactions) unless directly relevant to physics context
+
+**For the topic "${topic.name}", test ONLY the physics content in the specification.**
+
 Create ONE exam-style question that:
 1. Uses authentic OCR A-Level Physics language and command words
 2. Tests conceptual understanding appropriate to A-Level standard

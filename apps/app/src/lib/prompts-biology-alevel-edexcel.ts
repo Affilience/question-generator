@@ -3866,6 +3866,29 @@ DIFFICULTY AND MARK ALLOCATION:
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel A-Level Biology B specification.
+
+**DO NOT include pure Chemistry concepts such as:**
+- Detailed organic synthesis or laboratory preparation of compounds
+- Quantum mechanical explanations of bonding
+- Acid-base equilibria calculations (beyond buffer systems in biology)
+- Electrochemistry or redox calculations at chemistry A-Level depth
+- Detailed spectroscopy interpretation (IR, NMR, mass spec)
+
+**When testing biochemistry, focus on BIOLOGICAL applications:**
+- Enzyme structure and biological function, NOT chemical synthesis
+- Metabolic pathways and their biological regulation
+- Biological molecules in context of living systems
+- Neurotransmitters in terms of biological effects, NOT chemical properties
+
+**DO NOT include Psychology concepts such as:**
+- Psychological disorders or their classification
+- Cognitive theories, learning theories, or behavioral psychology
+- Clinical case studies or therapeutic approaches
+
+**For the topic "${topic.name}", test ONLY the biology content in the specification.**
+
 Create ONE exam-style question that:
 1. Uses authentic Edexcel A-Level Biology language
 2. Tests understanding appropriate to A-Level standard

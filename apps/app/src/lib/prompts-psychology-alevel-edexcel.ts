@@ -2141,6 +2141,27 @@ ${WORKED_EXAMPLES}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel A-Level Psychology specification.
+
+**When testing biological psychology content:**
+- Focus on PSYCHOLOGICAL explanations and applications of biological concepts
+- Neurotransmitters: Test their role in behavior/mental processes, NOT chemical structure
+- Brain regions: Test localisation of function in psychological context, NOT detailed neuroanatomy
+- Genetics: Test nature vs nurture debate, NOT molecular genetics or DNA structure
+
+**DO NOT include pure Biology A-Level content such as:**
+- Detailed neuron structure beyond basic Psychology specification
+- Biochemical pathways or detailed receptor mechanisms
+- Molecular genetics, gene expression, or protein synthesis
+- Detailed endocrine system beyond stress response basics
+
+**DO NOT include pure Chemistry content such as:**
+- Chemical structures of neurotransmitters
+- Drug mechanisms at molecular/receptor level beyond basic understanding
+
+**For the topic "${topic.name}", test ONLY the psychology content in the specification.**
+
 ## Question Requirements
 1. **A-Level Standard**: Appropriate for 16-18 year olds
 2. **Authentic Edexcel Style**: Match real Edexcel paper format exactly

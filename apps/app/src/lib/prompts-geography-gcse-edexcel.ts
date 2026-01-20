@@ -1036,6 +1036,21 @@ ${EDEXCEL_GCSE_GEOG_WORKED_EXAMPLES}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel GCSE Geography A specification.
+
+**Keep Physical and Human Geography distinct:**
+- Physical Geography topics (Landscapes, Hazards, Ecosystems): Test physical processes only
+- Human Geography topics (Cities, Development, Resources): Test human processes only
+- Only blend when the topic explicitly requires it
+
+**DO NOT include:**
+- A-Level content or complexity
+- Case studies not commonly taught at GCSE level
+- Advanced statistical analysis beyond GCSE requirements
+
+**For the topic "${topic.name}", test ONLY the GCSE-level content in the specification.**
+
 ## Question Requirements
 1. **GCSE Standard**: Appropriate for 14-16 year olds
 2. **Authentic Edexcel Style**: Match real Edexcel paper format

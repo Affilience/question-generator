@@ -447,6 +447,23 @@ DIFFICULTY AND MARK ALLOCATION:
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the OCR Gateway GCSE Biology specification.
+
+**DO NOT include Chemistry concepts such as:**
+- Detailed chemical equations beyond basic biological reactions
+- Atomic structure or electron configuration
+- Chemical bonding theory (ionic, covalent, metallic)
+- Detailed organic chemistry mechanisms
+
+**Focus ONLY on GCSE Biology content:**
+- Cell level systems
+- Scaling up
+- Organism level systems
+- Community level systems
+- Genes, inheritance and selection
+- Global challenges
+
 Create ONE exam-style question that:
 1. Uses authentic OCR Gateway GCSE Biology language
 2. Tests understanding appropriate to GCSE level

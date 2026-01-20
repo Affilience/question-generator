@@ -2119,6 +2119,27 @@ ${AQA_CS_PRINCIPLES}
 **Difficulty**: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA GCSE Computer Science (8525) specification.
+
+**DO NOT include pure Mathematics content such as:**
+- Mathematical proofs or formal logic beyond basic Boolean algebra
+- Abstract number theory not directly related to computing
+- Statistical analysis or probability theory
+
+**Focus on APPLIED computing concepts:**
+- Binary/hexadecimal conversions as they apply to data representation
+- Boolean logic for logic gates and programming conditions
+- Basic algorithmic thinking without pure mathematical proofs
+
+**DO NOT include A-Level content such as:**
+- Big O notation or formal complexity analysis
+- Advanced data structures (trees, graphs, hash tables)
+- Object-oriented programming concepts beyond basic understanding
+- Functional programming concepts
+
+**For the topic "${topic.name}", test ONLY the GCSE-level computer science content in the specification.**
+
 ${topicGuidance}
 
 ${difficultyGuidance[difficulty]}

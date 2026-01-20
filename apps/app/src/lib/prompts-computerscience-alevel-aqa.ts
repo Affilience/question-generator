@@ -3017,6 +3017,22 @@ ${topicGuidance}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA A-Level Computer Science specification.
+
+**DO NOT include pure Mathematics content such as:**
+- Mathematical proofs beyond what's in the CS specification
+- Pure number theory not related to computing applications
+- Abstract algebra not directly applicable to CS algorithms
+
+**Focus on APPLIED mathematics for computing:**
+- Big O notation and algorithmic complexity
+- Boolean algebra for logic gates and circuits
+- Graph theory for data structures and algorithms
+- Numerical methods as they apply to computing
+
+**For the topic "${topic.name}", test ONLY the computer science content in the specification.**
+
 ## Question Requirements
 1. **A-Level Standard**: Questions must reflect the depth expected at A-Level
 2. **Authentic AQA Style**: Match real AQA paper format

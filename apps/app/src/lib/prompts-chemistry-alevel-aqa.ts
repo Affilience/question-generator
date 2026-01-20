@@ -3102,6 +3102,26 @@ Paper: ${topic.paperRestriction || 'Not specified'}
 Difficulty: ${difficulty} - ${difficultyGuide[difficulty]}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the AQA A-Level Chemistry specification.
+
+**DO NOT include Biology concepts such as:**
+- Enzyme function, enzyme kinetics in biological systems, or metabolic pathways
+- Photosynthesis, respiration, glycolysis, or other biochemical cycles
+- Biological applications of proteins (e.g., antibodies, hormones, structural proteins)
+- DNA replication, transcription, translation, or protein synthesis
+- Cell biology, organelles, or biological membranes
+- Ecological or physiological applications
+
+**When testing amino acids and proteins, focus ONLY on:**
+- Structural properties, zwitterionic nature, isoelectric points
+- Acid-base chemistry of amino acids
+- Peptide bond formation and hydrolysis (chemical mechanism)
+- Chromatography and electrophoresis techniques
+- NOT biological function or enzyme activity
+
+**For the topic "${topic.name}", test ONLY the chemistry content in the specification.**
+
 Requirements:
 - Match AQA A-Level exam style and command words
 - Use appropriate chemical terminology

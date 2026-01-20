@@ -1709,6 +1709,22 @@ ${CASE_STUDY_DATA}
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel A-Level Geography specification.
+
+**Keep Physical and Human Geography distinct:**
+- Physical Geography topics: Test physical processes, landforms, climate, ecosystems - NOT human impacts as the main focus
+- Human Geography topics: Test human processes, urbanisation, globalisation - NOT physical geography as the main focus
+- Only blend content when the topic explicitly requires it (e.g., coastal management includes both)
+
+**DO NOT include:**
+- University-level geographic theory beyond A-Level specification
+- Obscure case studies not commonly used in A-Level teaching
+- Statistical methods beyond those required in the specification
+- Other social science content (sociology, economics) unless directly relevant to human geography
+
+**For the topic "${topic.name}", test ONLY the content specified in the Edexcel A-Level Geography syllabus.**
+
 ## Question Requirements
 1. **A-Level Standard**: Appropriate for 16-18 year olds studying Edexcel Geography
 2. **Authentic Edexcel Style**: Match real paper format exactly

@@ -473,6 +473,26 @@ DIFFICULTY AND MARK ALLOCATION:
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this ${difficulty} difficulty question.
 
+## CRITICAL: Content Boundaries
+You MUST ONLY test content that is in the Edexcel GCSE Biology specification.
+
+**DO NOT include Chemistry concepts such as:**
+- Detailed chemical equations beyond basic biological reactions
+- Atomic structure or electron configuration
+- Chemical bonding theory (ionic, covalent, metallic)
+- Detailed organic chemistry mechanisms
+
+**Focus ONLY on GCSE Biology content:**
+- Key concepts in biology
+- Cells and control
+- Genetics
+- Natural selection and genetic modification
+- Health, disease and development of medicines
+- Plant structures and their functions
+- Animal coordination, control and homeostasis
+- Exchange and transport in animals
+- Ecosystems and material cycles
+
 Create ONE exam-style question that:
 1. Uses authentic Edexcel GCSE Biology language
 2. Tests understanding appropriate to GCSE level
