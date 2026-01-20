@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigation } from '@/components/marketing/Navigation';
+import { Footer } from '@/components/marketing/Footer';
 
 const features = [
   {
@@ -68,76 +71,69 @@ const steps = [
   },
 ];
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } }
+};
+
 export default function PaperGeneratorContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
-      <header className="border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-xl font-semibold text-white">
-              Past Papers
-            </Link>
-            <div className="flex items-center gap-4">
-              {user ? (
-                <>
-                  <Link
-                    href="/past-papers"
-                    className="text-white/60 hover:text-white transition-colors"
-                  >
-                    Browse Papers
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="bg-white text-[#0a0a0a] px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-white/60 hover:text-white transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="bg-white text-[#0a0a0a] px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors"
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navigation user={user} authLoading={authLoading} />
 
-      <main>
+      <main className="pt-14">
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="text-center"
+          >
+            <motion.div
+              variants={fadeInUp}
+              className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6"
+            >
               <span className="text-blue-400 text-sm font-medium">Student Plus Feature</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+            </motion.div>
+            <motion.h1
+              variants={fadeInUp}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6"
+            >
               Generate Custom
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 Practice Papers
               </span>
-            </h1>
-            <p className="text-xl text-white/60 max-w-2xl mx-auto mb-8">
+            </motion.h1>
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl text-white/60 max-w-2xl mx-auto mb-8"
+            >
               Create unlimited GCSE and A-Level mock exams tailored to your needs.
               Choose topics, set difficulty, and get instant mark schemes.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            </motion.p>
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
               <Link
                 href={user ? '/past-papers' : '/signup'}
-                className="w-full sm:w-auto px-8 py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors text-center"
+                className="w-full sm:w-auto px-8 py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:scale-105 text-center"
               >
                 {user ? 'Create a Paper' : 'Get Started'}
               </Link>
@@ -147,55 +143,112 @@ export default function PaperGeneratorContent() {
               >
                 View Pricing
               </Link>
-            </div>
-            <p className="text-sm text-white/40 mt-4">
+            </motion.div>
+            <motion.p
+              variants={fadeInUp}
+              className="text-sm text-white/40 mt-4"
+            >
               3 papers per week with Student Plus
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </section>
 
         {/* Demo Preview */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-6 sm:p-8">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="bg-[#111] border border-white/[0.06] rounded-2xl p-6 sm:p-8 shadow-2xl"
+          >
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-3 h-3 rounded-full bg-red-500/60" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-              <div className="w-3 h-3 rounded-full bg-green-500/60" />
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 500 }}
+                className="w-3 h-3 rounded-full bg-red-500/60"
+              />
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, type: 'spring', stiffness: 500 }}
+                className="w-3 h-3 rounded-full bg-yellow-500/60"
+              />
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, type: 'spring', stiffness: 500 }}
+                className="w-3 h-3 rounded-full bg-green-500/60"
+              />
               <span className="ml-4 text-white/40 text-sm">Paper Builder</span>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.08]">
-                <div className="text-white/40 text-sm mb-1">Subject</div>
-                <div className="text-white font-medium">GCSE Maths</div>
-              </div>
-              <div className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.08]">
-                <div className="text-white/40 text-sm mb-1">Exam Board</div>
-                <div className="text-white font-medium">AQA</div>
-              </div>
-              <div className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.08]">
-                <div className="text-white/40 text-sm mb-1">Total Marks</div>
-                <div className="text-white font-medium">80 marks</div>
-              </div>
+              {[
+                { label: 'Subject', value: 'GCSE Maths' },
+                { label: 'Exam Board', value: 'AQA' },
+                { label: 'Total Marks', value: '80 marks' },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
+                  className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.08]"
+                >
+                  <div className="text-white/40 text-sm mb-1">{item.label}</div>
+                  <div className="text-white font-medium">{item.value}</div>
+                </motion.div>
+              ))}
             </div>
 
             <div className="mb-6">
               <div className="text-white/60 text-sm mb-3">Topics Selected</div>
               <div className="flex flex-wrap gap-2">
-                {['Algebra', 'Geometry', 'Statistics', 'Number'].map(topic => (
-                  <span key={topic} className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-400 text-sm">
+                {['Algebra', 'Geometry', 'Statistics', 'Number'].map((topic, i) => (
+                  <motion.span
+                    key={topic}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 + i * 0.08, type: 'spring', stiffness: 400 }}
+                    className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-400 text-sm"
+                  >
                     {topic}
-                  </span>
+                  </motion.span>
                 ))}
               </div>
             </div>
 
             <div className="mb-6">
               <div className="text-white/60 text-sm mb-3">Difficulty Mix</div>
-              <div className="flex h-3 rounded-full overflow-hidden">
-                <div className="bg-green-500 w-[30%]" />
-                <div className="bg-yellow-500 w-[50%]" />
-                <div className="bg-red-500 w-[20%]" />
+              <div className="flex h-3 rounded-full overflow-hidden bg-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: '30%' }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
+                  className="bg-green-500"
+                />
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: '50%' }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.7, duration: 0.8, ease: 'easeOut' }}
+                  className="bg-yellow-500"
+                />
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: '20%' }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.8, ease: 'easeOut' }}
+                  className="bg-red-500"
+                />
               </div>
               <div className="flex justify-between mt-2 text-xs text-white/40">
                 <span>30% Easy</span>
@@ -204,114 +257,202 @@ export default function PaperGeneratorContent() {
               </div>
             </div>
 
-            <button className="w-full py-4 bg-blue-500 text-white rounded-xl font-medium">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors"
+            >
               Generate Paper
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </section>
 
         {/* Features Grid */}
         <section className="bg-[#111] border-y border-white/[0.06] py-16 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={fadeInUp}
+              className="text-center mb-12"
+            >
               <h2 className="text-3xl font-bold text-white mb-4">
                 Everything You Need for Exam Success
               </h2>
               <p className="text-white/60 max-w-2xl mx-auto">
                 Our paper generator gives you complete control over your revision material
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {features.map((feature, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6"
+                  variants={scaleIn}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-colors"
                 >
-                  <div className="text-3xl mb-4">{feature.icon}</div>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 + index * 0.05, type: 'spring', stiffness: 400 }}
+                    className="text-3xl mb-4"
+                  >
+                    {feature.icon}
+                  </motion.div>
                   <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-white/60 text-sm">{feature.description}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* How It Works */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="text-center mb-12">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={fadeInUp}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl font-bold text-white mb-4">How It Works</h2>
             <p className="text-white/60 max-w-2xl mx-auto">
               Create your first practice paper in under a minute
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((item) => (
-              <div key={item.step} className="relative">
-                <div className="text-6xl font-bold text-white/[0.05] absolute -top-4 left-0">
+            {steps.map((item, index) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15, duration: 0.5 }}
+                className="relative"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + index * 0.15, type: 'spring', stiffness: 200 }}
+                  className="text-6xl font-bold text-white/[0.05] absolute -top-4 left-0"
+                >
                   {item.step}
-                </div>
+                </motion.div>
                 <div className="relative pt-8">
                   <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
                   <p className="text-white/60 text-sm">{item.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
 
         {/* Popular Subjects */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
-          <div className="text-center mb-12">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={fadeInUp}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl font-bold text-white mb-4">Popular Subjects</h2>
             <p className="text-white/60">Jump straight into creating a paper</p>
-          </div>
+          </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {subjects.map((subject) => (
-              <Link
-                key={subject.name}
-                href={subject.href}
-                className="flex items-center gap-4 bg-[#111] border border-white/[0.06] rounded-xl p-5 hover:border-white/[0.12] transition-colors group"
-              >
-                <span className="text-3xl">{subject.icon}</span>
-                <div>
-                  <div className="text-white font-medium group-hover:text-blue-400 transition-colors">
-                    {subject.name}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={staggerContainer}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {subjects.map((subject, index) => (
+              <motion.div key={subject.name} variants={scaleIn}>
+                <Link
+                  href={user ? subject.href : '/signup'}
+                  className="flex items-center gap-4 bg-[#111] border border-white/[0.06] rounded-xl p-5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all duration-300 group"
+                >
+                  <motion.span
+                    whileHover={{ scale: 1.2, rotate: 10 }}
+                    transition={{ type: 'spring', stiffness: 400 }}
+                    className="text-3xl"
+                  >
+                    {subject.icon}
+                  </motion.span>
+                  <div>
+                    <div className="text-white font-medium group-hover:text-blue-400 transition-colors">
+                      {subject.name}
+                    </div>
+                    <div className="text-white/40 text-sm">Create paper</div>
                   </div>
-                  <div className="text-white/40 text-sm">Create paper</div>
-                </div>
-                <svg className="w-5 h-5 text-white/20 ml-auto group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+                  <svg className="w-5 h-5 text-white/20 ml-auto group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          <div className="text-center mt-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="text-center mt-8"
+          >
             <Link
-              href="/past-papers"
-              className="text-blue-400 hover:text-blue-300 transition-colors"
+              href={user ? '/past-papers' : '/signup'}
+              className="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-2 group"
             >
-              View all subjects and exam boards →
+              View all subjects and exam boards
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
-          </div>
+          </motion.div>
         </section>
 
         {/* CTA Section */}
         <section className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-y border-white/[0.06] py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={staggerContainer}
+            className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+          >
+            <motion.h2
+              variants={fadeInUp}
+              className="text-3xl font-bold text-white mb-4"
+            >
               Ready to Start Practicing?
-            </h2>
-            <p className="text-white/60 mb-8 max-w-xl mx-auto">
+            </motion.h2>
+            <motion.p
+              variants={fadeInUp}
+              className="text-white/60 mb-8 max-w-xl mx-auto"
+            >
               Join thousands of students using AI-generated practice papers to ace their exams.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            </motion.p>
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
               <Link
                 href={user ? '/past-papers' : '/signup'}
-                className="w-full sm:w-auto px-8 py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors"
+                className="w-full sm:w-auto px-8 py-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:scale-105"
               >
                 {user ? 'Create Your Paper' : 'Get Started Free'}
               </Link>
@@ -321,17 +462,12 @@ export default function PaperGeneratorContent() {
               >
                 View Pricing
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white/40 text-sm">
-          <p>&copy; {new Date().getFullYear()} Past Papers. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

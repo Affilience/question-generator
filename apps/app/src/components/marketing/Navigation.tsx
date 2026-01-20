@@ -12,7 +12,7 @@ interface NavigationProps {
 const NAV_LINKS = [
   { href: '#features', label: 'Features' },
   { href: '#subjects', label: 'Subjects' },
-  { href: '/paper-generator', label: 'Paper Generator', highlight: true },
+  { href: '/paper-generator', label: 'Paper Generator' },
   { href: '#how-it-works', label: 'How It Works' },
   { href: '/pricing', label: 'Pricing' },
 ];
@@ -77,10 +77,7 @@ export function Navigation({ user, authLoading }: NavigationProps) {
             <Link
               key={link.href}
               href={link.href}
-              className={link.highlight
-                ? 'text-sm text-[#6366f1] hover:text-[#818cf8] transition-colors font-medium'
-                : 'text-sm text-white/60 hover:text-white transition-colors'
-              }
+              className="text-sm text-white/60 hover:text-white transition-colors"
             >
               {link.label}
             </Link>
@@ -157,11 +154,7 @@ export function Navigation({ user, authLoading }: NavigationProps) {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`py-3 px-4 rounded-lg transition-colors text-lg ${
-                      link.highlight
-                        ? 'text-[#6366f1] hover:text-[#818cf8] hover:bg-[#6366f1]/10 font-medium'
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
-                    }`}
+                    className="py-3 px-4 rounded-lg transition-colors text-lg text-white/70 hover:text-white hover:bg-white/5"
                   >
                     {link.label}
                   </Link>
