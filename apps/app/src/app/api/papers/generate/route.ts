@@ -270,9 +270,9 @@ MARK SCHEME:
 - Include indicative content for ${plan.subtopic}`;
   }
 
-  // Check if diagram needed
-  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram';
-  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if visual aids would help.` : '';
+  // Check if diagram needed - always include for maths/science subjects
+  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram' || isMathsSubject(subject) || isScienceSubject(subject);
+  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if visual aids would help (geometry, graphs, forces, circuits, etc.).` : '';
 
   return `Generate a ${boardUpper} ${levelDisplay} ${subject.replace('-', ' ')} exam question. Return ONLY valid JSON.
 
@@ -364,9 +364,9 @@ function buildQuantitativeQuestionPrompt(
   const commandWord = commandWords[Math.floor(Math.random() * commandWords.length)];
   const difficultyDesc = plan.difficulty === 'easy' ? 'grades 1-3' : plan.difficulty === 'medium' ? 'grades 4-5' : 'grades 6-9';
 
-  // Check if diagram needed
-  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram' || plan.questionType === 'graph';
-  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field for visual content.` : '';
+  // Always include diagram instructions for quantitative subjects (maths, physics, chemistry, biology)
+  const needsDiagram = true; // Quantitative subjects often need diagrams (geometry, graphs, forces, circuits, molecules, etc.)
+  const diagramInstructions = `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if the question involves geometry, graphs, forces, circuits, molecules, or other visual content.`;
 
   // Mark scheme format
   const markSchemeFormat = selectedFormat === 'short_essay' && plan.marks >= 6
