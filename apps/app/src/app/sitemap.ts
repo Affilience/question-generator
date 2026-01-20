@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllSubjectParams, getAllPracticalParams } from '@/lib/seo/utils';
+import { INDEXED_BOARDLESS_TOPICS, INDEXED_BOARDLESS_SUBTOPICS } from '@/lib/seo/indexed-pages';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -7,24 +8,22 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * SEO SITEMAP STRATEGY
  * ====================
  *
- * Minimal sitemap approach - only include pages that:
- * 1. Have unique, substantial content
- * 2. Can rank for meaningful keywords
- * 3. Are not duplicates of other pages
+ * Include all pages that are set to index: true in their metadata.
+ * Uses boardless URL structure (Model A) for topic/subtopic pages.
  *
- * Included:
+ * Included (~2000 URLs):
  * - Marketing pages (/, /pricing)
  * - Level pages (/gcse, /a-level)
- * - Subject pages (/gcse/maths) - Primary SEO targets
+ * - Subject pages (/gcse/maths)
+ * - Indexed topic pages (/gcse/maths/algebra) - from INDEXED_BOARDLESS_TOPICS
+ * - Indexed subtopic pages (/gcse/maths/algebra/simultaneous-equations) - from INDEXED_BOARDLESS_SUBTOPICS
+ * - Required practical pages (/gcse/physics/aqa/practicals/rp1)
  *
  * Excluded:
- * - Board-specific pages (/gcse/maths/aqa/*) - noindex, serve navigation only
- * - Topic/subtopic pages - noindex until keyword research validates demand
- * - All /app/* routes - blocked by robots.txt + noindex
+ * - Board-specific pages (/gcse/maths/aqa/*) - noindex, navigation only
+ * - Non-indexed subtopics - noindex until content is added
+ * - All /app/* routes - blocked by robots.txt
  * - All /api/* routes
- *
- * FUTURE: After keyword research, selectively add high-demand pages
- * using the allowlists in /lib/seo/indexed-pages.ts
  */
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -80,13 +79,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  // Indexed boardless topic pages (Model A SEO structure)
+  // e.g., /gcse/maths/algebra
+  const topicPages: MetadataRoute.Sitemap = INDEXED_BOARDLESS_TOPICS.map(({ level, subject, topic }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${topic}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  // Indexed boardless subtopic pages - PRIMARY SEO TARGETS
+  // e.g., /gcse/maths/algebra/simultaneous-equations
+  const subtopicPages: MetadataRoute.Sitemap = INDEXED_BOARDLESS_SUBTOPICS.map(({ level, subject, topic, subtopic }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${topic}/${subtopic}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.9, // Highest priority - these are the main content pages
+  }));
+
   return [
     ...staticPages,
     ...levelPages,
     ...subjectPages,
+    ...topicPages,
+    ...subtopicPages,
     ...practicalPages,
-    // NOTE: Board/topic/subtopic pages intentionally excluded
-    // They exist for navigation but don't capture distinct search intent
-    // Add them selectively after keyword research validates demand
   ];
 }
