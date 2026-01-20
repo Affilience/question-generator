@@ -111,11 +111,78 @@ export default function PaperGeneratorPage() {
     }
   };
 
+  // Show full-page upgrade prompt for free users
+  const showPremiumGate = !subscriptionLoading && tier === 'free';
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-deepest)]">
       <Header />
 
-      {/* Upgrade prompt modal */}
+      {/* Full page premium gate for free users */}
+      {showPremiumGate && (
+        <div className="fixed inset-0 z-50 bg-[var(--color-bg-deepest)]/95 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/10 rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl"
+          >
+            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">📝</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Unlock Practice Papers
+            </h2>
+            <p className="text-white/60 mb-6 leading-relaxed">
+              Create custom practice papers with the topics and difficulty you need.
+              Perfect for targeted exam preparation.
+            </p>
+
+            <div className="space-y-3 mb-8 text-left">
+              {[
+                'Generate unlimited practice papers',
+                'Choose specific topics to focus on',
+                'Set your own difficulty mix',
+                'Instant mark schemes included',
+              ].map((feature, i) => (
+                <motion.div
+                  key={feature}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.1 }}
+                  className="flex items-center gap-3"
+                >
+                  <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-white/80 text-sm">{feature}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/pricing"
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] text-center"
+              >
+                Upgrade to Student Plus
+              </Link>
+              <Link
+                href={`/${level}/${subject}/${examBoard}`}
+                className="flex-1 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-6 py-3 rounded-xl font-medium transition-colors text-center"
+              >
+                Practice Questions Instead
+              </Link>
+            </div>
+
+            <p className="text-white/40 text-xs mt-4">
+              From £3.33/month billed annually
+            </p>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Upgrade prompt modal (shown after trying to generate) */}
       {showUpgradePrompt && (
         <UpgradePrompt
           reason="papers"
@@ -141,13 +208,6 @@ export default function PaperGeneratorPage() {
           <p className="text-[#a1a1a1]">
             Create a custom {examBoardInfo?.name} {levelDisplay} {subjectData?.name} practice paper
           </p>
-          {tier === 'free' && !subscriptionLoading && (
-            <div className="mt-3 inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm px-3 py-1.5 rounded-lg">
-              <span>⭐</span>
-              <span>Paper generation requires a paid plan</span>
-              <Link href="/pricing" className="underline hover:text-yellow-300">Upgrade</Link>
-            </div>
-          )}
         </motion.header>
 
         {error && (
