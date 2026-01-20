@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { SubscriptionTier, TIER_LIMITS } from '@/lib/subscription-types';
@@ -41,7 +41,8 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { user, session } = useAuth();
-  const supabase = createClient();
+  // Memoize the supabase client to ensure stable reference
+  const supabase = useMemo(() => createClient(), []);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [dailyUsage, setDailyUsage] = useState<DailyUsage>({
@@ -64,6 +65,16 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       const today = new Date().toISOString().split('T')[0];
 
+      // First verify we have an authenticated session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+      if (!currentSession) {
+        console.warn('No active session found when fetching subscription');
+        setSubscription(null);
+        setLoading(false);
+        return;
+      }
+
       // Run both queries in parallel for faster loading
       const [subResult, usageResult] = await Promise.all([
         supabase
@@ -85,8 +96,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       const { data: subData, error: subError } = subResult;
       const { data: usageData } = usageResult;
 
-      if (subError && subError.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', subError);
+      if (subError) {
+        if (subError.code === 'PGRST116') {
+          // No rows returned - user has no active subscription
+          console.log('No active subscription found for user');
+        } else {
+          console.error('Error fetching subscription:', subError.message, subError.code);
+        }
       }
 
       if (subData) {
@@ -95,10 +111,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         const tierFromMetadata = productMetadata?.tier as SubscriptionTier;
         const tierFromPriceId = getTierFromPriceId(subData.price_id || '');
 
+        const resolvedTier = tierFromMetadata || tierFromPriceId || 'free';
+        console.log('Subscription loaded:', { tier: resolvedTier, status: subData.status });
+
         setSubscription({
           id: subData.id,
           status: subData.status,
-          tier: tierFromMetadata || tierFromPriceId || 'free',
+          tier: resolvedTier,
           priceId: subData.price_id,
           currentPeriodEnd: subData.current_period_end
             ? new Date(subData.current_period_end)
@@ -123,7 +142,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, supabase]);
 
   // Helper to extract tier from price ID
   function getTierFromPriceId(priceId: string): SubscriptionTier {
@@ -282,7 +301,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, refreshSubscription]);
+  }, [user, supabase, refreshSubscription]);
 
   return (
     <SubscriptionContext.Provider
