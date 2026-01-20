@@ -31,8 +31,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
   const [answers, setAnswers] = useState<AnswerState>({});
   const [selfMarks, setSelfMarks] = useState<SelfMarkState>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSolutions, setShowSolutions] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -51,9 +49,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
         if (cached) {
           const paperData = JSON.parse(cached);
           setPaper(paperData);
-          if (paperData.timeLimit) {
-            setTimeRemaining(paperData.timeLimit * 60);
-          }
           setLoading(false);
           return;
         }
@@ -91,9 +86,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
         };
 
         setPaper(loadedPaper);
-        if (loadedPaper.timeLimit) {
-          setTimeRemaining(loadedPaper.timeLimit * 60);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load paper');
       } finally {
@@ -103,39 +95,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
     loadPaper();
   }, [paperId]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (timeRemaining === null || isPaused || isSubmitted) return;
-    if (timeRemaining <= 0) {
-      handleSubmit();
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => (prev !== null ? prev - 1 : null));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeRemaining, isPaused, isSubmitted]);
-
-  const formatTime = (seconds: number): string => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getTimerColor = (): string => {
-    if (timeRemaining === null) return 'text-[var(--color-text-primary)]';
-    if (timeRemaining <= 300) return 'text-red-500'; // 5 minutes
-    if (timeRemaining <= 600) return 'text-yellow-500'; // 10 minutes
-    return 'text-green-500';
-  };
 
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({
@@ -204,7 +163,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
           subject: paper.subject,
           paper_name: paper.paperName,
           total_marks: paper.totalMarks,
-          time_taken: paper.timeLimit ? (paper.timeLimit * 60 - (timeRemaining || 0)) : null,
           answers: attemptAnswers,
         });
 
@@ -215,7 +173,7 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
     } catch (err) {
       console.error('Error saving attempt:', err);
     }
-  }, [isSubmitted, paper, allQuestions, answers, paperId, timeRemaining]);
+  }, [isSubmitted, paper, allQuestions, answers, paperId]);
 
   if (loading) {
     return (
@@ -262,29 +220,6 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
               <span>{allQuestions.length} questions</span>
             </div>
           </div>
-
-          {/* Timer */}
-          {timeRemaining !== null && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsPaused(!isPaused)}
-                className="p-2 rounded-lg bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)]"
-              >
-                {isPaused ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                  </svg>
-                )}
-              </button>
-              <div className={`text-2xl font-mono font-bold ${getTimerColor()}`}>
-                {formatTime(timeRemaining)}
-              </div>
-            </div>
-          )}
 
           {/* Progress */}
           <div className="hidden sm:flex items-center gap-3">

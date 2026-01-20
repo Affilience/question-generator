@@ -8,14 +8,12 @@ import { getExamStructure, PaperStructure } from '@/lib/exam-structures';
 interface PaperConfig {
   selectedTopics: string[];
   totalMarks: number;
-  timeLimit: number | null; // minutes, null = no limit
   difficulty: {
     easy: number;
     medium: number;
     hard: number;
   };
   paperName: string;
-  includeTimer: boolean;
 }
 
 interface PaperBuilderProps {
@@ -39,8 +37,6 @@ export function PaperBuilder({
 
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [totalMarks, setTotalMarks] = useState(examStructure?.papers[0]?.marks || 80);
-  const [timeLimit, setTimeLimit] = useState<number | null>(examStructure?.papers[0]?.duration || 90);
-  const [includeTimer, setIncludeTimer] = useState(true);
   const [difficulty, setDifficulty] = useState({
     easy: 30,
     medium: 50,
@@ -104,10 +100,8 @@ export function PaperBuilder({
     onGenerate({
       selectedTopics: Array.from(selectedTopics),
       totalMarks,
-      timeLimit: includeTimer ? timeLimit : null,
       difficulty,
       paperName: paperName || defaultPaperName,
-      includeTimer,
     });
   };
 
@@ -179,99 +173,42 @@ export function PaperBuilder({
         </div>
       </div>
 
-      {/* Marks & Time */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Total Marks</h3>
-          <div className="flex items-center gap-4">
-            <input
-              type="range"
-              min="20"
-              max="120"
-              step="5"
-              value={totalMarks}
-              onChange={(e) => setTotalMarks(parseInt(e.target.value))}
-              className="flex-1 accent-[#3b82f6]"
-            />
-            <div className="w-16 text-center">
-              <span className="text-2xl font-bold text-white">{totalMarks}</span>
-              <div className="text-xs text-[#666666]">marks</div>
-            </div>
+      {/* Total Marks */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Total Marks</h3>
+        <div className="flex items-center gap-4">
+          <input
+            type="range"
+            min="20"
+            max="120"
+            step="5"
+            value={totalMarks}
+            onChange={(e) => setTotalMarks(parseInt(e.target.value))}
+            className="flex-1 accent-[#3b82f6]"
+          />
+          <div className="w-16 text-center">
+            <span className="text-2xl font-bold text-white">{totalMarks}</span>
+            <div className="text-xs text-[#666666]">marks</div>
           </div>
-
-          {examStructure && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {examStructure.papers.map((paper) => (
-                <button
-                  key={paper.paperNumber}
-                  onClick={() => setTotalMarks(paper.marks)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                    totalMarks === paper.marks
-                      ? 'bg-[#3b82f6]/20 border-[#3b82f6] text-[#3b82f6]'
-                      : 'border-[#333333] text-[#666666] hover:border-[#3b82f6]'
-                  }`}
-                >
-                  Paper {paper.paperNumber}: {paper.marks}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
-        <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Time Limit</h3>
-            <label className="flex items-center gap-2 text-sm text-[#a1a1a1] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeTimer}
-                onChange={(e) => setIncludeTimer(e.target.checked)}
-                className="w-4 h-4 accent-[#3b82f6]"
-              />
-              Show timer
-            </label>
+        {examStructure && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {examStructure.papers.map((paper) => (
+              <button
+                key={paper.paperNumber}
+                onClick={() => setTotalMarks(paper.marks)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                  totalMarks === paper.marks
+                    ? 'bg-[#3b82f6]/20 border-[#3b82f6] text-[#3b82f6]'
+                    : 'border-[#333333] text-[#666666] hover:border-[#3b82f6]'
+                }`}
+              >
+                Paper {paper.paperNumber}: {paper.marks}
+              </button>
+            ))}
           </div>
-
-          {includeTimer ? (
-            <>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min="15"
-                  max="180"
-                  step="5"
-                  value={timeLimit || 90}
-                  onChange={(e) => setTimeLimit(parseInt(e.target.value))}
-                  className="flex-1 accent-[#3b82f6]"
-                />
-                <div className="w-20 text-center">
-                  <span className="text-2xl font-bold text-white">{timeLimit}</span>
-                  <div className="text-xs text-[#666666]">minutes</div>
-                </div>
-              </div>
-
-              {examStructure && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {examStructure.papers.map((paper) => (
-                    <button
-                      key={paper.paperNumber}
-                      onClick={() => setTimeLimit(paper.duration)}
-                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                        timeLimit === paper.duration
-                          ? 'bg-[#3b82f6]/20 border-[#3b82f6] text-[#3b82f6]'
-                          : 'border-[#333333] text-[#666666] hover:border-[#3b82f6]'
-                      }`}
-                    >
-                      Paper {paper.paperNumber}: {paper.duration}min
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-[#666666] text-sm">No time limit - practice at your own pace</p>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Difficulty Distribution */}
@@ -324,7 +261,7 @@ export function PaperBuilder({
       <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Paper Summary</h3>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center p-3 bg-[#0d0d0d] rounded-xl">
             <div className="text-2xl font-bold text-white">{selectedTopics.size}</div>
             <div className="text-xs text-[#666666]">Topics</div>
@@ -336,12 +273,6 @@ export function PaperBuilder({
           <div className="text-center p-3 bg-[#0d0d0d] rounded-xl">
             <div className="text-2xl font-bold text-white">~{estimatedQuestions}</div>
             <div className="text-xs text-[#666666]">Questions</div>
-          </div>
-          <div className="text-center p-3 bg-[#0d0d0d] rounded-xl">
-            <div className="text-2xl font-bold text-white">
-              {includeTimer && timeLimit ? `${timeLimit}m` : '--'}
-            </div>
-            <div className="text-xs text-[#666666]">Time Limit</div>
           </div>
         </div>
 

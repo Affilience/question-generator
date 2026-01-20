@@ -63,31 +63,13 @@ const plans: Plan[] = [
       { text: 'Full difficulty control', included: true, highlight: true },
       { text: 'Save question history', included: true },
       { text: 'Bookmark questions', included: true },
-      { text: 'Regenerate variations', included: true },
       { text: '3 custom papers per week', included: true },
-      { text: 'Timed exam mode', included: false },
-      { text: 'PDF downloads', included: false },
     ],
     cta: 'Get Started',
     popular: true,
     color: 'blue',
   },
 ];
-
-const examSeasonPass = {
-  id: 'exam_season',
-  name: 'Exam Season Pass',
-  tagline: '30-Day Boost',
-  description: 'Full Exam Pro access for 30 days. No subscription.',
-  price: 14.99,
-  priceKey: 'exam_season_pass',
-  features: [
-    'Everything in Exam Pro',
-    '30 days full access',
-    'No auto-renewal',
-    'Perfect for revision crunch',
-  ],
-};
 
 // Small component that uses useSearchParams - isolated in its own Suspense
 function CanceledNotice() {
@@ -118,14 +100,6 @@ function PricingContent() {
       planName: plan.name,
       price: `£${price}`,
       interval: billingInterval === 'annual' ? 'year' : 'month',
-    });
-  };
-
-  const handleSelectExamSeason = () => {
-    openCheckout({
-      priceKey: examSeasonPass.priceKey,
-      planName: examSeasonPass.name,
-      price: `£${examSeasonPass.price}`,
     });
   };
 
@@ -301,42 +275,6 @@ function PricingContent() {
             </div>
           );
         })}
-      </div>
-
-      {/* Exam Season Pass */}
-      <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-8 mb-16">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-xl font-semibold text-white">{examSeasonPass.name}</h3>
-              <span className="bg-orange-500/20 text-orange-400 text-xs font-medium px-2 py-1 rounded-full">
-                {examSeasonPass.tagline}
-              </span>
-            </div>
-            <p className="text-white/60 mb-4">{examSeasonPass.description}</p>
-            <ul className="flex flex-wrap gap-4">
-              {examSeasonPass.features.map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
-                  <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="text-3xl font-bold text-white">£{examSeasonPass.price}</div>
-            <span className="text-white/40 text-sm">one-time payment</span>
-            <button
-              onClick={handleSelectExamSeason}
-              disabled={tier === 'exam_season'}
-              className="mt-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {tier === 'exam_season' ? 'Already Active' : 'Get Exam Season Pass'}
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Embedded Checkout Modal */}

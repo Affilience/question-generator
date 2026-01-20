@@ -129,7 +129,7 @@ export default function HomePageContent() {
             <Link href="#subjects" className="text-sm text-white/60 hover:text-white transition-colors">
               Subjects
             </Link>
-            <Link href="/past-papers" className="text-sm text-[#6366f1] hover:text-[#818cf8] transition-colors font-medium">
+            <Link href="/paper-generator" className="text-sm text-[#6366f1] hover:text-[#818cf8] transition-colors font-medium">
               Paper Generator
             </Link>
             <Link href="#how-it-works" className="text-sm text-white/60 hover:text-white transition-colors">
@@ -209,7 +209,7 @@ export default function HomePageContent() {
                   {[
                     { href: '#features', label: 'Features' },
                     { href: '#subjects', label: 'Subjects' },
-                    { href: '/past-papers', label: 'Paper Generator', highlight: true },
+                    { href: '/paper-generator', label: 'Paper Generator', highlight: true },
                     { href: '#how-it-works', label: 'How It Works' },
                     { href: '/pricing', label: 'Pricing' },
                   ].map(link => (
