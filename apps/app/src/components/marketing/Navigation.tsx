@@ -97,8 +97,7 @@ export function Navigation({ user, authLoading }: NavigationProps) {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          {!authLoading && (
-            user ? (
+          {user ? (
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -156,14 +155,13 @@ export function Navigation({ user, authLoading }: NavigationProps) {
                   </>
                 )}
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="text-sm text-white/60 hover:text-white transition-colors"
-              >
-                Log in
-              </Link>
-            )
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm text-white/60 hover:text-white transition-colors"
+            >
+              Log in
+            </Link>
           )}
           <Link
             href={ctaHref}
@@ -222,46 +220,44 @@ export function Navigation({ user, authLoading }: NavigationProps) {
                   </Link>
                 ))}
                 <div className="border-t border-white/10 my-3" />
-                {!authLoading && (
-                  user ? (
-                    <>
-                      <div className="px-4 py-3 mb-2">
-                        <p className="text-xs text-white/40">Signed in as</p>
-                        <p className="text-sm text-white truncate">{user.email}</p>
-                      </div>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/past-papers"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
-                      >
-                        Practice Questions
-                      </Link>
-                      <button
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleSignOut();
-                        }}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 py-3 px-4 rounded-lg transition-colors text-lg text-left w-full"
-                      >
-                        Sign out
-                      </button>
-                    </>
-                  ) : (
+                {user ? (
+                  <>
+                    <div className="px-4 py-3 mb-2">
+                      <p className="text-xs text-white/40">Signed in as</p>
+                      <p className="text-sm text-white truncate">{user.email}</p>
+                    </div>
                     <Link
-                      href="/login"
+                      href="/dashboard"
                       onClick={() => setMobileMenuOpen(false)}
                       className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
                     >
-                      Log in
+                      Dashboard
                     </Link>
-                  )
+                    <Link
+                      href="/past-papers"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                    >
+                      Practice Questions
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 py-3 px-4 rounded-lg transition-colors text-lg text-left w-full"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                  >
+                    Log in
+                  </Link>
                 )}
                 <Link
                   href={ctaHref}
