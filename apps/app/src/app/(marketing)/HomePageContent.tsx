@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +16,17 @@ export default function HomePageContent() {
   const { scrollYProgress } = useScroll();
   const prefersReducedMotion = useReducedMotion();
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect logged-in users to /start (level selection)
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/start');
+    }
+  }, [user, authLoading, router]);
+
+  // CTA destination based on auth status
+  const ctaHref = user ? '/start' : '/signup';
 
   // Parallax effect for hero (disabled if user prefers reduced motion)
   const heroY = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -80]);
@@ -145,10 +157,10 @@ export default function HomePageContent() {
               )
             )}
             <Link
-              href="/signup"
+              href={ctaHref}
               className="bg-white text-[#0a0a0a] px-5 py-2 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
             >
-              Get Started
+              {user ? 'Start Practicing' : 'Get Started'}
             </Link>
           </div>
 
@@ -227,11 +239,11 @@ export default function HomePageContent() {
                     )
                   )}
                   <Link
-                    href="/signup"
+                    href={ctaHref}
                     onClick={() => setMobileMenuOpen(false)}
                     className="bg-white text-[#0a0a0a] px-6 py-3.5 rounded-full text-center font-medium mt-4"
                   >
-                    Get Started Free
+                    {user ? 'Start Practicing' : 'Get Started Free'}
                   </Link>
                 </div>
               </motion.div>
@@ -302,10 +314,10 @@ export default function HomePageContent() {
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link
-                href="/signup"
+                href={ctaHref}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
               >
-                Start Practicing Free
+                {user ? 'Start Practicing' : 'Start Practicing Free'}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -572,10 +584,10 @@ export default function HomePageContent() {
               </motion.p>
               <motion.div variants={fadeInUp}>
                 <Link
-                  href="/signup"
+                  href={ctaHref}
                   className="inline-flex items-center gap-2 bg-white text-[#0a0a0a] px-8 py-4 rounded-full text-base font-medium hover:bg-white/90 transition-colors"
                 >
-                  Start Practicing Free
+                  {user ? 'Start Practicing' : 'Start Practicing Free'}
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

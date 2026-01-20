@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ export function LoginForm() {
   const { signIn, signInWithGoogle, signInWithGithub, signInWithApple } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const redirect = searchParams.get('redirect');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +27,27 @@ export function LoginForm() {
       setError(error);
       setLoading(false);
     } else {
-      router.push(redirect);
+      // If there's an explicit redirect, use it
+      if (redirect) {
+        router.push(redirect);
+        return;
+      }
+
+      // Otherwise, check if user is new (no question attempts)
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { count } = await supabase
+          .from('question_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        // New users go to welcome, returning users go to dashboard
+        router.push(count === 0 ? '/welcome' : '/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 

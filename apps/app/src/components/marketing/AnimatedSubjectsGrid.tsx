@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { animate, stagger } from 'animejs';
+import { useAuth } from '@/contexts/AuthContext';
 
 const subjects = [
   { name: 'Mathematics', subtopics: '45+', icon: '📐', href: '/gcse/maths' },
@@ -18,6 +19,7 @@ const subjects = [
 export function AnimatedSubjectsGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -70,7 +72,7 @@ export function AnimatedSubjectsGrid() {
       {subjects.map((subject) => (
         <Link
           key={subject.name}
-          href={subject.href}
+          href={user ? subject.href : '/signup'}
           className="subject-card block bg-neutral-50 hover:bg-neutral-100 rounded-xl p-5 sm:p-6 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
         >
           <div
