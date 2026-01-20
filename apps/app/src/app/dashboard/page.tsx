@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserStats, StatsFilter } from '@/lib/supabase';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -57,7 +58,13 @@ const LEVELS = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
   const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +141,7 @@ export default function DashboardPage() {
                 {user?.user_metadata?.display_name || user?.email}
               </span>
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="text-sm text-[#666666] hover:text-white transition-colors"
               >
                 Sign out
