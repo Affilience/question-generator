@@ -60,10 +60,17 @@ const LEVELS = [
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    setSigningOut(true);
+    try {
+      await signOut();
+      router.push('/');
+    } catch (err) {
+      console.error('Sign out failed:', err);
+      setSigningOut(false);
+    }
   };
   const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -142,9 +149,10 @@ export default function DashboardPage() {
               </span>
               <button
                 onClick={handleSignOut}
-                className="text-sm text-[#666666] hover:text-white transition-colors"
+                disabled={signingOut}
+                className="text-sm text-[#666666] hover:text-white transition-colors disabled:opacity-50"
               >
-                Sign out
+                {signingOut ? 'Signing out...' : 'Sign out'}
               </button>
             </div>
           </div>
