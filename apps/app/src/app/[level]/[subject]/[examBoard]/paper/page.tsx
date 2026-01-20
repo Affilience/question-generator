@@ -40,6 +40,7 @@ export default function PaperGeneratorPage() {
   const examBoard = params.examBoard as string;
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
@@ -91,13 +92,10 @@ export default function PaperGeneratorPage() {
     }
 
     setIsGenerating(true);
+    setGenerationProgress(null);
     setError(null);
 
     try {
-      // Generate paper via API with timeout handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second client timeout
-
       const response = await fetch('/api/papers/generate', {
         method: 'POST',
         headers: {
@@ -111,37 +109,68 @@ export default function PaperGeneratorPage() {
           config,
           userId: user.id,
         }),
-        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.upgrade) {
-          setShowUpgradePrompt(true);
-          setIsGenerating(false);
-          return;
+      // Check for non-streaming error responses (validation errors, subscription checks)
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        if (!response.ok) {
+          if (data.upgrade) {
+            setShowUpgradePrompt(true);
+            setIsGenerating(false);
+            return;
+          }
+          throw new Error(data.error || 'Failed to generate paper');
         }
-        throw new Error(data.error || 'Failed to generate paper');
       }
 
-      // Store paper in localStorage for the take page
-      if (data.paper) {
-        localStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.paper));
+      // Handle streaming response
+      if (!response.body) {
+        throw new Error('No response body');
       }
 
-      // Navigate to paper taking view with the paper ID
-      router.push(`/paper/take/${data.paperId}`);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === 'progress') {
+                setGenerationProgress({ current: data.current, total: data.total });
+              } else if (data.type === 'complete') {
+                // Store paper in localStorage for the take page
+                if (data.paper) {
+                  localStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.paper));
+                }
+                // Navigate to paper taking view
+                router.push(`/paper/take/${data.paperId}`);
+                return;
+              } else if (data.type === 'error') {
+                throw new Error(data.error);
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
+      }
     } catch (err) {
       console.error('Paper generation error:', err);
-      if (err instanceof Error && err.name === 'AbortError') {
-        setError('Paper generation timed out. Try generating a smaller paper with fewer questions.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
       setIsGenerating(false);
+      setGenerationProgress(null);
     }
   };
 
@@ -191,6 +220,50 @@ export default function PaperGeneratorPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             {error}
+          </motion.div>
+        )}
+
+        {/* Generation Progress Indicator */}
+        {isGenerating && (
+          <motion.div
+            className="mb-6 p-6 bg-[#1a1a2e]/80 border border-[#2d2d3d] rounded-xl"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-medium">
+                  {generationProgress
+                    ? `Generating question ${generationProgress.current} of ${generationProgress.total}...`
+                    : 'Preparing your practice paper...'}
+                </h3>
+                <p className="text-sm text-[#a1a1a1]">
+                  This may take a moment as we craft exam-style questions for you
+                </p>
+              </div>
+            </div>
+
+            {generationProgress && (
+              <div className="space-y-2">
+                <div className="h-2 bg-[#2d2d3d] rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <p className="text-xs text-[#666666] text-right">
+                  {Math.round((generationProgress.current / generationProgress.total) * 100)}% complete
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
 

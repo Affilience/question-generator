@@ -36,6 +36,7 @@ import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extr
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
 
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 interface PaperGenerationRequest {
   examBoard: ExamBoard;
@@ -519,153 +520,181 @@ async function generateQuestionsInBatches(
 }
 
 export async function POST(request: NextRequest) {
+  // Parse request body first for validation
+  let body: PaperGenerationRequest;
   try {
-    const body = await request.json() as PaperGenerationRequest;
-    const { examBoard, qualification, subject, paperName, config, userId } = body;
+    body = await request.json() as PaperGenerationRequest;
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 
-    // Check subscription-based access
-    const usageCheck = await checkPaperGenerationAllowed(userId || null);
-    if (!usageCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: usageCheck.error || 'Paper generation not available on your plan',
-          tier: usageCheck.tier,
-          remaining: usageCheck.remaining,
-          upgrade: true,
-        },
-        { status: 403 }
-      );
-    }
+  const { examBoard, qualification, subject, paperName, config, userId } = body;
 
-    if (!examBoard || !qualification || !subject || !config) {
-      return NextResponse.json(
-        { error: 'Missing required fields: examBoard, qualification, subject, config' },
-        { status: 400 }
-      );
-    }
-
-    if (!config.sections || config.sections.length === 0) {
-      return NextResponse.json(
-        { error: 'Paper must have at least one section' },
-        { status: 400 }
-      );
-    }
-
-    if (Object.keys(config.selectedSubtopics).length === 0) {
-      return NextResponse.json(
-        { error: 'Must select at least one subtopic' },
-        { status: 400 }
-      );
-    }
-
-    // Plan the questions
-    const selectionResult = selectQuestionsForPaper(config);
-
-    // Flatten all question plans
-    const allPlans: QuestionPlan[] = [];
-    selectionResult.sections.forEach((section) => {
-      allPlans.push(...section.questions);
-    });
-
-    if (allPlans.length === 0) {
-      return NextResponse.json(
-        { error: 'No questions could be planned for this configuration' },
-        { status: 400 }
-      );
-    }
-
-    // Generate all questions
-    const generatedQuestions = await generateQuestionsInBatches(
-      allPlans,
-      subject,
-      examBoard,
-      qualification
+  // Check subscription-based access (before streaming)
+  const usageCheck = await checkPaperGenerationAllowed(userId || null);
+  if (!usageCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: usageCheck.error || 'Paper generation not available on your plan',
+        tier: usageCheck.tier,
+        remaining: usageCheck.remaining,
+        upgrade: true,
+      },
+      { status: 403 }
     );
+  }
 
-    // Create lookup map
-    const questionMap = new Map(generatedQuestions.map((q) => [q.id, q]));
+  // Validate required fields
+  if (!examBoard || !qualification || !subject || !config) {
+    return NextResponse.json(
+      { error: 'Missing required fields: examBoard, qualification, subject, config' },
+      { status: 400 }
+    );
+  }
 
-    // Organize into sections with question numbers
-    let globalQuestionNumber = 1;
-    const sections: GeneratedSection[] = selectionResult.sections.map((section) => {
-      const sectionQuestions = section.questions.map((plan) => {
-        const question = questionMap.get(plan.id)!;
-        question.questionNumber = String(globalQuestionNumber++);
-        return question;
-      });
+  if (!config.sections || config.sections.length === 0) {
+    return NextResponse.json(
+      { error: 'Paper must have at least one section' },
+      { status: 400 }
+    );
+  }
 
-      return {
-        id: section.sectionId,
-        name: section.sectionName,
-        instructions: config.sections.find((s) => s.id === section.sectionId)?.instructions || '',
-        questions: sectionQuestions,
-        totalMarks: sectionQuestions.reduce((sum, q) => sum + q.marks, 0),
-      };
-    });
+  if (Object.keys(config.selectedSubtopics).length === 0) {
+    return NextResponse.json(
+      { error: 'Must select at least one subtopic' },
+      { status: 400 }
+    );
+  }
 
-    // Create paper object
-    const paper: GeneratedPaper = {
-      id: crypto.randomUUID(),
-      examBoard,
-      qualification,
-      subject,
-      paperName: paperName || `${examBoard.toUpperCase()} ${qualification === 'gcse' ? 'GCSE' : 'A-Level'} Practice Paper`,
-      sections,
-      totalMarks: sections.reduce((sum, s) => sum + s.totalMarks, 0),
-      timeLimit: config.timeLimit,
-      settings: config.settings,
-      createdAt: new Date().toISOString(),
-    };
+  // Plan the questions
+  const selectionResult = selectQuestionsForPaper(config);
+  const allPlans: QuestionPlan[] = [];
+  selectionResult.sections.forEach((section) => {
+    allPlans.push(...section.questions);
+  });
 
-    // Store in Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (allPlans.length === 0) {
+    return NextResponse.json(
+      { error: 'No questions could be planned for this configuration' },
+      { status: 400 }
+    );
+  }
 
-    if (supabaseUrl && supabaseKey && userId) {
+  // Use streaming to keep connection alive during long generation
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
       try {
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        const { error: insertError } = await supabase
-          .from('generated_papers')
-          .insert({
-            id: paper.id,
-            user_id: userId,
-            config_hash: hashConfig(config),
-            sections: paper.sections,
-            total_marks: paper.totalMarks,
-            exam_board: examBoard,
-            qualification,
-            subject,
-            paper_name: paper.paperName,
-            time_limit: config.timeLimit,
-            settings: config.settings,
+        const openai = getOpenAIClient();
+        const generatedQuestions: GeneratedQuestion[] = [];
+        const totalQuestions = allPlans.length;
+
+        // Send initial progress
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', current: 0, total: totalQuestions })}\n\n`));
+
+        // Generate questions one at a time with progress updates
+        for (let i = 0; i < allPlans.length; i++) {
+          const plan = allPlans[i];
+          const question = await generateSingleQuestion(plan, subject, examBoard, qualification, openai);
+          generatedQuestions.push(question);
+
+          // Send progress update
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', current: i + 1, total: totalQuestions })}\n\n`));
+        }
+
+        // Create lookup map
+        const questionMap = new Map(generatedQuestions.map((q) => [q.id, q]));
+
+        // Organize into sections with question numbers
+        let globalQuestionNumber = 1;
+        const sections: GeneratedSection[] = selectionResult.sections.map((section) => {
+          const sectionQuestions = section.questions.map((plan) => {
+            const question = questionMap.get(plan.id)!;
+            question.questionNumber = String(globalQuestionNumber++);
+            return question;
           });
 
-        if (insertError) {
-          console.error('Failed to store paper:', insertError);
+          return {
+            id: section.sectionId,
+            name: section.sectionName,
+            instructions: config.sections.find((s) => s.id === section.sectionId)?.instructions || '',
+            questions: sectionQuestions,
+            totalMarks: sectionQuestions.reduce((sum, q) => sum + q.marks, 0),
+          };
+        });
+
+        // Create paper object
+        const paper: GeneratedPaper = {
+          id: crypto.randomUUID(),
+          examBoard,
+          qualification,
+          subject,
+          paperName: paperName || `${examBoard.toUpperCase()} ${qualification === 'gcse' ? 'GCSE' : 'A-Level'} Practice Paper`,
+          sections,
+          totalMarks: sections.reduce((sum, s) => sum + s.totalMarks, 0),
+          timeLimit: config.timeLimit,
+          settings: config.settings,
+          createdAt: new Date().toISOString(),
+        };
+
+        // Store in Supabase
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseKey && userId) {
+          try {
+            const supabase = createClient(supabaseUrl, supabaseKey);
+            await supabase
+              .from('generated_papers')
+              .insert({
+                id: paper.id,
+                user_id: userId,
+                config_hash: hashConfig(config),
+                sections: paper.sections,
+                total_marks: paper.totalMarks,
+                exam_board: examBoard,
+                qualification,
+                subject,
+                paper_name: paper.paperName,
+                time_limit: config.timeLimit,
+                settings: config.settings,
+              });
+          } catch (dbError) {
+            console.error('Database error:', dbError);
+          }
         }
-      } catch (dbError) {
-        console.error('Database error:', dbError);
+
+        // Send final result
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          type: 'complete',
+          paperId: paper.id,
+          paper,
+          stats: {
+            totalQuestions: generatedQuestions.length,
+            totalMarks: paper.totalMarks,
+            sectionsCount: sections.length,
+          },
+        })}\n\n`));
+
+        controller.close();
+      } catch (error) {
+        console.error('Error generating paper:', error);
+        const errorMessage = error instanceof Error && error.message.includes('API key')
+          ? 'AI API key not configured'
+          : 'Failed to generate paper';
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: errorMessage })}\n\n`));
+        controller.close();
       }
-    }
+    },
+  });
 
-    return NextResponse.json({
-      paperId: paper.id,
-      paper,
-      stats: {
-        totalQuestions: generatedQuestions.length,
-        totalMarks: paper.totalMarks,
-        sectionsCount: sections.length,
-      },
-    });
-  } catch (error) {
-    console.error('Error generating paper:', error);
-
-    if (error instanceof Error && error.message.includes('API key')) {
-      return NextResponse.json({ error: 'AI API key not configured' }, { status: 500 });
-    }
-
-    return NextResponse.json({ error: 'Failed to generate paper' }, { status: 500 });
-  }
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }
 
 function hashConfig(config: PaperConfig): string {
