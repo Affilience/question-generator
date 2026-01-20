@@ -93,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: {
           display_name: displayName || email.split('@')[0],
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/welcome`,
       },
     });
 
