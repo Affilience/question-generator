@@ -34,10 +34,10 @@ const PROMPT_CONFIG = {
   papers: {
     title: 'Create custom papers',
     description: "Generate full practice papers with multiple questions. Great for exam preparation!",
-    highlight: '7 custom papers per week',
+    highlight: 'Up to 7 custom papers per week',
     icon: '📝',
-    recommendedPlan: 'Exam Pro',
-    price: '£9.99',
+    recommendedPlan: 'Student Plus',
+    price: '£4.99',
   },
   bookmarks: {
     title: 'Save questions for later',
@@ -62,13 +62,8 @@ export function UpgradePrompt({ reason, message, modal = false, onDismiss }: Upg
   const config = PROMPT_CONFIG[reason];
 
   // Don't show if user already has the feature
-  // Papers require Exam Pro, so show for free and student_plus
-  if (reason === 'papers') {
-    if (tier === 'exam_pro') return null;
-  } else {
-    // Other features are available on student_plus
-    if (tier !== 'free') return null;
-  }
+  // All premium features are available on student_plus and above
+  if (tier !== 'free') return null;
 
   const content = (
     <div className={`bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-6 ${modal ? 'max-w-md w-full' : ''}`}>

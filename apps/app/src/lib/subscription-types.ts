@@ -28,7 +28,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
   },
   student_plus: {
     questionsPerDay: 50,
-    papersPerWeek: 0, // No papers on this tier
+    papersPerWeek: 3,
     difficultyControl: true,
     timedExamMode: false,
     pdfDownloads: false,
@@ -43,10 +43,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     papersPerWeek: 7,
     difficultyControl: true,
     timedExamMode: true,
-    pdfDownloads: true,
-    examinerCommentary: true,
-    synopticPapers: true,
-    priorityGeneration: true,
+    pdfDownloads: false, // Not implemented yet
+    examinerCommentary: false, // Not implemented yet
+    synopticPapers: false, // Not implemented yet
+    priorityGeneration: false, // Not implemented yet
     saveHistory: true,
     bookmarks: true,
   },

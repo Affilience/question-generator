@@ -274,20 +274,17 @@ export async function checkPaperGenerationAllowed(
 
   const limits = TIER_LIMITS[tier];
 
-  // Free and Student Plus users cannot generate papers
+  // Free users cannot generate papers
   if (limits.papersPerWeek === 0) {
-    const upgradeMsg = tier === 'free'
-      ? 'Practice paper generation requires Exam Pro (£9.99/month).'
-      : 'Upgrade to Exam Pro for 7 papers per week!';
     return {
       allowed: false,
       tier,
       remaining: 0,
-      error: upgradeMsg,
+      error: 'Practice paper generation requires a paid plan. Upgrade to Student Plus for 3 papers/week!',
     };
   }
 
-  // Check weekly usage for exam_pro (7 papers/week)
+  // Check weekly usage (3 for student_plus, 7 for exam_pro)
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -301,11 +298,14 @@ export async function checkPaperGenerationAllowed(
   const weeklyLimit = limits.papersPerWeek!; // Non-null since we checked for 0 above
 
   if (papersGenerated >= weeklyLimit) {
+    const upgradeMsg = tier === 'student_plus'
+      ? ' Upgrade to Exam Pro for 7 papers/week!'
+      : '';
     return {
       allowed: false,
       tier,
       remaining: 0,
-      error: `Weekly limit of ${weeklyLimit} papers reached. You can generate more papers next week!`,
+      error: `Weekly limit of ${weeklyLimit} papers reached.${upgradeMsg} You can generate more next week.`,
     };
   }
 
