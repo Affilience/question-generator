@@ -1,16 +1,11 @@
-import 'server-only';
 import OpenAI from 'openai';
 
-let openaiClient: OpenAI | null = null;
-
+// Create a new client each time for Edge runtime compatibility
 export function getOpenAIClient(): OpenAI {
-  if (!openaiClient) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY environment variable is not set');
-    }
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY environment variable is not set');
   }
-  return openaiClient;
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 }

@@ -35,7 +35,8 @@ import {
 import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
 
-export const maxDuration = 60;
+// Use Edge runtime for 30s streaming timeout (vs 10s serverless on Hobby plan)
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface PaperGenerationRequest {
