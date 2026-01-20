@@ -94,7 +94,10 @@ export default function PaperGeneratorPage() {
     setError(null);
 
     try {
-      // Generate paper via API
+      // Generate paper via API with timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second client timeout
+
       const response = await fetch('/api/papers/generate', {
         method: 'POST',
         headers: {
@@ -108,7 +111,10 @@ export default function PaperGeneratorPage() {
           config,
           userId: user.id,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -130,7 +136,11 @@ export default function PaperGeneratorPage() {
       router.push(`/paper/take/${data.paperId}`);
     } catch (err) {
       console.error('Paper generation error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Paper generation timed out. Try generating a smaller paper with fewer questions.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to generate paper. Please try again.');
+      }
       setIsGenerating(false);
     }
   };

@@ -621,13 +621,14 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (supabaseUrl && supabaseKey) {
+    if (supabaseUrl && supabaseKey && userId) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
         const { error: insertError } = await supabase
           .from('generated_papers')
           .insert({
             id: paper.id,
+            user_id: userId,
             config_hash: hashConfig(config),
             sections: paper.sections,
             total_marks: paper.totalMarks,
