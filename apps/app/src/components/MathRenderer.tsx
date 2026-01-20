@@ -1,8 +1,22 @@
 'use client';
 
-import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode, useEffect } from 'react';
+
+// Lazy load KaTeX CSS only when component is used
+let katexCssLoaded = false;
+function useKatexCss() {
+  useEffect(() => {
+    if (!katexCssLoaded && typeof document !== 'undefined') {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css';
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+      katexCssLoaded = true;
+    }
+  }, []);
+}
 
 interface MathRendererProps {
   content: string;
@@ -233,6 +247,9 @@ function parseMarkdownTable(tableText: string): { headers: string[]; rows: strin
 }
 
 export function MathRenderer({ content, className = '', isStreaming = false }: MathRendererProps) {
+  // Lazy load KaTeX CSS
+  useKatexCss();
+
   // First process any remaining JSON escape sequences, then fix LaTeX escaping
   const processedContent = processEscapeSequences(content, isStreaming);
   const fixedContent = fixLatexEscaping(processedContent);
