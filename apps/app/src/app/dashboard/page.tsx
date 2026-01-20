@@ -148,9 +148,10 @@ export default function DashboardPage() {
                 {user?.user_metadata?.display_name || user?.email}
               </span>
               <button
+                type="button"
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="text-sm text-[#666666] hover:text-white transition-colors disabled:opacity-50"
+                className="text-sm text-[#666666] hover:text-white transition-colors disabled:opacity-50 cursor-pointer px-2 py-1 rounded hover:bg-white/10"
               >
                 {signingOut ? 'Signing out...' : 'Sign out'}
               </button>
