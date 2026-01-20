@@ -192,22 +192,10 @@ export function PaperBuilder({
           </div>
         </div>
 
-        {examStructure && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {examStructure.papers.map((paper) => (
-              <button
-                key={paper.paperNumber}
-                onClick={() => setTotalMarks(paper.marks)}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                  totalMarks === paper.marks
-                    ? 'bg-[#3b82f6]/20 border-[#3b82f6] text-[#3b82f6]'
-                    : 'border-[#333333] text-[#666666] hover:border-[#3b82f6]'
-                }`}
-              >
-                Paper {paper.paperNumber}: {paper.marks}
-              </button>
-            ))}
-          </div>
+        {examStructure && examStructure.papers.length > 0 && (
+          <p className="mt-3 text-sm text-[#666666]">
+            Typical {examStructure.examBoard.toUpperCase()} paper: {examStructure.papers[0].marks} marks
+          </p>
         )}
       </div>
 
