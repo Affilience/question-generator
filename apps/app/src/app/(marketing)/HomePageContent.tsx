@@ -22,10 +22,10 @@ export default function HomePageContent() {
   const { fadeInUp, staggerContainer, scaleIn } = createAnimationVariants(prefersReducedMotion);
   const ctaHref = user ? '/start' : '/signup';
 
-  // Redirect logged-in users to /start (level selection)
+  // Redirect logged-in users to dashboard
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace('/start');
+      router.replace('/dashboard');
     }
   }, [user, authLoading, router]);
 
