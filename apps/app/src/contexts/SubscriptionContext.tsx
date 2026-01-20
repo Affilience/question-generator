@@ -54,7 +54,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const tier: SubscriptionTier = subscription?.tier || 'free';
   const limits = TIER_LIMITS[tier];
 
-  // Fetch subscription data
+  // Fetch subscription data via server API (more reliable than client-side queries)
   const refreshSubscription = useCallback(async () => {
     if (!user) {
       setSubscription(null);
@@ -63,86 +63,36 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const response = await fetch('/api/subscription');
+      const data = await response.json();
 
-      // First verify we have an authenticated session
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-      if (!currentSession) {
-        console.warn('No active session found when fetching subscription');
-        setSubscription(null);
-        setLoading(false);
-        return;
-      }
-
-      // Run both queries in parallel for faster loading
-      const [subResult, usageResult] = await Promise.all([
-        supabase
-          .from('user_subscriptions')
-          .select('*, subscription_prices(product_id, subscription_products(metadata))')
-          .eq('user_id', user.id)
-          .in('status', ['active', 'trialing'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single(),
-        supabase
-          .from('daily_usage')
-          .select('questions_generated, papers_generated')
-          .eq('user_id', user.id)
-          .eq('date', today)
-          .single(),
-      ]);
-
-      const { data: subData, error: subError } = subResult;
-      const { data: usageData } = usageResult;
-
-      if (subError) {
-        if (subError.code === 'PGRST116') {
-          // No rows returned - user has no active subscription
-          console.log('No active subscription found for user');
-        } else {
-          console.error('Error fetching subscription:', subError.message, subError.code);
-        }
-      }
-
-      if (subData) {
-        // Extract tier from product metadata or price ID
-        const productMetadata = subData.subscription_prices?.subscription_products?.metadata;
-        const tierFromMetadata = productMetadata?.tier as SubscriptionTier;
-        const tierFromPriceId = getTierFromPriceId(subData.price_id || '');
-
-        const resolvedTier = tierFromMetadata || tierFromPriceId || 'free';
-        console.log('Subscription loaded:', { tier: resolvedTier, status: subData.status });
-
+      if (data.subscription) {
         setSubscription({
-          id: subData.id,
-          status: subData.status,
-          tier: resolvedTier,
-          priceId: subData.price_id,
-          currentPeriodEnd: subData.current_period_end
-            ? new Date(subData.current_period_end)
+          id: data.subscription.id,
+          status: data.subscription.status,
+          tier: data.subscription.tier as SubscriptionTier,
+          priceId: data.subscription.priceId,
+          currentPeriodEnd: data.subscription.currentPeriodEnd
+            ? new Date(data.subscription.currentPeriodEnd)
             : null,
-          cancelAtPeriodEnd: subData.cancel_at_period_end || false,
-          isTrialing: subData.status === 'trialing',
+          cancelAtPeriodEnd: data.subscription.cancelAtPeriodEnd || false,
+          isTrialing: data.subscription.isTrialing || false,
         });
       } else {
         setSubscription(null);
       }
 
-      if (usageData) {
-        setDailyUsage({
-          questionsGenerated: usageData.questions_generated || 0,
-          papersGenerated: usageData.papers_generated || 0,
-        });
-      } else {
-        setDailyUsage({ questionsGenerated: 0, papersGenerated: 0 });
-      }
+      setDailyUsage({
+        questionsGenerated: data.dailyUsage?.questionsGenerated || 0,
+        papersGenerated: data.dailyUsage?.papersGenerated || 0,
+      });
     } catch (error) {
       console.error('Error refreshing subscription:', error);
+      setSubscription(null);
     } finally {
       setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user]);
 
   // Helper to extract tier from price ID
   function getTierFromPriceId(priceId: string): SubscriptionTier {
