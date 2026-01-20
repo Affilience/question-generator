@@ -207,7 +207,9 @@ export async function POST(request: NextRequest) {
   });
 
   // Get the base URL for the callback
+  const requestOrigin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/');
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+                  requestOrigin ||
                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
   console.log('QStash callback URL:', `${baseUrl}/api/papers/process`);
