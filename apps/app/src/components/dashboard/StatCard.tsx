@@ -9,6 +9,7 @@ interface StatCardProps {
     isPositive: boolean;
   };
   color?: 'blue' | 'green' | 'purple' | 'orange';
+  loading?: boolean;
 }
 
 const colorClasses = {
@@ -18,7 +19,7 @@ const colorClasses = {
   orange: 'bg-orange-500/20 text-orange-400',
 };
 
-export function StatCard({ label, value, icon, trend, color = 'blue' }: StatCardProps) {
+export function StatCard({ label, value, icon, trend, color = 'blue', loading = false }: StatCardProps) {
   return (
     <div className="bg-[var(--color-bg-card)] rounded-2xl border border-[var(--color-border)] p-6 transition-all duration-300 hover:border-[var(--color-accent)]/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] card-glow-subtle">
       <div className="flex items-start justify-between mb-4">
@@ -33,7 +34,11 @@ export function StatCard({ label, value, icon, trend, color = 'blue' }: StatCard
           </div>
         )}
       </div>
-      <div className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{value}</div>
+      {loading ? (
+        <div className="h-9 w-20 bg-white/10 rounded animate-pulse mb-1" />
+      ) : (
+        <div className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{value}</div>
+      )}
       <div className="text-sm text-[var(--color-text-muted)]">{label}</div>
     </div>
   );

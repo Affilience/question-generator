@@ -62,15 +62,28 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      // Fetch active subscription
-      const { data: subData, error: subError } = await supabase
-        .from('user_subscriptions')
-        .select('*, subscription_prices(product_id, subscription_products(metadata))')
-        .eq('user_id', user.id)
-        .in('status', ['active', 'trialing'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      const today = new Date().toISOString().split('T')[0];
+
+      // Run both queries in parallel for faster loading
+      const [subResult, usageResult] = await Promise.all([
+        supabase
+          .from('user_subscriptions')
+          .select('*, subscription_prices(product_id, subscription_products(metadata))')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single(),
+        supabase
+          .from('daily_usage')
+          .select('questions_generated, papers_generated')
+          .eq('user_id', user.id)
+          .eq('date', today)
+          .single(),
+      ]);
+
+      const { data: subData, error: subError } = subResult;
+      const { data: usageData } = usageResult;
 
       if (subError && subError.code !== 'PGRST116') {
         console.error('Error fetching subscription:', subError);
@@ -96,15 +109,6 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       } else {
         setSubscription(null);
       }
-
-      // Fetch daily usage
-      const today = new Date().toISOString().split('T')[0];
-      const { data: usageData } = await supabase
-        .from('daily_usage')
-        .select('questions_generated, papers_generated')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .single();
 
       if (usageData) {
         setDailyUsage({
