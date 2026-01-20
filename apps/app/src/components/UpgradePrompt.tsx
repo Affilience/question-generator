@@ -17,33 +17,43 @@ interface UpgradePromptProps {
 const PROMPT_CONFIG = {
   daily_limit: {
     title: "You've reached your daily limit",
-    description: "Free accounts can generate 15 questions per day. Upgrade to Student Plus for unlimited questions!",
-    highlight: 'Unlimited questions',
+    description: "Free accounts can generate 15 questions per day. Upgrade for more practice!",
+    highlight: 'Up to unlimited questions',
     icon: '⚡',
+    recommendedPlan: 'Student Plus',
+    price: '£4.99',
   },
   difficulty_control: {
     title: 'Unlock difficulty control',
     description: "Choose your own difficulty level instead of random. Perfect for targeted revision!",
     highlight: 'Choose easy, medium, or hard',
     icon: '🎯',
+    recommendedPlan: 'Student Plus',
+    price: '£4.99',
   },
   papers: {
     title: 'Create custom papers',
     description: "Generate full practice papers with multiple questions. Great for exam preparation!",
-    highlight: 'Up to unlimited papers/week',
+    highlight: '7 custom papers per week',
     icon: '📝',
+    recommendedPlan: 'Exam Pro',
+    price: '£9.99',
   },
   bookmarks: {
     title: 'Save questions for later',
     description: "Bookmark tricky questions to revisit. Build your own revision collection!",
     highlight: 'Unlimited bookmarks',
     icon: '🔖',
+    recommendedPlan: 'Student Plus',
+    price: '£4.99',
   },
   history: {
     title: 'Track your progress',
     description: "See all your past questions and answers. Monitor your improvement over time!",
     highlight: 'Full question history',
     icon: '📊',
+    recommendedPlan: 'Student Plus',
+    price: '£4.99',
   },
 };
 
@@ -51,8 +61,14 @@ export function UpgradePrompt({ reason, message, modal = false, onDismiss }: Upg
   const { tier } = useSubscription();
   const config = PROMPT_CONFIG[reason];
 
-  // Don't show if user is already on a paid plan
-  if (tier !== 'free') return null;
+  // Don't show if user already has the feature
+  // Papers require Exam Pro, so show for free and student_plus
+  if (reason === 'papers') {
+    if (tier === 'exam_pro') return null;
+  } else {
+    // Other features are available on student_plus
+    if (tier !== 'free') return null;
+  }
 
   const content = (
     <div className={`bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-6 ${modal ? 'max-w-md w-full' : ''}`}>
@@ -95,10 +111,10 @@ export function UpgradePrompt({ reason, message, modal = false, onDismiss }: Upg
 
       {/* Price teaser */}
       <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-        <span className="text-white/40 text-xs">Student Plus from</span>
+        <span className="text-white/40 text-xs">{config.recommendedPlan} from</span>
         <div className="flex items-baseline gap-1">
-          <span className="text-white font-semibold">£3.33</span>
-          <span className="text-white/40 text-xs">/month (billed annually)</span>
+          <span className="text-white font-semibold">{config.price}</span>
+          <span className="text-white/40 text-xs">/month</span>
         </div>
       </div>
     </div>

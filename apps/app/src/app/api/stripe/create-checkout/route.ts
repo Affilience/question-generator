@@ -43,12 +43,11 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = getStripe();
-    const isOneTime = priceKey === 'exam_season_pass';
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    // Create checkout session with embedded mode
+    // Create checkout session with embedded mode (all plans are subscriptions)
     const sessionParams: Record<string, unknown> = {
-      mode: isOneTime ? 'payment' : 'subscription',
+      mode: 'subscription',
       ui_mode: 'embedded',
       line_items: [{ price: priceId, quantity: 1 }],
       return_url: `${returnUrl || baseUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -57,6 +56,9 @@ export async function POST(request: NextRequest) {
         price_key: priceKey,
       },
       allow_promotion_codes: true,
+      subscription_data: {
+        metadata: { user_id: userId || '' },
+      },
     };
 
     // Add customer or email
@@ -64,20 +66,6 @@ export async function POST(request: NextRequest) {
       sessionParams.customer = customerId;
     } else if (email) {
       sessionParams.customer_email = email;
-    }
-
-    // Add subscription metadata
-    if (!isOneTime) {
-      sessionParams.subscription_data = {
-        metadata: { user_id: userId || '' },
-      };
-    }
-
-    // For one-time payments
-    if (isOneTime) {
-      sessionParams.payment_intent_data = {
-        metadata: { user_id: userId || '', price_key: priceKey },
-      };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

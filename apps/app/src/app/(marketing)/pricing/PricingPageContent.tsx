@@ -54,20 +54,40 @@ const plans: Plan[] = [
   {
     id: 'student_plus',
     name: 'Student Plus',
-    tagline: 'Unlimited Practice',
-    description: 'Most popular for serious revision',
+    tagline: 'More Practice',
+    description: 'For dedicated revision',
     price: { monthly: 4.99, annual: 39.99 },
     priceKey: { monthly: 'student_plus_monthly', annual: 'student_plus_annual' },
     features: [
-      { text: 'Unlimited questions', included: true, highlight: true },
+      { text: '50 questions per day', included: true, highlight: true },
       { text: 'Full difficulty control', included: true, highlight: true },
       { text: 'Save question history', included: true },
       { text: 'Bookmark questions', included: true },
-      { text: '3 custom papers per week', included: true },
+      { text: 'Custom past papers', included: false },
+    ],
+    cta: 'Get Started',
+    popular: false,
+    color: 'blue',
+  },
+  {
+    id: 'exam_pro',
+    name: 'Exam Pro',
+    tagline: 'Ultimate Revision',
+    description: 'Everything you need for exam success',
+    price: { monthly: 9.99, annual: 79.99 },
+    priceKey: { monthly: 'exam_pro_monthly', annual: 'exam_pro_annual' },
+    features: [
+      { text: 'Unlimited questions', included: true, highlight: true },
+      { text: '7 custom papers per week', included: true, highlight: true },
+      { text: 'Full difficulty control', included: true },
+      { text: 'Save question history', included: true },
+      { text: 'Bookmark questions', included: true },
+      { text: 'Timed exam mode', included: true },
+      { text: 'PDF downloads', included: true },
     ],
     cta: 'Get Started',
     popular: true,
-    color: 'blue',
+    color: 'purple',
   },
 ];
 
@@ -142,7 +162,7 @@ function PricingContent() {
       </div>
 
       {/* Pricing cards */}
-      <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-6 mb-16 max-w-6xl mx-auto">
         {plans.map((plan) => {
           const price = plan.price[billingInterval];
           const priceKey = plan.priceKey[billingInterval];
@@ -154,14 +174,16 @@ function PricingContent() {
               key={plan.id}
               className={`relative bg-[#111] border rounded-2xl p-8 ${
                 plan.popular
-                  ? 'border-blue-500/50 ring-1 ring-blue-500/20'
+                  ? plan.color === 'purple'
+                    ? 'border-purple-500/50 ring-1 ring-purple-500/20'
+                    : 'border-blue-500/50 ring-1 ring-blue-500/20'
                   : 'border-white/[0.06]'
               }`}
             >
               {/* Popular badge */}
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                  <span className={`${plan.color === 'purple' ? 'bg-purple-500' : 'bg-blue-500'} text-white text-xs font-medium px-3 py-1 rounded-full`}>
                     Most Popular
                   </span>
                 </div>
@@ -215,7 +237,9 @@ function PricingContent() {
                   onClick={() => handleSelectPlan(plan, priceKey)}
                   className={`w-full py-3 rounded-lg font-medium transition-colors ${
                     plan.popular
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      ? plan.color === 'purple'
+                        ? 'bg-purple-500 text-white hover:bg-purple-600'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
                       : 'bg-white text-[#0a0a0a] hover:bg-white/90'
                   }`}
                 >

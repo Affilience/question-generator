@@ -82,15 +82,13 @@ export async function checkQuestionGenerationAllowed(
         tier = 'student_plus';
       } else if (priceId.includes('exam_pro')) {
         tier = 'exam_pro';
-      } else if (priceId.includes('exam_season')) {
-        tier = 'exam_season';
       }
     }
   }
 
   const limits = TIER_LIMITS[tier];
 
-  // Unlimited for paid tiers
+  // Unlimited for exam_pro tier
   if (limits.questionsPerDay === null) {
     return {
       allowed: true,
@@ -99,7 +97,7 @@ export async function checkQuestionGenerationAllowed(
     };
   }
 
-  // Free tier - check daily usage
+  // Check daily usage for free and student_plus tiers
   const { data: usage } = await supabase
     .from('daily_usage')
     .select('questions_generated')
@@ -111,11 +109,14 @@ export async function checkQuestionGenerationAllowed(
   const limit = limits.questionsPerDay;
 
   if (questionsGenerated >= limit) {
+    const upgradeMsg = tier === 'free'
+      ? 'Upgrade to Student Plus for 50 questions/day or Exam Pro for unlimited!'
+      : 'Upgrade to Exam Pro for unlimited questions!';
     return {
       allowed: false,
       tier,
       remaining: 0,
-      error: `Daily limit of ${limit} questions reached. Upgrade for unlimited questions!`,
+      error: `Daily limit of ${limit} questions reached. ${upgradeMsg}`,
     };
   }
 
@@ -222,8 +223,7 @@ export async function canControlDifficulty(userId: string | null): Promise<boole
   // Any paid tier can control difficulty
   const priceId = subscription.price_id || '';
   return priceId.includes('student_plus') ||
-         priceId.includes('exam_pro') ||
-         priceId.includes('exam_season');
+         priceId.includes('exam_pro');
 }
 
 /**
@@ -268,34 +268,26 @@ export async function checkPaperGenerationAllowed(
         tier = 'student_plus';
       } else if (priceId.includes('exam_pro')) {
         tier = 'exam_pro';
-      } else if (priceId.includes('exam_season')) {
-        tier = 'exam_season';
       }
     }
   }
 
   const limits = TIER_LIMITS[tier];
 
-  // Free users cannot generate papers
+  // Free and Student Plus users cannot generate papers
   if (limits.papersPerWeek === 0) {
+    const upgradeMsg = tier === 'free'
+      ? 'Practice paper generation requires Exam Pro (£9.99/month).'
+      : 'Upgrade to Exam Pro for 7 papers per week!';
     return {
       allowed: false,
       tier,
       remaining: 0,
-      error: 'Practice paper generation is a paid feature. Upgrade to Student Plus for 3 papers/week!',
+      error: upgradeMsg,
     };
   }
 
-  // Unlimited for higher tiers
-  if (limits.papersPerWeek === null) {
-    return {
-      allowed: true,
-      tier,
-      remaining: null,
-    };
-  }
-
-  // Check weekly usage for student_plus (3 papers/week)
+  // Check weekly usage for exam_pro (7 papers/week)
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -306,20 +298,21 @@ export async function checkPaperGenerationAllowed(
     .gte('created_at', oneWeekAgo.toISOString());
 
   const papersGenerated = count || 0;
+  const weeklyLimit = limits.papersPerWeek!; // Non-null since we checked for 0 above
 
-  if (papersGenerated >= limits.papersPerWeek) {
+  if (papersGenerated >= weeklyLimit) {
     return {
       allowed: false,
       tier,
       remaining: 0,
-      error: `Weekly limit of ${limits.papersPerWeek} papers reached. Upgrade to Exam Pro for unlimited papers!`,
+      error: `Weekly limit of ${weeklyLimit} papers reached. You can generate more papers next week!`,
     };
   }
 
   return {
     allowed: true,
     tier,
-    remaining: limits.papersPerWeek - papersGenerated,
+    remaining: weeklyLimit - papersGenerated,
   };
 }
 
@@ -351,7 +344,6 @@ export async function getUserTier(userId: string | null): Promise<SubscriptionTi
   const priceId = subscription.price_id || '';
   if (priceId.includes('student_plus')) return 'student_plus';
   if (priceId.includes('exam_pro')) return 'exam_pro';
-  if (priceId.includes('exam_season')) return 'exam_season';
 
   return 'free';
 }

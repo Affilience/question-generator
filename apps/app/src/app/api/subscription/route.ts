@@ -44,7 +44,6 @@ export async function GET() {
       const tierFromMetadata = productMetadata?.tier;
       const tierFromPriceId = subData.price_id?.includes('student_plus') ? 'student_plus'
         : subData.price_id?.includes('exam_pro') ? 'exam_pro'
-        : subData.price_id?.includes('exam_season') ? 'exam_season'
         : 'free';
 
       subscription = {

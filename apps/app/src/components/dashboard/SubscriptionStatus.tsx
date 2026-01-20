@@ -8,7 +8,6 @@ const TIER_DISPLAY = {
   free: { name: 'Free', color: 'text-white/60', bg: 'bg-white/10' },
   student_plus: { name: 'Student Plus', color: 'text-blue-400', bg: 'bg-blue-500/20' },
   exam_pro: { name: 'Exam Pro', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-  exam_season: { name: 'Exam Season', color: 'text-orange-400', bg: 'bg-orange-500/20' },
 };
 
 export function SubscriptionStatus() {

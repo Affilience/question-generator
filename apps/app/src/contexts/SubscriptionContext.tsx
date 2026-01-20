@@ -98,7 +98,6 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   function getTierFromPriceId(priceId: string): SubscriptionTier {
     if (priceId.includes('student_plus')) return 'student_plus';
     if (priceId.includes('exam_pro')) return 'exam_pro';
-    if (priceId.includes('exam_season')) return 'exam_season';
     return 'free';
   }
 

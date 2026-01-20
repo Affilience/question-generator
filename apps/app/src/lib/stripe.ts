@@ -28,7 +28,6 @@ export const STRIPE_PRICES = {
   student_plus_annual: process.env.STRIPE_PRICE_STUDENT_PLUS_ANNUAL || 'price_student_plus_annual',
   exam_pro_monthly: process.env.STRIPE_PRICE_EXAM_PRO_MONTHLY || 'price_exam_pro_monthly',
   exam_pro_annual: process.env.STRIPE_PRICE_EXAM_PRO_ANNUAL || 'price_exam_pro_annual',
-  exam_season_pass: process.env.STRIPE_PRICE_EXAM_SEASON_PASS || 'price_exam_season_pass',
 };
 
 // Get or create a Stripe customer for a user
@@ -85,12 +84,9 @@ export async function createCheckoutSession({
 }): Promise<Stripe.Checkout.Session> {
   const customerId = await getOrCreateStripeCustomer(userId, email);
 
-  // Check if this is a one-time payment (exam season pass)
-  const isOneTime = priceId.includes('exam_season');
-
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
-    mode: isOneTime ? 'payment' : 'subscription',
+    mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [
       {
@@ -107,22 +103,12 @@ export async function createCheckoutSession({
     allow_promotion_codes: true,
   };
 
-  // Add trial period for subscriptions (not one-time payments)
-  if (!isOneTime && trialDays) {
+  // Add trial period for subscriptions
+  if (trialDays) {
     sessionConfig.subscription_data = {
       trial_period_days: trialDays,
       metadata: {
         user_id: userId,
-      },
-    };
-  }
-
-  // For one-time payments, add metadata
-  if (isOneTime) {
-    sessionConfig.payment_intent_data = {
-      metadata: {
-        user_id: userId,
-        price_id: priceId,
       },
     };
   }

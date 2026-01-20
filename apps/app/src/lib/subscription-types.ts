@@ -1,5 +1,5 @@
 // Subscription tier types - shared between client and server
-export type SubscriptionTier = 'free' | 'student_plus' | 'exam_pro' | 'exam_season';
+export type SubscriptionTier = 'free' | 'student_plus' | 'exam_pro';
 
 // Feature limits by tier
 export const TIER_LIMITS: Record<SubscriptionTier, {
@@ -27,8 +27,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     bookmarks: false,
   },
   student_plus: {
-    questionsPerDay: null, // unlimited
-    papersPerWeek: 3,
+    questionsPerDay: 50,
+    papersPerWeek: 0, // No papers on this tier
     difficultyControl: true,
     timedExamMode: false,
     pdfDownloads: false,
@@ -39,21 +39,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     bookmarks: true,
   },
   exam_pro: {
-    questionsPerDay: null,
-    papersPerWeek: null, // unlimited
-    difficultyControl: true,
-    timedExamMode: true,
-    pdfDownloads: true,
-    examinerCommentary: true,
-    synopticPapers: true,
-    priorityGeneration: true,
-    saveHistory: true,
-    bookmarks: true,
-  },
-  exam_season: {
-    // Same as exam_pro
-    questionsPerDay: null,
-    papersPerWeek: null,
+    questionsPerDay: null, // unlimited
+    papersPerWeek: 7,
     difficultyControl: true,
     timedExamMode: true,
     pdfDownloads: true,
@@ -69,6 +56,5 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
 export function getTierFromPriceId(priceId: string): SubscriptionTier {
   if (priceId.includes('student_plus')) return 'student_plus';
   if (priceId.includes('exam_pro')) return 'exam_pro';
-  if (priceId.includes('exam_season')) return 'exam_season';
   return 'free';
 }

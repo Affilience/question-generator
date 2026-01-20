@@ -95,7 +95,6 @@ const PRICE_KEY_TO_DB_ID: Record<string, string> = {
   student_plus_annual: 'price_student_plus_annual',
   exam_pro_monthly: 'price_exam_pro_monthly',
   exam_pro_annual: 'price_exam_pro_annual',
-  exam_season_pass: 'price_exam_season_pass',
 };
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
@@ -225,38 +224,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   }
 }
 
+// Note: One-time payments are no longer supported - all plans are subscriptions
 async function handleOneTimePayment(paymentIntent: Stripe.PaymentIntent) {
-  const userId = paymentIntent.metadata?.user_id;
-  const priceId = paymentIntent.metadata?.price_id;
-
-  if (!userId || !priceId) {
-    console.error('Missing metadata in payment intent');
-    return;
-  }
-
-  // For Exam Season Pass - 30 days access
-  const tier = getTierFromPriceId(priceId);
-  if (tier === 'exam_season') {
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
-
-    const { error } = await supabase
-      .from('user_subscriptions')
-      .upsert({
-        user_id: userId,
-        stripe_customer_id: paymentIntent.customer as string,
-        stripe_subscription_id: `exam_season_${paymentIntent.id}`,
-        price_id: priceId,
-        status: 'active',
-        current_period_start: new Date().toISOString(),
-        current_period_end: endDate.toISOString(),
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,stripe_subscription_id',
-      });
-
-    if (error) {
-      console.error('Error creating exam season subscription:', error);
-    }
-  }
+  console.log('One-time payment received but not processed (deprecated):', paymentIntent.id);
 }

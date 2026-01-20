@@ -27,7 +27,6 @@ function SubscriptionSuccessContent() {
     free: 'Free',
     student_plus: 'Student Plus',
     exam_pro: 'Exam Pro',
-    exam_season: 'Exam Season Pass',
   };
 
   return (
