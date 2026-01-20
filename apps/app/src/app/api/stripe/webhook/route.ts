@@ -89,14 +89,27 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Map price_key to database price_id
+const PRICE_KEY_TO_DB_ID: Record<string, string> = {
+  student_plus_monthly: 'price_student_plus_monthly',
+  student_plus_annual: 'price_student_plus_annual',
+  exam_pro_monthly: 'price_exam_pro_monthly',
+  exam_pro_annual: 'price_exam_pro_annual',
+  exam_season_pass: 'price_exam_season_pass',
+};
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.user_id;
   const customerId = session.customer as string;
+  const priceKey = session.metadata?.price_key;
 
   if (!userId) {
     console.error('No user_id in checkout session metadata');
     return;
   }
+
+  // Convert price_key to database price_id
+  const priceId = priceKey ? PRICE_KEY_TO_DB_ID[priceKey] : null;
 
   // Update or create subscription record with customer ID
   const { error } = await supabase
@@ -106,7 +119,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripe_customer_id: customerId,
       stripe_subscription_id: session.subscription as string || `one_time_${session.id}`,
       status: session.mode === 'subscription' ? 'active' : 'active',
-      price_id: session.metadata?.price_id,
+      price_id: priceId,
       current_period_start: new Date().toISOString(),
       current_period_end: session.mode === 'subscription'
         ? undefined // Will be set by subscription.updated event
