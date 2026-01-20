@@ -16,7 +16,7 @@ import { checkPaperGenerationAllowed } from '@/lib/api/subscription-check';
 import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
-import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
+import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE } from '@/lib/prompts-common';
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -272,7 +272,9 @@ MARK SCHEME:
 
   // Check if diagram needed - always include for maths/science subjects
   const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram' || isMathsSubject(subject) || isScienceSubject(subject);
-  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if visual aids would help (geometry, graphs, forces, circuits, etc.).` : '';
+  const subjectKey = subject.replace('-', '').toLowerCase();
+  const subjectDiagramGuidance = SUBJECT_DIAGRAM_GUIDANCE[subjectKey] || '';
+  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if visual aids would help.` : '';
 
   return `Generate a ${boardUpper} ${levelDisplay} ${subject.replace('-', ' ')} exam question. Return ONLY valid JSON.
 
@@ -366,7 +368,9 @@ function buildQuantitativeQuestionPrompt(
 
   // Always include diagram instructions for quantitative subjects (maths, physics, chemistry, biology)
   const needsDiagram = true; // Quantitative subjects often need diagrams (geometry, graphs, forces, circuits, molecules, etc.)
-  const diagramInstructions = `\n\n${DIAGRAM_SCHEMA_DOCS}\n\nInclude "diagram" field if the question involves geometry, graphs, forces, circuits, molecules, or other visual content.`;
+  const subjectKey = subject.replace('-', '').toLowerCase();
+  const subjectDiagramGuidance = SUBJECT_DIAGRAM_GUIDANCE[subjectKey] || '';
+  const diagramInstructions = `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if the question involves visual content.`;
 
   // Mark scheme format
   const markSchemeFormat = selectedFormat === 'short_essay' && plan.marks >= 6
