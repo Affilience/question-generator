@@ -285,22 +285,6 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
     progressQuery = progressQuery.eq('qualification', filter.qualification);
   }
 
-  const { data: progress } = await progressQuery;
-
-  const totalAttempted = progress?.reduce((sum, p) => sum + p.attempted, 0) || 0;
-  const totalCorrect = progress?.reduce((sum, p) => sum + p.correct, 0) || 0;
-  const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
-
-  // Get streak (streaks are global, not subject-specific)
-  const { data: streaks } = await supabase
-    .from('user_streaks')
-    .select('*')
-    .eq('user_id', userId)
-    .order('practice_date', { ascending: false })
-    .limit(30);
-
-  const currentStreak = calculateStreak(streaks || []);
-
   // Build query for recent wrong answers
   let wrongQuery = supabase
     .from('question_attempts')
@@ -320,7 +304,27 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
     wrongQuery = wrongQuery.eq('qualification', filter.qualification);
   }
 
-  const { data: recentWrong } = await wrongQuery;
+  // Run all queries in parallel for faster loading
+  const [
+    { data: progress },
+    { data: streaks },
+    { data: recentWrong }
+  ] = await Promise.all([
+    progressQuery,
+    supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('practice_date', { ascending: false })
+      .limit(30),
+    wrongQuery
+  ]);
+
+  const totalAttempted = progress?.reduce((sum, p) => sum + p.attempted, 0) || 0;
+  const totalCorrect = progress?.reduce((sum, p) => sum + p.correct, 0) || 0;
+  const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+
+  const currentStreak = calculateStreak(streaks || []);
 
   // Get topic coverage
   const topicCoverage = calculateTopicCoverage(progress || []);
@@ -625,50 +629,48 @@ export async function unlockAchievement(
 
 // Get gamification stats for a user (for achievement checking)
 export async function getGamificationStats(userId: string): Promise<GamificationStats> {
-  // Get XP and level
-  const { totalXP, currentLevel } = await getUserXP(userId);
-
-  // Get total questions from all attempts
-  const { count: questionsTotal } = await supabase
-    .from('question_attempts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Get correct questions
-  const { count: questionsCorrect } = await supabase
-    .from('question_attempts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('is_correct', true);
-
-  // Get current streak
-  const { data: streaks } = await supabase
-    .from('user_streaks')
-    .select('*')
-    .eq('user_id', userId)
-    .order('practice_date', { ascending: false })
-    .limit(30);
+  // Run all queries in parallel for faster loading
+  const [
+    xpData,
+    { count: questionsTotal },
+    { count: questionsCorrect },
+    { data: streaks },
+    { data: topicData },
+    { count: papersCompleted }
+  ] = await Promise.all([
+    getUserXP(userId),
+    supabase
+      .from('question_attempts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    supabase
+      .from('question_attempts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_correct', true),
+    supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('practice_date', { ascending: false })
+      .limit(30),
+    supabase
+      .from('user_topic_progress')
+      .select('topic_id')
+      .eq('user_id', userId),
+    supabase
+      .from('paper_attempts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null)
+  ]);
 
   const currentStreak = calculateStreak(streaks || []);
-
-  // Get unique topics practiced
-  const { data: topicData } = await supabase
-    .from('user_topic_progress')
-    .select('topic_id')
-    .eq('user_id', userId);
-
   const topicsPracticed = new Set(topicData?.map(t => t.topic_id) || []).size;
 
-  // Get papers completed
-  const { count: papersCompleted } = await supabase
-    .from('paper_attempts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .not('completed_at', 'is', null);
-
   return {
-    totalXP,
-    currentLevel,
+    totalXP: xpData.totalXP,
+    currentLevel: xpData.currentLevel,
     questionsTotal: questionsTotal || 0,
     questionsCorrect: questionsCorrect || 0,
     currentStreak,
