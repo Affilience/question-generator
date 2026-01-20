@@ -227,24 +227,26 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Open Stripe customer portal
   const openPortal = async () => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('Not signed in');
+    }
 
-    try {
-      const response = await fetch('/api/stripe/portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
+    const response = await fetch('/api/stripe/portal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error('No portal URL returned');
-      }
-    } catch (error) {
-      console.error('Error opening portal:', error);
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to open portal');
+    }
+
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error('No portal URL returned');
     }
   };
 

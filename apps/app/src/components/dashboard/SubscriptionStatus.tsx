@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
@@ -12,6 +13,20 @@ const TIER_DISPLAY = {
 
 export function SubscriptionStatus() {
   const { tier, subscription, dailyUsage, limits, openPortal, loading } = useSubscription();
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  const handleManage = async () => {
+    setPortalLoading(true);
+    setPortalError(null);
+    try {
+      await openPortal();
+    } catch {
+      setPortalError('Unable to open billing portal');
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -78,13 +93,20 @@ export function SubscriptionStatus() {
           </Link>
         ) : (
           <button
-            onClick={() => openPortal()}
-            className="text-xs text-white/40 hover:text-white/60 transition-colors"
+            type="button"
+            onClick={handleManage}
+            disabled={portalLoading}
+            className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            Manage
+            {portalLoading ? 'Loading...' : 'Manage'}
           </button>
         )}
       </div>
+
+      {/* Portal error message */}
+      {portalError && (
+        <p className="mt-2 text-xs text-red-400">{portalError}</p>
+      )}
 
       {/* Usage bar for free tier */}
       {!isUnlimited && questionsLimit && (
