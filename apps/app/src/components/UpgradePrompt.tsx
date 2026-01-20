@@ -155,24 +155,32 @@ export function UsageIndicator() {
   const percentage = (used / total) * 100;
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-white/60 text-xs">Daily questions</span>
-        <span className={`text-xs font-medium ${remaining === 0 ? 'text-red-400' : remaining <= 2 ? 'text-yellow-400' : 'text-white/80'}`}>
-          {remaining} remaining
+    <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl p-4 min-w-[200px]">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[var(--color-text-secondary)] text-sm font-medium">Daily questions</span>
+        <span className={`text-sm font-semibold ${remaining === 0 ? 'text-red-400' : remaining <= 3 ? 'text-yellow-400' : 'text-[var(--color-text-primary)]'}`}>
+          {remaining} / {total}
         </span>
       </div>
-      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-bg-deepest)] rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
-            remaining === 0 ? 'bg-red-500' : remaining <= 2 ? 'bg-yellow-500' : 'bg-blue-500'
+          className={`h-full rounded-full transition-all duration-300 ${
+            remaining === 0 ? 'bg-red-500' : remaining <= 3 ? 'bg-yellow-500' : 'bg-[var(--color-accent)]'
           }`}
           style={{ width: `${Math.min(100, percentage)}%` }}
         />
       </div>
+      {remaining <= 3 && remaining > 0 && (
+        <p className="text-[var(--color-text-muted)] text-xs mt-2">
+          Running low on questions today
+        </p>
+      )}
       {remaining === 0 && (
-        <Link href="/pricing" className="text-blue-400 text-xs mt-2 inline-block hover:text-blue-300">
-          Upgrade for unlimited →
+        <Link href="/pricing" className="text-[var(--color-accent)] text-sm mt-3 inline-flex items-center gap-1 hover:underline font-medium">
+          Upgrade for unlimited
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
       )}
     </div>

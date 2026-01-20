@@ -28,15 +28,17 @@ const alevelFaqs = [
 ];
 
 export const metadata: Metadata = {
-  title: 'A-Level Practice Questions - All Subjects',
-  description: 'Practice unlimited A-Level exam questions across all subjects. AI-generated questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
-  keywords: ['A-Level', 'A-Level past papers', 'A-Level revision', 'A-Level practice questions', 'AQA A-Level', 'Edexcel A-Level', 'OCR A-Level'],
+  // Title: 49 chars
+  title: 'A-Level Past Paper Questions | Practice by Topic',
+  // Description: 158 chars
+  description: 'Free A-Level past paper style questions organised by topic. AQA, Edexcel, OCR for Maths, Sciences, English & more. With mark schemes and worked solutions.',
+  keywords: ['A-Level past papers', 'AQA A-Level past papers', 'A-Level revision', 'A-Level practice questions', 'AQA A-Level', 'Edexcel A-Level', 'OCR A-Level'],
   alternates: {
     canonical: '/a-level',
   },
   openGraph: {
-    title: 'A-Level Practice Questions - All Subjects',
-    description: 'Practice unlimited A-Level exam questions across all subjects with AI-generated questions and detailed solutions.',
+    title: 'A-Level Past Paper Questions | Practice by Topic',
+    description: 'Free A-Level past paper style questions organised by topic. AQA, Edexcel, OCR with mark schemes.',
     type: 'website',
     url: '/a-level',
   },
@@ -74,7 +76,7 @@ export default function ALevelPage() {
 
         <header className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-primary)] mb-4">
-            A-Level Practice Questions
+            A-Level Past Paper Questions
           </h1>
           <p className="text-lg text-[var(--color-text-secondary)] max-w-3xl">
             Prepare for your A-Level exams with unlimited AI-generated practice questions.
@@ -146,6 +148,43 @@ export default function ALevelPage() {
                 </Link>
               );
             })}
+          </div>
+        </section>
+
+        {/* Paper Generator Promo */}
+        <section className="mb-12">
+          <div className="bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 rounded-xl border border-purple-500/30 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div className="flex-shrink-0 p-4 bg-purple-500/20 rounded-xl">
+                <span className="text-4xl">📝</span>
+              </div>
+              <div className="flex-grow">
+                <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+                  A-Level Past Paper Generator
+                </h2>
+                <p className="text-[var(--color-text-secondary)] mb-4">
+                  Create custom A-Level mock exams tailored to your specification.
+                  Choose topics, set difficulty, and get full papers with mark schemes.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/past-papers#alevel-subjects"
+                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+                  >
+                    Generate Paper
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                  <span className="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Full mark schemes included
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -458,20 +458,24 @@ export function getOCRGCSEEnglishLiteratureQuestionPrompt(topic: Topic, difficul
   const textKnowledge = getTextSpecificKnowledge(topic.name);
 
   const difficultyGuidance = {
-    easy: `Create a 20-mark focused analysis question OR a Band 3-4 level question.
+    easy: `Create a 40-mark question targeting a Band 3-4 response level.
 
 **Question Types:**
-- "Explore how [author] creates [effect] in this extract"
-- "What impressions of [character/theme] do you get from this extract?"
-- Focused on a specific moment or technique
+- "Explore the significance of this extract in relation to [straightforward theme/character]"
+- Questions with clearer, more accessible thematic focus
+- Extract-based questions with more direct prompts
+
+**IMPORTANT:** ALL OCR GCSE questions are 40 marks. "Easy" difficulty means the COGNITIVE DEMAND is lower (targeting Band 3-4 response), not fewer marks.
 
 **Band 3-4 Level Descriptors (14-27 marks):**
 - Band 4 (21-27): Competent, clear response; secure understanding; appropriate references
 - Band 3 (14-20): Some personal response; some understanding; some relevant references
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
+The model answer should demonstrate a Band 3-4 level response.
 
-    medium: `Create a 40-mark essay question with extract.
+YOU MUST allocate exactly 40 marks for this question.`,
+
+    medium: `Create a 40-mark essay question with extract targeting Band 4-5 response.
 
 **Question Types:**
 For all texts (with extract):
@@ -482,6 +486,8 @@ For all texts (with extract):
 For Poetry comparison:
 - "'[Poem A]' and '[Poem B]' both consider [theme]. Compare the ways the poets present ideas about [theme]."
 
+**IMPORTANT:** ALL OCR GCSE questions are 40 marks. Difficulty indicates target response level.
+
 **Band 4-5 Level Descriptors (21-34 marks):**
 - Band 5 (28-34): Convincing, thoughtful; secure understanding; well-chosen references; thoughtful analysis
 - Band 4 (21-27): Competent, clear; secure understanding; appropriate references; competent analysis
@@ -491,9 +497,11 @@ Include these OCR-specific phrases:
 - "...in the play/novel as a whole"
 - "Remember to include in your answer relevant comment on [author]'s methods"
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
+The model answer should demonstrate a Band 4-5 level response.
 
-    hard: `Create a 40-45 mark question (40 marks + 5 AO4 for Shakespeare) requiring Band 5-6 response.
+YOU MUST allocate exactly 40 marks for this question.`,
+
+    hard: `Create a 40-mark question (+ 5 AO4 for Shakespeare) targeting Band 5-6 response.
 
 **Question Types:**
 - "Explore the significance of this extract in relation to [complex theme] in the play as a whole."
@@ -502,18 +510,22 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
 
 Include: "Remember to include in your answer relevant comment on [author]'s methods"
 
+**IMPORTANT:** ALL OCR GCSE questions are 40 marks content. Shakespeare adds +5 AO4.
+
 **Requirements:**
 - 40 marks for content (AO1, AO2, AO3)
-- 5 marks for SPaG (AO4) for Shakespeare only
+- +5 marks for SPaG (AO4) for Shakespeare texts ONLY
 
-**Band 6 Response Characteristics (35-40 + 5 AO4):**
+**Band 5-6 Response Characteristics (28-40 + 5 AO4):**
 - Sophisticated, perceptive personal response
 - Assured understanding with judicious, well-integrated references
 - Perceptive, sophisticated analysis of writer's methods
 - Sophisticated understanding of contextual factors
 - Effective and consistently controlled vocabulary and sentences
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
+The model answer should demonstrate a Band 5-6 level response.
+
+YOU MUST allocate 40 marks (or 45 for Shakespeare with AO4).`
   };
 
   const textKnowledgePrompt = textKnowledge
@@ -554,13 +566,27 @@ Return valid JSON:
 }`;
 }
 
+/**
+ * OCR GCSE English Literature mark ranges.
+ * IMPORTANT: ALL OCR GCSE questions are 40 marks.
+ * Shakespeare questions add +5 marks for AO4 (SPaG).
+ *
+ * Unlike some other boards, OCR does not have varied mark questions.
+ * Difficulty affects the COGNITIVE DEMAND (which band students aim for),
+ * not the mark allocation.
+ */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+  // ALL OCR GCSE questions are 40 marks (or 40+5 for Shakespeare)
+  // Difficulty indicates target band, not mark allocation
   switch (difficulty) {
     case 'easy':
-      return { min: 20, max: 20 };
+      // Target: Band 3-4 response (14-27 marks) - same 40-mark question, simpler cognitive demand
+      return { min: 40, max: 40 };
     case 'medium':
+      // Target: Band 4-5 response (21-34 marks)
       return { min: 40, max: 40 };
     case 'hard':
+      // Target: Band 5-6 response (28-40 marks), +5 AO4 for Shakespeare
       return { min: 40, max: 45 };
   }
 }

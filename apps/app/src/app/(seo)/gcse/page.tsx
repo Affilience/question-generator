@@ -8,15 +8,17 @@ import { subjects, examBoards, getTopicsBySubjectBoardAndLevel } from '@/lib/top
 import type { Subject } from '@/types';
 
 export const metadata: Metadata = {
-  title: 'GCSE Practice Questions - All Subjects',
-  description: 'Practice unlimited GCSE exam questions across all subjects. AI-generated questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
-  keywords: ['GCSE', 'GCSE past papers', 'GCSE revision', 'GCSE practice questions', 'AQA GCSE', 'Edexcel GCSE', 'OCR GCSE'],
+  // Title: 46 chars
+  title: 'GCSE Past Paper Questions | Practice by Topic',
+  // Description: 156 chars
+  description: 'Free GCSE past paper style questions organised by topic. AQA, Edexcel, OCR for Maths, Science, English & more. With mark schemes and worked solutions.',
+  keywords: ['GCSE past papers', 'GCSE maths past papers', 'GCSE science past papers', 'GCSE revision', 'GCSE practice questions', 'AQA GCSE', 'Edexcel GCSE', 'OCR GCSE'],
   alternates: {
     canonical: '/gcse',
   },
   openGraph: {
-    title: 'GCSE Practice Questions - All Subjects',
-    description: 'Practice unlimited GCSE exam questions across all subjects with AI-generated questions and detailed solutions.',
+    title: 'GCSE Past Paper Questions | Practice by Topic',
+    description: 'Free GCSE past paper style questions organised by topic. AQA, Edexcel, OCR with mark schemes.',
     type: 'website',
     url: '/gcse',
   },
@@ -74,7 +76,7 @@ export default function GCSEPage() {
 
         <header className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-primary)] mb-4">
-            GCSE Practice Questions
+            GCSE Past Paper Questions
           </h1>
           <p className="text-lg text-[var(--color-text-secondary)] max-w-3xl">
             Master your GCSE exams with unlimited AI-generated practice questions.
@@ -146,6 +148,43 @@ export default function GCSEPage() {
                 </Link>
               );
             })}
+          </div>
+        </section>
+
+        {/* Paper Generator Promo */}
+        <section className="mb-12">
+          <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-xl border border-[var(--color-accent)]/30 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div className="flex-shrink-0 p-4 bg-[var(--color-accent)]/20 rounded-xl">
+                <span className="text-4xl">📝</span>
+              </div>
+              <div className="flex-grow">
+                <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+                  GCSE Past Paper Generator
+                </h2>
+                <p className="text-[var(--color-text-secondary)] mb-4">
+                  Create custom mock exams by selecting your topics and difficulty level.
+                  Generate full practice papers with mark schemes instantly.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/past-papers#gcse-subjects"
+                    className="inline-flex items-center gap-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+                  >
+                    Generate Paper
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                  <span className="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Full mark schemes included
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

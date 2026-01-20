@@ -126,10 +126,29 @@ export default async function ExamBoardPage({ params }: PageProps) {
               {boardInfo.name} {qualInfo.name} {subjectInfo.name}
             </h1>
           </div>
-          <p className="text-lg text-[var(--color-text-secondary)] max-w-3xl">
+          <p className="text-lg text-[var(--color-text-secondary)] max-w-3xl mb-6">
             Practice {totalSubtopics}+ subtopics across {topics.length} topics.
             All questions match the {boardInfo.name} {qualInfo.name} {subjectInfo.name} specification.
           </p>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/${level}/${subject}/${examBoard}/paper`}
+              className="inline-flex items-center gap-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Generate Practice Paper
+            </Link>
+            <span className="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Choose topics & difficulty
+            </span>
+          </div>
         </header>
 
         {/* Introduction Section */}

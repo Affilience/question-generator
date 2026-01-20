@@ -475,7 +475,7 @@ function getTextSpecificKnowledge(topicName: string): string {
 // ============================================================================
 
 export function getAQAALevelEnglishLiteratureSystemPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
   const textKnowledge = getTextSpecificKnowledge(topic.name);
 
   const textKnowledgeSection = textKnowledge
@@ -547,7 +547,7 @@ ${getDiagramDocsForSubject('englishliterature')}`;
 }
 
 export function getAQAALevelEnglishLiteratureQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
   const textKnowledge = getTextSpecificKnowledge(topic.name);
 
   const difficultyGuidance = {
@@ -663,18 +663,23 @@ Return valid JSON:
 }`;
 }
 
-function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
-  // AQA A-Level English Literature mark allocations
-  // Easy: Focused analysis questions (15 marks)
-  // Medium: Standard essay questions (25 marks)
-  // Hard: Complex comparative/synoptic essays (25 marks, but with Band 6 expectations)
-  // Note: Most AQA English Lit questions are 25 marks - difficulty is differentiated by cognitive demand
-  switch (difficulty) {
-    case 'easy':
-      return { min: 15, max: 20 }; // Focused analysis, passage-based
-    case 'medium':
-      return { min: 25, max: 25 }; // Standard essay
-    case 'hard':
-      return { min: 25, max: 30 }; // Complex comparative with sophisticated critical engagement
+// Get marks based on TOPIC TYPE, not difficulty
+// AQA A-Level English Literature: ALL exam questions are 25 marks, NEA is 50 marks
+// Difficulty affects cognitive complexity (Band 3 vs Band 6), NOT mark allocation
+function getMarksForTopic(topicId: string): number {
+  // NEA is 50 marks (25 per text, but questions focus on comparison)
+  if (topicId === 'aqa-alevel-eng-lit-nea') {
+    return 50;
   }
+  // ALL other AQA English Lit exam questions are 25 marks
+  return 25;
+}
+
+function getMarkRangeForDifficulty(difficulty: Difficulty, topicId?: string): { min: number; max: number } {
+  if (topicId) {
+    const marks = getMarksForTopic(topicId);
+    return { min: marks, max: marks };
+  }
+  // Fallback - AQA uses 25 marks for all exam questions
+  return { min: 25, max: 25 };
 }

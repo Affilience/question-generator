@@ -254,7 +254,7 @@ function getTextSpecificKnowledge(topicName: string): string {
 // ============================================================================
 
 export function getOCRALevelEnglishLiteratureSystemPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
   const textKnowledge = getTextSpecificKnowledge(topic.name);
 
   const textKnowledgeSection = textKnowledge ? `
@@ -317,7 +317,7 @@ ${getDiagramDocsForSubject('englishliterature')}`;
 }
 
 export function getOCRALevelEnglishLiteratureQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
 
   const difficultyGuidance = {
     easy: `Create a 20-mark focused analysis question.
@@ -416,13 +416,40 @@ Return valid JSON:
 }`;
 }
 
-function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+// Get marks based on TOPIC TYPE (component/paper), not difficulty
+// OCR A-Level English Literature mark allocations:
+// - Component 01 (Shakespeare, Drama, Poetry pre-1900): 30 marks
+// - Component 02 (Gothic, Dystopia, Women, American): 20 marks per question
+// - NEA: 40 marks total (20 per text)
+function getMarksForTopic(topicId: string): number {
+  // Component 01: Drama and Poetry Pre-1900 - 30 marks
+  if (['lit-measure-measure', 'lit-duchess-malfi', 'lit-doctor-faustus', 'lit-chaucer-pardoner', 'lit-romantic-poetry'].includes(topicId)) {
+    return 30;
+  }
+  // Component 02: Comparative and Contextual Study - 20 marks per question
+  if (['lit-gothic-lit', 'lit-dystopia', 'lit-women-writing', 'lit-american-lit'].includes(topicId)) {
+    return 20;
+  }
+  // Component 03: NEA - 40 marks total
+  if (['lit-post-1900', 'lit-nea-ocr'].includes(topicId)) {
+    return 40;
+  }
+  // Default
+  return 30;
+}
+
+function getMarkRangeForDifficulty(difficulty: Difficulty, topicId?: string): { min: number; max: number } {
+  if (topicId) {
+    const marks = getMarksForTopic(topicId);
+    return { min: marks, max: marks };
+  }
+  // Fallback
   switch (difficulty) {
     case 'easy':
       return { min: 20, max: 20 };
     case 'medium':
       return { min: 30, max: 30 };
     case 'hard':
-      return { min: 30, max: 60 };
+      return { min: 30, max: 30 };
   }
 }

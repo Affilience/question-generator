@@ -278,6 +278,12 @@ export function getBreadcrumbs(params: {
 
 /**
  * Generate SEO title for a page
+ * Target: 50-60 characters max for optimal display in SERPs
+ *
+ * High-volume keywords targeted:
+ * - "aqa gcse maths past papers" (12,100/mo)
+ * - "edexcel maths past papers" (14,800/mo)
+ * - "aqa biology past papers" (8,100/mo)
  */
 export function generateSEOTitle(params: {
   level?: string;
@@ -286,58 +292,59 @@ export function generateSEOTitle(params: {
   topic?: string;
   subtopic?: string;
 }): string {
-  const parts: string[] = [];
+  const board = params.examBoard ? getExamBoardInfo(params.examBoard as ExamBoard) : null;
+  const qual = params.level ? getQualificationInfo(params.level as QualificationLevel) : null;
+  const subj = params.subject ? getSubjectInfo(params.subject as Subject) : null;
 
-  if (params.examBoard) {
-    const board = getExamBoardInfo(params.examBoard as ExamBoard);
-    parts.push(board?.name || params.examBoard.toUpperCase());
-  }
-
-  if (params.level) {
-    const qual = getQualificationInfo(params.level as QualificationLevel);
-    parts.push(qual?.name || params.level.toUpperCase());
-  }
-
-  if (params.subject) {
-    const subj = getSubjectInfo(params.subject as Subject);
-    parts.push(subj?.name || params.subject);
-  }
-
-  if (params.topic) {
-    const topics = params.subject && params.examBoard && params.level
-      ? getTopicsBySubjectBoardAndLevel(params.subject as Subject, params.examBoard as ExamBoard, params.level as QualificationLevel)
-      : [];
+  // Get topic name if applicable
+  let topicName = '';
+  if (params.topic && params.subject && params.examBoard && params.level) {
+    const topics = getTopicsBySubjectBoardAndLevel(
+      params.subject as Subject,
+      params.examBoard as ExamBoard,
+      params.level as QualificationLevel
+    );
     const topic = topics.find(t => t.id === params.topic);
-    parts.push(topic?.name || params.topic);
+    topicName = topic?.name || params.topic;
   }
 
+  // Subtopic page: "Quadratics | AQA GCSE Maths Questions" (under 60 chars)
   if (params.subtopic) {
-    parts.push(unslugify(params.subtopic));
+    const subtopicName = unslugify(params.subtopic);
+    const boardName = board?.name || '';
+    const qualName = qual?.name || '';
+    const subjName = subj?.name || '';
+    // Keep it short: "Subtopic | Board Level Subject"
+    return `${subtopicName} | ${boardName} ${qualName} ${subjName}`.slice(0, 60);
   }
 
-  if (parts.length === 0) {
-    return 'Past Papers & Questions';
-  }
-
-  // For subtopic pages, use shorter format (already handled in page.tsx)
-  if (params.subtopic) {
-    return `${parts.join(' ')}: Questions`;
-  }
-
-  // For topic pages, add "Questions" (noindex anyway, just for navigation)
+  // Topic page: "Algebra | AQA GCSE Maths Questions" (noindex, for navigation)
   if (params.topic) {
-    return `${parts.join(' ')} Questions`;
+    const boardName = board?.name || '';
+    const qualName = qual?.name || '';
+    const subjName = subj?.name || '';
+    return `${topicName} | ${boardName} ${qualName} ${subjName}`.slice(0, 60);
   }
 
-  // For subject and board pages, add "Past Papers" to match high-volume keywords
-  // e.g., "AQA GCSE Maths Past Papers" matches "aqa gcse maths past papers" (4,400/mo)
-  // Template adds "| Past Papers" but redundancy is fine and keeps under 60 chars
-  return `${parts.join(' ')} Past Papers`;
+  // Exam board page: "AQA GCSE Maths Past Papers" (matches "aqa gcse maths past papers")
+  if (params.examBoard && params.subject && params.level) {
+    const title = `${board?.name} ${qual?.name} ${subj?.name} Past Papers`;
+    // Should be ~30-35 chars typically, well under limit
+    return title.slice(0, 60);
+  }
+
+  // Subject page: "GCSE Maths Past Papers | AQA, Edexcel, OCR"
+  if (params.subject && params.level) {
+    return `${qual?.name} ${subj?.name} Past Papers | AQA, Edexcel, OCR`.slice(0, 60);
+  }
+
+  return 'Past Papers | Free Exam Questions';
 }
 
 /**
  * Generate SEO description for a page
- * Includes both "past papers" and "questions" keywords for better search coverage
+ * Target: 150-160 characters max for optimal display in SERPs
+ * Includes both "past papers" and "questions" keywords for search coverage
  */
 export function generateSEODescription(params: {
   level?: string;
@@ -346,42 +353,44 @@ export function generateSEODescription(params: {
   topic?: string;
   subtopic?: string;
 }): string {
-  const parts: string[] = [];
+  const board = params.examBoard ? getExamBoardInfo(params.examBoard as ExamBoard) : null;
+  const qual = params.level ? getQualificationInfo(params.level as QualificationLevel) : null;
+  const subj = params.subject ? getSubjectInfo(params.subject as Subject) : null;
 
-  if (params.examBoard) {
-    const board = getExamBoardInfo(params.examBoard as ExamBoard);
-    parts.push(board?.name || params.examBoard.toUpperCase());
-  }
+  // Build context string: "AQA GCSE Maths"
+  const contextParts: string[] = [];
+  if (board) contextParts.push(board.name);
+  if (qual) contextParts.push(qual.name);
+  if (subj) contextParts.push(subj.name);
+  const context = contextParts.join(' ');
 
-  if (params.level) {
-    const qual = getQualificationInfo(params.level as QualificationLevel);
-    parts.push(qual?.name || params.level.toUpperCase());
-  }
-
-  if (params.subject) {
-    const subj = getSubjectInfo(params.subject as Subject);
-    parts.push(subj?.name || params.subject);
-  }
-
-  const context = parts.join(' ');
-
+  // Subtopic: "Free AQA GCSE Maths Quadratics questions with mark schemes and worked solutions." (~85 chars)
   if (params.subtopic) {
-    return `Free ${context} ${unslugify(params.subtopic)} questions and answers. Past paper style practice with mark schemes and worked solutions.`;
+    const subtopicName = unslugify(params.subtopic);
+    return `Free ${context} ${subtopicName} questions with mark schemes and worked solutions. Practice exam-style problems.`.slice(0, 160);
   }
 
+  // Topic: "AQA GCSE Maths Algebra questions. Past paper style practice with mark schemes and solutions." (~95 chars)
   if (params.topic) {
     const topics = params.subject && params.examBoard && params.level
       ? getTopicsBySubjectBoardAndLevel(params.subject as Subject, params.examBoard as ExamBoard, params.level as QualificationLevel)
       : [];
     const topic = topics.find(t => t.id === params.topic);
-    return `${context} ${topic?.name || params.topic} past paper questions. Practice exam-style questions with detailed mark schemes and solutions.`;
+    const topicName = topic?.name || params.topic;
+    return `${context} ${topicName} questions. Past paper style practice with mark schemes and step-by-step solutions.`.slice(0, 160);
   }
 
-  if (context) {
-    return `Free ${context} past papers and practice questions. Unlimited exam-style questions with mark schemes, worked solutions, and instant feedback.`;
+  // Exam board page: "Free AQA GCSE Maths past papers with mark schemes. Exam-style questions and worked solutions." (~95 chars)
+  if (params.examBoard && params.subject && params.level) {
+    return `Free ${context} past papers with mark schemes. Unlimited exam-style questions and step-by-step worked solutions.`.slice(0, 160);
   }
 
-  return 'Free GCSE and A-Level past papers and practice questions. AI-generated exam questions matching AQA, Edexcel, and OCR specifications.';
+  // Subject page: "Free GCSE Maths past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and solutions." (~105 chars)
+  if (params.subject && params.level) {
+    return `Free ${qual?.name} ${subj?.name} past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and solutions.`.slice(0, 160);
+  }
+
+  return 'Free GCSE and A-Level past papers. Exam-style questions for AQA, Edexcel, OCR with mark schemes and solutions.';
 }
 
 /**

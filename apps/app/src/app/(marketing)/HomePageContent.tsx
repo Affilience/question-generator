@@ -129,6 +129,9 @@ export default function HomePageContent() {
             <Link href="#subjects" className="text-sm text-white/60 hover:text-white transition-colors">
               Subjects
             </Link>
+            <Link href="/past-papers" className="text-sm text-[#6366f1] hover:text-[#818cf8] transition-colors font-medium">
+              Paper Generator
+            </Link>
             <Link href="#how-it-works" className="text-sm text-white/60 hover:text-white transition-colors">
               How It Works
             </Link>
@@ -206,6 +209,7 @@ export default function HomePageContent() {
                   {[
                     { href: '#features', label: 'Features' },
                     { href: '#subjects', label: 'Subjects' },
+                    { href: '/past-papers', label: 'Paper Generator', highlight: true },
                     { href: '#how-it-works', label: 'How It Works' },
                     { href: '/pricing', label: 'Pricing' },
                   ].map(link => (
@@ -213,7 +217,11 @@ export default function HomePageContent() {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-white/70 hover:text-white hover:bg-white/5 py-3 px-4 rounded-lg transition-colors text-lg"
+                      className={`py-3 px-4 rounded-lg transition-colors text-lg ${
+                        'highlight' in link && link.highlight
+                          ? 'text-[#6366f1] hover:text-[#818cf8] hover:bg-[#6366f1]/10 font-medium'
+                          : 'text-white/70 hover:text-white hover:bg-white/5'
+                      }`}
                     >
                       {link.label}
                     </Link>

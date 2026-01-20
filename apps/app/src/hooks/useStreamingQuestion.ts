@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Question, Difficulty, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface StreamingState {
   isStreaming: boolean;
@@ -70,6 +71,8 @@ export function useStreamingQuestion() {
     error: null,
     upgradeNeeded: false,
   });
+
+  const { incrementQuestionUsage } = useSubscription();
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const bufferRef = useRef<ContentBuffer | null>(null);
@@ -141,6 +144,8 @@ export function useStreamingQuestion() {
           error: null,
           upgradeNeeded: false,
         });
+        // Update client-side usage counter
+        incrementQuestionUsage();
         return question;
       }
 
@@ -194,6 +199,8 @@ export function useStreamingQuestion() {
                   error: null,
                   upgradeNeeded: false,
                 });
+                // Update client-side usage counter
+                incrementQuestionUsage();
                 return data.question;
               }
             } catch {
@@ -221,7 +228,7 @@ export function useStreamingQuestion() {
       }));
       return null;
     }
-  }, []);
+  }, [incrementQuestionUsage]);
 
   const abort = useCallback(() => {
     if (abortControllerRef.current) {

@@ -273,7 +273,7 @@ function getTextSpecificKnowledge(topicName: string): string {
 // ============================================================================
 
 export function getEdexcelALevelEnglishLiteratureSystemPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
   const textKnowledge = getTextSpecificKnowledge(topic.name);
 
   const textKnowledgeSection = textKnowledge ? `
@@ -335,69 +335,80 @@ ${getDiagramDocsForSubject('englishliterature')}`;
 }
 
 export function getEdexcelALevelEnglishLiteratureQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
-  const markRange = getMarkRangeForDifficulty(difficulty);
+  const markRange = getMarkRangeForDifficulty(difficulty, topic.id);
 
+  // Difficulty affects cognitive complexity, NOT marks
+  // Marks are determined by topic type (Shakespeare=35, Prose=40, etc.)
   const difficultyGuidance = {
-    easy: `Create a 20-mark unseen poetry style question OR a Level 3 level question.
+    easy: `Create a ${markRange.min}-mark question targeting Level 3-4 response.
+
+**Cognitive Focus:**
+- Accessible entry point into the text
+- Focus on a single aspect, theme, or technique
+- Clear analytical focus without requiring comparison
+- Can be answered with competent knowledge
 
 **Question Types:**
-- "Explore how the poet presents [theme] in this poem"
-- "Analyse the significance of [element] in the extract"
-- Focused on specific methods or techniques
+- "Explore how [author] presents [specific aspect] in [text]"
+- "Analyse the significance of [element] in [text]"
+- Focus on one text only (no comparison required)
 
-**Level 3 Descriptors (9-12 marks for 20-mark questions):**
-- Reasonable analysis of meanings
-- Some discussion of effects
-- Some appropriate terminology
+**Target Response Level:**
+- Level 3 (reasonable, developing): Some analysis of meanings, appropriate terminology
+- Level 4 (competent, secure): Clear analysis, appropriate use of textual support
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
+YOU MUST allocate exactly ${markRange.min} marks for this question.`,
 
-    medium: `Create a 35-mark essay question requiring Level 4-5 response.
+    medium: `Create a ${markRange.min}-mark question targeting Level 4-5 response.
+
+**Cognitive Focus:**
+- Requires sustained critical argument
+- Engages with critical interpretations (AO5)
+- Connects to contextual factors (AO3)
+- Demands conceptualised response throughout
 
 **Question Types:**
-For Shakespeare:
-- "'[Critical quotation about tragedy/comedy].' How far do you agree with this view of [play]?"
-- "Explore the significance of [theme/technique] in [play]."
-
-For Other Drama:
-- "'[Critical quotation].' How far do you agree with this view of [play]?"
-- "Explore the presentation of [character/theme] in [play]."
+For Shakespeare/Drama:
+- "'[Critical quotation about the text].' How far do you agree with this view?"
+- "Explore the significance of [complex theme] in [play]."
 
 For Poetry:
-- "Compare the ways [poet A] and [poet B] present [theme]."
 - "Explore the significance of [theme] in [poet's] collection."
+- "'[Critical quotation].' How far do you agree?"
 
-**Level 4-5 Descriptors (22-35 marks):**
-- Level 5 (29-35): Perceptive, assured, sophisticated argument; evaluative use of interpretations
-- Level 4 (22-28): Coherent, developed argument; clear understanding of interpretations
+**Target Response Level:**
+- Level 4 (competent): Coherent, developed argument with clear textual support
+- Level 5 (accomplished): Well-sustained argument with assured analysis
 
-Include critical quotations for debate:
-- "'[Academic/critical statement about the text].' How far do you agree..."
+Include critical quotations for debate - use named critics where appropriate.
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
+YOU MUST allocate exactly ${markRange.min} marks for this question.`,
 
-    hard: `Create a 40-mark comparative question requiring Level 5 response.
+    hard: `Create a ${markRange.min}-mark question targeting Level 5-6 response.
+
+**Cognitive Focus:**
+- Requires sophisticated critical engagement
+- Demands evaluation of competing interpretations
+- May require comparison or synthesis across texts/contexts
+- No single "correct" answer - requires original critical position
 
 **Question Types:**
-- "'[Provocative critical statement about the theme].' Compare how [theme] is presented in [text A] and [text B] in light of this statement."
-- "Compare the ways [author A] and [author B] present [complex theme]."
-- Questions requiring evaluation of texts across different periods
+- "'[Provocative critical statement].' How far do you agree with this view?"
+- Questions requiring sophisticated contextual understanding
+- Critical debates requiring evaluation of different readings
 
 **Requirements:**
-- Must be comparative (AO4)
-- Must require sophisticated contextual understanding across periods (AO3)
-- Must engage with critical interpretations (AO5)
+- Must engage with critical interpretations at sophisticated level (AO5)
+- Requires perceptive understanding of contexts (AO3)
+- For prose texts: may involve comparative elements (AO4)
 
-**Level 5 Response Characteristics (33-40 marks):**
-- Perceptive, assured and sophisticated argument
-- Perceptive, sophisticated analysis of how meanings are shaped
-- Perceptive understanding of contexts across periods
-- Perceptive exploration of connections
-- Evaluative and illuminating use of different interpretations
+**Target Response Level:**
+- Level 5 (accomplished): Assured analysis, confident interpretive position
+- Level 6 (excellent): Sophisticated, illuminating argument with original insight
 
-Include sophisticated critical framing for comparison.
+Include sophisticated critical framing with named critics/interpretations.
 
-YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`
+YOU MUST allocate exactly ${markRange.min} marks for this question.`
   };
 
   return `Generate an Edexcel A-Level English Literature question.
@@ -423,7 +434,40 @@ Return valid JSON:
 }`;
 }
 
-function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
+// Get marks based on TOPIC TYPE (paper/section), not difficulty
+// Difficulty affects cognitive complexity, not mark allocation
+function getMarksForTopic(topicId: string): number {
+  // Paper 1 Section A - Shakespeare (35 marks)
+  if (['lit-othello', 'lit-hamlet', 'lit-twelfth-night-alevel'].includes(topicId)) {
+    return 35;
+  }
+  // Paper 1 Section B - Other Drama (35 marks)
+  if (['lit-streetcar-edexcel', 'lit-hedda-gabler'].includes(topicId)) {
+    return 35;
+  }
+  // Paper 2 - Prose Comparison (40 marks)
+  if (['lit-frankenstein-alevel', 'lit-dracula', 'lit-handmaids-edexcel'].includes(topicId)) {
+    return 40;
+  }
+  // Paper 3 Section A/B - Set Poetry (35 marks)
+  if (['lit-keats-edexcel', 'lit-rossetti', 'lit-larkin'].includes(topicId)) {
+    return 35;
+  }
+  // Coursework (60 marks)
+  if (topicId === 'lit-coursework') {
+    return 60;
+  }
+  // Default for any unseen/other content
+  return 35;
+}
+
+// Legacy function - now just returns topic-based marks
+function getMarkRangeForDifficulty(difficulty: Difficulty, topicId?: string): { min: number; max: number } {
+  if (topicId) {
+    const marks = getMarksForTopic(topicId);
+    return { min: marks, max: marks };
+  }
+  // Fallback to old behavior if no topic ID provided
   switch (difficulty) {
     case 'easy':
       return { min: 20, max: 20 };
