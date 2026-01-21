@@ -254,6 +254,40 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   const processedContent = processEscapeSequences(content, isStreaming);
   const fixedContent = fixLatexEscaping(processedContent);
 
+  // Process basic markdown formatting (bold **...** and italic *...*)
+  const processMarkdown = (text: string): React.ReactNode[] => {
+    // Match **bold** and *italic* patterns
+    const markdownRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = markdownRegex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+
+      const matched = match[0];
+      if (matched.startsWith('**') && matched.endsWith('**')) {
+        // Bold text
+        parts.push(<strong key={match.index}>{matched.slice(2, -2)}</strong>);
+      } else if (matched.startsWith('*') && matched.endsWith('*')) {
+        // Italic text
+        parts.push(<em key={match.index}>{matched.slice(1, -1)}</em>);
+      }
+
+      lastIndex = markdownRegex.lastIndex;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : [text];
+  };
+
   // Split content by LaTeX delimiters and render appropriately
   // Supports: $...$ for inline, $$...$$ for block, \(...\) for inline, \[...\] for block
   const renderMathContent = (text: string) => {
@@ -317,8 +351,8 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
 
         return <SafeInlineMath key={index} math={math} />;
       } else {
-        // Regular text
-        return <span key={index}>{part}</span>;
+        // Regular text - process markdown formatting
+        return <span key={index}>{processMarkdown(part)}</span>;
       }
     });
   };

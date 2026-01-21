@@ -351,8 +351,8 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
         <main className="flex-1 min-w-0">
           {currentQuestion && (
             <div className="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border)] p-6">
-              {/* Section Header */}
-              {(() => {
+              {/* Section Header - only show if more than one section */}
+              {paper.sections.length > 1 && (() => {
                 const section = paper.sections.find((s) =>
                   s.questions.some((q) => q.id === currentQuestion.id)
                 );
