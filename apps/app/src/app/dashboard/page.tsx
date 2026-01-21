@@ -66,7 +66,8 @@ export default function DashboardPage() {
     setSigningOut(true);
     try {
       await signOut();
-      router.push('/login');
+      // Use window.location for a clean redirect after sign out
+      window.location.href = '/login';
     } catch (err) {
       console.error('Sign out failed:', err);
       setSigningOut(false);

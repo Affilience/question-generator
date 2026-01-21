@@ -31,7 +31,7 @@ export function Navigation({ user, authLoading }: NavigationProps) {
   const handleSignOut = async () => {
     await signOut();
     setUserMenuOpen(false);
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   useEffect(() => {
