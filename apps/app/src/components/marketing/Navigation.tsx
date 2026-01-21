@@ -28,15 +28,20 @@ export function Navigation({ user, authLoading }: NavigationProps) {
 
   const ctaHref = user ? '/start' : '/signup';
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (err) {
-      console.error('Sign out failed:', err);
-    } finally {
-      setUserMenuOpen(false);
+  const handleSignOut = () => {
+    setUserMenuOpen(false);
+
+    // Set a timeout - if signOut takes too long, redirect anyway
+    const timeout = setTimeout(() => {
       window.location.replace('/login');
-    }
+    }, 2000);
+
+    signOut()
+      .catch((err) => console.error('Sign out failed:', err))
+      .finally(() => {
+        clearTimeout(timeout);
+        window.location.replace('/login');
+      });
   };
 
   useEffect(() => {
