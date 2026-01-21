@@ -1,9 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Use the singleton client to avoid multiple GoTrueClient instances
+const getSupabase = () => createClient();
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// For backwards compatibility, expose as a getter
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get: (_, prop) => {
+    const client = getSupabase();
+    const value = (client as Record<string, unknown>)[prop as string];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
 
 // Types for our database tables
 export interface User {
