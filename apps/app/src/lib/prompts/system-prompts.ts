@@ -49,16 +49,16 @@ const EXAM_BOARD_SPECS: Record<string, string> = {
   'maths-a-level-ocr': 'H240',
 
   // Computer Science specifications
+  // Note: Edexcel does NOT offer A-Level Computer Science (only AQA and OCR)
   'computer-science-gcse-aqa': '8525',
   'computer-science-gcse-edexcel': '1CP2',
   'computer-science-gcse-ocr': 'J277',
   'computer-science-a-level-aqa': '7517',
-  'computer-science-a-level-edexcel': '9CP0',  // Edexcel A-Level Computer Science
   'computer-science-a-level-ocr': 'H446',
 
   // Economics specifications
+  // Note: Edexcel does NOT offer GCSE Economics (only AQA and OCR)
   'economics-gcse-aqa': '8136',
-  'economics-gcse-edexcel': '1EC0',  // Edexcel GCSE Economics
   'economics-gcse-ocr': 'J205',
   'economics-a-level-aqa': '7136',
   'economics-a-level-edexcel': '9EC0',
@@ -105,8 +105,8 @@ const EXAM_BOARD_SPECS: Record<string, string> = {
   'english-literature-a-level-ocr': 'H472',
 
   // Further Maths specifications
+  // Note: Edexcel does NOT offer GCSE Further Maths (only AQA and OCR)
   'further-maths-gcse-aqa': '8365',
-  'further-maths-gcse-edexcel': '1FM0',  // Edexcel GCSE Further Mathematics
   'further-maths-gcse-ocr': '6993',
   'further-maths-a-level-aqa': '7367',
   'further-maths-a-level-edexcel': '9FM0',
