@@ -62,20 +62,15 @@ export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setSigningOut(true);
-
-    // Set a timeout - if signOut takes too long, redirect anyway
-    const timeout = setTimeout(() => {
-      window.location.replace('/login');
-    }, 2000);
-
-    signOut()
-      .catch((err) => console.error('Sign out failed:', err))
-      .finally(() => {
-        clearTimeout(timeout);
-        window.location.replace('/login');
-      });
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    }
+    // Full page navigation after signOut completes
+    window.location.href = '/login';
   };
   const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
