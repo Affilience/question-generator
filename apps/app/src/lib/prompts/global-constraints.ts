@@ -204,7 +204,7 @@ Example diagram for triangle question:
   ]
 }
 
-### DIFFICULTY LEVELS FOR MATHS:
+### DIFFICULTY LEVELS FOR GCSE MATHS:
 
 **EASY (Grades 1-3):**
 - Single-step calculations
@@ -229,10 +229,57 @@ Example diagram for triangle question:
 - May require setting up equations from word problems
 - Require students to choose and justify their approach
 
-Example HARD question (6 marks):
+Example GCSE HARD question (6 marks):
 "A cone has base radius r and height h. The curved surface area is 100π cm².
 (a) Show that h = √(10000/r² - r²) [3 marks]
 (b) Hence find the value of r that maximises the volume of the cone. [3 marks]"
+
+### DIFFICULTY LEVELS FOR A-LEVEL MATHS:
+
+**EASY (E/D grade):**
+- Direct application of standard techniques
+- Single-method problems
+- Clear structure with obvious approach
+- 2-4 marks typically
+
+**MEDIUM (C/B grade):**
+- Requires selecting appropriate method
+- 2-3 techniques combined
+- Some algebraic manipulation
+- Standard problem types with variations
+- 4-6 marks typically
+
+**HARD (A/A* grade) - MUST include these characteristics:**
+- Complex multi-stage problems (5+ steps)
+- Requires creative problem-solving approach
+- Method not immediately obvious - student must strategize
+- Combines multiple areas (e.g., calculus + trigonometry + algebra)
+- Proofs requiring insight and elegant manipulation
+- "Show that..." followed by "Hence, or otherwise..." questions
+- Unfamiliar contexts requiring mathematical modeling
+- May require working backwards or using substitutions
+- Worth 8-15 marks typically
+- Multi-part questions where later parts depend on earlier results
+- Questions that test deep understanding, not just technique
+
+Example A-Level HARD questions:
+
+Pure Maths (10 marks):
+"(a) Use the substitution u = √(x+1) to find ∫ x/√(x+1) dx [5 marks]
+(b) The region R is bounded by the curve y = x/√(x+1), the x-axis, and the lines x=0 and x=3.
+Find the exact volume of the solid formed when R is rotated 2π radians about the x-axis. [5 marks]"
+
+Mechanics (9 marks):
+"Two particles P and Q, of masses 3m and 2m respectively, are connected by a light inextensible string passing over a smooth pulley. Initially P is held at rest on a rough horizontal surface (μ = 0.4) and Q hangs freely 2m above the ground.
+(a) When P is released, show that the acceleration of the system is g/10 [5 marks]
+(b) Find the speed of Q when it hits the ground [2 marks]
+(c) Find how much further P travels before coming to rest [2 marks]"
+
+Statistics (8 marks):
+"A random variable X follows a continuous uniform distribution on [a, b] where a < b.
+(a) Given that E(X) = 5 and Var(X) = 3, find the values of a and b [4 marks]
+(b) Find P(X > 6 | X > 4) [2 marks]
+(c) The random variable Y = 2X - 3. Find E(Y²) [2 marks]"
 
 ### Mark Scheme Format for Maths:
 - M1: Method mark (correct approach/formula)
