@@ -11,13 +11,19 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.user) {
-      // Check if this is a new user (created within last minute)
-      const createdAt = new Date(data.user.created_at);
-      const now = new Date();
-      const isNewUser = (now.getTime() - createdAt.getTime()) < 60000; // Within 1 minute
+      // If explicit next param, use it
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`);
+      }
 
-      // Redirect new users to welcome page, existing users to dashboard or specified next
-      const redirectTo = next ?? (isNewUser ? '/welcome' : '/dashboard');
+      // Check if user has any question attempts to determine if new
+      const { count } = await supabase
+        .from('question_attempts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', data.user.id);
+
+      // New users (no attempts) go to welcome, returning users go to dashboard
+      const redirectTo = count === 0 ? '/welcome' : '/dashboard';
       return NextResponse.redirect(`${origin}${redirectTo}`);
     }
   }
