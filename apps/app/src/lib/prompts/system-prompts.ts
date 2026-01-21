@@ -53,10 +53,12 @@ const EXAM_BOARD_SPECS: Record<string, string> = {
   'computer-science-gcse-edexcel': '1CP2',
   'computer-science-gcse-ocr': 'J277',
   'computer-science-a-level-aqa': '7517',
+  'computer-science-a-level-edexcel': '9CP0',  // Edexcel A-Level Computer Science
   'computer-science-a-level-ocr': 'H446',
 
   // Economics specifications
   'economics-gcse-aqa': '8136',
+  'economics-gcse-edexcel': '1EC0',  // Edexcel GCSE Economics
   'economics-gcse-ocr': 'J205',
   'economics-a-level-aqa': '7136',
   'economics-a-level-edexcel': '9EC0',
@@ -104,6 +106,7 @@ const EXAM_BOARD_SPECS: Record<string, string> = {
 
   // Further Maths specifications
   'further-maths-gcse-aqa': '8365',
+  'further-maths-gcse-edexcel': '1FM0',  // Edexcel GCSE Further Mathematics
   'further-maths-gcse-ocr': '6993',
   'further-maths-a-level-aqa': '7367',
   'further-maths-a-level-edexcel': '9FM0',

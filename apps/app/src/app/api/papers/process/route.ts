@@ -32,6 +32,9 @@ import {
 import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
 import { getRandomEconomicExtract } from '@/lib/extracts/economics-extracts';
+import { getRandomBusinessExtract } from '@/lib/extracts/business-extracts';
+import { getRandomPsychologyStudy } from '@/lib/extracts/psychology-extracts';
+import { getRandomGeographyExtract } from '@/lib/extracts/geography-extracts';
 
 // This endpoint is called by QStash - no browser timeout
 export const maxDuration = 300; // 5 minutes max
@@ -126,8 +129,7 @@ ${realSource.bias ? `Potential bias: ${realSource.bias}` : ''}`,
       };
     }
 
-    case 'economics':
-    case 'business': {
+    case 'economics': {
       const economicExtract = getRandomEconomicExtract(topicName, subtopic);
       if (economicExtract) {
         return {
@@ -156,11 +158,77 @@ INCLUDE DATA relevant to ${subtopic}:
 | [realistic data showing ${subtopic}] |"
 
 Then ask analysis question about the data.`,
-        solutionGuidance: `Reference specific figures. Identify trends related to ${subtopic}. Apply economic/business concepts.`,
+        solutionGuidance: `Reference specific figures. Identify trends related to ${subtopic}. Apply economic concepts.`,
       };
     }
 
-    case 'psychology':
+    case 'business': {
+      const businessExtract = getRandomBusinessExtract(topicName, subtopic);
+      if (businessExtract) {
+        return {
+          questionGuidance: `
+USE THIS EXACT CASE STUDY/DATA from ${businessExtract.source} (${businessExtract.year}):
+
+---
+**${businessExtract.title}**${businessExtract.company ? ` - ${businessExtract.company}` : ''}
+
+${businessExtract.content}
+---
+
+Include this EXACT data in your question. Ask about: ${subtopic}
+Concepts to apply: ${businessExtract.concepts.slice(0, 3).join(', ')}
+Possible calculations: ${businessExtract.calculationOpportunities?.slice(0, 2).join(', ') || 'Revenue, profit margins, growth rates'}`,
+          solutionGuidance: `Reference specific figures from the case study. ${businessExtract.analysisPoints?.slice(0, 2).join('. ') || 'Apply business concepts. Evaluate strategies.'}`,
+        };
+      }
+      return {
+        questionGuidance: `
+INCLUDE BUSINESS CASE STUDY relevant to ${subtopic}:
+"Case Study: [Company Name]
+
+[Brief company background]
+[Relevant financial or operational data]
+
+| Metric | Value |
+|--------|-------|
+| [relevant data] |"
+
+Then ask analysis/evaluation question about the case study.`,
+        solutionGuidance: `Reference case study data. Apply ${subtopic} concepts. Consider multiple stakeholder perspectives.`,
+      };
+    }
+
+    case 'psychology': {
+      const psychStudy = getRandomPsychologyStudy(topicName, subtopic);
+      if (psychStudy) {
+        return {
+          questionGuidance: `
+USE THIS EXACT RESEARCH STUDY - ${psychStudy.researcher} (${psychStudy.year}):
+
+---
+**Study: ${psychStudy.title}**
+
+**Aim:** ${psychStudy.aim}
+
+**Method:** ${psychStudy.method}
+
+**Sample:** ${psychStudy.sample}
+
+**Procedure:** ${psychStudy.procedure}
+
+**Results:**
+${psychStudy.results}
+
+**Conclusion:** ${psychStudy.conclusion}
+---
+
+Include this EXACT study in your question. Ask about: ${subtopic}
+Strengths: ${psychStudy.evaluationPoints.strengths.slice(0, 2).join('; ')}
+Limitations: ${psychStudy.evaluationPoints.limitations.slice(0, 2).join('; ')}
+${psychStudy.ethicalIssues ? `Ethical issues: ${psychStudy.ethicalIssues.join(', ')}` : ''}`,
+          solutionGuidance: `Reference ${psychStudy.researcher} study specifically. Use exact results data. Evaluate: ${psychStudy.evaluationPoints.limitations.slice(0, 2).join('; ')}`,
+        };
+      }
       return {
         questionGuidance: `
 INCLUDE RESEARCH STUDY about ${subtopic}:
@@ -173,8 +241,28 @@ Results:
 | Mean: X     | Mean: Y     |"`,
         solutionGuidance: `Reference study data. Apply ${subtopic} theories. Evaluate methodology.`,
       };
+    }
 
-    case 'geography':
+    case 'geography': {
+      const geoExtract = getRandomGeographyExtract(topicName, subtopic);
+      if (geoExtract) {
+        return {
+          questionGuidance: `
+USE THIS EXACT GEOGRAPHICAL DATA from ${geoExtract.source} (${geoExtract.year}):
+
+---
+**${geoExtract.title}**
+Data Type: ${geoExtract.type}
+
+${geoExtract.content}
+---
+
+Include this EXACT data in your question. Ask about: ${subtopic}
+Key concepts: ${geoExtract.concepts.slice(0, 3).join(', ')}
+${geoExtract.skills ? `Skills to test: ${geoExtract.skills.slice(0, 2).join(', ')}` : ''}`,
+          solutionGuidance: `Reference specific data from the extract. ${geoExtract.analysisPoints?.slice(0, 2).join('. ') || 'Apply geographical concepts. Link physical and human factors.'}`,
+        };
+      }
       return {
         questionGuidance: `
 INCLUDE GEOGRAPHICAL RESOURCE about ${subtopic}:
@@ -182,6 +270,7 @@ INCLUDE GEOGRAPHICAL RESOURCE about ${subtopic}:
 [Include data, statistics, or geographical patterns]"`,
         solutionGuidance: `Reference Figure 1. Apply ${subtopic} concepts. Use case study knowledge.`,
       };
+    }
 
     case 'computer-science':
       return {
