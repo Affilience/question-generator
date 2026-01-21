@@ -166,9 +166,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     console.log('[AuthContext] signOut called');
     try {
-      console.log('[AuthContext] Calling supabase.auth.signOut()...');
-      // Use local scope to avoid network requests that might hang
-      await supabase.auth.signOut({ scope: 'local' });
+      // First, remove all realtime channels to prevent deadlock
+      // signOut() waits for realtime cleanup, but cleanup depends on user state change
+      console.log('[AuthContext] Removing all realtime channels...');
+      await supabase.removeAllChannels();
+      console.log('[AuthContext] Channels removed, calling signOut...');
+
+      // Now signOut should complete without hanging
+      await supabase.auth.signOut();
       console.log('[AuthContext] supabase.auth.signOut() completed');
     } catch (err) {
       console.error('[AuthContext] supabase.auth.signOut() error:', err);
