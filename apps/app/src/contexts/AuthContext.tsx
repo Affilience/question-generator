@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { migrateLocalProgressToSupabase } from '@/hooks/useSyncedProgress';
 import type { User, Session } from '@supabase/supabase-js';
@@ -26,13 +26,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  // Memoize supabase client to ensure stable reference across renders
+  const supabase = useMemo(() => createClient(), []);
 
   const refreshSession = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     setSession(session);
     setUser(session?.user ?? null);
-  }, [supabase.auth]);
+  }, [supabase]);
 
   useEffect(() => {
     // Get initial session
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth, refreshSession]);
+  }, [supabase, refreshSession]);
 
   // Sync auth user to our users table
   async function syncUserToDatabase(authUser: User) {
