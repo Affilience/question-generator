@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Question, Difficulty, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StreamingState {
   isStreaming: boolean;
@@ -73,6 +74,7 @@ export function useStreamingQuestion() {
   });
 
   const { incrementQuestionUsage } = useSubscription();
+  const { user } = useAuth();
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const bufferRef = useRef<ContentBuffer | null>(null);
@@ -114,6 +116,7 @@ export function useStreamingQuestion() {
         body: JSON.stringify({
           ...options,
           stream: true,
+          userId: user?.id,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -228,7 +231,7 @@ export function useStreamingQuestion() {
       }));
       return null;
     }
-  }, [incrementQuestionUsage]);
+  }, [incrementQuestionUsage, user]);
 
   const abort = useCallback(() => {
     if (abortControllerRef.current) {
