@@ -40,15 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshSession().finally(() => setLoading(false));
 
     // Listen for auth changes
+    // IMPORTANT: Don't use async/await here - it causes internal locks that block signOut
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Only sync to database on sign in, not on sign out
+        // Fire-and-forget database sync on sign in (don't await!)
         if (event === 'SIGNED_IN' && session?.user) {
-          await syncUserToDatabase(session.user);
+          syncUserToDatabase(session.user).catch(err => {
+            console.error('Failed to sync user to database:', err);
+          });
         }
       }
     );
@@ -164,25 +167,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    console.log('[AuthContext] signOut called');
     try {
-      // First, remove all realtime channels to prevent deadlock
-      // signOut() waits for realtime cleanup, but cleanup depends on user state change
-      console.log('[AuthContext] Removing all realtime channels...');
-      await supabase.removeAllChannels();
-      console.log('[AuthContext] Channels removed, calling signOut...');
-
-      // Now signOut should complete without hanging
       await supabase.auth.signOut();
-      console.log('[AuthContext] supabase.auth.signOut() completed');
     } catch (err) {
-      console.error('[AuthContext] supabase.auth.signOut() error:', err);
-      // Don't throw - still clear local state even if signOut fails
+      console.error('[AuthContext] signOut error:', err);
     }
-    console.log('[AuthContext] Setting user/session to null');
     setUser(null);
     setSession(null);
-    console.log('[AuthContext] signOut complete');
   };
 
   const resetPassword = async (email: string) => {
