@@ -31,6 +31,7 @@ import {
 } from '@/lib/essay-subject-config';
 import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
+import { getRandomEconomicExtract } from '@/lib/extracts/economics-extracts';
 
 // This endpoint is called by QStash - no browser timeout
 export const maxDuration = 300; // 5 minutes max
@@ -126,7 +127,25 @@ ${realSource.bias ? `Potential bias: ${realSource.bias}` : ''}`,
     }
 
     case 'economics':
-    case 'business':
+    case 'business': {
+      const economicExtract = getRandomEconomicExtract(topicName, subtopic);
+      if (economicExtract) {
+        return {
+          questionGuidance: `
+USE THIS EXACT DATA from ${economicExtract.source} (${economicExtract.year}):
+
+---
+**${economicExtract.title}**
+
+${economicExtract.content}
+---
+
+Include this EXACT data in your question. Ask about: ${subtopic}
+Topics covered: ${economicExtract.topics.join(', ')}
+Possible calculations: ${economicExtract.calculationOpportunities?.slice(0, 2).join(', ') || 'Percentage changes, comparisons'}`,
+          solutionGuidance: `Reference specific figures from the data. ${economicExtract.analysisPoints?.slice(0, 2).join('. ') || 'Identify trends. Apply economic concepts.'}`,
+        };
+      }
       return {
         questionGuidance: `
 INCLUDE DATA relevant to ${subtopic}:
@@ -139,6 +158,7 @@ INCLUDE DATA relevant to ${subtopic}:
 Then ask analysis question about the data.`,
         solutionGuidance: `Reference specific figures. Identify trends related to ${subtopic}. Apply economic/business concepts.`,
       };
+    }
 
     case 'psychology':
       return {
