@@ -167,11 +167,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('[AuthContext] signOut called');
     try {
       console.log('[AuthContext] Calling supabase.auth.signOut()...');
-      await supabase.auth.signOut();
+      // Use local scope to avoid network requests that might hang
+      await supabase.auth.signOut({ scope: 'local' });
       console.log('[AuthContext] supabase.auth.signOut() completed');
     } catch (err) {
       console.error('[AuthContext] supabase.auth.signOut() error:', err);
-      throw err;
+      // Don't throw - still clear local state even if signOut fails
     }
     console.log('[AuthContext] Setting user/session to null');
     setUser(null);
