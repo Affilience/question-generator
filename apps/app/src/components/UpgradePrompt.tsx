@@ -5,7 +5,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface UpgradePromptProps {
   /** The reason for showing the prompt */
-  reason: 'daily_limit' | 'difficulty_control' | 'papers' | 'bookmarks' | 'history';
+  reason: 'daily_limit' | 'difficulty_control' | 'papers' | 'papers_limit_reached' | 'bookmarks' | 'history';
   /** Custom message to show */
   message?: string;
   /** Whether to show as a modal overlay */
@@ -14,7 +14,16 @@ interface UpgradePromptProps {
   onDismiss?: () => void;
 }
 
-const PROMPT_CONFIG = {
+interface PromptConfig {
+  title: string;
+  description: string;
+  highlight: string;
+  icon: string;
+  recommendedPlan: string;
+  price: string;
+}
+
+const PROMPT_CONFIG: Record<UpgradePromptProps['reason'], PromptConfig> = {
   daily_limit: {
     title: "You've reached your daily limit",
     description: "Free accounts can generate 15 questions per day. Upgrade for more practice!",
@@ -39,6 +48,14 @@ const PROMPT_CONFIG = {
     recommendedPlan: 'Student Plus',
     price: '£4.99',
   },
+  papers_limit_reached: {
+    title: "Weekly paper limit reached",
+    description: "You've used all your practice papers for this week.",
+    highlight: 'Upgrade for more papers per week',
+    icon: '📝',
+    recommendedPlan: 'Exam Pro',
+    price: '£9.99',
+  },
   bookmarks: {
     title: 'Save questions for later',
     description: "Bookmark tricky questions to revisit. Build your own revision collection!",
@@ -57,14 +74,72 @@ const PROMPT_CONFIG = {
   },
 };
 
-export function UpgradePrompt({ reason, message, modal = false, onDismiss }: UpgradePromptProps) {
-  const { tier } = useSubscription();
-  const config = PROMPT_CONFIG[reason];
+/**
+ * Component for showing "limit reached" message without upgrade option (for max tier users)
+ */
+function LimitReachedMessage({
+  title,
+  message,
+  subMessage,
+  icon,
+  modal = false,
+  onDismiss,
+}: {
+  title: string;
+  message: string;
+  subMessage?: string;
+  icon: string;
+  modal?: boolean;
+  onDismiss?: () => void;
+}) {
+  const content = (
+    <div className={`bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-6 ${modal ? 'max-w-md w-full' : ''}`}>
+      <div className="flex items-start gap-4">
+        <div className="text-3xl">{icon}</div>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
+          <p className="text-white/60 text-sm mb-3">{message}</p>
+          {subMessage && (
+            <p className="text-white/40 text-xs mb-4">{subMessage}</p>
+          )}
+          {modal && onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="text-white/60 hover:text-white text-sm transition-colors"
+            >
+              Got it
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
-  // Don't show if user already has the feature
-  // All premium features are available on student_plus and above
-  if (tier !== 'free') return null;
+  if (modal) {
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        {content}
+      </div>
+    );
+  }
 
+  return content;
+}
+
+/**
+ * Reusable upgrade content component
+ */
+function UpgradeContent({
+  config,
+  message,
+  modal = false,
+  onDismiss,
+}: {
+  config: PromptConfig;
+  message?: string;
+  modal?: boolean;
+  onDismiss?: () => void;
+}) {
   const content = (
     <div className={`bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-6 ${modal ? 'max-w-md w-full' : ''}`}>
       <div className="flex items-start gap-4">
@@ -124,6 +199,56 @@ export function UpgradePrompt({ reason, message, modal = false, onDismiss }: Upg
   }
 
   return content;
+}
+
+export function UpgradePrompt({ reason, message, modal = false, onDismiss }: UpgradePromptProps) {
+  const { tier, limits } = useSubscription();
+  const config = PROMPT_CONFIG[reason];
+
+  // Handle paper limit reached for paid users
+  if (reason === 'papers_limit_reached') {
+    // Exam Pro users at max limit - show "wait until next week" message
+    if (tier === 'exam_pro') {
+      return (
+        <LimitReachedMessage
+          title="Weekly paper limit reached"
+          message={message || `You've generated all ${limits.papersPerWeek} practice papers for this week.`}
+          subMessage="Your limit resets on a rolling 7-day basis. Papers older than 7 days no longer count toward your limit."
+          icon="📝"
+          modal={modal}
+          onDismiss={onDismiss}
+        />
+      );
+    }
+    // Student Plus users - show upgrade to Exam Pro
+    if (tier === 'student_plus') {
+      const upgradeConfig: PromptConfig = {
+        ...config,
+        description: message || `You've used all ${limits.papersPerWeek} practice papers for this week. Upgrade for more!`,
+        highlight: '7 papers per week with Exam Pro',
+      };
+      return (
+        <UpgradeContent
+          config={upgradeConfig}
+          modal={modal}
+          onDismiss={onDismiss}
+        />
+      );
+    }
+  }
+
+  // For other features, don't show if user already has the feature
+  // Free users see upgrade prompts, paid users don't need them
+  if (tier !== 'free' && reason !== 'papers_limit_reached') return null;
+
+  return (
+    <UpgradeContent
+      config={config}
+      message={message}
+      modal={modal}
+      onDismiss={onDismiss}
+    />
+  );
 }
 
 /**
@@ -193,6 +318,58 @@ export function UsageIndicator() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Usage indicator showing remaining papers this week
+ */
+export function PaperUsageIndicator() {
+  const { tier, weeklyPaperUsage, limits } = useSubscription();
+
+  // Don't show for free users (they can't generate papers)
+  if (limits.papersPerWeek === null || limits.papersPerWeek === 0) return null;
+
+  const used = weeklyPaperUsage.papersGenerated;
+  const total = limits.papersPerWeek;
+  const remaining = Math.max(0, total - used);
+  const percentage = (used / total) * 100;
+
+  return (
+    <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl p-4 min-w-[200px]">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[var(--color-text-secondary)] text-sm font-medium">Weekly papers</span>
+        <span className={`text-sm font-semibold ${remaining === 0 ? 'text-red-400' : remaining === 1 ? 'text-yellow-400' : 'text-[var(--color-text-primary)]'}`}>
+          {remaining} / {total}
+        </span>
+      </div>
+      <div className="h-2 bg-[var(--color-bg-deepest)] rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${
+            remaining === 0 ? 'bg-red-500' : remaining === 1 ? 'bg-yellow-500' : 'bg-[var(--color-accent)]'
+          }`}
+          style={{ width: `${Math.min(100, percentage)}%` }}
+        />
+      </div>
+      {remaining === 1 && (
+        <p className="text-[var(--color-text-muted)] text-xs mt-2">
+          1 paper remaining this week
+        </p>
+      )}
+      {remaining === 0 && tier === 'student_plus' && (
+        <Link href="/pricing" className="text-[var(--color-accent)] text-sm mt-3 inline-flex items-center gap-1 hover:underline font-medium">
+          Upgrade for 7/week
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      )}
+      {remaining === 0 && tier === 'exam_pro' && (
+        <p className="text-[var(--color-text-muted)] text-xs mt-2">
+          Resets on a rolling 7-day basis
+        </p>
       )}
     </div>
   );

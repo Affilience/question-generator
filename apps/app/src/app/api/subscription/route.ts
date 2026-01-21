@@ -12,13 +12,18 @@ export async function GET() {
       return NextResponse.json({
         subscription: null,
         dailyUsage: { questionsGenerated: 0, papersGenerated: 0 },
+        weeklyPaperUsage: { papersGenerated: 0 },
       });
     }
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Run both queries in parallel
-    const [subResult, usageResult] = await Promise.all([
+    // Calculate one week ago for paper usage
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    // Run all queries in parallel
+    const [subResult, usageResult, weeklyPaperResult] = await Promise.all([
       supabase
         .from('user_subscriptions')
         .select('*, subscription_prices(product_id, subscription_products(metadata))')
@@ -33,10 +38,17 @@ export async function GET() {
         .eq('user_id', user.id)
         .eq('date', today)
         .single(),
+      // Count papers generated in the last 7 days (rolling window)
+      supabase
+        .from('generated_papers')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', oneWeekAgo.toISOString()),
     ]);
 
     const { data: subData } = subResult;
     const { data: usageData } = usageResult;
+    const weeklyPaperCount = weeklyPaperResult.count || 0;
 
     let subscription = null;
     if (subData) {
@@ -63,12 +75,16 @@ export async function GET() {
         questionsGenerated: usageData?.questions_generated || 0,
         papersGenerated: usageData?.papers_generated || 0,
       },
+      weeklyPaperUsage: {
+        papersGenerated: weeklyPaperCount,
+      },
     });
   } catch (error) {
     console.error('Error fetching subscription:', error);
     return NextResponse.json({
       subscription: null,
       dailyUsage: { questionsGenerated: 0, papersGenerated: 0 },
+      weeklyPaperUsage: { papersGenerated: 0 },
     }, { status: 500 });
   }
 }

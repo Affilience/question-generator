@@ -11,7 +11,7 @@ import { Breadcrumbs, buildBreadcrumbs } from '@/components/ui/Breadcrumbs';
 import { QualificationLevel, Subject, ExamBoard } from '@/types';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { UpgradePrompt } from '@/components/UpgradePrompt';
+import { UpgradePrompt, PaperUsageIndicator } from '@/components/UpgradePrompt';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
 const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
@@ -44,6 +44,7 @@ export default function PaperGeneratorPage() {
   const [generationProgress, setGenerationProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<'papers' | 'papers_limit_reached'>('papers');
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -102,6 +103,8 @@ export default function PaperGeneratorPage() {
     }
 
     if (!canGeneratePaper) {
+      // Determine the right reason: free users need to upgrade, paid users hit their limit
+      setUpgradeReason(tier === 'free' ? 'papers' : 'papers_limit_reached');
       setShowUpgradePrompt(true);
       return;
     }
@@ -136,6 +139,8 @@ export default function PaperGeneratorPage() {
 
       if (!startResponse.ok) {
         if (startData.upgrade) {
+          // Determine the right reason based on tier
+          setUpgradeReason(tier === 'free' ? 'papers' : 'papers_limit_reached');
           setShowUpgradePrompt(true);
           setIsGenerating(false);
           return;
@@ -244,7 +249,7 @@ export default function PaperGeneratorPage() {
       {/* Upgrade prompt modal */}
       {showUpgradePrompt && (
         <UpgradePrompt
-          reason="papers"
+          reason={upgradeReason}
           modal={true}
           onDismiss={() => setShowUpgradePrompt(false)}
         />
@@ -272,6 +277,11 @@ export default function PaperGeneratorPage() {
               <span>⭐</span>
               <span>Paper generation requires Student Plus</span>
               <Link href="/pricing" className="underline hover:text-yellow-300">Upgrade</Link>
+            </div>
+          )}
+          {tier !== 'free' && !subscriptionLoading && (
+            <div className="mt-4">
+              <PaperUsageIndicator />
             </div>
           )}
         </motion.header>

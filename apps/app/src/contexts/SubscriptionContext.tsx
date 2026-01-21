@@ -20,15 +20,21 @@ interface DailyUsage {
   papersGenerated: number;
 }
 
+interface WeeklyPaperUsage {
+  papersGenerated: number;
+}
+
 interface SubscriptionContextType {
   subscription: Subscription | null;
   loading: boolean;
   tier: SubscriptionTier;
   limits: typeof TIER_LIMITS[SubscriptionTier];
   dailyUsage: DailyUsage;
+  weeklyPaperUsage: WeeklyPaperUsage;
   canGenerateQuestion: boolean;
   canGeneratePaper: boolean;
   canControlDifficulty: boolean;
+  papersRemaining: number;
   hasFeature: (feature: keyof typeof TIER_LIMITS[SubscriptionTier]) => boolean;
   incrementQuestionUsage: () => Promise<void>;
   incrementPaperUsage: () => Promise<void>;
@@ -47,6 +53,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
   const [dailyUsage, setDailyUsage] = useState<DailyUsage>({
     questionsGenerated: 0,
+    papersGenerated: 0,
+  });
+  const [weeklyPaperUsage, setWeeklyPaperUsage] = useState<WeeklyPaperUsage>({
     papersGenerated: 0,
   });
 
@@ -86,6 +95,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         questionsGenerated: data.dailyUsage?.questionsGenerated || 0,
         papersGenerated: data.dailyUsage?.papersGenerated || 0,
       });
+
+      setWeeklyPaperUsage({
+        papersGenerated: data.weeklyPaperUsage?.papersGenerated || 0,
+      });
     } catch (error) {
       console.error('Error refreshing subscription:', error);
       setSubscription(null);
@@ -105,9 +118,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const canGenerateQuestion = limits.questionsPerDay === null ||
     dailyUsage.questionsGenerated < limits.questionsPerDay;
 
-  // Check if user can generate a paper this week
-  const canGeneratePaper = limits.papersPerWeek === null ||
-    dailyUsage.papersGenerated < (limits.papersPerWeek / 7); // Rough daily estimate
+  // Check if user can generate a paper this week (using actual weekly count)
+  const canGeneratePaper = limits.papersPerWeek !== null && limits.papersPerWeek > 0 &&
+    weeklyPaperUsage.papersGenerated < limits.papersPerWeek;
+
+  // Calculate papers remaining this week
+  const papersRemaining = limits.papersPerWeek !== null && limits.papersPerWeek > 0
+    ? Math.max(0, limits.papersPerWeek - weeklyPaperUsage.papersGenerated)
+    : 0;
 
   // Check if user can control difficulty
   const canControlDifficulty = limits.difficultyControl;
@@ -130,6 +148,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   // Increment paper usage (UI only - server handles DB)
   const incrementPaperUsage = async () => {
     setDailyUsage(prev => ({
+      ...prev,
+      papersGenerated: prev.papersGenerated + 1,
+    }));
+    setWeeklyPaperUsage(prev => ({
       ...prev,
       papersGenerated: prev.papersGenerated + 1,
     }));
@@ -240,9 +262,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         tier,
         limits,
         dailyUsage,
+        weeklyPaperUsage,
         canGenerateQuestion,
         canGeneratePaper,
         canControlDifficulty,
+        papersRemaining,
         hasFeature,
         incrementQuestionUsage,
         incrementPaperUsage,
