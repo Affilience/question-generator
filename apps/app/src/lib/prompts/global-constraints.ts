@@ -167,6 +167,7 @@ Maths exam questions are PROCEDURAL, not CONCEPTUAL. Students must CALCULATE or 
 - "Why does..." questions (conceptual - NOT exam style)
 - "Explain why..." questions about mathematical concepts
 - "What does X represent..." questions
+- "Suggest why..." questions
 - Questions asking students to justify mathematical definitions
 - Philosophy of mathematics questions
 
@@ -181,6 +182,57 @@ Maths exam questions are PROCEDURAL, not CONCEPTUAL. Students must CALCULATE or 
 ✗ "Why does the area between the curve represent the integral?" - This is conceptual, not exam-style
 ✗ "Explain why integration is the reverse of differentiation" - This is teaching, not testing
 ✗ "What does the gradient of a line represent?" - Too conceptual
+✗ "Suggest why these functions are defined this way" - Conceptual, not procedural
+
+### DIAGRAMS - REQUIRED for Geometry/Trigonometry:
+You MUST include a diagram specification for questions involving:
+- Triangles (with labeled sides, angles, vertices)
+- Circles (with labeled center, radius, points)
+- Coordinate geometry (axes, points, lines, curves)
+- Shapes with measurements (rectangles, polygons, etc.)
+- Vectors (with arrows, labeled components)
+- Any spatial/geometric scenario
+
+Example diagram for triangle question:
+"diagram": {
+  "type": "geometry",
+  "elements": [
+    {"type": "triangle", "vertices": ["A", "B", "C"]},
+    {"type": "label", "text": "7 cm", "position": "side_AB"},
+    {"type": "label", "text": "10 cm", "position": "side_BC"},
+    {"type": "angle", "vertex": "B", "label": "30°"}
+  ]
+}
+
+### DIFFICULTY LEVELS FOR MATHS:
+
+**EASY (Grades 1-3):**
+- Single-step calculations
+- Direct formula application
+- Simple substitution
+- Basic recall
+
+**MEDIUM (Grades 4-5):**
+- 2-3 step problems
+- Formula rearrangement needed
+- Some reasoning required
+- Standard contexts
+
+**HARD (Grades 6-9) - MUST include these characteristics:**
+- Multi-step problem solving (4+ steps)
+- Unfamiliar contexts requiring mathematical modeling
+- "Show that..." proofs requiring algebraic manipulation
+- Combining multiple topics (e.g., trigonometry + algebra + surds)
+- Problems where the method is not obvious
+- Parts that build on each other: (a) → (b) → hence (c)
+- Worth 5-6+ marks typically
+- May require setting up equations from word problems
+- Require students to choose and justify their approach
+
+Example HARD question (6 marks):
+"A cone has base radius r and height h. The curved surface area is 100π cm².
+(a) Show that h = √(10000/r² - r²) [3 marks]
+(b) Hence find the value of r that maximises the volume of the cone. [3 marks]"
 
 ### Mark Scheme Format for Maths:
 - M1: Method mark (correct approach/formula)
