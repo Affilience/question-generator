@@ -29,13 +29,16 @@ export function Navigation({ user, authLoading }: NavigationProps) {
   const ctaHref = user ? '/start' : '/signup';
 
   const handleSignOut = async () => {
+    console.log('[Navigation SignOut] Started');
     setUserMenuOpen(false);
     try {
+      console.log('[Navigation SignOut] Calling signOut()...');
       await signOut();
+      console.log('[Navigation SignOut] signOut() completed');
     } catch (err) {
-      console.error('Sign out failed:', err);
+      console.error('[Navigation SignOut] Error:', err);
     }
-    // Full page navigation after signOut completes
+    console.log('[Navigation SignOut] Redirecting to /login');
     window.location.href = '/login';
   };
 

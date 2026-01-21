@@ -163,9 +163,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log('[AuthContext] signOut called');
+    try {
+      console.log('[AuthContext] Calling supabase.auth.signOut()...');
+      await supabase.auth.signOut();
+      console.log('[AuthContext] supabase.auth.signOut() completed');
+    } catch (err) {
+      console.error('[AuthContext] supabase.auth.signOut() error:', err);
+      throw err;
+    }
+    console.log('[AuthContext] Setting user/session to null');
     setUser(null);
     setSession(null);
+    console.log('[AuthContext] signOut complete');
   };
 
   const resetPassword = async (email: string) => {

@@ -63,13 +63,16 @@ export default function DashboardPage() {
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
+    console.log('[SignOut] Started');
     setSigningOut(true);
     try {
+      console.log('[SignOut] Calling signOut()...');
       await signOut();
+      console.log('[SignOut] signOut() completed');
     } catch (err) {
-      console.error('Sign out failed:', err);
+      console.error('[SignOut] Error:', err);
     }
-    // Full page navigation after signOut completes
+    console.log('[SignOut] Redirecting to /login');
     window.location.href = '/login';
   };
   const [statsLoading, setStatsLoading] = useState(true);

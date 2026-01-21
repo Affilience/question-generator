@@ -229,8 +229,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Listen for subscription changes in real-time
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('[SubscriptionContext] No user, skipping realtime subscription');
+      return;
+    }
 
+    console.log('[SubscriptionContext] Setting up realtime subscription for user:', user.id);
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     try {
@@ -249,16 +253,19 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
           }
         )
         .subscribe();
+      console.log('[SubscriptionContext] Realtime subscription created');
     } catch (err) {
-      console.error('Failed to subscribe to subscription changes:', err);
+      console.error('[SubscriptionContext] Failed to subscribe:', err);
     }
 
     return () => {
+      console.log('[SubscriptionContext] Cleanup: removing channel');
       if (channel) {
         try {
           supabase.removeChannel(channel);
+          console.log('[SubscriptionContext] Channel removed');
         } catch (err) {
-          // Ignore errors during cleanup (e.g., during sign out)
+          console.error('[SubscriptionContext] Error removing channel:', err);
         }
       }
     };
