@@ -231,24 +231,36 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('subscription_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_subscriptions',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          refreshSubscription();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel('subscription_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            refreshSubscription();
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.error('Failed to subscribe to subscription changes:', err);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (err) {
+          // Ignore errors during cleanup (e.g., during sign out)
+        }
+      }
     };
   }, [user, supabase, refreshSubscription]);
 
