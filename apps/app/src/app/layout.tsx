@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { SentryProvider } from "@/components/SentryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,9 +61,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
       >
-        <AuthProvider>
-          <SubscriptionProvider>
-            <ThemeProvider>
+        <SentryProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <ThemeProvider>
               {/* Background glow orbs - contained to prevent scroll issues */}
               <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="glow-orb glow-orb-blue glow-orb-animated w-[500px] h-[500px] -top-32 -left-32" />
@@ -75,9 +77,10 @@ export default function RootLayout({
               </div>
               <CommandPalette />
               <CookieConsent />
-            </ThemeProvider>
-          </SubscriptionProvider>
-        </AuthProvider>
+              </ThemeProvider>
+            </SubscriptionProvider>
+          </AuthProvider>
+        </SentryProvider>
         <Analytics />
       </body>
     </html>
