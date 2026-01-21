@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { getStripe, STRIPE_PRICES } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
+import { CreateCheckoutRequestSchema, validateRequest } from '@/lib/validations/api-schemas';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,11 +12,17 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { priceKey, userId, returnUrl } = body;
 
-    if (!priceKey) {
-      return NextResponse.json({ error: 'Price key is required' }, { status: 400 });
+    // Validate request body
+    const validation = validateRequest(CreateCheckoutRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: validation.error },
+        { status: 400 }
+      );
     }
+
+    const { priceKey, userId, returnUrl } = validation.data!;
 
     const priceId = STRIPE_PRICES[priceKey as keyof typeof STRIPE_PRICES];
     if (!priceId) {
@@ -77,6 +85,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    Sentry.captureException(error, {
+      extra: { route: '/api/stripe/create-checkout' },
+    });
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }

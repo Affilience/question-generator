@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { getOpenAIClient } from '@/lib/openai';
+import { GenerateQuestionRequestSchema, validateRequest } from '@/lib/validations/api-schemas';
 import { parseQuestionResponse } from '@/lib/prompts-common';
 import { getEnhancedSystemPrompt, ENHANCED_SYSTEM_PROMPTS } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -453,6 +455,16 @@ const LEGACY_SYSTEM_PROMPTS: Record<QualificationLevel, string> = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Validate request body
+    const validation = validateRequest(GenerateQuestionRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: validation.error },
+        { status: 400 }
+      );
+    }
+
     const {
       topicId,
       practicalId,
@@ -465,7 +477,7 @@ export async function POST(request: NextRequest) {
       subject = 'maths',
       questionType = 'auto',
       excludeContent
-    } = body as {
+    } = validation.data as {
       topicId?: string;
       practicalId?: string;
       isPractical?: boolean;
@@ -476,7 +488,7 @@ export async function POST(request: NextRequest) {
       qualification?: QualificationLevel;
       subject?: Subject;
       questionType?: QuestionType;
-      excludeContent?: string | string[]; // First 100 chars of questions to avoid repeats
+      excludeContent?: string | string[];
     };
 
     // Handle practical questions

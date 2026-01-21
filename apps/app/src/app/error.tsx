@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 export default function Error({
   error,
@@ -10,7 +11,13 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to console (could send to error tracking service)
+    // Log to Sentry
+    Sentry.captureException(error, {
+      extra: {
+        digest: error.digest,
+        type: 'page-error',
+      },
+    });
     console.error('Application error:', error);
   }, [error]);
 
