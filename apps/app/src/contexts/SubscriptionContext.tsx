@@ -117,54 +117,22 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return !!limits[feature];
   };
 
-  // Increment question usage
+  // Increment question usage (UI only - server handles DB)
   const incrementQuestionUsage = async () => {
-    if (!user) return;
-
-    const today = new Date().toISOString().split('T')[0];
-
-    const { error } = await supabase
-      .from('daily_usage')
-      .upsert({
-        user_id: user.id,
-        date: today,
-        questions_generated: dailyUsage.questionsGenerated + 1,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,date',
-      });
-
-    if (!error) {
-      setDailyUsage(prev => ({
-        ...prev,
-        questionsGenerated: prev.questionsGenerated + 1,
-      }));
-    }
+    // Just update local state for immediate UI feedback
+    // The server already increments the database count
+    setDailyUsage(prev => ({
+      ...prev,
+      questionsGenerated: prev.questionsGenerated + 1,
+    }));
   };
 
-  // Increment paper usage
+  // Increment paper usage (UI only - server handles DB)
   const incrementPaperUsage = async () => {
-    if (!user) return;
-
-    const today = new Date().toISOString().split('T')[0];
-
-    const { error } = await supabase
-      .from('daily_usage')
-      .upsert({
-        user_id: user.id,
-        date: today,
-        papers_generated: dailyUsage.papersGenerated + 1,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,date',
-      });
-
-    if (!error) {
-      setDailyUsage(prev => ({
-        ...prev,
-        papersGenerated: prev.papersGenerated + 1,
-      }));
-    }
+    setDailyUsage(prev => ({
+      ...prev,
+      papersGenerated: prev.papersGenerated + 1,
+    }));
   };
 
   // Open Stripe checkout
