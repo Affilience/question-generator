@@ -285,50 +285,6 @@ export default function PaperGeneratorPage() {
           </motion.div>
         )}
 
-        {/* Generation Progress Indicator */}
-        {isGenerating && (
-          <motion.div
-            className="mb-6 p-6 bg-[#1a1a2e]/80 border border-[#2d2d3d] rounded-xl"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-white font-medium">
-                  {generationProgress
-                    ? `Generating question ${generationProgress.current} of ${generationProgress.total}...`
-                    : 'Preparing your practice paper...'}
-                </h3>
-                <p className="text-sm text-[#a1a1a1]">
-                  This may take a moment as we craft exam-style questions for you
-                </p>
-              </div>
-            </div>
-
-            {generationProgress && (
-              <div className="space-y-2">
-                <div className="h-2 bg-[#2d2d3d] rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-                <p className="text-xs text-[#666666] text-right">
-                  {Math.round((generationProgress.current / generationProgress.total) * 100)}% complete
-                </p>
-              </div>
-            )}
-          </motion.div>
-        )}
-
         <PaperBuilder
           topics={topics}
           examBoard={examBoard as ExamBoard}
@@ -355,6 +311,51 @@ export default function PaperGeneratorPage() {
           </Link>
         </div>
       </div>
+
+      {/* Generation Progress Indicator - Fixed at bottom */}
+      {isGenerating && (
+        <motion.div
+          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0d0d0d]/95 backdrop-blur-sm border-t border-[#2d2d3d]"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          exit={{ y: 100 }}
+        >
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-white font-medium text-sm sm:text-base truncate">
+                    {generationProgress
+                      ? `Generating question ${generationProgress.current} of ${generationProgress.total}`
+                      : 'Preparing your practice paper...'}
+                  </h3>
+                  {generationProgress && (
+                    <span className="text-blue-400 font-medium text-sm ml-2">
+                      {Math.round((generationProgress.current / generationProgress.total) * 100)}%
+                    </span>
+                  )}
+                </div>
+                {generationProgress && (
+                  <div className="h-2 bg-[#2d2d3d] rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -95,8 +95,8 @@ export function PaperBuilderPremium({
   }, [selectedSubtopics]);
 
   const estimatedQuestions = useMemo(() => {
-    // Rough estimate: average of 5 marks per question
-    return Math.round(totalMarks / 5);
+    // Based on actual question type mark ranges (weighted avg ~3.8 marks per question)
+    return Math.round(totalMarks / 3.8);
   }, [totalMarks]);
 
   const currentStepIndex = STEPS.findIndex((s) => s.id === currentStep);

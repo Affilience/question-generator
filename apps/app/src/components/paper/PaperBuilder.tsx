@@ -106,17 +106,15 @@ export function PaperBuilder({
   };
 
   const estimatedQuestions = useMemo(() => {
-    // Average marks per question: Easy ~2, Medium ~4, Hard ~8
-    const avgEasy = 2;
-    const avgMedium = 4;
-    const avgHard = 8;
-
-    const easyMarks = (totalMarks * difficulty.easy) / 100;
-    const mediumMarks = (totalMarks * difficulty.medium) / 100;
-    const hardMarks = (totalMarks * difficulty.hard) / 100;
-
-    return Math.round(easyMarks / avgEasy + mediumMarks / avgMedium + hardMarks / avgHard);
-  }, [totalMarks, difficulty]);
+    // Based on actual question type mark ranges:
+    // calculation: 2-5 (avg 3.5), explain: 2-4 (avg 3), extended: 6-12 (avg 8.75)
+    // data-analysis: 4-6 (avg 5), multiple-choice: 1 (avg 1), short-answer: 1-3 (avg 2)
+    // With default distribution (40% calc, 30% explain, 15% data, 10% extended, 5% mc)
+    // Weighted average is approximately 3.8 marks per question
+    // Difficulty affects question complexity but not mark totals significantly
+    const avgMarksPerQuestion = 3.8;
+    return Math.round(totalMarks / avgMarksPerQuestion);
+  }, [totalMarks]);
 
   return (
     <div className="space-y-6">

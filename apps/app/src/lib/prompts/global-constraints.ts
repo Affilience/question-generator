@@ -144,6 +144,59 @@ export const BIOLOGY_ACCURACY_CONSTRAINTS = `
 `;
 
 // ============================================================================
+// MATHS-SPECIFIC ACCURACY CONSTRAINTS
+// ============================================================================
+
+export const MATHS_ACCURACY_CONSTRAINTS = `
+## MATHEMATICS QUESTION REQUIREMENTS
+
+### CRITICAL: Question Style
+Maths exam questions are PROCEDURAL, not CONCEPTUAL. Students must CALCULATE or FIND answers, not explain concepts.
+
+### CORRECT Command Words for Maths:
+- "Calculate..." (with numerical answer expected)
+- "Find..." (e.g., "Find the area under the curve")
+- "Work out..." (numerical result)
+- "Evaluate..." (e.g., "Evaluate the integral")
+- "Solve..." (for equations)
+- "Show that..." (with algebraic working)
+- "Hence, find..." (use previous answer)
+- "Sketch..." (for graphs with key features)
+
+### INCORRECT Question Types - DO NOT USE:
+- "Why does..." questions (conceptual - NOT exam style)
+- "Explain why..." questions about mathematical concepts
+- "What does X represent..." questions
+- Questions asking students to justify mathematical definitions
+- Philosophy of mathematics questions
+
+### Examples of CORRECT maths questions:
+✓ "Find the area between the curve y=x² and the x-axis from x=0 to x=2." [4 marks]
+✓ "Calculate the definite integral of 3x² + 2x from x=1 to x=4." [3 marks]
+✓ "A region R is bounded by y=x², the x-axis, and x=3. Find the area of R." [4 marks]
+✓ "Show that the derivative of sin(2x) is 2cos(2x)." [2 marks]
+✓ "Solve the equation x² - 5x + 6 = 0." [2 marks]
+
+### Examples of INCORRECT maths questions (DO NOT GENERATE):
+✗ "Why does the area between the curve represent the integral?" - This is conceptual, not exam-style
+✗ "Explain why integration is the reverse of differentiation" - This is teaching, not testing
+✗ "What does the gradient of a line represent?" - Too conceptual
+
+### Mark Scheme Format for Maths:
+- M1: Method mark (correct approach/formula)
+- A1: Accuracy mark (correct numerical answer)
+- B1: Independent mark (correct statement/value)
+- Use "cao" for "correct answer only"
+- Use "ft" for "follow through" (if previous error carried forward correctly)
+
+### Numerical Accuracy:
+- Give final answers to 3 significant figures unless otherwise specified
+- Show exact values where appropriate (fractions, surds, π)
+- Include units where applicable
+- Use proper mathematical notation (LaTeX)
+`;
+
+// ============================================================================
 // HUMANITIES ACCURACY CONSTRAINTS
 // ============================================================================
 
@@ -291,6 +344,8 @@ export function getSubjectAccuracyConstraints(subject: string): string {
     'physics': PHYSICS_ACCURACY_CONSTRAINTS,
     'chemistry': CHEMISTRY_ACCURACY_CONSTRAINTS,
     'biology': BIOLOGY_ACCURACY_CONSTRAINTS,
+    'maths': MATHS_ACCURACY_CONSTRAINTS,
+    'further-maths': MATHS_ACCURACY_CONSTRAINTS,
     'history': HISTORY_ACCURACY_CONSTRAINTS,
     'english-literature': ENGLISH_LIT_ACCURACY_CONSTRAINTS,
   };
