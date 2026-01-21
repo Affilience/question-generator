@@ -4,6 +4,7 @@ const FOOTER_LINKS = {
   product: [
     { href: '/gcse', label: 'GCSE' },
     { href: '/a-level', label: 'A-Level' },
+    { href: '/paper-generator', label: 'Paper Generator' },
     { href: '/pricing', label: 'Pricing' },
   ],
   subjects: [

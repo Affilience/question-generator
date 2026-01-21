@@ -195,7 +195,7 @@ export default function TermsPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/[0.08]">
+        <div className="mt-12 pt-8 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors"
@@ -204,6 +204,12 @@ export default function TermsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Home
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-white/60 hover:text-white transition-colors"
+          >
+            Privacy Policy →
           </Link>
         </div>
       </main>
