@@ -25,7 +25,8 @@ const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
 const validSubjects: Subject[] = [
   'maths', 'physics', 'chemistry', 'biology',
   'computer-science', 'economics', 'business', 'psychology',
-  'geography', 'history', 'english-literature', 'further-maths'
+  'geography', 'history', 'english-literature', 'further-maths',
+  'combined-science'
 ];
 
 export default function SubtopicPracticePage() {

@@ -10,7 +10,7 @@ import { SubtopicGrid } from '@/components/SubtopicGrid';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
 const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
-const validSubjects: Subject[] = ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'];
+const validSubjects: Subject[] = ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths', 'combined-science'];
 
 export default function TopicPage() {
   const params = useParams();

@@ -15,7 +15,7 @@ import { UpgradePrompt } from '@/components/UpgradePrompt';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
 const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
-const validSubjects: Subject[] = ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths'];
+const validSubjects: Subject[] = ['maths', 'physics', 'chemistry', 'biology', 'computer-science', 'economics', 'business', 'psychology', 'geography', 'history', 'english-literature', 'further-maths', 'combined-science'];
 
 const subjectInfo: Partial<Record<Subject, { name: string; icon: string }>> = {
   maths: { name: 'Maths', icon: '📐' },
@@ -30,6 +30,7 @@ const subjectInfo: Partial<Record<Subject, { name: string; icon: string }>> = {
   history: { name: 'History', icon: '📜' },
   'english-literature': { name: 'English Literature', icon: '📚' },
   'further-maths': { name: 'Further Maths', icon: '∑' },
+  'combined-science': { name: 'Combined Science', icon: '🔬' },
 };
 
 export default function PaperGeneratorPage() {
