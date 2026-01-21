@@ -66,11 +66,12 @@ export default function DashboardPage() {
     setSigningOut(true);
     try {
       await signOut();
-      // Use window.location for a clean redirect after sign out
-      window.location.href = '/login';
     } catch (err) {
       console.error('Sign out failed:', err);
-      setSigningOut(false);
+    } finally {
+      // Always redirect, even if signOut had an error
+      // Use replace to prevent back button returning to dashboard
+      window.location.replace('/login');
     }
   };
   const [statsLoading, setStatsLoading] = useState(true);

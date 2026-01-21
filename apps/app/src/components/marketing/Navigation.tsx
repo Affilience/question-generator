@@ -29,9 +29,14 @@ export function Navigation({ user, authLoading }: NavigationProps) {
   const ctaHref = user ? '/start' : '/signup';
 
   const handleSignOut = async () => {
-    await signOut();
-    setUserMenuOpen(false);
-    window.location.href = '/login';
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    } finally {
+      setUserMenuOpen(false);
+      window.location.replace('/login');
+    }
   };
 
   useEffect(() => {

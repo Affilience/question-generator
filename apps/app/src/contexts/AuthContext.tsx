@@ -40,13 +40,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Sync with users table when user signs in
-        if (session?.user) {
+        // Only sync to database on sign in, not on sign out
+        if (event === 'SIGNED_IN' && session?.user) {
           await syncUserToDatabase(session.user);
         }
       }
