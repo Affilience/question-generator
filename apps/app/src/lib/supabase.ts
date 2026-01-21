@@ -266,6 +266,21 @@ export async function recordAttempt(
   }
 }
 
+// User topic progress from the database
+export interface UserTopicProgress {
+  id: string;
+  user_id: string;
+  topic_id: string;
+  subject: string;
+  exam_board: string;
+  qualification: string;
+  subtopic: string | null;
+  attempted: number;
+  correct: number;
+  last_practiced_at: string;
+  created_at: string;
+}
+
 // Filter options for stats
 export interface StatsFilter {
   subject?: string;
@@ -313,8 +328,8 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
 
   // Run all queries in parallel for faster loading
   const [
-    { data: progress },
-    { data: streaks },
+    { data: progressData },
+    { data: streaksData },
     { data: recentWrong }
   ] = await Promise.all([
     progressQuery,
@@ -326,6 +341,10 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
       .limit(30),
     wrongQuery
   ]);
+
+  // Cast to proper types since Proxy breaks inference
+  const progress = progressData as UserTopicProgress[] | null;
+  const streaks = streaksData as UserStreak[] | null;
 
   const totalAttempted = progress?.reduce((sum, p) => sum + p.attempted, 0) || 0;
   const totalCorrect = progress?.reduce((sum, p) => sum + p.correct, 0) || 0;
@@ -672,8 +691,12 @@ export async function getGamificationStats(userId: string): Promise<Gamification
       .not('completed_at', 'is', null)
   ]);
 
-  const currentStreak = calculateStreak(streaks || []);
-  const topicsPracticed = new Set(topicData?.map(t => t.topic_id) || []).size;
+  // Cast to proper types since Proxy breaks inference
+  const typedStreaks = streaks as UserStreak[] | null;
+  const typedTopicData = topicData as { topic_id: string }[] | null;
+
+  const currentStreak = calculateStreak(typedStreaks || []);
+  const topicsPracticed = new Set(typedTopicData?.map(t => t.topic_id) || []).size;
 
   return {
     totalXP: xpData.totalXP,
