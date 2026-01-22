@@ -1,21 +1,49 @@
 'use client';
 
 import { InlineMath, BlockMath } from 'react-katex';
-import { Component, ReactNode, useEffect } from 'react';
+import { Component, ReactNode, useEffect, useState } from 'react';
 
-// Lazy load KaTeX CSS only when component is used
+// Track KaTeX CSS loading state globally
 let katexCssLoaded = false;
-function useKatexCss() {
+let katexCssReady = false;
+let katexCssCallbacks: (() => void)[] = [];
+
+function useKatexCss(): boolean {
+  const [cssReady, setCssReady] = useState(katexCssReady);
+
   useEffect(() => {
+    // If CSS is already fully loaded, we're good
+    if (katexCssReady) {
+      setCssReady(true);
+      return;
+    }
+
+    // Register callback to be notified when CSS loads
+    const callback = () => setCssReady(true);
+    katexCssCallbacks.push(callback);
+
+    // Start loading CSS if not already started
     if (!katexCssLoaded && typeof document !== 'undefined') {
+      katexCssLoaded = true;
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css';
       link.crossOrigin = 'anonymous';
+      link.onload = () => {
+        katexCssReady = true;
+        katexCssCallbacks.forEach(cb => cb());
+        katexCssCallbacks = [];
+      };
       document.head.appendChild(link);
-      katexCssLoaded = true;
     }
+
+    return () => {
+      // Remove callback on unmount
+      katexCssCallbacks = katexCssCallbacks.filter(cb => cb !== callback);
+    };
   }, []);
+
+  return cssReady;
 }
 
 interface MathRendererProps {
@@ -247,8 +275,8 @@ function parseMarkdownTable(tableText: string): { headers: string[]; rows: strin
 }
 
 export function MathRenderer({ content, className = '', isStreaming = false }: MathRendererProps) {
-  // Lazy load KaTeX CSS
-  useKatexCss();
+  // Load KaTeX CSS and track when it's ready
+  const cssReady = useKatexCss();
 
   // First process any remaining JSON escape sequences, then fix LaTeX escaping
   const processedContent = processEscapeSequences(content, isStreaming);
@@ -573,8 +601,15 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   // Split content into blocks and render each appropriately
   const blocks = splitIntoBlocks(fixedContent);
 
+  // Check if content contains any math (needs CSS to render properly)
+  const hasMath = /\$[\s\S]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/.test(fixedContent);
+
+  // If content has math and CSS isn't ready, hide it to prevent FOUC
+  // Use visibility:hidden to preserve layout while invisible
+  const mathVisibilityClass = hasMath && !cssReady ? 'invisible' : 'visible';
+
   return (
-    <div className={`math-content ${className}`}>
+    <div className={`math-content ${className} ${mathVisibilityClass}`}>
       {blocks.map((block, blockIndex) => {
         // Code block rendering (for CS questions, etc.)
         if (block.type === 'code') {

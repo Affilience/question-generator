@@ -4,9 +4,9 @@ import {
   getAllPracticalParams,
   getAllExamBoardParams,
   getAllTopicParams,
+  getAllSubtopicParams,
 } from '@/lib/seo/utils';
 import { INDEXED_BOARDLESS_SUBTOPICS } from '@/lib/seo/indexed-pages';
-import { examBoards } from '@/lib/topics';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -14,20 +14,20 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * SEO SITEMAP STRATEGY
  * ====================
  *
- * Includes all valid URLs that return 200:
+ * Only includes INDEXED pages for SEO:
  *
  * Included:
- * - Marketing pages (/, /pricing)
+ * - Marketing pages (/, /pricing, /paper-generator, /past-papers, /start, /privacy, /terms)
  * - Level pages (/gcse, /a-level)
  * - Subject pages (/gcse/maths)
  * - Exam board pages (/gcse/maths/aqa)
- * - Topic pages (/gcse/maths/aqa/algebra)
- * - Indexed subtopic pages (/gcse/maths/aqa/algebra/factorising-quadratics)
+ * - All topic pages (all exam boards)
+ * - INDEXED subtopic pages only (filtered by shouldIndexBoardlessSubtopic)
  * - Required practical pages (/gcse/physics/aqa/practicals/rp1)
  *
  * Excluded:
+ * - Non-indexed topics and subtopics (redirect to /practice/)
  * - Boardless URLs (/gcse/maths/algebra) - no route exists
- * - Non-indexed subtopics - redirect to /practice/ (308)
  * - All /app/* routes - blocked by robots.txt
  * - All /api/* routes
  */
@@ -48,6 +48,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/paper-generator`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/past-papers`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/start`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/privacy`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${BASE_URL}/terms`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ];
 
@@ -83,25 +113,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  // Topic pages (e.g., /gcse/maths/aqa/algebra)
-  const topicPages: MetadataRoute.Sitemap = getAllTopicParams().map(({ level, subject, examBoard, topic }) => ({
-    url: `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+  // Topic pages - all valid topics across all exam boards
+  const topicPages: MetadataRoute.Sitemap = getAllTopicParams().map(
+    ({ level, subject, examBoard, topic }) => ({
+      url: `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })
+  );
 
-  // Indexed subtopic pages (e.g., /gcse/maths/aqa/algebra/factorising-quadratics)
-  // Only includes pages that return 200 (non-indexed redirect to /practice/)
-  // Generate for each indexed subtopic across all exam boards
+  // Subtopic pages - all valid subtopics across all exam boards
+  // Filter to only include subtopics that are in the indexed list (match by level/subject/subtopic)
+  const indexedSet = new Set(
+    INDEXED_BOARDLESS_SUBTOPICS.map(s => `${s.level}|${s.subject}|${s.subtopic}`)
+  );
+  const allSubtopics = getAllSubtopicParams();
+  const indexedSubtopics = allSubtopics.filter(({ level, subject, subtopic }) =>
+    indexedSet.has(`${level}|${subject}|${subtopic}`)
+  );
+
+  // Deduplicate subtopics (same subtopic may exist in multiple topics)
+  const seenSubtopicUrls = new Set<string>();
   const subtopicPages: MetadataRoute.Sitemap = [];
-  for (const indexed of INDEXED_BOARDLESS_SUBTOPICS) {
-    for (const board of examBoards) {
+  for (const { level, subject, examBoard, topic, subtopic } of indexedSubtopics) {
+    const url = `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}/${subtopic}`;
+    if (!seenSubtopicUrls.has(url)) {
+      seenSubtopicUrls.add(url);
       subtopicPages.push({
-        url: `${BASE_URL}/${indexed.level}/${indexed.subject}/${board.id}/${indexed.topic}/${indexed.subtopic}`,
+        url,
         lastModified: now,
         changeFrequency: 'weekly' as const,
-        priority: 0.8,
+        priority: 0.6,
       });
     }
   }

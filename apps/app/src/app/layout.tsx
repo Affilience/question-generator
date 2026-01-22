@@ -62,6 +62,13 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Preload KaTeX CSS for math rendering - prevents flash of unstyled content */}
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
+          as="style"
+          crossOrigin="anonymous"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
