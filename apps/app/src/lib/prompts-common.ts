@@ -592,6 +592,11 @@ Other 3D types: "prism-3d", "cone-3d", "sphere-3d", "pyramid-3d"
 - Placing vertices at x=0 or y=0 (labels get cut off)
 - Forgetting labelPosition (labels appear in wrong places)
 - Using coordinates outside the width/height bounds
+- Using negative coordinates without an axes element (the diagram will be clipped)
+- Putting labels too close together (they will overlap - keep 1.5+ units apart)
+- Creating self-intersecting polygons (edges cross each other - invalid geometry)
+- Extreme aspect ratios (width:height should be between 1:3 and 3:1)
+- Forgetting that Y increases UPWARD (common mistake: placing "top" vertex at low Y value)
 
 ### TWO-STAGE THINKING (for complex diagrams):
 When creating a diagram, think in two stages:

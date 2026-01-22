@@ -3,7 +3,7 @@
  * Fixes common issues with AI-generated diagrams before rendering.
  */
 
-import { DiagramSpec, DiagramElement, PolygonElement, CircleElement, PointElement, LineElement, AxesElement } from '@/types/diagram';
+import { DiagramSpec, DiagramElement, PolygonElement, CircleElement, PointElement, LineElement, AxesElement, AngleMarkerElement, GridElement, TextElement } from '@/types/diagram';
 
 interface ValidationResult {
   isValid: boolean;
@@ -69,11 +69,92 @@ export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null)
     return fixed;
   });
 
+  // Normalize coordinates if there are negative values (and no axes)
+  const hasAxes = spec.elements.some(el => el.type === 'axes');
+  if (!hasAxes) {
+    const normalizedSpec = normalizeCoordinatesInternal(sanitizedSpec, 2);
+    if (normalizedSpec !== sanitizedSpec) {
+      warnings.push('Coordinates were auto-normalized to positive values');
+      return {
+        isValid: warnings.length === 0,
+        warnings,
+        sanitizedSpec: normalizedSpec,
+      };
+    }
+  }
+
   return {
     isValid: warnings.length === 0,
     warnings,
     sanitizedSpec,
   };
+}
+
+/**
+ * Internal coordinate normalization (used during sanitization).
+ */
+function normalizeCoordinatesInternal(spec: DiagramSpec, margin: number): DiagramSpec {
+  const bounds = calculateBoundsFromElements(spec.elements);
+  if (!bounds) return spec;
+
+  // Only normalize if there are negative coordinates or coordinates too close to origin
+  if (bounds.xMin >= margin && bounds.yMin >= margin) {
+    return spec;
+  }
+
+  const shiftX = bounds.xMin < margin ? margin - bounds.xMin : 0;
+  const shiftY = bounds.yMin < margin ? margin - bounds.yMin : 0;
+
+  if (shiftX === 0 && shiftY === 0) return spec;
+
+  const normalized = { ...spec };
+  normalized.elements = spec.elements.map((el) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      return {
+        ...poly,
+        vertices: poly.vertices.map((v) => ({
+          ...v,
+          x: v.x + shiftX,
+          y: v.y + shiftY,
+        })),
+      };
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      return {
+        ...point,
+        position: {
+          ...point.position,
+          x: point.position.x + shiftX,
+          y: point.position.y + shiftY,
+        },
+      };
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      return {
+        ...circle,
+        center: {
+          ...circle.center,
+          x: circle.center.x + shiftX,
+          y: circle.center.y + shiftY,
+        },
+      };
+    } else if (el.type === 'line') {
+      const line = el as LineElement;
+      return {
+        ...line,
+        from: { ...line.from, x: line.from.x + shiftX, y: line.from.y + shiftY },
+        to: { ...line.to, x: line.to.x + shiftX, y: line.to.y + shiftY },
+      };
+    }
+    return el;
+  });
+
+  // Update bounds
+  normalized.width = Math.ceil(bounds.xMax + shiftX + margin);
+  normalized.height = Math.ceil(bounds.yMax + shiftY + margin);
+
+  return normalized;
 }
 
 /**
@@ -366,9 +447,376 @@ export function assessDiagramQuality(spec: DiagramSpec | undefined | null): {
     }
   });
 
+  // Check for label collisions
+  const labelCollisions = checkLabelCollisions(spec);
+  if (labelCollisions.length > 0) {
+    issues.push(...labelCollisions);
+    score -= labelCollisions.length * 5;
+  }
+
+  // Check for self-intersecting polygons
+  const selfIntersections = checkPolygonSelfIntersection(spec);
+  if (selfIntersections.length > 0) {
+    issues.push(...selfIntersections);
+    score -= selfIntersections.length * 15;
+  }
+
+  // Check aspect ratio
+  if (hasExplicitBounds) {
+    const aspectRatio = spec.width! / spec.height!;
+    if (aspectRatio > 3 || aspectRatio < 0.33) {
+      issues.push(`Extreme aspect ratio (${aspectRatio.toFixed(2)}) may cause rendering issues`);
+      recommendations.push('Use aspect ratios between 1:3 and 3:1 for best results');
+      score -= 10;
+    }
+  }
+
+  // Check for negative coordinates (often an AI mistake)
+  const negativeCoords = checkNegativeCoordinates(spec);
+  if (negativeCoords.length > 0 && !hasAxes) {
+    issues.push(...negativeCoords);
+    recommendations.push('Use positive coordinates or add an axes element to handle negative values');
+    score -= negativeCoords.length * 5;
+  }
+
   return {
     score: Math.max(0, score),
     issues,
     recommendations,
+  };
+}
+
+/**
+ * Check for label collisions - labels that would overlap when rendered.
+ */
+export function checkLabelCollisions(spec: DiagramSpec): string[] {
+  const warnings: string[] = [];
+  const labelPositions: Array<{ x: number; y: number; label: string; elementIndex: number }> = [];
+
+  // Collect all label positions
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      poly.vertices.forEach((v) => {
+        if (v.label) {
+          labelPositions.push({ x: v.x, y: v.y, label: v.label, elementIndex: i });
+        }
+      });
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      if (point.position.label) {
+        labelPositions.push({
+          x: point.position.x,
+          y: point.position.y,
+          label: point.position.label,
+          elementIndex: i,
+        });
+      }
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      if (circle.center.label) {
+        labelPositions.push({
+          x: circle.center.x,
+          y: circle.center.y,
+          label: circle.center.label,
+          elementIndex: i,
+        });
+      }
+    }
+  });
+
+  // Check for collisions (labels too close together)
+  const MIN_LABEL_DISTANCE = 1.5; // Minimum units between labels
+  for (let i = 0; i < labelPositions.length; i++) {
+    for (let j = i + 1; j < labelPositions.length; j++) {
+      const l1 = labelPositions[i];
+      const l2 = labelPositions[j];
+      const dist = Math.sqrt((l1.x - l2.x) ** 2 + (l1.y - l2.y) ** 2);
+      if (dist < MIN_LABEL_DISTANCE) {
+        warnings.push(
+          `Labels "${l1.label}" and "${l2.label}" are too close (${dist.toFixed(1)} units) - may overlap`
+        );
+      }
+    }
+  }
+
+  return warnings;
+}
+
+/**
+ * Check for self-intersecting polygons (invalid geometry).
+ */
+export function checkPolygonSelfIntersection(spec: DiagramSpec): string[] {
+  const warnings: string[] = [];
+
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      const vertices = poly.vertices;
+
+      // Check each pair of non-adjacent edges for intersection
+      for (let a = 0; a < vertices.length; a++) {
+        const a1 = vertices[a];
+        const a2 = vertices[(a + 1) % vertices.length];
+
+        for (let b = a + 2; b < vertices.length; b++) {
+          // Skip adjacent edges
+          if (b === (a + vertices.length - 1) % vertices.length) continue;
+
+          const b1 = vertices[b];
+          const b2 = vertices[(b + 1) % vertices.length];
+
+          if (lineSegmentsIntersect(a1, a2, b1, b2)) {
+            warnings.push(`Polygon at element ${i} has self-intersecting edges`);
+            return; // Only report once per polygon
+          }
+        }
+      }
+    }
+  });
+
+  return warnings;
+}
+
+/**
+ * Check if two line segments intersect (excluding endpoints).
+ */
+function lineSegmentsIntersect(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  p3: { x: number; y: number },
+  p4: { x: number; y: number }
+): boolean {
+  const ccw = (A: { x: number; y: number }, B: { x: number; y: number }, C: { x: number; y: number }) => {
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+  };
+
+  // Check if segments properly intersect (not at endpoints)
+  return (
+    ccw(p1, p3, p4) !== ccw(p2, p3, p4) &&
+    ccw(p1, p2, p3) !== ccw(p1, p2, p4)
+  );
+}
+
+/**
+ * Check for negative coordinates without an axes element.
+ */
+export function checkNegativeCoordinates(spec: DiagramSpec): string[] {
+  const warnings: string[] = [];
+
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      poly.vertices.forEach((v, vi) => {
+        if (v.x < 0 || v.y < 0) {
+          warnings.push(`Element ${i} vertex ${vi} has negative coordinates (${v.x}, ${v.y})`);
+        }
+      });
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      if (point.position.x < 0 || point.position.y < 0) {
+        warnings.push(`Point at element ${i} has negative coordinates`);
+      }
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      if (circle.center.x < 0 || circle.center.y < 0) {
+        warnings.push(`Circle at element ${i} has negative center coordinates`);
+      }
+    } else if (el.type === 'line') {
+      const line = el as LineElement;
+      if (line.from.x < 0 || line.from.y < 0 || line.to.x < 0 || line.to.y < 0) {
+        warnings.push(`Line at element ${i} has negative coordinates`);
+      }
+    }
+  });
+
+  return warnings;
+}
+
+/**
+ * Normalize coordinates to ensure they fit within positive bounds.
+ * Shifts all coordinates so minimum x and y are at least `margin` units from origin.
+ */
+export function normalizeCoordinates(spec: DiagramSpec, margin: number = 2): DiagramSpec {
+  const bounds = calculateBoundsFromElements(spec.elements);
+  if (!bounds) return spec;
+
+  // Only normalize if there are negative coordinates or coordinates too close to origin
+  if (bounds.xMin >= margin && bounds.yMin >= margin) {
+    return spec;
+  }
+
+  const shiftX = bounds.xMin < margin ? margin - bounds.xMin : 0;
+  const shiftY = bounds.yMin < margin ? margin - bounds.yMin : 0;
+
+  if (shiftX === 0 && shiftY === 0) return spec;
+
+  const normalized = { ...spec };
+  normalized.elements = spec.elements.map((el) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      return {
+        ...poly,
+        vertices: poly.vertices.map((v) => ({
+          ...v,
+          x: v.x + shiftX,
+          y: v.y + shiftY,
+        })),
+      };
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      return {
+        ...point,
+        position: {
+          ...point.position,
+          x: point.position.x + shiftX,
+          y: point.position.y + shiftY,
+        },
+      };
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      return {
+        ...circle,
+        center: {
+          ...circle.center,
+          x: circle.center.x + shiftX,
+          y: circle.center.y + shiftY,
+        },
+      };
+    } else if (el.type === 'line') {
+      const line = el as LineElement;
+      return {
+        ...line,
+        from: { ...line.from, x: line.from.x + shiftX, y: line.from.y + shiftY },
+        to: { ...line.to, x: line.to.x + shiftX, y: line.to.y + shiftY },
+      };
+    }
+    return el;
+  });
+
+  // Update bounds
+  if (normalized.width && normalized.height) {
+    normalized.width = bounds.xMax + shiftX + margin;
+    normalized.height = bounds.yMax + shiftY + margin;
+  }
+
+  return normalized;
+}
+
+/**
+ * Validate right angles in a polygon (useful for rectangles, right triangles).
+ * Returns the actual angle at each vertex marked as a right angle.
+ */
+export function validateRightAngles(spec: DiagramSpec): Array<{
+  elementIndex: number;
+  vertexIndex: number;
+  expectedAngle: number;
+  actualAngle: number;
+  isValid: boolean;
+}> {
+  const results: Array<{
+    elementIndex: number;
+    vertexIndex: number;
+    expectedAngle: number;
+    actualAngle: number;
+    isValid: boolean;
+  }> = [];
+
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'angle-marker') {
+      const marker = el as AngleMarkerElement;
+      if (marker.isRightAngle) {
+        const angle = calculateAngle(marker.ray1End, marker.vertex, marker.ray2End);
+        results.push({
+          elementIndex: i,
+          vertexIndex: -1,
+          expectedAngle: 90,
+          actualAngle: angle,
+          isValid: Math.abs(angle - 90) < 5, // 5 degree tolerance
+        });
+      }
+    }
+  });
+
+  return results;
+}
+
+/**
+ * Calculate angle at vertex B given points A, B, C.
+ */
+function calculateAngle(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  c: { x: number; y: number }
+): number {
+  const ba = { x: a.x - b.x, y: a.y - b.y };
+  const bc = { x: c.x - b.x, y: c.y - b.y };
+
+  const dotProduct = ba.x * bc.x + ba.y * bc.y;
+  const magnitudeBA = Math.sqrt(ba.x ** 2 + ba.y ** 2);
+  const magnitudeBC = Math.sqrt(bc.x ** 2 + bc.y ** 2);
+
+  if (magnitudeBA === 0 || magnitudeBC === 0) return 0;
+
+  const cosAngle = dotProduct / (magnitudeBA * magnitudeBC);
+  const clampedCos = Math.max(-1, Math.min(1, cosAngle));
+  return Math.acos(clampedCos) * (180 / Math.PI);
+}
+
+/**
+ * Generate a debug overlay spec that shows coordinate grid, bounds, and element indices.
+ * Useful for development and debugging diagram issues.
+ */
+export function generateDebugOverlay(spec: DiagramSpec): DiagramSpec {
+  const bounds = calculateBoundsFromElements(spec.elements);
+  if (!bounds) return spec;
+
+  const width = spec.width || bounds.xMax + 2;
+  const height = spec.height || bounds.yMax + 2;
+
+  const debugElements: DiagramElement[] = [];
+
+  // Add grid
+  debugElements.push({
+    type: 'grid',
+    xMin: 0,
+    xMax: width,
+    yMin: 0,
+    yMax: height,
+    xStep: 1,
+    yStep: 1,
+    color: '#ff000030',
+  } as GridElement);
+
+  // Add element index labels
+  spec.elements.forEach((el, i) => {
+    let labelPos = { x: 0, y: 0 };
+
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      // Use centroid
+      const cx = poly.vertices.reduce((sum, v) => sum + v.x, 0) / poly.vertices.length;
+      const cy = poly.vertices.reduce((sum, v) => sum + v.y, 0) / poly.vertices.length;
+      labelPos = { x: cx, y: cy };
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      labelPos = { x: circle.center.x, y: circle.center.y };
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      labelPos = { x: point.position.x + 0.5, y: point.position.y + 0.5 };
+    }
+
+    debugElements.push({
+      type: 'text',
+      position: labelPos,
+      content: `[${i}]`,
+      fontSize: 10,
+      color: '#ff0000',
+    } as TextElement);
+  });
+
+  return {
+    ...spec,
+    elements: [...spec.elements, ...debugElements],
   };
 }
