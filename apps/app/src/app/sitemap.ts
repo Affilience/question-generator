@@ -1,5 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { getAllSubjectParams, getAllPracticalParams, getAllExamBoardParams } from '@/lib/seo/utils';
+import {
+  getAllSubjectParams,
+  getAllPracticalParams,
+  getAllExamBoardParams,
+  getAllTopicParams,
+  getIndexedSubtopicParams,
+} from '@/lib/seo/utils';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -7,18 +13,20 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * SEO SITEMAP STRATEGY
  * ====================
  *
- * Only includes URLs that actually exist and return 200.
+ * Includes all valid URLs that return 200:
  *
  * Included:
  * - Marketing pages (/, /pricing)
  * - Level pages (/gcse, /a-level)
  * - Subject pages (/gcse/maths)
  * - Exam board pages (/gcse/maths/aqa)
+ * - Topic pages (/gcse/maths/aqa/algebra)
+ * - Indexed subtopic pages (/gcse/maths/aqa/algebra/factorising-quadratics)
  * - Required practical pages (/gcse/physics/aqa/practicals/rp1)
  *
- * Excluded (routes don't exist):
- * - Boardless topic pages (/gcse/maths/algebra) - no route exists
- * - Boardless subtopic pages (/gcse/maths/algebra/quadratics) - no route exists
+ * Excluded:
+ * - Boardless URLs (/gcse/maths/algebra) - no route exists
+ * - Non-indexed subtopics - redirect to /practice/ (308)
  * - All /app/* routes - blocked by robots.txt
  * - All /api/* routes
  */
@@ -66,9 +74,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  // Exam board pages (e.g., /gcse/maths/aqa) - These routes exist and work
+  // Exam board pages (e.g., /gcse/maths/aqa)
   const examBoardPages: MetadataRoute.Sitemap = getAllExamBoardParams().map(({ level, subject, examBoard }) => ({
     url: `${BASE_URL}/${level}/${subject}/${examBoard}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  // Topic pages (e.g., /gcse/maths/aqa/algebra)
+  const topicPages: MetadataRoute.Sitemap = getAllTopicParams().map(({ level, subject, examBoard, topic }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
+  // Indexed subtopic pages (e.g., /gcse/maths/aqa/algebra/factorising-quadratics)
+  // Only includes pages that return 200 (non-indexed redirect to /practice/)
+  const subtopicPages: MetadataRoute.Sitemap = getIndexedSubtopicParams().map(({ level, subject, examBoard, topic, subtopic }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}/${subtopic}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,
     priority: 0.8,
@@ -87,6 +112,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...levelPages,
     ...subjectPages,
     ...examBoardPages,
+    ...topicPages,
+    ...subtopicPages,
     ...practicalPages,
   ];
 }
