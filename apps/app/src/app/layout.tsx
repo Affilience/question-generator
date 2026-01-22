@@ -62,11 +62,10 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Preload KaTeX CSS for math rendering - prevents flash of unstyled content */}
+        {/* KaTeX CSS for math rendering - load immediately to prevent flash of unstyled content */}
         <link
-          rel="preload"
+          rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
-          as="style"
           crossOrigin="anonymous"
         />
       </head>

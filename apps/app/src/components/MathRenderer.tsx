@@ -8,12 +8,35 @@ let katexCssLoaded = false;
 let katexCssReady = false;
 let katexCssCallbacks: (() => void)[] = [];
 
+// Check if KaTeX CSS is already loaded in the document (e.g., from layout.tsx)
+function checkKatexCssAlreadyLoaded(): boolean {
+  if (typeof document === 'undefined') return false;
+  const links = document.querySelectorAll('link[rel="stylesheet"]');
+  for (const link of links) {
+    if ((link as HTMLLinkElement).href.includes('katex')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function useKatexCss(): boolean {
-  const [cssReady, setCssReady] = useState(katexCssReady);
+  const [cssReady, setCssReady] = useState(() => {
+    // Check if CSS is already loaded on initial render
+    if (katexCssReady) return true;
+    if (typeof document !== 'undefined' && checkKatexCssAlreadyLoaded()) {
+      katexCssReady = true;
+      katexCssLoaded = true;
+      return true;
+    }
+    return false;
+  });
 
   useEffect(() => {
     // If CSS is already fully loaded, we're good
-    if (katexCssReady) {
+    if (katexCssReady || checkKatexCssAlreadyLoaded()) {
+      katexCssReady = true;
+      katexCssLoaded = true;
       setCssReady(true);
       return;
     }
@@ -22,7 +45,7 @@ function useKatexCss(): boolean {
     const callback = () => setCssReady(true);
     katexCssCallbacks.push(callback);
 
-    // Start loading CSS if not already started
+    // Start loading CSS if not already started (fallback for pages without layout)
     if (!katexCssLoaded && typeof document !== 'undefined') {
       katexCssLoaded = true;
       const link = document.createElement('link');
@@ -124,6 +147,13 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   // Normalize multiple backslashes before LaTeX commands
   // This handles inconsistent escaping from AI (\\\\frac, \\frac, etc. all become \frac)
   result = result.replace(/\\{2,}([a-zA-Z])/g, '\\$1');
+
+  // Fix escaped dollar signs that should be LaTeX delimiters
+  // Pattern: \$ followed by content and another \$ should become $...$
+  result = result.replace(/\\\$([^$\\]+)\\\$/g, '$$$1$$');
+
+  // Also handle double-escaped dollar signs from JSON (\\$)
+  result = result.replace(/\\\\\$/g, '$');
 
   return result;
 }
@@ -441,14 +471,14 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   // Render a markdown table as HTML
   const renderTable = (tableData: { headers: string[]; rows: string[][] }) => {
     return (
-      <div className="overflow-x-auto my-4">
-        <table className="min-w-full border-collapse border border-[var(--color-border)]">
+      <div className="overflow-x-auto my-4 -mx-2 px-2">
+        <table className="w-max min-w-full border-collapse border border-[var(--color-border)] text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)]">
               {tableData.headers.map((header, i) => (
                 <th
                   key={i}
-                  className="border border-[var(--color-border)] px-4 py-2 text-left font-semibold text-[var(--color-text-primary)]"
+                  className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold text-[var(--color-text-primary)] whitespace-nowrap"
                 >
                   {renderMathContent(header)}
                 </th>
@@ -461,7 +491,7 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className="border border-[var(--color-border)] px-4 py-2 text-[var(--color-text-primary)]"
+                    className="border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-primary)] whitespace-nowrap"
                   >
                     {renderMathContent(cell)}
                   </td>

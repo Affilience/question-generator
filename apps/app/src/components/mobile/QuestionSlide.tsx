@@ -326,7 +326,7 @@ export function QuestionSlide({
             {question.markScheme.length > 0 && (
               <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
                 <h4 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">Mark Scheme</h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {question.markScheme.map((point, index) => {
                     const { markType, description } = parseMarkSchemePoint(point);
                     return (
@@ -336,9 +336,9 @@ export function QuestionSlide({
                             {markType}
                           </span>
                         )}
-                        <span className="text-[var(--color-text-secondary)] flex-1">
+                        <div className="text-[var(--color-text-secondary)] flex-1 min-w-0 overflow-x-auto">
                           <MathRenderer content={description} />
-                        </span>
+                        </div>
                       </div>
                     );
                   })}
