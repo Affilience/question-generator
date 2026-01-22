@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getAllSubjectParams, getAllPracticalParams } from '@/lib/seo/utils';
-import { INDEXED_BOARDLESS_TOPICS, INDEXED_BOARDLESS_SUBTOPICS } from '@/lib/seo/indexed-pages';
+import { getAllSubjectParams, getAllPracticalParams, getAllExamBoardParams } from '@/lib/seo/utils';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -8,20 +7,18 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * SEO SITEMAP STRATEGY
  * ====================
  *
- * Include all pages that are set to index: true in their metadata.
- * Uses boardless URL structure (Model A) for topic/subtopic pages.
+ * Only includes URLs that actually exist and return 200.
  *
- * Included (~2000 URLs):
+ * Included:
  * - Marketing pages (/, /pricing)
  * - Level pages (/gcse, /a-level)
  * - Subject pages (/gcse/maths)
- * - Indexed topic pages (/gcse/maths/algebra) - from INDEXED_BOARDLESS_TOPICS
- * - Indexed subtopic pages (/gcse/maths/algebra/simultaneous-equations) - from INDEXED_BOARDLESS_SUBTOPICS
+ * - Exam board pages (/gcse/maths/aqa)
  * - Required practical pages (/gcse/physics/aqa/practicals/rp1)
  *
- * Excluded:
- * - Board-specific pages (/gcse/maths/aqa/*) - noindex, navigation only
- * - Non-indexed subtopics - noindex until content is added
+ * Excluded (routes don't exist):
+ * - Boardless topic pages (/gcse/maths/algebra) - no route exists
+ * - Boardless subtopic pages (/gcse/maths/algebra/quadratics) - no route exists
  * - All /app/* routes - blocked by robots.txt
  * - All /api/* routes
  */
@@ -62,16 +59,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   // Subject pages (e.g., /gcse/maths) - Primary SEO targets
-  // These are comprehensive hub pages that link to all exam boards and topics
   const subjectPages: MetadataRoute.Sitemap = getAllSubjectParams().map(({ level, subject }) => ({
     url: `${BASE_URL}/${level}/${subject}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  }));
+
+  // Exam board pages (e.g., /gcse/maths/aqa) - These routes exist and work
+  const examBoardPages: MetadataRoute.Sitemap = getAllExamBoardParams().map(({ level, subject, examBoard }) => ({
+    url: `${BASE_URL}/${level}/${subject}/${examBoard}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
   // Required Practical pages - High search demand for science subjects
-  // e.g., /gcse/physics/aqa/practicals/aqa-gcse-physics-rp1
   const practicalPages: MetadataRoute.Sitemap = getAllPracticalParams().map(({ level, subject, examBoard, practicalId }) => ({
     url: `${BASE_URL}/${level}/${subject}/${examBoard}/practicals/${practicalId}`,
     lastModified: now,
@@ -79,30 +82,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  // Indexed boardless topic pages (Model A SEO structure)
-  // e.g., /gcse/maths/algebra
-  const topicPages: MetadataRoute.Sitemap = INDEXED_BOARDLESS_TOPICS.map(({ level, subject, topic }) => ({
-    url: `${BASE_URL}/${level}/${subject}/${topic}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
-
-  // Indexed boardless subtopic pages - PRIMARY SEO TARGETS
-  // e.g., /gcse/maths/algebra/simultaneous-equations
-  const subtopicPages: MetadataRoute.Sitemap = INDEXED_BOARDLESS_SUBTOPICS.map(({ level, subject, topic, subtopic }) => ({
-    url: `${BASE_URL}/${level}/${subject}/${topic}/${subtopic}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.9, // Highest priority - these are the main content pages
-  }));
-
   return [
     ...staticPages,
     ...levelPages,
     ...subjectPages,
-    ...topicPages,
-    ...subtopicPages,
+    ...examBoardPages,
     ...practicalPages,
   ];
 }
