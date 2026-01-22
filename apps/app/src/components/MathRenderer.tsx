@@ -184,6 +184,18 @@ function splitAtDelimiters(text: string): MathSegment[] {
         const contentEnd = findEndOfMath(delim.right, text, contentStart);
 
         if (contentEnd !== -1) {
+          // Extract math content
+          const mathContent = text.slice(contentStart, contentEnd);
+
+          // Validate the math content before accepting
+          if (!isValidMathContent(mathContent, delim.left === '$')) {
+            // Not valid math - treat opening delimiter as regular text
+            currentText += text[index];
+            index++;
+            foundDelimiter = true;
+            break;
+          }
+
           // Found valid math expression
           // Save any text before this math
           if (currentText) {
@@ -191,21 +203,11 @@ function splitAtDelimiters(text: string): MathSegment[] {
             currentText = '';
           }
 
-          // Extract math content
-          const mathContent = text.slice(contentStart, contentEnd);
-
-          // Skip if it's clearly currency (e.g., "$5.99" or "$10")
-          // Only skip if it's a dollar sign delimiter AND looks like money
-          if (delim.left === '$' && isCurrencyAmount(mathContent)) {
-            // Treat as regular text
-            currentText += delim.left + mathContent + delim.right;
-          } else {
-            segments.push({
-              type: 'math',
-              content: mathContent,
-              display: delim.display,
-            });
-          }
+          segments.push({
+            type: 'math',
+            content: mathContent,
+            display: delim.display,
+          });
 
           index = contentEnd + delim.right.length;
           foundDelimiter = true;
@@ -229,14 +231,42 @@ function splitAtDelimiters(text: string): MathSegment[] {
   return segments;
 }
 
-// Check if content looks like a currency amount (not math)
-// Must be a price pattern like "5.99", "10.00", "2,50" - NOT single digits or variables
-function isCurrencyAmount(content: string): boolean {
+// Validate if content between delimiters is actually math
+function isValidMathContent(content: string, isInlineDelimiter: boolean): boolean {
   const trimmed = content.trim();
-  // Match typical currency: digits with exactly 2 decimal places (period or comma)
-  // Must have decimal places to be considered currency
-  // Single digits like "0", "1", "2" are NOT currency - they're math
-  return /^\d+[.,]\d{2}$/.test(trimmed);
+
+  // Empty content is not valid math
+  if (!trimmed) {
+    return false;
+  }
+
+  // For inline $ delimiters, apply stricter validation
+  if (isInlineDelimiter) {
+    // Currency pattern: digits with decimal places like "5.99"
+    if (/^\d+[.,]\d{2}$/.test(trimmed)) {
+      return false;
+    }
+
+    // If content contains LaTeX commands, it's definitely math
+    // Check for backslash followed by letters (LaTeX command)
+    if (/\\[a-zA-Z]+/.test(trimmed)) {
+      return true;
+    }
+
+    // Prose-like content: contains common English words (not math)
+    // This catches cases like "$5 to $10" where "5 to " is captured
+    const proseWords = /\b(to|and|or|the|a|an|is|are|was|were|be|been|for|of|in|on|at|by|with|from|as|into|that|this|it|its|if|but|not|no|so|than|too|very|just|only|also|even|still|yet|now|then|here|there|where|when|how|why|what|which|who|whom|whose|each|every|any|some|all|both|few|more|most|other|such|own|same|new|old|good|bad|big|small|great|little|long|short|high|low|much|many|first|last|next|after|before|over|under|again|further|once|twice)\b/i;
+    if (proseWords.test(trimmed)) {
+      return false;
+    }
+
+    // Content that's just a number followed by text (like "5 meters") is not math
+    if (/^\d+\s+[a-zA-Z]/.test(trimmed)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // =============================================================================
