@@ -169,6 +169,31 @@ export default async function TopicPage({ params }: PageProps) {
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
             All Subtopics ({topicData.subtopics.length})
           </h2>
+
+          {/* Random Practice Card */}
+          <Link
+            href={`/${level}/${subject}/${examBoard}/practice/${topic}/random`}
+            className="group flex items-center justify-between bg-gradient-to-br from-[#1a2a3a] to-[#0f1a24] rounded-xl border border-[#3b82f6]/30 p-4 mb-4 transition-all duration-300 hover:border-[#3b82f6] hover:shadow-[0_0_30px_rgba(59,130,246,0.4),0_0_60px_rgba(59,130,246,0.15)] hover:scale-[1.01]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center">
+                <span className="text-xl">🎲</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[#60a5fa]">Random Practice</h3>
+                <p className="text-sm text-[#3b82f6]">Practice any subtopic from {topicData.name}</p>
+              </div>
+            </div>
+            <svg
+              className="w-5 h-5 text-[#3b82f6] group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </Link>
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {topicData.subtopics.map((subtopic) => {
               const subtopicSlug = slugify(subtopic);
