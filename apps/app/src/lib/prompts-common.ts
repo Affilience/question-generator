@@ -592,6 +592,28 @@ Other 3D types: "prism-3d", "cone-3d", "sphere-3d", "pyramid-3d"
 - Placing vertices at x=0 or y=0 (labels get cut off)
 - Forgetting labelPosition (labels appear in wrong places)
 - Using coordinates outside the width/height bounds
+
+### TWO-STAGE THINKING (for complex diagrams):
+When creating a diagram, think in two stages:
+
+**Stage 1 - Plan the entities:**
+- What objects exist? (triangles, circles, points, lines)
+- What labels are needed? (vertex labels A, B, C; side labels "5 cm")
+- What relationships exist? (right angle at B, parallel lines)
+
+**Stage 2 - Assign coordinates:**
+- Choose appropriate width/height (12x10 for triangles, 12x12 for circles)
+- Place vertices with 2+ unit margins from edges
+- Ensure labels won't overlap or be clipped
+
+### COORDINATE QUICK REFERENCE:
+| Diagram Type | Recommended Size | Margin from Edge |
+|--------------|------------------|------------------|
+| Triangle | width: 12, height: 10 | 2 units |
+| Circle | width: 12, height: 12 | 2 units + radius |
+| Quadrilateral | width: 14, height: 12 | 2 units |
+| Graph/Axes | Use axes bounds | N/A (axes handles it) |
+| 3D shapes | N/A (auto-centered) | N/A |
 `;
 
 /**

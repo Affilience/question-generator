@@ -222,3 +222,153 @@ export function isDiagramValid(spec: DiagramSpec | undefined | null): boolean {
 
   return hasAxes || hasExplicitBounds || isCompoundDiagram;
 }
+
+/**
+ * Check for overlapping elements (polygons, circles).
+ * Returns warnings for elements that may overlap.
+ */
+export function checkForOverlaps(spec: DiagramSpec): string[] {
+  const warnings: string[] = [];
+  const polygons: { index: number; vertices: Array<{ x: number; y: number }> }[] = [];
+  const circles: { index: number; cx: number; cy: number; r: number }[] = [];
+
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      polygons.push({ index: i, vertices: poly.vertices });
+    } else if (el.type === 'circle') {
+      const circle = el as CircleElement;
+      circles.push({ index: i, cx: circle.center.x, cy: circle.center.y, r: circle.radius });
+    }
+  });
+
+  // Check circle overlaps
+  for (let i = 0; i < circles.length; i++) {
+    for (let j = i + 1; j < circles.length; j++) {
+      const c1 = circles[i];
+      const c2 = circles[j];
+      const dist = Math.sqrt((c1.cx - c2.cx) ** 2 + (c1.cy - c2.cy) ** 2);
+      if (dist < (c1.r + c2.r) * 0.5) {
+        warnings.push(`Circles at elements ${c1.index} and ${c2.index} may overlap significantly`);
+      }
+    }
+  }
+
+  return warnings;
+}
+
+/**
+ * Check if elements are too close to the edges (may clip labels).
+ */
+export function checkEdgeProximity(
+  spec: DiagramSpec,
+  bounds: { xMin: number; xMax: number; yMin: number; yMax: number },
+  margin: number = 1
+): string[] {
+  const warnings: string[] = [];
+
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      poly.vertices.forEach((v, vi) => {
+        if (v.label) {
+          if (v.x <= bounds.xMin + margin || v.x >= bounds.xMax - margin ||
+              v.y <= bounds.yMin + margin || v.y >= bounds.yMax - margin) {
+            warnings.push(`Element ${i} vertex ${vi} with label "${v.label}" is near edge - label may be clipped`);
+          }
+        }
+      });
+    } else if (el.type === 'point') {
+      const point = el as PointElement;
+      if (point.position.label) {
+        if (point.position.x <= bounds.xMin + margin || point.position.x >= bounds.xMax - margin ||
+            point.position.y <= bounds.yMin + margin || point.position.y >= bounds.yMax - margin) {
+          warnings.push(`Point at element ${i} with label "${point.position.label}" is near edge - label may be clipped`);
+        }
+      }
+    }
+  });
+
+  return warnings;
+}
+
+/**
+ * Comprehensive diagram quality check.
+ * Returns an object with quality score and issues found.
+ */
+export function assessDiagramQuality(spec: DiagramSpec | undefined | null): {
+  score: number; // 0-100
+  issues: string[];
+  recommendations: string[];
+} {
+  if (!spec || !spec.elements || spec.elements.length === 0) {
+    return {
+      score: 0,
+      issues: ['No diagram specification provided'],
+      recommendations: ['Provide a valid diagram spec with elements'],
+    };
+  }
+
+  const issues: string[] = [];
+  const recommendations: string[] = [];
+  let score = 100;
+
+  // Check for bounds
+  const hasAxes = spec.elements.some(el => el.type === 'axes');
+  const hasExplicitBounds = !!(spec.width && spec.height);
+  const isCompound = spec.elements.some(el =>
+    ['tree-diagram', 'venn-diagram', 'bar-chart', 'pie-chart', 'box-plot', 'number-line',
+     'prism-3d', 'cylinder-3d', 'cone-3d', 'sphere-3d', 'pyramid-3d'].includes(el.type)
+  );
+
+  if (!hasAxes && !hasExplicitBounds && !isCompound) {
+    issues.push('Missing width/height - diagram bounds are undefined');
+    recommendations.push('Add explicit width and height to the diagram spec');
+    score -= 20;
+  }
+
+  // Check for showNotAccurate on geometry diagrams
+  const hasGeometry = spec.elements.some(el =>
+    ['polygon', 'circle', 'angle-marker', 'arc'].includes(el.type)
+  );
+  if (hasGeometry && !spec.showNotAccurate) {
+    recommendations.push('Consider adding showNotAccurate: true for geometry diagrams');
+    score -= 5;
+  }
+
+  // Check for overlaps
+  const overlapWarnings = checkForOverlaps(spec);
+  if (overlapWarnings.length > 0) {
+    issues.push(...overlapWarnings);
+    score -= overlapWarnings.length * 10;
+  }
+
+  // Check edge proximity
+  const bounds = hasExplicitBounds
+    ? { xMin: 0, xMax: spec.width!, yMin: 0, yMax: spec.height! }
+    : { xMin: 0, xMax: 10, yMin: 0, yMax: 10 };
+  const edgeWarnings = checkEdgeProximity(spec, bounds);
+  if (edgeWarnings.length > 0) {
+    issues.push(...edgeWarnings);
+    score -= edgeWarnings.length * 5;
+  }
+
+  // Check for labels without positions
+  spec.elements.forEach((el, i) => {
+    if (el.type === 'polygon') {
+      const poly = el as PolygonElement;
+      poly.vertices.forEach((v, vi) => {
+        if (v.label && !v.labelPosition) {
+          issues.push(`Element ${i} vertex ${vi} has label but no labelPosition`);
+          score -= 3;
+        }
+      });
+    }
+  });
+
+  return {
+    score: Math.max(0, score),
+    issues,
+    recommendations,
+  };
+}
