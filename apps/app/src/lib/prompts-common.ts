@@ -1,5 +1,6 @@
 import { Difficulty, Topic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
+import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 
 /**
  * Shared utilities for question generation prompts.
@@ -878,8 +879,15 @@ IMPORTANT: When your question would benefit from a visual representation, includ
 
 /**
  * Parse JSON response from AI model.
+ * Optionally validates the parsed output against subject-specific rules.
+ *
+ * @param response - Raw AI response string
+ * @param context - Optional validation context for subject-specific validation
  */
-export function parseQuestionResponse(response: string): {
+export function parseQuestionResponse(
+  response: string,
+  context?: ValidationContext
+): {
   content: string;
   marks: number;
   solution: string;
@@ -908,6 +916,24 @@ export function parseQuestionResponse(response: string): {
       throw new Error('Missing or invalid content field');
     }
 
+    // Validate if context provided
+    if (context) {
+      const validation = validateQuestionOutput(parsed, context);
+      if (!validation.valid) {
+        console.warn(
+          `[Question Validation] Errors for ${context.subject}/${context.qualification}/${context.difficulty}:`,
+          validation.errors
+        );
+      }
+      // Log warnings for monitoring
+      if (validation.warnings.length > 0) {
+        console.info(
+          `[Question Validation] Warnings for ${context.subject}/${context.qualification}/${context.difficulty}:`,
+          validation.warnings.map((w) => `${w.code}: ${w.message}`)
+        );
+      }
+    }
+
     return {
       content: parsed.content,
       marks: typeof parsed.marks === 'number' ? parsed.marks : 3,
@@ -921,3 +947,6 @@ export function parseQuestionResponse(response: string): {
     throw new Error('Failed to parse AI response');
   }
 }
+
+// Re-export ValidationContext for convenience
+export type { ValidationContext } from '@/lib/validations/question-output';

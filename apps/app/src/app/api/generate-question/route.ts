@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { getOpenAIClient } from '@/lib/openai';
 import { GenerateQuestionRequestSchema, validateRequest } from '@/lib/validations/api-schemas';
-import { parseQuestionResponse } from '@/lib/prompts-common';
+import { parseQuestionResponse, ValidationContext } from '@/lib/prompts-common';
 import { getEnhancedSystemPrompt, ENHANCED_SYSTEM_PROMPTS } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import {
@@ -565,7 +565,14 @@ export async function POST(request: NextRequest) {
         throw new Error('No response from OpenAI');
       }
 
-      const questionData = parseQuestionResponse(responseContent);
+      // Validation context for practicals
+      const practicalValidationContext: ValidationContext = {
+        subject: practical.subject as Subject,
+        examBoard,
+        qualification,
+        difficulty,
+      };
+      const questionData = parseQuestionResponse(responseContent, practicalValidationContext);
 
       // Cache the generated question (async, don't wait)
       cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
@@ -1458,7 +1465,14 @@ export async function POST(request: NextRequest) {
       throw new Error('No response from OpenAI');
     }
 
-    const questionData = parseQuestionResponse(responseContent);
+    // Validation context for standard questions
+    const validationContext: ValidationContext = {
+      subject,
+      examBoard,
+      qualification,
+      difficulty,
+    };
+    const questionData = parseQuestionResponse(responseContent, validationContext);
 
     // Cache the generated question (async, don't wait)
     cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {

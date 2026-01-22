@@ -14,7 +14,7 @@ import {
 import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
-import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE } from '@/lib/prompts-common';
+import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE, ValidationContext } from '@/lib/prompts-common';
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -574,7 +574,14 @@ async function generateSingleQuestion(
       throw new Error('No response from AI');
     }
 
-    const questionData = parseQuestionResponse(responseContent);
+    // Validation context for paper questions
+    const validationContext: ValidationContext = {
+      subject,
+      examBoard,
+      qualification,
+      difficulty: plan.difficulty,
+    };
+    const questionData = parseQuestionResponse(responseContent, validationContext);
 
     const generatedQuestion: GeneratedQuestion = {
       id: plan.id,

@@ -11,6 +11,7 @@ import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
+import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 // Import real extract/source databases for English Literature and History
 import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme, HistoricalSource } from '@/lib/extracts/history-sources';
@@ -1504,6 +1505,28 @@ export async function POST(request: NextRequest) {
             // Parse and send final question
             try {
               const parsed = JSON.parse(fullJson);
+
+              // Validate the AI output
+              const validationContext: ValidationContext = {
+                subject: effectiveSubject,
+                examBoard: effectiveBoard,
+                qualification: effectiveLevel,
+                difficulty: effectiveDifficulty,
+              };
+              const validation = validateQuestionOutput(parsed, validationContext);
+              if (!validation.valid) {
+                console.warn(
+                  `[Question Validation] Errors for ${effectiveSubject}/${effectiveLevel}/${effectiveDifficulty}:`,
+                  validation.errors
+                );
+              }
+              if (validation.warnings.length > 0) {
+                console.info(
+                  `[Question Validation] Warnings for ${effectiveSubject}/${effectiveLevel}/${effectiveDifficulty}:`,
+                  validation.warnings.map((w) => `${w.code}: ${w.message}`)
+                );
+              }
+
               const question: {
                 id: string;
                 topicId: string;
@@ -1603,6 +1626,28 @@ export async function POST(request: NextRequest) {
     if (!content) throw new Error('No response from OpenAI');
 
     const parsed = JSON.parse(content);
+
+    // Validate the AI output (non-streaming path)
+    const validationContext: ValidationContext = {
+      subject: effectiveSubject,
+      examBoard: effectiveBoard,
+      qualification: effectiveLevel,
+      difficulty: effectiveDifficulty,
+    };
+    const validation = validateQuestionOutput(parsed, validationContext);
+    if (!validation.valid) {
+      console.warn(
+        `[Question Validation] Errors for ${effectiveSubject}/${effectiveLevel}/${effectiveDifficulty}:`,
+        validation.errors
+      );
+    }
+    if (validation.warnings.length > 0) {
+      console.info(
+        `[Question Validation] Warnings for ${effectiveSubject}/${effectiveLevel}/${effectiveDifficulty}:`,
+        validation.warnings.map((w) => `${w.code}: ${w.message}`)
+      );
+    }
+
     const question: {
       id: string;
       topicId: string;
