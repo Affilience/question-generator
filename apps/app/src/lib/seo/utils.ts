@@ -197,8 +197,8 @@ export function getIndexedSubtopicParams(): {
   topic: string;
   subtopic: string;
 }[] {
-  // Import here to avoid circular dependency
-  const { INDEXED_BOARDLESS_SUBTOPICS } = require('./indexed-pages');
+  // Import at top level to avoid dynamic require issues in serverless
+  const { INDEXED_BOARDLESS_SUBTOPICS } = require('@/lib/seo/indexed-pages');
 
   const params: {
     level: string;

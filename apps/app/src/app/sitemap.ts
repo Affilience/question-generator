@@ -4,8 +4,9 @@ import {
   getAllPracticalParams,
   getAllExamBoardParams,
   getAllTopicParams,
-  getIndexedSubtopicParams,
 } from '@/lib/seo/utils';
+import { INDEXED_BOARDLESS_SUBTOPICS } from '@/lib/seo/indexed-pages';
+import { examBoards } from '@/lib/topics';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -92,12 +93,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Indexed subtopic pages (e.g., /gcse/maths/aqa/algebra/factorising-quadratics)
   // Only includes pages that return 200 (non-indexed redirect to /practice/)
-  const subtopicPages: MetadataRoute.Sitemap = getIndexedSubtopicParams().map(({ level, subject, examBoard, topic, subtopic }) => ({
-    url: `${BASE_URL}/${level}/${subject}/${examBoard}/${topic}/${subtopic}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+  // Generate for each indexed subtopic across all exam boards
+  const subtopicPages: MetadataRoute.Sitemap = [];
+  for (const indexed of INDEXED_BOARDLESS_SUBTOPICS) {
+    for (const board of examBoards) {
+      subtopicPages.push({
+        url: `${BASE_URL}/${indexed.level}/${indexed.subject}/${board.id}/${indexed.topic}/${indexed.subtopic}`,
+        lastModified: now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      });
+    }
+  }
 
   // Required Practical pages - High search demand for science subjects
   const practicalPages: MetadataRoute.Sitemap = getAllPracticalParams().map(({ level, subject, examBoard, practicalId }) => ({
