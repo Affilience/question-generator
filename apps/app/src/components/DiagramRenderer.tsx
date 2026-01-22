@@ -31,6 +31,7 @@ import {
   Pyramid3DElement,
   TreeNode,
 } from '@/types/diagram';
+import { validateAndSanitizeDiagram } from '@/lib/diagram-utils';
 
 // ============================================
 // Constants
@@ -1348,17 +1349,20 @@ interface DiagramRendererProps {
 }
 
 export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400 }: DiagramRendererProps) {
+  // Validate and sanitize the diagram spec
+  const { sanitizedSpec } = useMemo(() => validateAndSanitizeDiagram(spec), [spec]);
+
   const { renderWidth, renderHeight, transform, scale, logicalBounds } = useMemo(() => {
     // Determine logical bounds from elements or spec
     let xMin = 0, xMax = 10, yMin = 0, yMax = 10;
 
-    if (spec.width && spec.height) {
-      xMax = spec.width;
-      yMax = spec.height;
+    if (sanitizedSpec.width && sanitizedSpec.height) {
+      xMax = sanitizedSpec.width;
+      yMax = sanitizedSpec.height;
     }
 
     // Check for axes to determine bounds
-    const axesEl = spec.elements.find(el => el.type === 'axes') as AxesElement | undefined;
+    const axesEl = sanitizedSpec.elements.find(el => el.type === 'axes') as AxesElement | undefined;
     if (axesEl) {
       xMin = axesEl.xMin;
       xMax = axesEl.xMax;
@@ -1366,7 +1370,7 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
       yMax = axesEl.yMax;
     }
 
-    const padding = spec.padding || 30;
+    const padding = sanitizedSpec.padding || 30;
     const logicalWidth = xMax - xMin;
     const logicalHeight = yMax - yMin;
 
@@ -1398,7 +1402,7 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
       scale,
       logicalBounds: { xMin, xMax, yMin, yMax },
     };
-  }, [spec, maxWidth, maxHeight]);
+  }, [sanitizedSpec, maxWidth, maxHeight]);
 
   const renderElement = (el: DiagramElement, index: number): React.ReactNode => {
     const key = `el-${index}`;
@@ -1459,8 +1463,8 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
     <div className={className}>
       <svg
         width={renderWidth}
-        height={renderHeight + (spec.showNotAccurate ? 25 : 0)}
-        viewBox={`0 0 ${renderWidth} ${renderHeight + (spec.showNotAccurate ? 25 : 0)}`}
+        height={renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}
+        viewBox={`0 0 ${renderWidth} ${renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}`}
         className="mx-auto"
       >
         {/* Definitions for markers */}
@@ -1488,15 +1492,15 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
         </defs>
 
         {/* Background */}
-        {spec.background && (
-          <rect x={0} y={0} width={renderWidth} height={renderHeight} fill={spec.background} />
+        {sanitizedSpec.background && (
+          <rect x={0} y={0} width={renderWidth} height={renderHeight} fill={sanitizedSpec.background} />
         )}
 
         {/* Render all elements */}
-        {spec.elements.map((el, i) => renderElement(el, i))}
+        {sanitizedSpec.elements.map((el, i) => renderElement(el, i))}
 
         {/* "Not accurately drawn" disclaimer */}
-        {spec.showNotAccurate && (
+        {sanitizedSpec.showNotAccurate && (
           <text
             x={renderWidth / 2}
             y={renderHeight + 18}
@@ -1505,7 +1509,7 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
             textAnchor="middle"
             fontStyle="italic"
           >
-            {spec.disclaimer || 'Diagram NOT accurately drawn'}
+            {sanitizedSpec.disclaimer || 'Diagram NOT accurately drawn'}
           </text>
         )}
       </svg>

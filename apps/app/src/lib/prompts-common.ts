@@ -387,22 +387,30 @@ export const DIAGRAM_SCHEMA_DOCS = `## DIAGRAM SPECIFICATION
 
 If your question requires a diagram, include a "diagram" field in your JSON response. The diagram will be rendered as an SVG.
 
+### CRITICAL RULES - READ CAREFULLY:
+
+1. **ALWAYS specify width and height** - Every diagram MUST have explicit width and height values
+2. **Coordinate system**: Y-axis increases UPWARD (mathematical convention). Origin (0,0) is at bottom-left.
+3. **Keep elements within bounds**: All coordinates must be between 0 and width (for x) and 0 and height (for y)
+4. **Leave margins**: Keep elements at least 1 unit from edges to prevent clipping of labels
+5. **Use appropriate scale**: For geometry, use width/height of 10-12 units. For graphs, match your axis ranges.
+
 ### Common Diagram Types:
 
-**Triangle/Polygon:**
+**Triangle/Polygon (GEOMETRY):**
 \`\`\`json
 {
   "diagram": {
-    "width": 10,
-    "height": 8,
+    "width": 12,
+    "height": 10,
     "showNotAccurate": true,
     "elements": [
       {
         "type": "polygon",
         "vertices": [
-          {"x": 1, "y": 1, "label": "A", "labelPosition": "bottom-left"},
-          {"x": 9, "y": 1, "label": "B", "labelPosition": "bottom-right"},
-          {"x": 5, "y": 7, "label": "C", "labelPosition": "top"}
+          {"x": 2, "y": 2, "label": "A", "labelPosition": "bottom-left"},
+          {"x": 10, "y": 2, "label": "B", "labelPosition": "bottom-right"},
+          {"x": 6, "y": 8, "label": "C", "labelPosition": "top"}
         ],
         "sideLabels": [
           {"fromIndex": 0, "toIndex": 1, "label": "8 cm"},
@@ -411,9 +419,9 @@ If your question requires a diagram, include a "diagram" field in your JSON resp
       },
       {
         "type": "angle-marker",
-        "vertex": {"x": 9, "y": 1},
-        "ray1End": {"x": 1, "y": 1},
-        "ray2End": {"x": 5, "y": 7},
+        "vertex": {"x": 10, "y": 2},
+        "ray1End": {"x": 2, "y": 2},
+        "ray2End": {"x": 6, "y": 8},
         "isRightAngle": true
       }
     ]
@@ -425,10 +433,13 @@ If your question requires a diagram, include a "diagram" field in your JSON resp
 \`\`\`json
 {
   "diagram": {
+    "width": 12,
+    "height": 12,
+    "showNotAccurate": true,
     "elements": [
       {
         "type": "circle",
-        "center": {"x": 5, "y": 5, "label": "O"},
+        "center": {"x": 6, "y": 6, "label": "O", "labelPosition": "bottom-right"},
         "radius": 4,
         "radiusLabel": "7 cm"
       }
@@ -437,15 +448,15 @@ If your question requires a diagram, include a "diagram" field in your JSON resp
 }
 \`\`\`
 
-**Coordinate Graph:**
+**Coordinate Graph (axes define the bounds automatically):**
 \`\`\`json
 {
   "diagram": {
     "elements": [
-      {"type": "axes", "xMin": -5, "xMax": 5, "yMin": -5, "yMax": 10, "showNumbers": true, "xLabel": "x", "yLabel": "y"},
-      {"type": "grid", "xMin": -5, "xMax": 5, "yMin": -5, "yMax": 10},
+      {"type": "axes", "xMin": -5, "xMax": 5, "yMin": -2, "yMax": 10, "showNumbers": true, "xLabel": "x", "yLabel": "y"},
+      {"type": "grid", "xMin": -5, "xMax": 5, "yMin": -2, "yMax": 10},
       {"type": "curve", "fn": "x^2", "stroke": "#3b82f6"},
-      {"type": "point", "position": {"x": 2, "y": 4, "label": "P"}, "style": "dot"}
+      {"type": "point", "position": {"x": 2, "y": 4, "label": "P", "labelPosition": "top-right"}, "style": "dot"}
     ]
   }
 }
@@ -563,10 +574,24 @@ Other 3D types: "prism-3d", "cone-3d", "sphere-3d", "pyramid-3d"
 - bar-chart, pie-chart, box-plot
 - prism-3d, cylinder-3d, cone-3d, sphere-3d, pyramid-3d
 
-### Important:
-- Set "showNotAccurate": true for geometry diagrams
-- Coordinates should be in logical units (they will be scaled)
-- Use labelPosition for vertex labels: "top", "bottom", "left", "right", "top-left", etc.
+### IMPORTANT RULES - FOLLOW EXACTLY:
+
+1. **ALWAYS include width and height** for polygon/circle/geometry diagrams (e.g., "width": 12, "height": 10)
+2. **Axes diagrams**: The axes element defines bounds automatically - no need for separate width/height
+3. **Coordinate system**: Y increases UPWARD. Point (0,0) is bottom-left, (width, height) is top-right
+4. **Margins**: Keep all points at least 1-2 units from edges so labels don't get cut off
+5. **Label positions**: Use "labelPosition" for all labels: "top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right"
+6. **showNotAccurate**: Set to true for all geometry diagrams (triangles, circles, angles)
+7. **Scale appropriately**:
+   - Geometry diagrams: width/height of 10-14 units
+   - Graphs: Match your axis ranges (xMin to xMax, yMin to yMax)
+   - 3D shapes: No width/height needed - they auto-center
+
+### Common Mistakes to AVOID:
+- Missing width/height (causes default 10x10 which may clip your diagram)
+- Placing vertices at x=0 or y=0 (labels get cut off)
+- Forgetting labelPosition (labels appear in wrong places)
+- Using coordinates outside the width/height bounds
 `;
 
 /**
