@@ -1,6 +1,7 @@
 import { Difficulty, Topic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
+import { assessDiagramQuality, validateAndSanitizeDiagram } from '@/lib/diagram-utils';
 
 /**
  * Shared utilities for question generation prompts.
@@ -946,6 +947,7 @@ export function parseQuestionResponse(
   markScheme: string[];
   diagram?: DiagramSpec;
   solutionDiagram?: DiagramSpec;
+  diagramQualityScore: number;
 } {
   try {
     let jsonStr = response;
@@ -986,13 +988,40 @@ export function parseQuestionResponse(
       }
     }
 
+    // Validate diagram quality if present
+    let diagram = parsed.diagram || undefined;
+    let solutionDiagram = parsed.solutionDiagram || undefined;
+    let diagramQualityScore = 100;
+
+    if (diagram) {
+      const quality = assessDiagramQuality(diagram);
+      diagramQualityScore = quality.score;
+
+      if (quality.score < 50) {
+        console.warn(
+          `[Diagram Quality] Low score (${quality.score}/100):`,
+          quality.issues
+        );
+      }
+
+      // Auto-sanitize the diagram
+      const { sanitizedSpec } = validateAndSanitizeDiagram(diagram);
+      diagram = sanitizedSpec;
+    }
+
+    if (solutionDiagram) {
+      const { sanitizedSpec } = validateAndSanitizeDiagram(solutionDiagram);
+      solutionDiagram = sanitizedSpec;
+    }
+
     return {
       content: parsed.content,
       marks: typeof parsed.marks === 'number' ? parsed.marks : 3,
       solution: parsed.solution || '',
       markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
-      diagram: parsed.diagram || undefined,
-      solutionDiagram: parsed.solutionDiagram || undefined,
+      diagram,
+      solutionDiagram,
+      diagramQualityScore,
     };
   } catch (error) {
     console.error('Failed to parse question response:', error);
