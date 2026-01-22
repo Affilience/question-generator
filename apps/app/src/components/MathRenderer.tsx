@@ -1,7 +1,7 @@
 'use client';
 
 import { InlineMath, BlockMath } from 'react-katex';
-import { Component, ReactNode, useEffect, useState } from 'react';
+import { Component, ReactNode, useEffect, useState, useMemo } from 'react';
 
 // Track KaTeX CSS loading state globally
 let katexCssLoaded = false;
@@ -22,7 +22,6 @@ function checkKatexCssAlreadyLoaded(): boolean {
 
 function useKatexCss(): boolean {
   const [cssReady, setCssReady] = useState(() => {
-    // Check if CSS is already loaded on initial render
     if (katexCssReady) return true;
     if (typeof document !== 'undefined' && checkKatexCssAlreadyLoaded()) {
       katexCssReady = true;
@@ -33,7 +32,6 @@ function useKatexCss(): boolean {
   });
 
   useEffect(() => {
-    // If CSS is already fully loaded, we're good
     if (katexCssReady || checkKatexCssAlreadyLoaded()) {
       katexCssReady = true;
       katexCssLoaded = true;
@@ -41,11 +39,9 @@ function useKatexCss(): boolean {
       return;
     }
 
-    // Register callback to be notified when CSS loads
     const callback = () => setCssReady(true);
     katexCssCallbacks.push(callback);
 
-    // Start loading CSS if not already started (fallback for pages without layout)
     if (!katexCssLoaded && typeof document !== 'undefined') {
       katexCssLoaded = true;
       const link = document.createElement('link');
@@ -61,7 +57,6 @@ function useKatexCss(): boolean {
     }
 
     return () => {
-      // Remove callback on unmount
       katexCssCallbacks = katexCssCallbacks.filter(cb => cb !== callback);
     };
   }, []);
@@ -76,39 +71,27 @@ interface MathRendererProps {
 }
 
 // Error boundary for KaTeX rendering failures
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback: string;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
-class MathErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+class MathErrorBoundary extends Component<{ children: ReactNode; fallback: string }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; fallback: string }) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
   render() {
     if (this.state.hasError) {
-      // Show the raw LaTeX as fallback
       return <code className="text-amber-500 bg-amber-500/10 px-1 rounded">{this.props.fallback}</code>;
     }
     return this.props.children;
   }
 }
 
-// Safe wrapper for InlineMath that catches errors
+// Safe wrapper for InlineMath
 function SafeInlineMath({ math }: { math: string }) {
-  if (!math || math.trim() === '') {
-    return null;
-  }
+  if (!math || math.trim() === '') return null;
   return (
     <MathErrorBoundary fallback={`$${math}$`}>
       <InlineMath math={math} />
@@ -116,11 +99,9 @@ function SafeInlineMath({ math }: { math: string }) {
   );
 }
 
-// Safe wrapper for BlockMath that catches errors
+// Safe wrapper for BlockMath
 function SafeBlockMath({ math }: { math: string }) {
-  if (!math || math.trim() === '') {
-    return null;
-  }
+  if (!math || math.trim() === '') return null;
   return (
     <MathErrorBoundary fallback={`$$${math}$$`}>
       <BlockMath math={math} />
@@ -128,170 +109,224 @@ function SafeBlockMath({ math }: { math: string }) {
   );
 }
 
-// Process JSON escape sequences that may still be in content
-// Use specific negative lookaheads to protect LaTeX commands
-function processEscapeSequences(text: string, isStreaming: boolean = false): string {
-  // LaTeX commands starting with \n: nabla, neq, neg, nu, newline, nwarrow, nearrow, nexists, ni, notin, not, ncong, nless, etc.
-  // LaTeX commands starting with \t: theta, times, text, tan, tanh, top, tau, therefore, triangle, to, textrm, textit, textbf, tfrac, tilde
-  // LaTeX commands starting with \r: rho, rightarrow, Rightarrow, rangle, rceil, rfloor, right, rvert, rbrace, rbrack
+// =============================================================================
+// ROBUST LATEX DELIMITER PARSING (based on KaTeX's splitAtDelimiters approach)
+// =============================================================================
 
-  // For streaming, add (?=.) to avoid matching at end of string (might be incomplete commands)
+interface MathSegment {
+  type: 'text' | 'math';
+  content: string;
+  display: boolean;
+}
+
+// Find the end of a math expression, tracking brace depth and escaped characters
+function findEndOfMath(delimiter: string, text: string, startIndex: number): number {
+  let index = startIndex;
+  let braceLevel = 0;
+  const delimLength = delimiter.length;
+
+  while (index < text.length) {
+    const char = text[index];
+
+    // Check if we've found the closing delimiter (only at brace level 0)
+    if (braceLevel <= 0 && text.slice(index, index + delimLength) === delimiter) {
+      return index;
+    }
+
+    // Handle escaped characters - skip the next character
+    if (char === '\\') {
+      index += 2;
+      continue;
+    }
+
+    // Track brace depth for nested content like \frac{a}{b}
+    if (char === '{') {
+      braceLevel++;
+    } else if (char === '}') {
+      braceLevel--;
+    }
+
+    index++;
+  }
+
+  return -1; // No closing delimiter found
+}
+
+// Split text at LaTeX delimiters, processing longer delimiters first
+function splitAtDelimiters(text: string): MathSegment[] {
+  // Define delimiters in order of priority (longer/more specific first)
+  const delimiters = [
+    { left: '$$', right: '$$', display: true },
+    { left: '\\[', right: '\\]', display: true },
+    { left: '\\(', right: '\\)', display: false },
+    { left: '$', right: '$', display: false },
+  ];
+
+  const segments: MathSegment[] = [];
+  let currentText = '';
+  let index = 0;
+
+  while (index < text.length) {
+    // Check for escaped dollar sign
+    if (text[index] === '\\' && text[index + 1] === '$') {
+      currentText += '$';
+      index += 2;
+      continue;
+    }
+
+    // Try to match each delimiter type
+    let foundDelimiter = false;
+
+    for (const delim of delimiters) {
+      if (text.slice(index, index + delim.left.length) === delim.left) {
+        // Found opening delimiter - look for closing
+        const contentStart = index + delim.left.length;
+        const contentEnd = findEndOfMath(delim.right, text, contentStart);
+
+        if (contentEnd !== -1) {
+          // Found valid math expression
+          // Save any text before this math
+          if (currentText) {
+            segments.push({ type: 'text', content: currentText, display: false });
+            currentText = '';
+          }
+
+          // Extract math content
+          const mathContent = text.slice(contentStart, contentEnd);
+
+          // Skip if it's clearly currency (e.g., "$5.99" or "$10")
+          // Only skip if it's a dollar sign delimiter AND looks like money
+          if (delim.left === '$' && isCurrencyAmount(mathContent)) {
+            // Treat as regular text
+            currentText += delim.left + mathContent + delim.right;
+          } else {
+            segments.push({
+              type: 'math',
+              content: mathContent,
+              display: delim.display,
+            });
+          }
+
+          index = contentEnd + delim.right.length;
+          foundDelimiter = true;
+          break;
+        }
+      }
+    }
+
+    // No delimiter found at this position - add character to current text
+    if (!foundDelimiter) {
+      currentText += text[index];
+      index++;
+    }
+  }
+
+  // Add any remaining text
+  if (currentText) {
+    segments.push({ type: 'text', content: currentText, display: false });
+  }
+
+  return segments;
+}
+
+// Check if content looks like a currency amount (not math)
+// Must be a price pattern like "5.99", "10.00", "2,50" - NOT single digits or variables
+function isCurrencyAmount(content: string): boolean {
+  const trimmed = content.trim();
+  // Match typical currency: digits with exactly 2 decimal places (period or comma)
+  // Must have decimal places to be considered currency
+  // Single digits like "0", "1", "2" are NOT currency - they're math
+  return /^\d+[.,]\d{2}$/.test(trimmed);
+}
+
+// =============================================================================
+// TEXT PREPROCESSING
+// =============================================================================
+
+// Process JSON escape sequences while protecting LaTeX commands
+function processEscapeSequences(text: string, isStreaming: boolean = false): string {
   const endCheck = isStreaming ? '(?=.)' : '';
 
   let result = text
+    // \n that's not a LaTeX command (nabla, neq, neg, nu, etc.)
     .replace(new RegExp(`\\\\n(?!(?:abla|eq|eg|u|ewline|warrow|earrow|exists|i|otin|ot|cong|less|geq|leq|gtr|mid|parallel|prec|succ|sim|subseteq|supseteq|vdash|vDash|Vdash|VDash)\\b)${endCheck}`, 'g'), '\n')
+    // \t that's not a LaTeX command (theta, times, text, etc.)
     .replace(new RegExp(`\\\\t(?!(?:heta|imes|ext|an|anh|op|au|herefore|riangle|o|extrm|extit|extbf|exttt|extsf|frac|ilde|iny)\\b)${endCheck}`, 'g'), '\t')
+    // \r that's not a LaTeX command (rho, rightarrow, etc.)
     .replace(new RegExp(`\\\\r(?!(?:ho|ightarrow|Rightarrow|angle|ceil|floor|ight|vert|Vert|brace|brack|ule)\\b)${endCheck}`, 'g'), '\r')
+    // Escaped quotes
     .replace(/\\"/g, '"');
 
-  // Normalize multiple backslashes before LaTeX commands
-  // This handles inconsistent escaping from AI (\\\\frac, \\frac, etc. all become \frac)
+  // Normalize multiple backslashes before LaTeX commands (\\frac -> \frac)
   result = result.replace(/\\{2,}([a-zA-Z])/g, '\\$1');
-
-  // Fix escaped dollar signs that should be LaTeX delimiters
-  // Pattern: \$ followed by content and another \$ should become $...$
-  result = result.replace(/\\\$([^$\\]+)\\\$/g, '$$$1$$');
-
-  // Also handle double-escaped dollar signs from JSON (\\$)
-  result = result.replace(/\\\\\$/g, '$');
 
   return result;
 }
 
-// Fix common LaTeX escaping issues from AI responses
+// Fix forward slashes used instead of backslashes for LaTeX commands
 function fixLatexEscaping(text: string): string {
-  // Comprehensive list of LaTeX commands that might be output with forward slashes
   const latexCommands = [
-    // Basic math operations
     'frac', 'dfrac', 'tfrac', 'cfrac', 'sqrt', 'root',
-    'times', 'div', 'cdot', 'ast', 'star',
-    'pm', 'mp', 'plus', 'minus',
-
-    // Comparison and relations
+    'times', 'div', 'cdot', 'pm', 'mp',
     'approx', 'sim', 'simeq', 'cong', 'equiv', 'propto',
     'leq', 'geq', 'neq', 'lt', 'gt', 'le', 'ge', 'ne',
     'll', 'gg', 'subset', 'supset', 'subseteq', 'supseteq',
-    'in', 'notin', 'ni', 'owns',
-
-    // Greek letters (lowercase)
+    'in', 'notin', 'ni',
     'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'varepsilon',
     'zeta', 'eta', 'theta', 'vartheta', 'iota', 'kappa',
-    'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'varpi',
+    'lambda', 'mu', 'nu', 'xi', 'pi', 'varpi',
     'rho', 'varrho', 'sigma', 'varsigma', 'tau', 'upsilon',
     'phi', 'varphi', 'chi', 'psi', 'omega',
-
-    // Greek letters (uppercase)
     'Gamma', 'Delta', 'Theta', 'Lambda', 'Xi', 'Pi',
     'Sigma', 'Upsilon', 'Phi', 'Psi', 'Omega',
-
-    // Trig and functions
     'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
-    'arcsin', 'arccos', 'arctan', 'arccot',
+    'arcsin', 'arccos', 'arctan',
     'sinh', 'cosh', 'tanh', 'coth',
-    'log', 'ln', 'lg', 'exp',
-    'lim', 'limsup', 'liminf', 'max', 'min', 'sup', 'inf',
-    'det', 'dim', 'ker', 'hom', 'arg', 'deg', 'gcd',
-
-    // Calculus and sums
-    'sum', 'prod', 'coprod', 'int', 'iint', 'iiint', 'oint',
-    'partial', 'nabla', 'grad',
-
-    // Arrows
+    'log', 'ln', 'exp', 'lim', 'max', 'min',
+    'sum', 'prod', 'int', 'iint', 'iiint', 'oint',
+    'partial', 'nabla',
     'leftarrow', 'rightarrow', 'leftrightarrow',
     'Leftarrow', 'Rightarrow', 'Leftrightarrow',
-    'longleftarrow', 'longrightarrow', 'longleftrightarrow',
-    'uparrow', 'downarrow', 'updownarrow',
-    'mapsto', 'longmapsto', 'hookrightarrow', 'hookleftarrow',
-    'nearrow', 'searrow', 'swarrow', 'nwarrow',
-    'to', 'gets', 'leadsto',
-
-    // Logic and sets
-    'forall', 'exists', 'nexists', 'neg', 'lnot',
+    'uparrow', 'downarrow', 'mapsto', 'to',
+    'forall', 'exists', 'neg',
     'land', 'lor', 'implies', 'iff',
-    'cup', 'cap', 'setminus', 'emptyset', 'varnothing',
-    'therefore', 'because',
-
-    // Delimiters
+    'cup', 'cap', 'setminus', 'emptyset',
     'left', 'right', 'middle',
-    'lvert', 'rvert', 'lVert', 'rVert',
     'langle', 'rangle', 'lfloor', 'rfloor', 'lceil', 'rceil',
-    'lbrace', 'rbrace', 'lbrack', 'rbrack',
-
-    // Dots and spacing
     'ldots', 'cdots', 'vdots', 'ddots', 'dots',
-    'quad', 'qquad', 'hspace', 'vspace', 'thinspace', 'negthinspace',
-    'enspace', 'kern', 'mkern', 'hfill',
-
-    // Text and fonts
-    'text', 'textrm', 'textit', 'textbf', 'textsf', 'texttt',
-    'mathrm', 'mathit', 'mathbf', 'mathsf', 'mathtt',
-    'mathbb', 'mathcal', 'mathfrak', 'mathscr',
-    'boldsymbol', 'bm',
-
-    // Accents and decorations
-    'hat', 'bar', 'vec', 'dot', 'ddot', 'tilde', 'widetilde',
-    'overline', 'underline', 'widehat', 'overrightarrow', 'overleftarrow',
+    'quad', 'qquad', 'text', 'textrm', 'textit', 'textbf',
+    'mathrm', 'mathit', 'mathbf', 'mathbb', 'mathcal',
+    'hat', 'bar', 'vec', 'dot', 'ddot', 'tilde',
+    'overline', 'underline', 'widehat', 'widetilde',
     'overbrace', 'underbrace', 'overset', 'underset',
-    'stackrel', 'atop', 'choose',
-
-    // Geometry and misc symbols
-    'degree', 'circ', 'angle', 'measuredangle', 'sphericalangle',
-    'triangle', 'square', 'diamond', 'star',
-    'parallel', 'perp', 'cong', 'ncong',
-    'infty', 'aleph', 'hbar', 'ell', 'wp', 'Re', 'Im',
-    'prime', 'backprime',
-
-    // Chemistry (common)
-    'ce', 'pu', // mhchem package (may not work in KaTeX)
-
-    // Environments
-    'begin', 'end',
-
-    // Matrices
-    'matrix', 'pmatrix', 'bmatrix', 'vmatrix', 'Vmatrix', 'cases',
-
-    // Binomials
-    'binom', 'dbinom', 'tbinom',
-
-    // Misc
-    'not', 'cancel', 'bcancel', 'xcancel', 'sout',
-    'phantom', 'hphantom', 'vphantom', 'smash',
-    'color', 'textcolor', 'colorbox', 'fcolorbox',
-    'boxed', 'fbox', 'framebox',
-    'rule', 'strut', 'mathstrut',
+    'degree', 'circ', 'angle', 'triangle', 'square',
+    'parallel', 'perp', 'infty', 'prime',
+    'begin', 'end', 'matrix', 'pmatrix', 'bmatrix', 'cases',
+    'binom', 'boxed', 'cancel',
   ];
 
   let result = text;
-
-  // Fix forward slashes used instead of backslashes
   for (const cmd of latexCommands) {
-    // Match /command or //command patterns and replace with \command
     result = result.replace(new RegExp(`//${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
     result = result.replace(new RegExp(`/(?!/)${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
   }
-
   return result;
 }
 
-// Parse markdown table and return structured data
+// =============================================================================
+// TABLE PARSING
+// =============================================================================
+
 function parseMarkdownTable(tableText: string): { headers: string[]; rows: string[][] } | null {
   const lines = tableText.trim().split('\n').filter(line => line.trim());
-  if (lines.length < 2) return null;
-
-  // Check if this looks like a markdown table
-  if (!lines[0].includes('|')) return null;
+  if (lines.length < 2 || !lines[0].includes('|')) return null;
 
   const parseRow = (line: string): string[] => {
-    return line
-      .split('|')
-      .map(cell => cell.trim())
-      .filter((cell, index, arr) => index > 0 && index < arr.length - 1 || (index === 0 && cell) || (index === arr.length - 1 && cell));
+    return line.split('|').map(cell => cell.trim()).filter((_, i, arr) => i > 0 && i < arr.length - 1);
   };
 
   const headers = parseRow(lines[0]);
-
-  // Check for separator line (---|---|---)
-  const separatorIndex = lines.findIndex(line => /^[\s|:-]+$/.test(line));
+  const separatorIndex = lines.findIndex(line => /^[\s|:-]+$/.test(line) && line.includes('-'));
   const dataStartIndex = separatorIndex >= 0 ? separatorIndex + 1 : 1;
 
   const rows: string[][] = [];
@@ -304,41 +339,39 @@ function parseMarkdownTable(tableText: string): { headers: string[]; rows: strin
   return { headers, rows };
 }
 
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
 export function MathRenderer({ content, className = '', isStreaming = false }: MathRendererProps) {
-  // Load KaTeX CSS and track when it's ready
   const cssReady = useKatexCss();
 
-  // First process any remaining JSON escape sequences, then fix LaTeX escaping
-  const processedContent = processEscapeSequences(content, isStreaming);
-  const fixedContent = fixLatexEscaping(processedContent);
+  // Process content once and memoize
+  const processedContent = useMemo(() => {
+    const escaped = processEscapeSequences(content, isStreaming);
+    return fixLatexEscaping(escaped);
+  }, [content, isStreaming]);
 
-  // Process basic markdown formatting (bold **...** and italic *...*)
+  // Process markdown bold/italic
   const processMarkdown = (text: string): React.ReactNode[] => {
-    // Match **bold** and *italic* patterns
     const markdownRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     let match;
 
     while ((match = markdownRegex.exec(text)) !== null) {
-      // Add text before the match
       if (match.index > lastIndex) {
         parts.push(text.slice(lastIndex, match.index));
       }
-
       const matched = match[0];
       if (matched.startsWith('**') && matched.endsWith('**')) {
-        // Bold text
         parts.push(<strong key={match.index}>{matched.slice(2, -2)}</strong>);
       } else if (matched.startsWith('*') && matched.endsWith('*')) {
-        // Italic text
         parts.push(<em key={match.index}>{matched.slice(1, -1)}</em>);
       }
-
       lastIndex = markdownRegex.lastIndex;
     }
 
-    // Add remaining text
     if (lastIndex < text.length) {
       parts.push(text.slice(lastIndex));
     }
@@ -346,86 +379,34 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     return parts.length > 0 ? parts : [text];
   };
 
-  // Split content by LaTeX delimiters and render appropriately
-  // Supports: $...$ for inline, $$...$$ for block, \(...\) for inline, \[...\] for block
+  // Render mixed text and math content
   const renderMathContent = (text: string) => {
-    // Comprehensive regex for all LaTeX delimiter styles:
-    // 1. Block math: $$...$$ (non-greedy, can contain newlines)
-    // 2. Block math: \[...\] (escaped brackets, non-greedy)
-    // 3. Inline math: $...$ (non-greedy, must have content, no nested $)
-    // 4. Inline math: \(...\) (escaped parentheses, non-greedy to allow nested parens)
-    const mathRegex = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$]+\$|\\\([\s\S]+?\\\))/g;
+    const segments = splitAtDelimiters(text);
 
-    const parts: string[] = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = mathRegex.exec(text)) !== null) {
-      // Add text before the match
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-      parts.push(match[0]);
-      lastIndex = mathRegex.lastIndex;
-    }
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-
-    // If no matches, return the whole text
-    if (parts.length === 0) {
-      parts.push(text);
-    }
-
-    return parts.map((part, index) => {
-      // Block math: $$...$$ or \[...\]
-      if ((part.startsWith('$$') && part.endsWith('$$') && part.length > 4) ||
-          (part.startsWith('\\[') && part.endsWith('\\]') && part.length > 4)) {
-        // Extract math content based on delimiter type
-        const math = part.startsWith('$$')
-          ? part.slice(2, -2).trim()
-          : part.slice(2, -2).trim();
-        if (!math) return <span key={index}>{part}</span>;
-        return (
-          <div key={index} className="my-4">
-            <SafeBlockMath math={math} />
-          </div>
-        );
-      }
-      // Inline math: $...$ or \(...\)
-      else if ((part.startsWith('$') && part.endsWith('$') && part.length > 2) ||
-               (part.startsWith('\\(') && part.endsWith('\\)') && part.length > 4)) {
-        // Extract math content based on delimiter type
-        const math = part.startsWith('$')
-          ? part.slice(1, -1)
-          : part.slice(2, -2);
-        if (!math) return <span key={index}>{part}</span>;
-
-        // Extra check: skip if it looks like currency (just a number)
-        if (/^\d+([.,]\d{2})?$/.test(math.trim())) {
-          return <span key={index}>{part}</span>;
+    return segments.map((segment, index) => {
+      if (segment.type === 'math') {
+        if (segment.display) {
+          return (
+            <div key={index} className="my-4">
+              <SafeBlockMath math={segment.content} />
+            </div>
+          );
+        } else {
+          return <SafeInlineMath key={index} math={segment.content} />;
         }
-
-        return <SafeInlineMath key={index} math={math} />;
       } else {
-        // Regular text - process markdown formatting
-        return <span key={index}>{processMarkdown(part)}</span>;
+        return <span key={index}>{processMarkdown(segment.content)}</span>;
       }
     });
   };
 
-  // Format question parts like (a), (b), (c), (i), (ii), (iii) with proper styling
+  // Format question parts (a), (b), (c), etc.
   const formatQuestionPart = (line: string) => {
-    // Check if line starts with a question part label
-    // Supports: (a), (b), (c), (i), (ii), (iii), (iv), (1), (2), (3)
     const partMatch = line.match(/^\(([a-z]|[ivxlcdm]+|\d+)\)\s*/i);
 
     if (partMatch) {
       const partLabel = partMatch[1];
       const restOfLine = line.slice(partMatch[0].length);
-
-      // Check for mark allocation at end like [3 marks] or [1 mark]
       const markMatch = restOfLine.match(/\[(\d+)\s*marks?\]\s*$/i);
       let questionText = restOfLine;
       let marks = null;
@@ -450,7 +431,6 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
       );
     }
 
-    // Check for mark allocation at end of non-part lines
     const markMatch = line.match(/\[(\d+)\s*marks?\]\s*$/i);
     if (markMatch) {
       const marks = markMatch[1];
@@ -468,7 +448,7 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     return <span>{renderMathContent(line)}</span>;
   };
 
-  // Render a markdown table as HTML
+  // Render table
   const renderTable = (tableData: { headers: string[]; rows: string[][] }) => {
     return (
       <div className="overflow-x-auto my-4 -mx-2 px-2">
@@ -476,10 +456,7 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
           <thead>
             <tr className="bg-[var(--color-bg-secondary)]">
               {tableData.headers.map((header, i) => (
-                <th
-                  key={i}
-                  className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold text-[var(--color-text-primary)] whitespace-nowrap"
-                >
+                <th key={i} className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold text-[var(--color-text-primary)] whitespace-nowrap">
                   {renderMathContent(header)}
                 </th>
               ))}
@@ -489,10 +466,7 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
             {tableData.rows.map((row, rowIndex) => (
               <tr key={rowIndex} className={rowIndex % 2 === 0 ? '' : 'bg-[var(--color-bg-secondary)]/50'}>
                 {row.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    className="border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-primary)] whitespace-nowrap"
-                  >
+                  <td key={cellIndex} className="border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-primary)] whitespace-nowrap">
                     {renderMathContent(cell)}
                   </td>
                 ))}
@@ -504,22 +478,13 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     );
   };
 
-  // Render a code block with optional language label
+  // Render code block
   const renderCodeBlock = (code: string, language?: string) => {
-    // Map common language identifiers to display names
     const languageLabels: Record<string, string> = {
-      'python': 'Python',
-      'pseudocode': 'Pseudocode',
-      'sql': 'SQL',
-      'javascript': 'JavaScript',
-      'js': 'JavaScript',
-      'java': 'Java',
-      'csharp': 'C#',
-      'cs': 'C#',
-      'vb': 'VB.NET',
-      'vbnet': 'VB.NET',
-      'cpp': 'C++',
-      'c': 'C',
+      'python': 'Python', 'pseudocode': 'Pseudocode', 'sql': 'SQL',
+      'javascript': 'JavaScript', 'js': 'JavaScript', 'java': 'Java',
+      'csharp': 'C#', 'cs': 'C#', 'vb': 'VB.NET', 'vbnet': 'VB.NET',
+      'cpp': 'C++', 'c': 'C',
     };
 
     const displayLabel = language ? languageLabels[language.toLowerCase()] || language : null;
@@ -538,72 +503,51 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     );
   };
 
-  // Split content into blocks (code blocks, tables, and regular text)
-  const splitIntoBlocks = (text: string): { type: 'code' | 'table' | 'text'; content: string; language?: string }[] => {
+  // Split into code blocks, tables, and text
+  const splitIntoBlocks = (text: string) => {
     const blocks: { type: 'code' | 'table' | 'text'; content: string; language?: string }[] = [];
-
-    // First, extract code blocks (triple backticks)
     const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
     let lastIndex = 0;
     let match;
 
     while ((match = codeBlockRegex.exec(text)) !== null) {
-      // Add text before the code block
       if (match.index > lastIndex) {
         const textBefore = text.slice(lastIndex, match.index);
-        if (textBefore.trim()) {
-          blocks.push(...splitTextAndTables(textBefore));
-        }
+        if (textBefore.trim()) blocks.push(...splitTextAndTables(textBefore));
       }
-
-      // Add the code block
-      const language = match[1] || undefined;
       const code = match[2].trim();
-      if (code) {
-        blocks.push({ type: 'code', content: code, language });
-      }
-
+      if (code) blocks.push({ type: 'code', content: code, language: match[1] || undefined });
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text after the last code block
     if (lastIndex < text.length) {
-      const remainingText = text.slice(lastIndex);
-      if (remainingText.trim()) {
-        blocks.push(...splitTextAndTables(remainingText));
-      }
+      const remaining = text.slice(lastIndex);
+      if (remaining.trim()) blocks.push(...splitTextAndTables(remaining));
     }
 
-    // If no code blocks were found, process the entire text
-    if (blocks.length === 0 && text.trim()) {
-      blocks.push(...splitTextAndTables(text));
-    }
+    if (blocks.length === 0 && text.trim()) blocks.push(...splitTextAndTables(text));
 
     return blocks;
   };
 
-  // Helper function to split text into tables and regular text
   const splitTextAndTables = (text: string): { type: 'table' | 'text'; content: string }[] => {
     const blocks: { type: 'table' | 'text'; content: string }[] = [];
     const lines = text.split('\n');
     let currentBlock: string[] = [];
     let inTable = false;
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (const line of lines) {
       const lineHasPipes = line.includes('|');
       const isSeparator = /^[\s|:-]+$/.test(line) && line.includes('-');
 
       if (lineHasPipes || isSeparator) {
         if (!inTable && currentBlock.length > 0) {
-          // Save previous text block
           blocks.push({ type: 'text', content: currentBlock.join('\n') });
           currentBlock = [];
         }
         inTable = true;
         currentBlock.push(line);
       } else if (line.trim() === '' && inTable) {
-        // Empty line might end table
         if (currentBlock.length > 0) {
           blocks.push({ type: 'table', content: currentBlock.join('\n') });
           currentBlock = [];
@@ -611,7 +555,6 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
         inTable = false;
       } else {
         if (inTable && currentBlock.length > 0) {
-          // End of table
           blocks.push({ type: 'table', content: currentBlock.join('\n') });
           currentBlock = [];
           inTable = false;
@@ -620,7 +563,6 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
       }
     }
 
-    // Handle remaining content
     if (currentBlock.length > 0) {
       blocks.push({ type: inTable ? 'table' : 'text', content: currentBlock.join('\n') });
     }
@@ -628,25 +570,18 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     return blocks;
   };
 
-  // Split content into blocks and render each appropriately
-  const blocks = splitIntoBlocks(fixedContent);
-
-  // Check if content contains any math (needs CSS to render properly)
-  const hasMath = /\$[\s\S]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/.test(fixedContent);
-
-  // If content has math and CSS isn't ready, hide it to prevent FOUC
-  // Use visibility:hidden to preserve layout while invisible
+  // Main render
+  const blocks = splitIntoBlocks(processedContent);
+  const hasMath = /\$|\\\[|\\\(/.test(processedContent);
   const mathVisibilityClass = hasMath && !cssReady ? 'invisible' : 'visible';
 
   return (
     <div className={`math-content ${className} ${mathVisibilityClass}`}>
       {blocks.map((block, blockIndex) => {
-        // Code block rendering (for CS questions, etc.)
         if (block.type === 'code') {
           return <div key={blockIndex}>{renderCodeBlock(block.content, block.language)}</div>;
         }
 
-        // Table rendering
         if (block.type === 'table') {
           const tableData = parseMarkdownTable(block.content);
           if (tableData && tableData.headers.length > 0) {
@@ -654,35 +589,26 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
           }
         }
 
-        // Regular text block - split by paragraphs
         const paragraphs = block.content.split(/\n\n+/);
 
         return (
           <div key={blockIndex}>
             {paragraphs.map((paragraph, pIndex) => {
               const lines = paragraph.split('\n');
-
-              // Check if this paragraph contains question parts
               const hasQuestionParts = lines.some(line => /^\([a-z]\)/.test(line.trim()));
 
               if (hasQuestionParts) {
-                // Render as structured question parts
                 return (
                   <div key={pIndex} className={pIndex > 0 ? 'mt-4' : ''}>
                     {lines.map((line, lineIndex) => {
                       const trimmedLine = line.trim();
                       if (!trimmedLine) return null;
-                      return (
-                        <div key={lineIndex}>
-                          {formatQuestionPart(trimmedLine)}
-                        </div>
-                      );
+                      return <div key={lineIndex}>{formatQuestionPart(trimmedLine)}</div>;
                     })}
                   </div>
                 );
               }
 
-              // Regular paragraph
               return (
                 <p key={pIndex} className={pIndex > 0 ? 'mt-4' : ''}>
                   {lines.map((line, lineIndex) => (
