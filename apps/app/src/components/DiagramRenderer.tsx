@@ -1560,12 +1560,14 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
   };
 
   return (
-    <div className={className}>
+    <div className={`${className} w-full max-w-full overflow-x-auto`}>
       <svg
         width={renderWidth}
         height={renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}
         viewBox={`0 0 ${renderWidth} ${renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}`}
-        className="mx-auto"
+        className="mx-auto block max-w-full h-auto"
+        style={{ maxWidth: `${renderWidth}px` }}
+        preserveAspectRatio="xMidYMid meet"
       >
         {/* Definitions for markers */}
         <defs>

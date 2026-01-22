@@ -3,7 +3,7 @@
 // and official mark schemes
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import { getDiagramDocsForSubject, getVisualInstructions } from './prompts-common';
 
 // A-Level Economics mark ranges based on AQA specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -451,6 +451,7 @@ ${getDiagramDocsForSubject('economics')}`;
 
 export function getAQAALevelEconomicsQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('economics', 'a-level', subtopic);
 
   const difficultyGuidance = {
     easy: `Create a question testing knowledge and understanding (AO1/AO2).
@@ -539,7 +540,7 @@ You MUST ONLY test content that is in the AQA A-Level Economics specification.
 **For the topic "${topic.name}", test ONLY these subtopics:** ${topic.subtopics.join(', ')}
 
 ${difficultyGuidance[difficulty]}
-
+${visualInstructions}
 **Critical Requirements:**
 - Use formal economic terminology as in real AQA A-Level papers
 - Include mark allocation in brackets
@@ -552,7 +553,9 @@ Return valid JSON:
 {
   "content": "question text here",
   "marks": number,
-  "solution": "detailed mark scheme here"
+  "solution": "detailed mark scheme here",
+  "markScheme": ["mark point 1", "mark point 2"],
+  "diagram": { ... }  // Include if visual element required
 }`;
 }
 

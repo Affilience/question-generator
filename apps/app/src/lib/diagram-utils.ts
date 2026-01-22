@@ -497,14 +497,17 @@ export function checkLabelCollisions(spec: DiagramSpec): string[] {
   spec.elements.forEach((el, i) => {
     if (el.type === 'polygon') {
       const poly = el as PolygonElement;
-      poly.vertices.forEach((v) => {
-        if (v.label) {
-          labelPositions.push({ x: v.x, y: v.y, label: v.label, elementIndex: i });
-        }
-      });
+      if (poly.vertices && Array.isArray(poly.vertices)) {
+        poly.vertices.forEach((v) => {
+          if (v && v.label && typeof v.x === 'number' && typeof v.y === 'number') {
+            labelPositions.push({ x: v.x, y: v.y, label: v.label, elementIndex: i });
+          }
+        });
+      }
     } else if (el.type === 'point') {
       const point = el as PointElement;
-      if (point.position.label) {
+      if (point.position && point.position.label &&
+          typeof point.position.x === 'number' && typeof point.position.y === 'number') {
         labelPositions.push({
           x: point.position.x,
           y: point.position.y,
@@ -514,7 +517,8 @@ export function checkLabelCollisions(spec: DiagramSpec): string[] {
       }
     } else if (el.type === 'circle') {
       const circle = el as CircleElement;
-      if (circle.center.label) {
+      if (circle.center && circle.center.label &&
+          typeof circle.center.x === 'number' && typeof circle.center.y === 'number') {
         labelPositions.push({
           x: circle.center.x,
           y: circle.center.y,
@@ -554,10 +558,17 @@ export function checkPolygonSelfIntersection(spec: DiagramSpec): string[] {
       const poly = el as PolygonElement;
       const vertices = poly.vertices;
 
+      // Skip if no valid vertices
+      if (!vertices || !Array.isArray(vertices) || vertices.length < 3) return;
+
       // Check each pair of non-adjacent edges for intersection
       for (let a = 0; a < vertices.length; a++) {
         const a1 = vertices[a];
         const a2 = vertices[(a + 1) % vertices.length];
+
+        // Skip if vertices are malformed
+        if (!a1 || !a2 || typeof a1.x !== 'number' || typeof a1.y !== 'number' ||
+            typeof a2.x !== 'number' || typeof a2.y !== 'number') continue;
 
         for (let b = a + 2; b < vertices.length; b++) {
           // Skip adjacent edges
@@ -565,6 +576,10 @@ export function checkPolygonSelfIntersection(spec: DiagramSpec): string[] {
 
           const b1 = vertices[b];
           const b2 = vertices[(b + 1) % vertices.length];
+
+          // Skip if vertices are malformed
+          if (!b1 || !b2 || typeof b1.x !== 'number' || typeof b1.y !== 'number' ||
+              typeof b2.x !== 'number' || typeof b2.y !== 'number') continue;
 
           if (lineSegmentsIntersect(a1, a2, b1, b2)) {
             warnings.push(`Polygon at element ${i} has self-intersecting edges`);
@@ -607,25 +622,37 @@ export function checkNegativeCoordinates(spec: DiagramSpec): string[] {
   spec.elements.forEach((el, i) => {
     if (el.type === 'polygon') {
       const poly = el as PolygonElement;
-      poly.vertices.forEach((v, vi) => {
-        if (v.x < 0 || v.y < 0) {
-          warnings.push(`Element ${i} vertex ${vi} has negative coordinates (${v.x}, ${v.y})`);
-        }
-      });
+      if (poly.vertices && Array.isArray(poly.vertices)) {
+        poly.vertices.forEach((v, vi) => {
+          if (v && typeof v.x === 'number' && typeof v.y === 'number') {
+            if (v.x < 0 || v.y < 0) {
+              warnings.push(`Element ${i} vertex ${vi} has negative coordinates (${v.x}, ${v.y})`);
+            }
+          }
+        });
+      }
     } else if (el.type === 'point') {
       const point = el as PointElement;
-      if (point.position.x < 0 || point.position.y < 0) {
-        warnings.push(`Point at element ${i} has negative coordinates`);
+      if (point.position && typeof point.position.x === 'number' && typeof point.position.y === 'number') {
+        if (point.position.x < 0 || point.position.y < 0) {
+          warnings.push(`Point at element ${i} has negative coordinates`);
+        }
       }
     } else if (el.type === 'circle') {
       const circle = el as CircleElement;
-      if (circle.center.x < 0 || circle.center.y < 0) {
-        warnings.push(`Circle at element ${i} has negative center coordinates`);
+      if (circle.center && typeof circle.center.x === 'number' && typeof circle.center.y === 'number') {
+        if (circle.center.x < 0 || circle.center.y < 0) {
+          warnings.push(`Circle at element ${i} has negative center coordinates`);
+        }
       }
     } else if (el.type === 'line') {
       const line = el as LineElement;
-      if (line.from.x < 0 || line.from.y < 0 || line.to.x < 0 || line.to.y < 0) {
-        warnings.push(`Line at element ${i} has negative coordinates`);
+      if (line.from && line.to &&
+          typeof line.from.x === 'number' && typeof line.from.y === 'number' &&
+          typeof line.to.x === 'number' && typeof line.to.y === 'number') {
+        if (line.from.x < 0 || line.from.y < 0 || line.to.x < 0 || line.to.y < 0) {
+          warnings.push(`Line at element ${i} has negative coordinates`);
+        }
       }
     }
   });

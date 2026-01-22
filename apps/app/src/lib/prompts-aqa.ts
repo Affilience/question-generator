@@ -7,6 +7,84 @@ import {
 } from './prompts-common';
 
 /**
+ * Subtopics that REQUIRE a diagram - the question doesn't make sense without one.
+ * Be conservative - only include where truly necessary.
+ */
+const DIAGRAM_REQUIRED_SUBTOPICS = new Set([
+  // Circle theorems - must show the circle and angles
+  'Circle theorems (H)',
+  'Tangent and radius perpendicular (H)',
+  'Angles in the same segment (H)',
+  'Angle at centre theorem (H)',
+  'Angles in a semicircle (H)',
+  'Cyclic quadrilaterals (H)',
+  'Alternate segment theorem (H)',
+
+  // Transformations - must show original and image
+  'Reflections',
+  'Rotations',
+  'Translations',
+  'Enlargements',
+  'Combined transformations (H)',
+
+  // Constructions and loci
+  'Constructions',
+  'Perpendicular bisector',
+  'Angle bisector',
+  'Loci',
+
+  // Bearings - must show direction
+  'Bearings',
+
+  // Vectors - must show arrows/positions
+  'Vectors (H)',
+  'Vector geometry (H)',
+
+  // Similar shapes - must show both shapes
+  'Similar shapes',
+  'Similar triangles',
+  'Congruent triangles',
+]);
+
+/**
+ * Check if a subtopic requires a diagram.
+ */
+function subtopicRequiresDiagram(subtopic: string): boolean {
+  return DIAGRAM_REQUIRED_SUBTOPICS.has(subtopic);
+}
+
+/**
+ * Get diagram instructions for a subtopic, if required.
+ */
+function getDiagramInstructions(subtopic: string): string {
+  if (!subtopicRequiresDiagram(subtopic)) {
+    return '';
+  }
+
+  return `
+## DIAGRAM REQUIRED
+
+This subtopic (${subtopic}) REQUIRES a diagram. The question will not make sense without a visual.
+
+${DIAGRAM_SCHEMA_DOCS}
+
+You MUST include a "diagram" field in your JSON response. Example structure:
+{
+  "content": "Question text...",
+  "marks": 4,
+  "solution": "...",
+  "markScheme": [...],
+  "diagram": {
+    "width": 12,
+    "height": 10,
+    "showNotAccurate": true,
+    "elements": [...]
+  }
+}
+`;
+}
+
+/**
  * GCSE Maths mark ranges.
  */
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -843,12 +921,18 @@ export function getAQACompactPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
+  const needsDiagram = subtopicRequiresDiagram(selectedSubtopic);
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Early paper (Grades 1-3): Single-step only, 1-2 marks, like Q1-8. May use multiple choice.'
     : difficulty === 'medium'
     ? 'Middle paper (Grades 4-5): 2-3 steps, 3-4 marks, like Q9-16. Standard methods.'
     : 'Final paper (Grades 6-9): Complex multi-step, 5-8 marks, like Q17-25. Extended reasoning, proofs.';
+
+  const jsonExample = needsDiagram
+    ? `{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First mark","A1: Second mark"],"diagram":{"width":12,"height":10,"showNotAccurate":true,"elements":[...]}}`
+    : `{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First mark","A1: Second mark"]}`;
 
   return `Generate an AQA GCSE Maths question. Return ONLY valid JSON, no other text.
 
@@ -863,9 +947,9 @@ Requirements:
 - Include mark scheme (M=method, A=accuracy marks)
 - Use $...$ for LaTeX math
 - Use \\n for newlines in strings
-
+${diagramInstructions}
 Return this exact JSON structure:
-{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First mark","A1: Second mark"]}`;
+${jsonExample}`;
 }
 
 /**
@@ -882,6 +966,7 @@ export function getAQAEnhancedPrompt(
   const markRange = getMarkRangeForDifficulty(difficulty);
   const variety = getVarietyParameters();
   const varietyInstructions = getVarietyInstructions(variety);
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -922,7 +1007,7 @@ ${difficultyGuidance}
 }
 
 ${DIAGRAM_SCHEMA_DOCS}
-
+${diagramInstructions}
 ## AQA Formatting Rules
 
 ### Question Content:
@@ -1005,6 +1090,7 @@ export function getAQAMultipleChoicePrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Foundation (Grades 1-3): Basic recall or simple recognition'
@@ -1051,7 +1137,7 @@ AQA GCSE Maths includes ~5 multiple choice questions per paper, typically:
   "markScheme": ["B1: Correct answer is [X]"],
   "correctAnswer": "A/B/C/D"
 }
-
+${diagramInstructions}
 Generate an original AQA multiple choice question now:`;
 }
 
@@ -1067,6 +1153,7 @@ export function getAQAShowThatPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = difficulty === 'easy' ? '2-3' : difficulty === 'medium' ? '3-4' : '4-6';
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -1117,7 +1204,7 @@ Generate an AQA-style "SHOW THAT" or PROOF question.
   "solution": "Step-by-step proof with clear logical progression",
   "markScheme": ["M1: First key step", "M1: Second key step", "A1: Arrives at given answer with no errors"]
 }
-
+${diagramInstructions}
 Generate an original AQA "show that" or proof question now:`;
 }
 
@@ -1132,6 +1219,7 @@ export function getAQAGraphPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = difficulty === 'easy' ? '2-3' : difficulty === 'medium' ? '3-5' : '5-7';
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -1188,7 +1276,7 @@ Generate an AQA-style GRAPH question.
     "data": { ... }
   }
 }
-
+${diagramInstructions}
 Generate an original AQA graph question now:`;
 }
 
@@ -1202,6 +1290,7 @@ export function getAQAExtendedPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -1253,7 +1342,7 @@ These appear near the end of papers (Q20-25) and require:
   "solution": "Complete step-by-step solution with interpretation",
   "markScheme": ["M1: First method step", "M1: Second method step", "A1: Correct intermediate value", "M1: Final calculation", "A1: Correct answer with appropriate conclusion"]
 }
-
+${diagramInstructions}
 Generate an original AQA extended response question now:`;
 }
 
@@ -1269,6 +1358,7 @@ export function getAQAComparePrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = difficulty === 'easy' ? '2' : difficulty === 'medium' ? '2-3' : '3-4';
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -1322,7 +1412,7 @@ Generate an AQA-style COMPARISON question.
   "solution": "Model comparison with specific values and context",
   "markScheme": ["B1: Correct comparison of average with values", "B1: Correct comparison of spread with values", "B1: Interpretation in context (if applicable)"]
 }
-
+${diagramInstructions}
 Generate an original AQA comparison question now:`;
 }
 
@@ -1339,6 +1429,7 @@ export function getAQACalculatorPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   const calcGuidance = isCalculatorAllowed
     ? `## Calculator Paper (Paper 2 or 3) Guidelines
@@ -1392,6 +1483,6 @@ ${!isCalculatorAllowed ? `
   "solution": "Step-by-step solution",
   "markScheme": ["Mark allocations"]
 }
-
+${diagramInstructions}
 Generate an original AQA ${isCalculatorAllowed ? 'calculator' : 'non-calculator'} question now:`;
 }

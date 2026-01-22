@@ -3,6 +3,7 @@ import {
   getVarietyParameters,
   getVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
+  getVisualInstructions,
 } from './prompts-common';
 
 /**
@@ -2451,6 +2452,7 @@ export function getAQAALevelFurtherMathsQuestionPrompt(
   const markRange = getFMMarkRange(difficulty);
   const variety = getVarietyParameters();
   const varietyInstructions = getVarietyInstructions(variety);
+  const visualInstructions = getVisualInstructions('further-maths', 'a-level', selectedSubtopic);
 
   const paperContext = topic.paperRestriction
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
@@ -2496,7 +2498,7 @@ You MUST respond with valid JSON only. No text before or after the JSON object.
 }
 
 ${DIAGRAM_SCHEMA_DOCS}
-
+${visualInstructions}
 ## Formatting Rules
 
 ### Question Content:

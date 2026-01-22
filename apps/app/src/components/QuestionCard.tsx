@@ -58,13 +58,13 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
       </div>
 
       {question.diagram && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 w-full max-w-full overflow-hidden">
           <ErrorBoundary fallback={null}>
             <DiagramRenderer
               spec={question.diagram}
               maxWidth={450}
               maxHeight={350}
-              className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
+              className="bg-[var(--color-diagram-bg)] rounded-lg p-4 mx-auto"
             />
           </ErrorBoundary>
         </div>

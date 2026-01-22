@@ -14,7 +14,7 @@ import {
 import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
-import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE, ValidationContext } from '@/lib/prompts-common';
+import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE, ValidationContext, getVisualInstructions, shouldIncludeVisual } from '@/lib/prompts-common';
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -370,10 +370,21 @@ MARK SCHEME:
 - Include indicative content for ${plan.subtopic}`;
   }
 
-  const needsDiagram = selectedFormat === 'data_response' || selectedFormat === 'diagram' || isMathsSubject(subject) || isScienceSubject(subject);
+  // Comprehensive check if this question should include visual content
+  const needsVisual = shouldIncludeVisual(subject, qualification, plan.topicId, plan.subtopic, plan.questionType);
+  const needsDiagram = needsVisual || selectedFormat === 'data_response' || selectedFormat === 'diagram' || isMathsSubject(subject) || isScienceSubject(subject);
+
+  // Get subtopic-specific visual instructions if available
+  const subtopicVisualInstructions = needsVisual ? getVisualInstructions(subject, qualification, plan.subtopic) : '';
   const subjectKey = subject.replace('-', '').toLowerCase();
   const subjectDiagramGuidance = SUBJECT_DIAGRAM_GUIDANCE[subjectKey] || '';
-  const diagramInstructions = needsDiagram ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if visual aids would help.` : '';
+
+  // Use subtopic-specific instructions if available, otherwise fall back to general guidance
+  const diagramInstructions = subtopicVisualInstructions
+    ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subtopicVisualInstructions}`
+    : needsDiagram
+      ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if visual aids would help.`
+      : '';
 
   return `Generate a ${boardUpper} ${levelDisplay} ${subject.replace('-', ' ')} exam question. Return ONLY valid JSON.
 
@@ -392,7 +403,7 @@ Return JSON:
   "content": "Question using '${commandWord}'",
   "marks": ${plan.marks},
   "solution": "Complete model answer",
-  "markScheme": ["Mark point 1", "Mark point 2", ...]${needsDiagram ? ',\n  "diagram": {...}' : ''}
+  "markScheme": ["Mark point 1", "Mark point 2", ...]${needsDiagram || needsVisual ? ',\n  "diagram": {...}' : ''}
 }`;
 }
 
@@ -460,10 +471,19 @@ function buildQuantitativeQuestionPrompt(
   const commandWord = commandWords[Math.floor(Math.random() * commandWords.length)];
   const difficultyDesc = plan.difficulty === 'easy' ? 'grades 1-3' : plan.difficulty === 'medium' ? 'grades 4-5' : 'grades 6-9';
 
-  const needsDiagram = true;
+  // Comprehensive check if this question should include visual content
+  const needsVisual = shouldIncludeVisual(subject, qualification, plan.topicId, plan.subtopic, plan.questionType);
+  const needsDiagram = needsVisual || true; // Quantitative subjects generally benefit from diagrams
+
+  // Get subtopic-specific visual instructions if available
+  const subtopicVisualInstructions = needsVisual ? getVisualInstructions(subject, qualification, plan.subtopic) : '';
   const subjectKey = subject.replace('-', '').toLowerCase();
   const subjectDiagramGuidance = SUBJECT_DIAGRAM_GUIDANCE[subjectKey] || '';
-  const diagramInstructions = `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if the question involves visual content.`;
+
+  // Use subtopic-specific instructions if available, otherwise fall back to general guidance
+  const diagramInstructions = subtopicVisualInstructions
+    ? `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subtopicVisualInstructions}`
+    : `\n\n${DIAGRAM_SCHEMA_DOCS}\n\n${subjectDiagramGuidance}\n\nInclude "diagram" field if the question involves visual content.`;
 
   const markSchemeFormat = selectedFormat === 'short_essay' && plan.marks >= 6
     ? `markScheme array for 6-mark questions:

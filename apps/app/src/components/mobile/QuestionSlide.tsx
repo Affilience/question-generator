@@ -223,13 +223,13 @@ export function QuestionSlide({
 
         {/* Diagram - render if available and not still streaming */}
         {question?.diagram && !isShowingStreamedContent && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 w-full max-w-full overflow-hidden px-2">
             <DiagramErrorBoundary>
               <DiagramRenderer
                 spec={question.diagram}
-                maxWidth={350}
-                maxHeight={280}
-                className="bg-white rounded-lg p-3"
+                maxWidth={320}
+                maxHeight={260}
+                className="bg-white rounded-lg p-3 mx-auto"
               />
             </DiagramErrorBoundary>
           </div>

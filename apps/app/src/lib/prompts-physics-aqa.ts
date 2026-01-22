@@ -1,6 +1,7 @@
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
 import {
   getDiagramDocsForSubject,
+  getVisualInstructions,
 } from './prompts-common';
 
 /**
@@ -1050,6 +1051,7 @@ export function getAQAPhysicsCompactPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Early paper (Grades 1-3): 1-2 marks. State/name questions, simple recall, basic calculations with one step.'
@@ -1102,7 +1104,8 @@ Physics-specific rules:
 Return this exact JSON structure:
 {"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution with units","markScheme":["M1: Selects correct equation","A1: Correct substitution","A1: Correct answer with unit"],"diagram":<optional, include for circuits, forces, waves, or any visual concept>}
 
-${getDiagramDocsForSubject('physics')}`;
+${getDiagramDocsForSubject('physics')}
+${visualInstructions}`;
 }
 
 /**
@@ -1116,6 +1119,7 @@ export function getAQAPhysicsEnhancedPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   const difficultyGuidance = difficulty === 'easy'
     ? `**Foundation/Early Higher (Grades 1-4):**
@@ -1208,7 +1212,7 @@ ${getDiagramDocsForSubject('physics')}
 
 Example calculation mark scheme:
 ["M1: Selects P = IV or correct equation", "A1: Substitutes P = 3 × 12 = 36", "A1: 36 W (unit required)"]
-
+${visualInstructions}
 Generate a genuinely original AQA Physics question now:`;
 }
 
@@ -1221,6 +1225,7 @@ export function getAQAPhysicsExtendedPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   return `${AQA_PHYSICS_PRINCIPLES}
 
@@ -1323,7 +1328,7 @@ The mark scheme lists INDICATIVE CONTENT - points the examiner expects to see:
     "- [Key point 6 with required terminology]"
   ]
 }
-
+${visualInstructions}
 Generate a genuinely original 6-mark AQA Physics extended response question now:`;
 }
 
@@ -1380,6 +1385,124 @@ Generate a genuinely original Required Practical ${subtopic} question now:`;
 }
 
 /**
+ * Get practical-specific error sources for each AQA GCSE Physics required practical
+ */
+function getPracticalSpecificErrors(practicalId: string): string {
+  const errors: Record<string, string> = {
+    'aqa-gcse-physics-rp1': `- Heat loss to surroundings (systematic - gives lower SHC)
+- Not stirring the water (systematic - uneven heating)
+- Parallax error reading thermometer (random)
+- Not waiting for thermal equilibrium (systematic)
+- Inaccurate mass measurement (random)`,
+    'aqa-gcse-physics-rp2': `- Heat loss through non-insulated parts (systematic)
+- Different starting temperatures (random)
+- Drafts causing uneven cooling (random)
+- Parallax error reading thermometer (random)
+- Inconsistent timing intervals (random)`,
+    'aqa-gcse-physics-rp3': `- Wire heating up changes resistance (systematic - gives higher resistance)
+- Parallax error reading ruler (random)
+- Crocodile clip contact resistance (systematic)
+- Wire not straight (systematic - gives longer length)
+- Ammeter/voltmeter zero error (systematic)`,
+    'aqa-gcse-physics-rp4': `- Component heating up during measurements (systematic)
+- Parallax error reading meters (random)
+- Connections becoming loose (random)
+- Not using full voltage range (limits data)
+- Zero error on meters (systematic)`,
+    'aqa-gcse-physics-rp5': `- Air bubbles on irregular object (systematic - gives lower volume)
+- Parallax error reading meniscus (random)
+- Water splashing when object added (random)
+- Object not fully submerged (systematic)
+- Balance zero error (systematic)`,
+    'aqa-gcse-physics-rp6': `- Spring not returning to original length (systematic - hysteresis)
+- Parallax error reading extension (random)
+- Mass swinging causing inaccurate reading (random)
+- Spring already stretched beyond elastic limit (systematic)
+- Ruler not vertical (systematic)`,
+    'aqa-gcse-physics-rp7': `- Friction on track (systematic - gives lower acceleration)
+- Human reaction time starting/stopping timer (random)
+- Trolley not released cleanly (random)
+- Track not level (systematic)
+- Air resistance (systematic - gives lower acceleration)`,
+    'aqa-gcse-physics-rp8': `- Difficult to see exact wavefront position (random)
+- Parallax error measuring wavelength (random)
+- Motor speed varying (random)
+- Depth of water not uniform (systematic)
+- Reflections from tank edges (interference)`,
+    'aqa-gcse-physics-rp9': `- Background radiation from surroundings (systematic)
+- Thermometer not at same distance each time (random)
+- Drafts causing uneven cooling (random)
+- Different surface areas of plates (systematic)
+- Not allowing surfaces to reach thermal equilibrium (systematic)`,
+    'aqa-gcse-physics-rp10': `- Thick light ray makes angle measurement imprecise (random)
+- Parallax error using protractor (random)
+- Glass block not perfectly rectangular (systematic)
+- Ray box not perpendicular to surface (systematic)
+- Difficult to mark ray position accurately (random)`,
+  };
+  return errors[practicalId] || '- Common measurement errors\n- Equipment limitations\n- Environmental factors';
+}
+
+/**
+ * Get practical-specific improvement suggestions for each AQA GCSE Physics required practical
+ */
+function getPracticalSpecificImprovements(practicalId: string): string {
+  const improvements: Record<string, string> = {
+    'aqa-gcse-physics-rp1': `- Use better insulation (polystyrene lid, lagging)
+- Use a data logger for continuous temperature measurement
+- Stir the water continuously during heating
+- Use a larger mass of water (reduces percentage uncertainty)
+- Wait for temperature to stabilize before readings`,
+    'aqa-gcse-physics-rp2': `- Use identical containers for fair comparison
+- Control room temperature (draught-free environment)
+- Use data logger for temperature readings
+- Take readings at more frequent intervals
+- Ensure equal volumes of water in each container`,
+    'aqa-gcse-physics-rp3': `- Turn off power between readings to prevent heating
+- Use longer lengths of wire (reduces percentage uncertainty)
+- Use more precise ammeter/voltmeter (digital)
+- Clean crocodile clip contacts before use
+- Take more repeat readings at each length`,
+    'aqa-gcse-physics-rp4': `- Allow component to cool between readings
+- Use variable resistor to get more data points
+- Use data logger for simultaneous V and I readings
+- Repeat readings for both increasing and decreasing voltage
+- Use more sensitive meters for low current/voltage`,
+    'aqa-gcse-physics-rp5': `- Use vernier calipers for more precise dimensions
+- Use larger measuring cylinder (better resolution)
+- Gently lower object to avoid splashing
+- Tap object to release air bubbles
+- Use displacement can for irregular objects`,
+    'aqa-gcse-physics-rp6': `- Use a pointer/marker on spring for accurate readings
+- Add and remove masses to check for hysteresis
+- Use smaller mass increments for more data points
+- Wait for spring to stop oscillating before reading
+- Use a set square to ensure ruler is vertical`,
+    'aqa-gcse-physics-rp7': `- Use light gates for more accurate timing
+- Ensure track is level using spirit level
+- Use low-friction wheels/air track
+- Release trolley using electromagnetic release
+- Use video analysis for more accurate measurements`,
+    'aqa-gcse-physics-rp8': `- Use stroboscope to "freeze" wave pattern
+- Measure multiple wavelengths and divide
+- Ensure consistent water depth across tank
+- Use barriers to reduce edge reflections
+- Take photos/video for easier measurement`,
+    'aqa-gcse-physics-rp9': `- Use infrared thermometer for non-contact measurement
+- Ensure all surfaces same distance from heat source
+- Use larger surface areas (easier to measure temperature)
+- Allow longer time for thermal equilibrium
+- Shield experiment from drafts`,
+    'aqa-gcse-physics-rp10': `- Use narrower light slit for sharper ray
+- Use larger protractor (more precise angles)
+- Mark ray path with at least 3 pins
+- Repeat for multiple angles of incidence
+- Use semi-circular block to avoid refraction at exit`,
+  };
+  return improvements[practicalId] || '- Use more precise measuring equipment\n- Take more repeat readings\n- Control variables more carefully';
+}
+
+/**
  * Get subtopic-specific guidance for physics practicals
  */
 function getPhysicsPracticalSubtopicGuidance(subtopic: PracticalSubtopic, practical: Practical): string {
@@ -1397,12 +1520,21 @@ Focus on:
 - "Describe a method to investigate how [variable] affects [variable]"
 - "Explain how you would use [equipment] to measure [quantity]"
 - "Plan an investigation to determine [value/relationship]"
+- "A student wants to investigate... Describe how they could do this"
 
 **Mark scheme patterns:**
 - 1 mark per valid step in method
 - Credit clear, logical sequence
-- Credit named equipment
-- Credit reference to repeat readings`;
+- Credit named equipment (from: ${practical.equipment?.slice(0, 3).join(', ') || 'standard equipment'})
+- Credit reference to repeat readings
+- Credit safety precautions where relevant
+
+**Key method points for ${practical.name}:**
+- State what to measure and how
+- Explain how to vary the independent variable
+- Include control variables that must be kept constant
+- Mention taking repeat readings and calculating mean
+- Include how to record results (table format)`;
 
     case 'Variables':
       return `## Variables Questions
@@ -1448,17 +1580,30 @@ Focus on:
 - Using equations with data
 - Comparing results to expected values
 
+**CRITICAL: You MUST include a realistic data table in the question.**
+Format the table using markdown or clear text formatting:
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| value    | value    | value    |
+
 **Common question patterns:**
-- "Use the data to calculate [value]. Show your working."
+- "Use the data in the table to calculate [value]. Show your working."
 - "What conclusion can be drawn from these results?"
 - "Calculate the mean value and explain why taking a mean is useful."
 - "Use the graph to determine [gradient/intercept/value]"
+- "The student's results are shown in the table. Use the data to..."
 
 **Mark scheme patterns:**
 - Correct substitution [M1]
 - Correct calculation [A1]
 - Correct unit [B1]
-- Valid conclusion from data [B1]`;
+- Valid conclusion from data [B1]
+
+**For ${practical.name}, include realistic data such as:**
+- Values that follow the expected scientific relationship
+- Appropriate significant figures and units
+- One or two anomalous results where relevant`;
 
     case 'Graph Skills':
       return `## Graph Skills Questions
@@ -1470,11 +1615,19 @@ Focus on:
 - Finding gradients (including units!)
 - Reading values from graphs
 
+**CRITICAL: You MUST provide a data table with numerical values for students to plot or analyse.**
+Include 5-7 data points in a clear table format:
+
+| Independent Variable (unit) | Dependent Variable (unit) |
+|-----------------------------|---------------------------|
+| value                       | value                     |
+
 **Common question patterns:**
-- "Plot a graph of [y-axis] against [x-axis]"
+- "Plot a graph of [y-axis] against [x-axis] using the data in the table"
 - "Draw a line of best fit"
 - "Calculate the gradient of the line. State the unit."
 - "Use the graph to find the value of [quantity] when [condition]"
+- "Describe the relationship shown by the graph"
 
 **Gradient calculation:**
 gradient = change in y / change in x = (y₂ - y₁) / (x₂ - x₁)
@@ -1484,7 +1637,12 @@ gradient = change in y / change in x = (y₂ - y₁) / (x₂ - x₁)
 - Points plotted correctly (allow ±half small square) [B1]
 - Appropriate line of best fit [B1]
 - Gradient calculation with two clear points read [M1]
-- Correct gradient value with unit [A1]`;
+- Correct gradient value with unit [A1]
+
+**For ${practical.name}, the expected graph should show:**
+- A clear relationship between the variables (linear, curved, etc.)
+- Realistic values with appropriate precision
+- The gradient/intercept should have physical meaning`;
 
     case 'Errors':
       return `## Errors Questions
@@ -1496,38 +1654,54 @@ Focus on:
 - Parallax errors
 - Human reaction time errors
 
-**Common question patterns:**
-- "Identify ONE source of error in this experiment"
-- "Is this a random or systematic error? Explain."
-- "How would this error affect the results?"
+**CRITICAL: Questions must be specific to ${practical.name}**
 
-**For this practical, common errors include:**
-- Reading scales at wrong angle (parallax)
-- Heat loss to surroundings
-- Timing errors (human reaction time ~0.2-0.3s)
-- Equipment not zeroed correctly
-- Not waiting for equilibrium`;
+**Common question patterns:**
+- "Identify ONE source of error in this experiment and explain whether it is random or systematic"
+- "How would this error affect the calculated value of [quantity]?"
+- "The student's results were lower than expected. Suggest ONE reason for this."
+- "Explain why the student's repeat readings were different"
+
+**Mark scheme patterns:**
+- B1: Names a valid source of error
+- B1: States random or systematic (with correct classification)
+- M1: Explains how error affects results (higher/lower/scattered)
+
+**Specific errors for ${practical.name}:**
+${getPracticalSpecificErrors(practical.id)}`;
 
     case 'Improvements':
       return `## Improvements Questions
 
 Focus on:
-- How to reduce specific errors
-- How to improve accuracy
+- How to reduce specific errors identified
+- How to improve accuracy (closer to true value)
 - How to improve precision (more consistent results)
 - How to improve reliability (valid conclusions)
+
+**CRITICAL: Improvements must be specific and actionable for ${practical.name}**
 
 **Common question patterns:**
 - "Suggest ONE improvement to increase the accuracy of the results"
 - "How could the reliability of the results be improved?"
-- "Describe how the precision of this measurement could be increased"
+- "The student wants to get more precise results. Suggest how."
+- "Describe TWO changes that would improve this investigation"
+
+**Mark scheme patterns:**
+- B1: States valid improvement
+- B1: Explains HOW it would improve results
+- M1: Links improvement to reducing a specific error
 
 **Standard improvements:**
 - Take MORE repeat readings and calculate mean (reduces random error)
 - Use more precise measuring equipment (smaller resolution)
-- Insulate to reduce heat loss
-- Use data logger instead of manual timing
-- Use larger quantities/distances to reduce percentage uncertainty`;
+- Insulate to reduce heat loss (where relevant)
+- Use data logger instead of manual timing (reduces reaction time error)
+- Use larger quantities/distances to reduce percentage uncertainty
+- Allow more time for equilibrium
+
+**Specific improvements for ${practical.name}:**
+${getPracticalSpecificImprovements(practical.id)}`;
 
     case 'Safety':
       return `## Safety Questions
@@ -1678,6 +1852,7 @@ export function getAQAPhysicsCalculationPrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   const complexityGuidance = difficulty === 'easy'
     ? '1-2 step calculation using ONE equation. Values given directly.'
@@ -1730,7 +1905,7 @@ ${AQA_PHYSICS_CONSTANTS}
 - Use appropriate significant figures (match data given)
 - For Higher tier: may include standard form, rearrangement, multi-step
 - Show clear working - method marks available even if arithmetic wrong
-
+${visualInstructions}
 Generate an original physics calculation question now:`;
 }
 
@@ -1743,6 +1918,7 @@ export function getAQAPhysicsExplainPrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   return `Generate an AQA GCSE Physics EXPLAIN question. Return ONLY valid JSON.
 
@@ -1810,7 +1986,7 @@ Mark Scheme:
   "solution": "Full explanation following the required patterns above with all key points linked by cause and effect",
   "markScheme": ["M1: [First causal link with required words]", "M1: [Second causal link]", "A1: [Conclusion with required terminology]"]
 }
-
+${visualInstructions}
 Generate an original physics explain question now:`;
 }
 
@@ -1823,6 +1999,7 @@ export function getAQAPhysicsComparePrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
 
   return `Generate an AQA GCSE Physics COMPARE question. Return ONLY valid JSON.
 
@@ -1868,6 +2045,6 @@ Each valid comparison point earns a mark. Must compare (not just describe each s
   "solution": "Detailed comparison covering similarities and differences with physics terminology",
   "markScheme": ["B1: Similarity - [point about both]", "B1: Difference - [X has/is... whereas Y has/is...]", "B1: Difference - [another comparative point]"]
 }
-
+${visualInstructions}
 Generate an original physics compare question now:`;
 }

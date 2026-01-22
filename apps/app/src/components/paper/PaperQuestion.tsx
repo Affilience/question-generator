@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { GeneratedQuestion } from '@/types';
 import { MarkBadge } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
+import { DiagramRenderer } from '@/components/DiagramRenderer';
 
 // Parse mark scheme point to extract mark type and description
 function parseMarkSchemePoint(point: string): { part?: string; markType: string; description: string } {
@@ -200,12 +201,14 @@ export function PaperQuestion({
       </div>
 
       {/* Diagram (if present) */}
-      {question.diagram && (
+      {question.diagram && question.diagram.elements && question.diagram.elements.length > 0 && (
         <div className="p-4 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-muted)] mb-2">Diagram:</p>
-          <div className="text-center text-[var(--color-text-secondary)]">
-            [Diagram with {question.diagram.elements?.length || 0} elements]
-          </div>
+          <DiagramRenderer
+            spec={question.diagram}
+            maxWidth={400}
+            maxHeight={300}
+            className="w-full overflow-x-auto"
+          />
         </div>
       )}
 

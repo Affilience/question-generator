@@ -930,6 +930,781 @@ ${examples || ''}
 IMPORTANT: When your question would benefit from a visual representation, include a "diagram" field in your JSON response following the schema above. Make diagrams clear, properly labeled, and educationally useful.`;
 }
 
+// ============================================================================
+// VISUAL REQUIREMENT SYSTEM
+// Topics that REQUIRE diagrams, graphs, or tables - questions don't make sense without them
+// ============================================================================
+
+/**
+ * Subtopics that REQUIRE visual elements (diagrams, graphs, or tables).
+ * Organized by subject and level.
+ */
+export const VISUAL_REQUIRED_SUBTOPICS: Record<string, Set<string>> = {
+  // ==================== ECONOMICS ====================
+  'economics-a-level': new Set([
+    // Microeconomics diagrams
+    'Supply and demand',
+    'Market equilibrium',
+    'Price elasticity of demand',
+    'Price elasticity of supply',
+    'Income elasticity',
+    'Cross elasticity',
+    'Consumer surplus',
+    'Producer surplus',
+    'Market failure diagrams',
+    'Externalities',
+    'Public goods',
+    'Merit goods',
+    'Demerit goods',
+    // Cost and revenue curves
+    'Short-run costs',
+    'Long-run costs',
+    'Average cost curves',
+    'Marginal cost curves',
+    'Revenue curves',
+    'Profit maximisation',
+    'Perfect competition diagrams',
+    'Monopoly diagrams',
+    'Oligopoly diagrams',
+    'Monopolistic competition',
+    // Macroeconomics diagrams
+    'Aggregate demand',
+    'Aggregate supply',
+    'AD/AS model',
+    'Keynesian model',
+    'Classical model',
+    'Production possibility frontier',
+    'Circular flow of income',
+    'Phillips curve',
+    'Lorenz curve',
+    'Gini coefficient',
+    'Economic growth diagrams',
+    'Unemployment diagrams',
+    'Inflation diagrams',
+    // International
+    'Exchange rate diagrams',
+    'Balance of payments',
+    'Terms of trade',
+    'Comparative advantage diagrams',
+  ]),
+
+  'economics-gcse': new Set([
+    'Supply and demand',
+    'Market equilibrium',
+    'Price changes',
+    'Shifts in demand',
+    'Shifts in supply',
+  ]),
+
+  // ==================== FURTHER MATHS ====================
+  'further-maths-a-level': new Set([
+    // Complex numbers
+    'Argand diagrams',
+    'Complex number geometry',
+    'Loci in the complex plane',
+    'Roots of unity',
+    // Matrices
+    'Matrix transformations',
+    'Linear transformations',
+    'Invariant points',
+    'Invariant lines',
+    // Polar coordinates
+    'Polar curves',
+    'Polar coordinates',
+    'Converting polar to Cartesian',
+    // Conic sections
+    'Parabola',
+    'Ellipse',
+    'Hyperbola',
+    'Conic sections',
+    // Vectors
+    'Vector equations of lines',
+    'Vector equations of planes',
+    '3D geometry',
+    'Cross product applications',
+    // Differential equations
+    'Direction fields',
+    'Phase portraits',
+    'Slope fields',
+    // Mechanics
+    'Force diagrams',
+    'Projectile motion',
+    'Circular motion diagrams',
+    'SHM graphs',
+    'Momentum diagrams',
+  ]),
+
+  'further-maths-gcse': new Set([
+    'Matrix transformations',
+    'Vectors',
+    'Coordinate geometry proofs',
+  ]),
+
+  // ==================== PHYSICS ====================
+  'physics-a-level': new Set([
+    // Mechanics
+    'Free body diagrams',
+    'Force diagrams',
+    'Projectile motion',
+    'Circular motion',
+    'Simple harmonic motion',
+    'SHM graphs',
+    'Momentum and collisions',
+    // Waves
+    'Wave diagrams',
+    'Standing waves',
+    'Interference patterns',
+    'Diffraction patterns',
+    'Young\'s double slit',
+    'Refraction diagrams',
+    'Ray diagrams',
+    // Electricity
+    'Circuit diagrams',
+    'Series circuits',
+    'Parallel circuits',
+    'Potential dividers',
+    'I-V characteristics',
+    // Fields
+    'Electric field diagrams',
+    'Magnetic field diagrams',
+    'Gravitational field diagrams',
+    'Field lines',
+    'Equipotentials',
+    // Nuclear
+    'Decay diagrams',
+    'Binding energy curve',
+    // Thermal
+    'PV diagrams',
+    'Heating curves',
+  ]),
+
+  'physics-gcse': new Set([
+    'Circuit diagrams',
+    'Force diagrams',
+    'Ray diagrams',
+    'Wave diagrams',
+    'Distance-time graphs',
+    'Velocity-time graphs',
+    'Sankey diagrams',
+    'Energy transfer diagrams',
+    'Magnetic field patterns',
+  ]),
+
+  // ==================== CHEMISTRY ====================
+  'chemistry-a-level': new Set([
+    'Enthalpy diagrams',
+    'Energy profile diagrams',
+    'Born-Haber cycles',
+    'Hess cycles',
+    'Electron configuration diagrams',
+    'Molecular orbital diagrams',
+    'Dot-and-cross diagrams',
+    'Displayed formulas',
+    'Structural formulas',
+    'Skeletal formulas',
+    'Reaction mechanisms',
+    'Electrochemical cells',
+    'Standard electrode potentials',
+    'Rate-concentration graphs',
+    'Maxwell-Boltzmann distribution',
+    'Equilibrium diagrams',
+    'Buffer diagrams',
+    'Titration curves',
+    'Chromatography diagrams',
+    'Mass spectra',
+    'IR spectra',
+    'NMR spectra',
+  ]),
+
+  'chemistry-gcse': new Set([
+    'Dot-and-cross diagrams',
+    'Particle diagrams',
+    'Apparatus diagrams',
+    'Electrolysis diagrams',
+    'Displayed formulas',
+    'Energy level diagrams',
+  ]),
+
+  // ==================== BIOLOGY ====================
+  'biology-a-level': new Set([
+    'Cell ultrastructure',
+    'Membrane structure',
+    'DNA structure',
+    'Chromosome diagrams',
+    'Cell division stages',
+    'Mitosis diagrams',
+    'Meiosis diagrams',
+    'Punnett squares',
+    'Genetic crosses',
+    'Pedigree diagrams',
+    'Ecosystem diagrams',
+    'Food webs',
+    'Energy flow diagrams',
+    'Carbon cycle',
+    'Nitrogen cycle',
+    'Heart structure',
+    'Circulation diagrams',
+    'Neuron diagrams',
+    'Synapse diagrams',
+    'Reflex arc',
+    'Hormone regulation graphs',
+    'Enzyme kinetics graphs',
+    'Population growth curves',
+    'Succession diagrams',
+    'Kidney structure',
+    'Nephron diagram',
+    'Photosynthesis diagrams',
+    'Respiration diagrams',
+  ]),
+
+  'biology-gcse': new Set([
+    'Cell diagrams',
+    'Plant cell diagrams',
+    'Animal cell diagrams',
+    'Punnett squares',
+    'Food chains',
+    'Food webs',
+    'Heart structure',
+    'Digestive system',
+    'Leaf structure',
+    'Root hair cell',
+    'DNA structure',
+  ]),
+
+  // ==================== BUSINESS ====================
+  'business-a-level': new Set([
+    'Break-even charts',
+    'Break-even analysis',
+    'Cash flow forecasts',
+    'Cash flow graphs',
+    'Boston Matrix',
+    'Ansoff Matrix',
+    'Product life cycle',
+    'Organizational charts',
+    'Decision trees',
+    'Investment appraisal graphs',
+    'Supply and demand (business context)',
+  ]),
+
+  'business-gcse': new Set([
+    'Break-even charts',
+    'Cash flow forecasts',
+    'Organizational charts',
+    'Product life cycle',
+  ]),
+
+  // ==================== GEOGRAPHY ====================
+  'geography-a-level': new Set([
+    'Population pyramids',
+    'Climate graphs',
+    'Hydrographs',
+    'Cross-sections',
+    'Drainage basin diagrams',
+    'Coastal processes diagrams',
+    'Glacial landforms',
+    'River landforms',
+    'Plate boundary diagrams',
+    'Demographic transition model',
+    'Urban models',
+    'Development indicators graphs',
+    'Carbon cycle',
+    'Water cycle',
+    'Globalisation diagrams',
+  ]),
+
+  'geography-gcse': new Set([
+    'Population pyramids',
+    'Climate graphs',
+    'Cross-sections',
+    'River features diagrams',
+    'Coastal features diagrams',
+    'Plate boundary diagrams',
+    'OS map skills',
+    'Hydrographs',
+  ]),
+
+  // ==================== COMPUTER SCIENCE ====================
+  'computer-science-a-level': new Set([
+    'Logic gate diagrams',
+    'Truth tables',
+    'Flowcharts',
+    'Binary tree diagrams',
+    'Tree traversal',
+    'Graph traversal',
+    'Linked list diagrams',
+    'Stack diagrams',
+    'Queue diagrams',
+    'Hash table diagrams',
+    'State transition diagrams',
+    'Finite state machines',
+    'Entity-relationship diagrams',
+    'Network topology diagrams',
+    'CPU architecture diagrams',
+    'Memory diagrams',
+    'Fetch-execute cycle',
+  ]),
+
+  'computer-science-gcse': new Set([
+    'Logic gate diagrams',
+    'Truth tables',
+    'Flowcharts',
+    'Binary tree diagrams',
+    'Network topology diagrams',
+    'CPU diagrams',
+  ]),
+
+  // ==================== PSYCHOLOGY ====================
+  'psychology-a-level': new Set([
+    'Brain diagrams',
+    'Neuron diagrams',
+    'Working memory model',
+    'Multi-store model',
+    'Research design diagrams',
+    'Experimental design layouts',
+    'Bar charts (results)',
+    'Histograms',
+    'Scatter graphs',
+    'Normal distribution curves',
+    'Biological approach diagrams',
+  ]),
+
+  // ==================== MATHS (extended from prompts-aqa.ts) ====================
+  'maths-gcse': new Set([
+    // Circle theorems
+    'Circle theorems (H)',
+    'Tangent and radius perpendicular (H)',
+    'Angles in the same segment (H)',
+    'Angle at centre theorem (H)',
+    'Angles in a semicircle (H)',
+    'Cyclic quadrilaterals (H)',
+    'Alternate segment theorem (H)',
+    // Transformations
+    'Reflections',
+    'Rotations',
+    'Translations',
+    'Enlargements',
+    'Combined transformations (H)',
+    // Constructions and loci
+    'Constructions',
+    'Perpendicular bisector',
+    'Angle bisector',
+    'Loci',
+    // Bearings
+    'Bearings',
+    // Vectors
+    'Vectors (H)',
+    'Vector geometry (H)',
+    // Similar shapes
+    'Similar shapes',
+    'Similar triangles',
+    'Congruent triangles',
+  ]),
+
+  'maths-a-level': new Set([
+    // Coordinate geometry
+    'Circle equations',
+    'Parametric equations',
+    'Curves and graphs',
+    // Vectors
+    'Vector geometry',
+    '3D vectors',
+    // Mechanics
+    'Force diagrams',
+    'Projectile motion',
+    'Kinematics graphs',
+  ]),
+};
+
+/**
+ * Topic IDs that frequently require visual elements.
+ * Used when the subtopic is general (e.g., just the topic name).
+ */
+export const VISUAL_REQUIRED_TOPICS: Record<string, Set<string>> = {
+  // Physics topics that often need diagrams
+  'physics': new Set([
+    'physics-forces',
+    'physics-electricity',
+    'physics-waves',
+    'physics-energy',
+    'physics-motion',
+    'physics-magnetism',
+    'physics-particle-model',
+    'physics-atomic-structure',
+    'forces',
+    'electricity',
+    'waves',
+    'energy',
+    'motion',
+    'magnetism',
+    'mechanics',
+    'circuits',
+    'optics',
+  ]),
+  // Chemistry topics
+  'chemistry': new Set([
+    'chemistry-atomic-structure',
+    'chemistry-bonding',
+    'chemistry-organic',
+    'chemistry-rates',
+    'chemistry-equilibria',
+    'chemistry-electrochemistry',
+    'atomic-structure',
+    'bonding',
+    'organic-chemistry',
+    'rates-of-reaction',
+  ]),
+  // Biology topics
+  'biology': new Set([
+    'biology-cell-biology',
+    'biology-organisation',
+    'biology-inheritance',
+    'biology-ecology',
+    'cell-biology',
+    'organisation',
+    'inheritance',
+    'ecology',
+    'bioenergetics',
+  ]),
+  // Maths topics
+  'maths': new Set([
+    'maths-geometry',
+    'maths-transformations',
+    'maths-vectors',
+    'maths-trigonometry',
+    'maths-graphs',
+    'maths-coordinate-geometry',
+    'geometry',
+    'transformations',
+    'vectors',
+    'trigonometry',
+    'graphs',
+    'coordinate-geometry',
+    'circle-theorems',
+    'constructions',
+  ]),
+  // Economics topics
+  'economics': new Set([
+    'economics-microeconomics',
+    'economics-macroeconomics',
+    'microeconomics',
+    'macroeconomics',
+    'market-structures',
+    'market-failure',
+    'aggregate-demand',
+  ]),
+  // Further Maths topics
+  'further-maths': new Set([
+    'further-maths-complex-numbers',
+    'further-maths-matrices',
+    'further-maths-polar-coordinates',
+    'further-maths-mechanics',
+    'complex-numbers',
+    'matrices',
+    'polar-coordinates',
+    'mechanics',
+  ]),
+  // Geography topics
+  'geography': new Set([
+    'geography-physical',
+    'geography-human',
+    'geography-skills',
+    'physical-geography',
+    'coastal-landscapes',
+    'river-landscapes',
+    'hazards',
+    'ecosystems',
+  ]),
+};
+
+/**
+ * Question types that typically require visual elements
+ */
+export const VISUAL_REQUIRED_QUESTION_TYPES = new Set([
+  'graph',
+  'data-analysis',
+  'diagram',
+  'sketch',
+  'draw',
+]);
+
+/**
+ * Check if a topic (not just subtopic) often requires visuals.
+ * Useful when subtopic is general or matches the topic name.
+ */
+export function topicOftenRequiresVisual(
+  subject: string,
+  topicId: string
+): boolean {
+  const subjectKey = subject.toLowerCase().replace(/[^a-z-]/g, '');
+  const topicSet = VISUAL_REQUIRED_TOPICS[subjectKey];
+
+  if (!topicSet) return false;
+
+  const topicIdLower = topicId.toLowerCase();
+
+  // Direct match
+  if (topicSet.has(topicIdLower)) return true;
+
+  // Partial match - check if topic ID contains any of the required topics
+  for (const required of topicSet) {
+    if (topicIdLower.includes(required) || required.includes(topicIdLower)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if a question type typically requires visual elements
+ */
+export function questionTypeRequiresVisual(questionType: string): boolean {
+  return VISUAL_REQUIRED_QUESTION_TYPES.has(questionType.toLowerCase());
+}
+
+/**
+ * Comprehensive check for whether a question should include a visual.
+ * Considers subtopic, topic, question type, and subject.
+ */
+export function shouldIncludeVisual(
+  subject: string,
+  level: string,
+  topicId: string,
+  subtopic: string,
+  questionType?: string
+): boolean {
+  // Check 1: Specific subtopic requires visual
+  if (subtopicRequiresVisual(subject, level, subtopic)) {
+    return true;
+  }
+
+  // Check 2: Topic often requires visuals
+  if (topicOftenRequiresVisual(subject, topicId)) {
+    return true;
+  }
+
+  // Check 3: Question type requires visual
+  if (questionType && questionTypeRequiresVisual(questionType)) {
+    return true;
+  }
+
+  // Check 4: Subtopic name suggests visual content
+  const visualKeywords = [
+    'diagram', 'graph', 'chart', 'curve', 'draw', 'sketch',
+    'plot', 'circuit', 'ray', 'force', 'vector', 'shape',
+    'triangle', 'circle', 'polygon', 'transformation', 'reflection',
+    'rotation', 'translation', 'enlargement', 'construction', 'locus',
+    'bearing', 'angle', 'equilibrium', 'supply', 'demand', 'model'
+  ];
+
+  const subtopicLower = subtopic.toLowerCase();
+  for (const keyword of visualKeywords) {
+    if (subtopicLower.includes(keyword)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if a subtopic requires a visual element for a given subject.
+ */
+export function subtopicRequiresVisual(
+  subject: string,
+  level: string,
+  subtopic: string
+): boolean {
+  const key = `${subject.toLowerCase()}-${level.toLowerCase()}`;
+  const requiredSet = VISUAL_REQUIRED_SUBTOPICS[key];
+
+  if (!requiredSet) return false;
+
+  // Check for exact match first
+  if (requiredSet.has(subtopic)) return true;
+
+  const subtopicLower = subtopic.toLowerCase();
+
+  // Check for partial match (subtopic contains or is contained by a required topic)
+  for (const required of requiredSet) {
+    const requiredLower = required.toLowerCase();
+
+    // Full string containment
+    if (subtopicLower.includes(requiredLower) || requiredLower.includes(subtopicLower)) {
+      return true;
+    }
+
+    // Key word matching - if significant words overlap, it's likely a match
+    // Extract significant words (3+ chars, not common words)
+    const commonWords = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'using']);
+    const getKeyWords = (str: string) =>
+      str.toLowerCase()
+        .split(/[\s\-\/()]+/)
+        .filter((w) => w.length >= 3 && !commonWords.has(w));
+
+    const subtopicWords = getKeyWords(subtopic);
+    const requiredWords = getKeyWords(required);
+
+    // If at least 2 key words match (or 1 if there's only 1-2 words), consider it a match
+    const matchingWords = subtopicWords.filter((w) =>
+      requiredWords.some((rw) => rw.includes(w) || w.includes(rw))
+    );
+
+    const minMatchCount = Math.min(2, Math.max(1, Math.min(subtopicWords.length, requiredWords.length)));
+    if (matchingWords.length >= minMatchCount) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Get visual (diagram/graph/table) instructions for a subject and subtopic.
+ * Returns empty string if no visual is required.
+ */
+export function getVisualInstructions(
+  subject: string,
+  level: string,
+  subtopic: string
+): string {
+  if (!subtopicRequiresVisual(subject, level, subtopic)) {
+    return '';
+  }
+
+  const subjectKey = subject.toLowerCase().replace(/[^a-z]/g, '');
+  const examples = SUBJECT_DIAGRAM_EXAMPLES[subjectKey] || '';
+
+  // Determine what type of visual is most appropriate
+  const visualType = getRecommendedVisualType(subject, subtopic);
+
+  return `
+## VISUAL ELEMENT REQUIRED
+
+This subtopic (${subtopic}) REQUIRES a ${visualType}. The question will not make sense without a visual representation.
+
+${DIAGRAM_SCHEMA_DOCS}
+${examples}
+
+You MUST include a "diagram" field in your JSON response. The visual should be:
+- Clear and properly labeled
+- Appropriately sized for the content
+- Educationally useful and accurate
+
+Example structure:
+{
+  "content": "Question text...",
+  "marks": 4,
+  "solution": "...",
+  "markScheme": [...],
+  "diagram": {
+    "width": 12,
+    "height": 10,
+    "showNotAccurate": true,
+    "elements": [...]
+  }
+}
+`;
+}
+
+/**
+ * Determine the most appropriate visual type for a given subject and subtopic.
+ */
+function getRecommendedVisualType(subject: string, subtopic: string): string {
+  const subjectLower = subject.toLowerCase();
+  const subtopicLower = subtopic.toLowerCase();
+
+  // Economics - mostly curves and diagrams
+  if (subjectLower.includes('economics')) {
+    if (subtopicLower.includes('curve')) return 'graph/curve diagram';
+    if (subtopicLower.includes('diagram')) return 'diagram';
+    if (subtopicLower.includes('model')) return 'economic model diagram';
+    return 'economic diagram';
+  }
+
+  // Further Maths
+  if (subjectLower.includes('further')) {
+    if (subtopicLower.includes('argand')) return 'Argand diagram';
+    if (subtopicLower.includes('polar')) return 'polar curve diagram';
+    if (subtopicLower.includes('matrix')) return 'transformation diagram';
+    if (subtopicLower.includes('conic') || subtopicLower.includes('parabola') ||
+        subtopicLower.includes('ellipse') || subtopicLower.includes('hyperbola')) {
+      return 'conic section graph';
+    }
+    return 'mathematical diagram';
+  }
+
+  // Physics
+  if (subjectLower.includes('physics')) {
+    if (subtopicLower.includes('circuit')) return 'circuit diagram';
+    if (subtopicLower.includes('force')) return 'free body diagram';
+    if (subtopicLower.includes('ray')) return 'ray diagram';
+    if (subtopicLower.includes('wave')) return 'wave diagram';
+    if (subtopicLower.includes('field')) return 'field diagram';
+    if (subtopicLower.includes('graph')) return 'graph';
+    return 'physics diagram';
+  }
+
+  // Chemistry
+  if (subjectLower.includes('chemistry')) {
+    if (subtopicLower.includes('enthalpy') || subtopicLower.includes('energy')) return 'energy diagram';
+    if (subtopicLower.includes('dot') || subtopicLower.includes('cross')) return 'dot-and-cross diagram';
+    if (subtopicLower.includes('formula')) return 'structural formula diagram';
+    if (subtopicLower.includes('mechanism')) return 'reaction mechanism diagram';
+    if (subtopicLower.includes('spectrum') || subtopicLower.includes('spectra')) return 'spectrum diagram';
+    return 'chemistry diagram';
+  }
+
+  // Biology
+  if (subjectLower.includes('biology')) {
+    if (subtopicLower.includes('cell')) return 'cell diagram';
+    if (subtopicLower.includes('punnett')) return 'Punnett square';
+    if (subtopicLower.includes('food') || subtopicLower.includes('web')) return 'food web/chain diagram';
+    if (subtopicLower.includes('cycle')) return 'cycle diagram';
+    if (subtopicLower.includes('graph')) return 'graph';
+    return 'biological diagram';
+  }
+
+  // Business
+  if (subjectLower.includes('business')) {
+    if (subtopicLower.includes('break-even')) return 'break-even chart';
+    if (subtopicLower.includes('cash flow')) return 'cash flow graph';
+    if (subtopicLower.includes('matrix')) return 'matrix diagram';
+    if (subtopicLower.includes('chart') || subtopicLower.includes('organizational')) return 'organizational chart';
+    return 'business diagram';
+  }
+
+  // Geography
+  if (subjectLower.includes('geography')) {
+    if (subtopicLower.includes('pyramid')) return 'population pyramid';
+    if (subtopicLower.includes('climate')) return 'climate graph';
+    if (subtopicLower.includes('cross-section')) return 'cross-section diagram';
+    if (subtopicLower.includes('cycle')) return 'cycle diagram';
+    return 'geographical diagram';
+  }
+
+  // Computer Science
+  if (subjectLower.includes('computer')) {
+    if (subtopicLower.includes('logic')) return 'logic gate diagram';
+    if (subtopicLower.includes('flowchart')) return 'flowchart';
+    if (subtopicLower.includes('tree')) return 'tree diagram';
+    if (subtopicLower.includes('state')) return 'state transition diagram';
+    if (subtopicLower.includes('network')) return 'network topology diagram';
+    return 'computing diagram';
+  }
+
+  // Psychology
+  if (subjectLower.includes('psychology')) {
+    if (subtopicLower.includes('brain') || subtopicLower.includes('neuron')) return 'anatomical diagram';
+    if (subtopicLower.includes('model')) return 'model diagram';
+    if (subtopicLower.includes('graph') || subtopicLower.includes('chart')) return 'statistical graph';
+    return 'psychology diagram';
+  }
+
+  // Default
+  return 'diagram';
+}
+
 /**
  * Parse JSON response from AI model.
  * Optionally validates the parsed output against subject-specific rules.
