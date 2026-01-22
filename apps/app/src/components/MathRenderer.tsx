@@ -446,8 +446,86 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
     );
   };
 
-  // Split content into blocks (tables vs regular text)
-  const splitIntoBlocks = (text: string): { type: 'table' | 'text'; content: string }[] => {
+  // Render a code block with optional language label
+  const renderCodeBlock = (code: string, language?: string) => {
+    // Map common language identifiers to display names
+    const languageLabels: Record<string, string> = {
+      'python': 'Python',
+      'pseudocode': 'Pseudocode',
+      'sql': 'SQL',
+      'javascript': 'JavaScript',
+      'js': 'JavaScript',
+      'java': 'Java',
+      'csharp': 'C#',
+      'cs': 'C#',
+      'vb': 'VB.NET',
+      'vbnet': 'VB.NET',
+      'cpp': 'C++',
+      'c': 'C',
+    };
+
+    const displayLabel = language ? languageLabels[language.toLowerCase()] || language : null;
+
+    return (
+      <div className="my-4 rounded-lg overflow-hidden border border-[var(--color-border)] bg-[#1a1a2e]">
+        {displayLabel && (
+          <div className="px-4 py-1.5 text-xs font-medium text-[#888] bg-[#12121f] border-b border-[var(--color-border)]">
+            {displayLabel}
+          </div>
+        )}
+        <pre className="p-4 overflow-x-auto">
+          <code className="text-sm font-mono text-[#e0e0e0] whitespace-pre">{code}</code>
+        </pre>
+      </div>
+    );
+  };
+
+  // Split content into blocks (code blocks, tables, and regular text)
+  const splitIntoBlocks = (text: string): { type: 'code' | 'table' | 'text'; content: string; language?: string }[] => {
+    const blocks: { type: 'code' | 'table' | 'text'; content: string; language?: string }[] = [];
+
+    // First, extract code blocks (triple backticks)
+    const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      // Add text before the code block
+      if (match.index > lastIndex) {
+        const textBefore = text.slice(lastIndex, match.index);
+        if (textBefore.trim()) {
+          blocks.push(...splitTextAndTables(textBefore));
+        }
+      }
+
+      // Add the code block
+      const language = match[1] || undefined;
+      const code = match[2].trim();
+      if (code) {
+        blocks.push({ type: 'code', content: code, language });
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after the last code block
+    if (lastIndex < text.length) {
+      const remainingText = text.slice(lastIndex);
+      if (remainingText.trim()) {
+        blocks.push(...splitTextAndTables(remainingText));
+      }
+    }
+
+    // If no code blocks were found, process the entire text
+    if (blocks.length === 0 && text.trim()) {
+      blocks.push(...splitTextAndTables(text));
+    }
+
+    return blocks;
+  };
+
+  // Helper function to split text into tables and regular text
+  const splitTextAndTables = (text: string): { type: 'table' | 'text'; content: string }[] => {
     const blocks: { type: 'table' | 'text'; content: string }[] = [];
     const lines = text.split('\n');
     let currentBlock: string[] = [];
@@ -498,6 +576,12 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   return (
     <div className={`math-content ${className}`}>
       {blocks.map((block, blockIndex) => {
+        // Code block rendering (for CS questions, etc.)
+        if (block.type === 'code') {
+          return <div key={blockIndex}>{renderCodeBlock(block.content, block.language)}</div>;
+        }
+
+        // Table rendering
         if (block.type === 'table') {
           const tableData = parseMarkdownTable(block.content);
           if (tableData && tableData.headers.length > 0) {
