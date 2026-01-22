@@ -14,19 +14,19 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * SEO SITEMAP STRATEGY
  * ====================
  *
- * Only includes INDEXED pages for SEO:
+ * All pages in this sitemap have index: true in their metadata.
  *
  * Included:
  * - Marketing pages (/, /pricing, /paper-generator, /past-papers, /start, /privacy, /terms)
  * - Level pages (/gcse, /a-level)
  * - Subject pages (/gcse/maths)
  * - Exam board pages (/gcse/maths/aqa)
- * - All topic pages (all exam boards)
- * - INDEXED subtopic pages only (filtered by shouldIndexBoardlessSubtopic)
+ * - All topic pages (/gcse/maths/aqa/algebra)
+ * - INDEXED subtopic pages only (filtered by INDEXED_BOARDLESS_SUBTOPICS)
  * - Required practical pages (/gcse/physics/aqa/practicals/rp1)
  *
  * Excluded:
- * - Non-indexed topics and subtopics (redirect to /practice/)
+ * - Non-indexed subtopics (noindex meta tag)
  * - Boardless URLs (/gcse/maths/algebra) - no route exists
  * - All /app/* routes - blocked by robots.txt
  * - All /api/* routes
@@ -123,7 +123,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  // Subtopic pages - all valid subtopics across all exam boards
+  // Subtopic pages - only INDEXED subtopics across all exam boards
   // Filter to only include subtopics that are in the indexed list (match by level/subject/subtopic)
   const indexedSet = new Set(
     INDEXED_BOARDLESS_SUBTOPICS.map(s => `${s.level}|${s.subject}|${s.subtopic}`)

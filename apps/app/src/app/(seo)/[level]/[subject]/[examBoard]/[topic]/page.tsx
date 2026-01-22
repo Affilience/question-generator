@@ -49,8 +49,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = generateSEOTitle({ level, subject, examBoard, topic });
   const description = generateSEODescription({ level, subject, examBoard, topic });
 
-  // Board-specific topic pages are noindex under Model A (boardless SEO)
-  // Use /gcse/maths/algebra instead of /gcse/maths/aqa/algebra for SEO
   return {
     title,
     description,
@@ -71,8 +69,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `/${level}/${subject}/${examBoard}/${topic}`,
     },
     robots: {
-      index: false,
-      follow: true, // Allow link equity to flow to subtopic pages
+      index: true,
+      follow: true,
     },
   };
 }

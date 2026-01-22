@@ -18,7 +18,6 @@ import {
   getTopicsBySubjectBoardAndLevel,
 } from '@/lib/topics';
 import type { Subject, QualificationLevel, ExamBoard } from '@/types';
-import { shouldIndexExamBoard } from '@/lib/seo/indexed-pages';
 
 interface PageProps {
   params: Promise<{ level: string; subject: string; examBoard: string }>;
@@ -43,9 +42,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = generateSEOTitle({ level, subject, examBoard });
   const description = generateSEODescription({ level, subject, examBoard });
 
-  // Only index exam board pages with verified search demand
-  const shouldIndex = shouldIndexExamBoard(level, subject, examBoard);
-
   return {
     title,
     description,
@@ -65,8 +61,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `/${level}/${subject}/${examBoard}`,
     },
     robots: {
-      index: shouldIndex,
-      follow: true, // Allow link equity to flow to topic pages
+      index: true,
+      follow: true,
     },
   };
 }

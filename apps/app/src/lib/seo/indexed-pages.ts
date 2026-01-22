@@ -2075,6 +2075,7 @@ export function shouldIndexExamBoard(
  * Check if a subtopic page should be indexed.
  * Uses the boardless list - if a subtopic has search demand,
  * it should be indexed regardless of which exam board variant.
+ * Matches by level/subject/subtopic only (ignores topic ID since it varies by board).
  */
 export function shouldIndexSubtopic(
   level: string,
@@ -2083,11 +2084,12 @@ export function shouldIndexSubtopic(
   topic: string,
   subtopic: string
 ): boolean {
-  // Check against boardless list (exam board doesn't affect search demand)
+  // Check against boardless list by level/subject/subtopic only
+  // Topic IDs differ across exam boards (e.g., physics-forces vs forces)
+  // so we match by subtopic slug which is consistent
   return INDEXED_BOARDLESS_SUBTOPICS.some(
     s => s.level === level &&
          s.subject === subject &&
-         s.topic === topic &&
          s.subtopic === subtopic
   );
 }
