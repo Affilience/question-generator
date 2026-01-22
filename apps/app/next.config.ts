@@ -31,6 +31,26 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Immutable cache for hashed static assets (JS/CSS chunks)
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Short cache for HTML pages to pick up new chunk references faster
+        source: '/:path((?!_next|api).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+      {
         // Add security headers for all routes
         source: '/:path*',
         headers: [
