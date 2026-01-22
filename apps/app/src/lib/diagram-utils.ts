@@ -820,3 +820,178 @@ export function generateDebugOverlay(spec: DiagramSpec): DiagramSpec {
     elements: [...spec.elements, ...debugElements],
   };
 }
+
+// ============================================
+// Pre-built Templates for Common Diagram Types
+// ============================================
+
+/**
+ * Template generators for common diagram patterns.
+ * These ensure consistent, well-formed diagrams.
+ */
+export const DiagramTemplates = {
+  /**
+   * Create a right-angled triangle template.
+   */
+  rightTriangle(options: {
+    base: number;
+    height: number;
+    labels?: { A?: string; B?: string; C?: string };
+    sideLabels?: { base?: string; height?: string; hypotenuse?: string };
+  }): DiagramSpec {
+    const { base, height, labels = {}, sideLabels = {} } = options;
+    const margin = 2;
+    return {
+      width: base + margin * 2,
+      height: height + margin * 2,
+      showNotAccurate: true,
+      elements: [
+        {
+          type: 'polygon',
+          vertices: [
+            { x: margin, y: margin, label: labels.A || 'A', labelPosition: 'bottom-left' },
+            { x: margin + base, y: margin, label: labels.B || 'B', labelPosition: 'bottom-right' },
+            { x: margin, y: margin + height, label: labels.C || 'C', labelPosition: 'top-left' },
+          ],
+          sideLabels: [
+            ...(sideLabels.base ? [{ fromIndex: 0, toIndex: 1, label: sideLabels.base }] : []),
+            ...(sideLabels.height ? [{ fromIndex: 0, toIndex: 2, label: sideLabels.height, position: 'outside' as const }] : []),
+            ...(sideLabels.hypotenuse ? [{ fromIndex: 1, toIndex: 2, label: sideLabels.hypotenuse }] : []),
+          ],
+        },
+        {
+          type: 'angle-marker',
+          vertex: { x: margin, y: margin },
+          ray1End: { x: margin + base, y: margin },
+          ray2End: { x: margin, y: margin + height },
+          isRightAngle: true,
+        },
+      ],
+    } as DiagramSpec;
+  },
+
+  /**
+   * Create a circle with center and radius template.
+   */
+  circleWithRadius(options: {
+    radius: number;
+    centerLabel?: string;
+    radiusLabel?: string;
+  }): DiagramSpec {
+    const { radius, centerLabel = 'O', radiusLabel } = options;
+    const size = radius * 2 + 4;
+    const center = size / 2;
+    return {
+      width: size,
+      height: size,
+      showNotAccurate: true,
+      elements: [
+        {
+          type: 'circle',
+          center: { x: center, y: center, label: centerLabel, labelPosition: 'bottom-right' },
+          radius,
+          radiusLabel,
+        },
+      ],
+    } as DiagramSpec;
+  },
+
+  /**
+   * Create a quadrilateral (rectangle, square, parallelogram, etc.).
+   */
+  quadrilateral(options: {
+    vertices: Array<{ x: number; y: number; label?: string }>;
+    sideLabels?: Array<{ fromIndex: number; toIndex: number; label: string }>;
+  }): DiagramSpec {
+    const { vertices, sideLabels = [] } = options;
+    const xs = vertices.map(v => v.x);
+    const ys = vertices.map(v => v.y);
+    const margin = 2;
+    return {
+      width: Math.max(...xs) + margin,
+      height: Math.max(...ys) + margin,
+      showNotAccurate: true,
+      elements: [
+        {
+          type: 'polygon',
+          vertices: vertices.map((v, i) => ({
+            ...v,
+            labelPosition: inferLabelPositionFromVertices(v, vertices),
+          })),
+          sideLabels,
+        },
+      ],
+    } as DiagramSpec;
+  },
+
+  /**
+   * Create a simple coordinate graph template.
+   */
+  coordinateGraph(options: {
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+    fn?: string;
+    points?: Array<{ x: number; y: number; label?: string }>;
+  }): DiagramSpec {
+    const { xMin, xMax, yMin, yMax, fn, points = [] } = options;
+    const elements: DiagramElement[] = [
+      {
+        type: 'grid',
+        xMin, xMax, yMin, yMax,
+        xStep: 1,
+        yStep: 1,
+      } as GridElement,
+      {
+        type: 'axes',
+        xMin, xMax, yMin, yMax,
+        showNumbers: true,
+        xLabel: 'x',
+        yLabel: 'y',
+      } as AxesElement,
+    ];
+
+    if (fn) {
+      elements.push({
+        type: 'curve',
+        fn,
+        stroke: '#3b82f6',
+      } as any);
+    }
+
+    points.forEach(p => {
+      elements.push({
+        type: 'point',
+        position: {
+          x: p.x,
+          y: p.y,
+          label: p.label,
+          labelPosition: 'top-right',
+        },
+        style: 'dot',
+      } as PointElement);
+    });
+
+    return { elements } as DiagramSpec;
+  },
+};
+
+/**
+ * Helper to infer label position based on vertex position relative to others.
+ */
+function inferLabelPositionFromVertices(
+  vertex: { x: number; y: number },
+  allVertices: Array<{ x: number; y: number }>
+): 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' {
+  const cx = allVertices.reduce((sum, v) => sum + v.x, 0) / allVertices.length;
+  const cy = allVertices.reduce((sum, v) => sum + v.y, 0) / allVertices.length;
+
+  const isLeft = vertex.x < cx;
+  const isBottom = vertex.y < cy;
+
+  if (isLeft && isBottom) return 'bottom-left';
+  if (isLeft && !isBottom) return 'top-left';
+  if (!isLeft && isBottom) return 'bottom-right';
+  return 'top-right';
+}

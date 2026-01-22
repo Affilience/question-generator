@@ -37,17 +37,48 @@ import { validateAndSanitizeDiagram } from '@/lib/diagram-utils';
 // Constants
 // ============================================
 
+// Colors that work in both light and dark modes
+// Using CSS variables where possible for theme compatibility
 const DEFAULT_COLORS = {
-  stroke: '#1a1a1a',
+  stroke: '#374151', // gray-700 - works on both light and dark
   fill: 'none',
-  text: '#1a1a1a',
-  grid: '#e5e5e5',
-  accent: '#3b82f6',
+  text: '#1f2937', // gray-800
+  grid: '#d1d5db', // gray-300
+  accent: '#3b82f6', // blue-500
   angle: 'rgba(59, 130, 246, 0.3)',
+};
+
+// Dark mode colors (used when darkMode prop is true)
+const DARK_MODE_COLORS = {
+  stroke: '#e5e7eb', // gray-200
+  fill: 'none',
+  text: '#f3f4f6', // gray-100
+  grid: '#374151', // gray-700
+  accent: '#60a5fa', // blue-400
+  angle: 'rgba(96, 165, 250, 0.3)',
 };
 
 const DEFAULT_RENDER_WIDTH = 400;
 const DEFAULT_RENDER_HEIGHT = 300;
+
+// Precision for SVG coordinates (2 decimal places for performance)
+const COORD_PRECISION = 2;
+
+/**
+ * Round a number to specified decimal places for cleaner SVG output.
+ * Reduces file size and improves rendering performance.
+ */
+function round(n: number, decimals: number = COORD_PRECISION): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(n * factor) / factor;
+}
+
+/**
+ * Round a point's coordinates.
+ */
+function roundPoint(p: Point): Point {
+  return { x: round(p.x), y: round(p.y) };
+}
 
 // ============================================
 // Utility Functions
@@ -1346,6 +1377,7 @@ interface DiagramRendererProps {
   className?: string;
   maxWidth?: number;
   maxHeight?: number;
+  darkMode?: boolean;
 }
 
 // ============================================
@@ -1413,9 +1445,12 @@ function DiagramFallback({ message }: { message?: string }) {
 // Main Component
 // ============================================
 
-function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400 }: DiagramRendererProps) {
+function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400, darkMode = false }: DiagramRendererProps) {
   // Validate and sanitize the diagram spec
   const { sanitizedSpec } = useMemo(() => validateAndSanitizeDiagram(spec), [spec]);
+
+  // Select color scheme based on dark mode
+  const colors = darkMode ? DARK_MODE_COLORS : DEFAULT_COLORS;
 
   const { renderWidth, renderHeight, transform, scale, logicalBounds } = useMemo(() => {
     // Determine logical bounds from elements or spec
@@ -1454,10 +1489,10 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
     const scaleY = (renderHeight - 2 * padding) / logicalHeight;
     const scale = Math.min(scaleX, scaleY);
 
-    // Transform function: logical coords to render coords
+    // Transform function: logical coords to render coords (rounded for performance)
     const transform = (p: Point): Point => ({
-      x: padding + (p.x - xMin) * scale,
-      y: renderHeight - padding - (p.y - yMin) * scale, // Flip Y axis
+      x: round(padding + (p.x - xMin) * scale),
+      y: round(renderHeight - padding - (p.y - yMin) * scale), // Flip Y axis
     });
 
     return {
@@ -1586,7 +1621,7 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
 // Exported Component with Error Boundary
 // ============================================
 
-export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400 }: DiagramRendererProps) {
+export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400, darkMode = false }: DiagramRendererProps) {
   // Handle completely invalid/missing specs
   if (!spec || !spec.elements || spec.elements.length === 0) {
     return <DiagramFallback message="No diagram data available" />;
@@ -1599,6 +1634,7 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
         className={className}
         maxWidth={maxWidth}
         maxHeight={maxHeight}
+        darkMode={darkMode}
       />
     </DiagramErrorBoundary>
   );
