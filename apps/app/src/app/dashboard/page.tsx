@@ -215,7 +215,7 @@ export default function DashboardPage() {
             Practice Questions
           </Link>
           <Link
-            href="/papers"
+            href="/past-papers"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-lg text-sm font-medium hover:bg-[#2a2a2a] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
