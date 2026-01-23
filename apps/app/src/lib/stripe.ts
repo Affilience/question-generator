@@ -87,7 +87,8 @@ export async function createCheckoutSession({
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
     mode: 'subscription',
-    payment_method_types: ['card', 'apple_pay', 'google_pay'],
+    payment_method_types: ['card'],
+    // Apple Pay and Google Pay are automatically available when supported
     line_items: [
       {
         price: priceId,
