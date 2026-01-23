@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { constructWebhookEvent, getTierFromPriceId } from '@/lib/stripe';
+import { constructWebhookEvent, getTierFromPriceId, STRIPE_PRICES } from '@/lib/stripe';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -209,20 +209,80 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
+  
+  // Extract user_id from subscription metadata (for new subscriptions)
+  const userIdFromMetadata = subscription.metadata?.user_id;
 
-  // Find user by customer ID
+  // Try to find existing subscription by customer ID first
   const { data: existingSub } = await supabase
     .from('user_subscriptions')
     .select('user_id')
     .eq('stripe_customer_id', customerId)
     .single();
 
-  if (!existingSub) {
-    console.error('No user found for customer:', customerId);
-    return;
+  // Determine user_id: use existing subscription's user_id or metadata
+  let userId = existingSub?.user_id || userIdFromMetadata;
+
+  // Fallback: try to find user by Stripe customer ID
+  if (!userId) {
+    const { data: customerUser } = await supabase
+      .from('user_subscriptions')
+      .select('user_id')
+      .eq('stripe_customer_id', customerId)
+      .limit(1)
+      .single();
+    
+    userId = customerUser?.user_id;
   }
 
-  const priceId = subscription.items.data[0]?.price.id;
+  if (!userId) {
+    console.error('No user_id found for subscription after all fallback attempts:', {
+      subscriptionId: subscription.id,
+      customerId,
+      hasMetadata: !!userIdFromMetadata,
+      hasExistingSub: !!existingSub,
+      attemptedCustomerLookup: true
+    });
+    throw new Error(`Could not determine user_id for subscription ${subscription.id}`);
+  }
+
+  console.log('Processing subscription update:', {
+    subscriptionId: subscription.id,
+    userId,
+    customerId,
+    source: existingSub ? 'existing_sub' : 'metadata'
+  });
+
+  const rawPriceId = subscription.items.data[0]?.price.id;
+  
+  if (!rawPriceId) {
+    console.error('No price ID found in subscription:', {
+      subscriptionId: subscription.id,
+      items: subscription.items.data.length
+    });
+    throw new Error('No price ID found in subscription');
+  }
+  
+  // Map Stripe price ID to database price ID
+  // Create reverse lookup from STRIPE_PRICES to find the key (database format)
+  const dbPriceId = (() => {
+    for (const [dbKey, stripePriceId] of Object.entries(STRIPE_PRICES)) {
+      if (stripePriceId === rawPriceId) {
+        return `price_${dbKey}`; // Convert to database format
+      }
+    }
+    // Fallback to the old mapping for backwards compatibility
+    const oldMapping = Object.entries(PRICE_KEY_TO_DB_ID).find(
+      ([_, stripePriceId]) => stripePriceId === rawPriceId
+    )?.[1];
+    return oldMapping || rawPriceId;
+  })();
+
+  console.log('Price mapping:', {
+    rawPriceId,
+    dbPriceId,
+    availablePrices: Object.entries(STRIPE_PRICES)
+  });
 
   // Access subscription period from the raw object (these exist at runtime)
   const subData = subscription as Stripe.Subscription & {
@@ -233,10 +293,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const { error } = await supabase
     .from('user_subscriptions')
     .upsert({
-      user_id: existingSub.user_id,
+      user_id: userId,
       stripe_customer_id: customerId,
       stripe_subscription_id: subscription.id,
-      price_id: priceId,
+      price_id: dbPriceId,
       status: subscription.status,
       current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
       current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
@@ -256,7 +316,24 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     });
 
   if (error) {
-    console.error('Error updating subscription:', error);
+    console.error('Error updating subscription:', {
+      error,
+      subscriptionId: subscription.id,
+      userId,
+      customerId,
+      dbPriceId,
+      rawPriceId,
+      errorCode: error.code,
+      errorMessage: error.message
+    });
+    throw error; // Re-throw to ensure proper error response
+  } else {
+    console.log('Successfully processed subscription:', {
+      subscriptionId: subscription.id,
+      userId,
+      status: subscription.status,
+      dbPriceId
+    });
   }
 }
 

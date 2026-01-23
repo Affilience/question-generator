@@ -101,16 +101,18 @@ export async function createCheckoutSession({
       price_id: priceId,
     },
     allow_promotion_codes: true,
+    // ALWAYS add subscription metadata so webhooks can find user_id
+    subscription_data: {
+      metadata: {
+        user_id: userId,
+        price_id: priceId,
+      },
+    },
   };
 
   // Add trial period for subscriptions
   if (trialDays) {
-    sessionConfig.subscription_data = {
-      trial_period_days: trialDays,
-      metadata: {
-        user_id: userId,
-      },
-    };
+    sessionConfig.subscription_data!.trial_period_days = trialDays;
   }
 
   return getStripe().checkout.sessions.create(sessionConfig);
