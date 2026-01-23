@@ -128,17 +128,11 @@ Follow these EXACT specifications for all diagrams:
 - Minimum 1.5 units between text and shapes
 - Leave 1 unit margin from canvas edges
 
-**Example - Triangle with correct sizing:**
-```
-elements: [
-  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
-  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
-  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
-  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
-],
-width: 10,   // matches element bounds (1.5 to 8.5)
-height: 9    // matches element bounds (2.5 to 8.5)
-```
+**Triangle Example:**
+- Triangle with vertices at (2,8), (8,8), (5,3)
+- Labels A, B, C positioned away from vertices to avoid overlap
+- Canvas size: width 10, height 9 (matching element bounds 1.5-8.5 horizontally, 2.5-8.5 vertically)
+- Text positioned outside the triangle at (1.5,8.5), (8.5,8.5), (5,2.5)
 
 ### DIFFICULTY LEVELS FOR GCSE PHYSICS:
 
@@ -275,17 +269,11 @@ Follow these EXACT specifications for all diagrams:
 - Minimum 1.5 units between text and shapes
 - Leave 1 unit margin from canvas edges
 
-**Example - Triangle with correct sizing:**
-```
-elements: [
-  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
-  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
-  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
-  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
-],
-width: 10,   // matches element bounds (1.5 to 8.5)
-height: 9    // matches element bounds (2.5 to 8.5)
-```
+**Triangle Example:**
+- Triangle with vertices at (2,8), (8,8), (5,3)
+- Labels A, B, C positioned away from vertices to avoid overlap
+- Canvas size: width 10, height 9 (matching element bounds 1.5-8.5 horizontally, 2.5-8.5 vertically)
+- Text positioned outside the triangle at (1.5,8.5), (8.5,8.5), (5,2.5)
 
 ### DIFFICULTY LEVELS FOR GCSE CHEMISTRY:
 
@@ -423,17 +411,11 @@ Follow these EXACT specifications for all diagrams:
 - Minimum 1.5 units between text and shapes
 - Leave 1 unit margin from canvas edges
 
-**Example - Triangle with correct sizing:**
-```
-elements: [
-  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
-  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
-  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
-  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
-],
-width: 10,   // matches element bounds (1.5 to 8.5)
-height: 9    // matches element bounds (2.5 to 8.5)
-```
+**Triangle Example:**
+- Triangle with vertices at (2,8), (8,8), (5,3)
+- Labels A, B, C positioned away from vertices to avoid overlap
+- Canvas size: width 10, height 9 (matching element bounds 1.5-8.5 horizontally, 2.5-8.5 vertically)
+- Text positioned outside the triangle at (1.5,8.5), (8.5,8.5), (5,2.5)
 
 ### DIFFICULTY LEVELS FOR GCSE BIOLOGY:
 
