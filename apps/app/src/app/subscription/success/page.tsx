@@ -124,7 +124,7 @@ function SubscriptionSuccessContent() {
               
               <div className="space-y-3">
                 <Link
-                  href="/gcse"
+                  href="/start"
                   className="block w-full py-3 bg-white text-[#0a0a0a] rounded-lg font-medium hover:bg-white/90 transition-colors"
                 >
                   Start Practicing

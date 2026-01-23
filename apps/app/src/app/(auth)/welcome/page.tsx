@@ -182,12 +182,12 @@ export default function WelcomePage() {
                       {tierOption.cta}
                     </button>
                   ) : (
-                    <button
-                      onClick={() => setStep('level')}
-                      className="w-full bg-white/[0.06] hover:bg-white/[0.1] text-white py-3 rounded-lg font-medium transition-colors"
+                    <Link
+                      href="/start"
+                      className="block w-full bg-white/[0.06] hover:bg-white/[0.1] text-white py-3 rounded-lg font-medium transition-colors text-center"
                     >
                       {tierOption.cta}
-                    </button>
+                    </Link>
                   )}
                 </div>
               ))}
@@ -233,10 +233,10 @@ export default function WelcomePage() {
         {/* Skip link */}
         <div className="text-center mt-8">
           <Link
-            href="/dashboard"
+            href="/start"
             className="text-white/30 hover:text-white/50 text-sm transition-colors"
           >
-            Skip and go to dashboard
+            Skip and start practicing
           </Link>
         </div>
       </div>
