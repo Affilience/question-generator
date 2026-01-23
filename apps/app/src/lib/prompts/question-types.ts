@@ -20,6 +20,8 @@ export const QUESTION_TYPE_DESCRIPTIONS: Record<QuestionType, string> = {
   'data-analysis': 'a data analysis question involving interpretation of tables, graphs, or datasets',
   'graph': 'a question involving drawing, completing, or analyzing a graph',
   'compare': 'a compare/contrast question analyzing similarities and differences',
+  'proof': 'a mathematical proof question requiring logical reasoning and justification',
+  'show-that': 'a show-that question where answer is given and working must be shown',
 };
 
 // ============================================================================
@@ -35,6 +37,8 @@ export const COMMAND_WORDS_BY_TYPE: Record<QuestionType, string[]> = {
   'data-analysis': ['Describe the pattern', 'What trend', 'Calculate from the data', 'Analyse'],
   'graph': ['Draw', 'Sketch', 'Plot', 'Complete', 'Use the graph to'],
   'compare': ['Compare', 'Contrast', 'Distinguish between', 'What are the similarities and differences'],
+  'proof': ['Prove', 'Show that', 'Prove by induction', 'Demonstrate'],
+  'show-that': ['Show that', 'Verify that', 'Confirm that'],
 };
 
 // ============================================================================
@@ -50,6 +54,8 @@ export const MARK_RANGES_BY_TYPE: Record<QuestionType, { min: number; max: numbe
   'data-analysis': { min: 3, max: 6 },
   'graph': { min: 2, max: 4 },
   'compare': { min: 3, max: 6 },
+  'proof': { min: 4, max: 8 },
+  'show-that': { min: 3, max: 6 },
 };
 
 // ============================================================================
@@ -244,6 +250,8 @@ export function getQuestionTypeTemplate(type: QuestionType): string {
     'data-analysis': DATA_ANALYSIS_TEMPLATE,
     'graph': DATA_ANALYSIS_TEMPLATE, // Similar structure
     'compare': COMPARE_TEMPLATE,
+    'proof': CALCULATION_TEMPLATE, // Similar to calculation but with proof structure
+    'show-that': CALCULATION_TEMPLATE, // Similar to calculation but with given answer
   };
 
   return templates[type] || EXPLAIN_TEMPLATE;
@@ -264,6 +272,8 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'data-analysis': 'Read a single value from data. Identify obvious trend.',
       'graph': 'Read a single value. Identify basic shape.',
       'compare': 'List basic similarities OR differences (not both required).',
+      'proof': 'Simple proof with direct application of basic theorem.',
+      'show-that': 'Straightforward verification with simple substitution.',
     },
     medium: {
       'multiple-choice': 'Test application. Distractors based on common errors.',
@@ -274,6 +284,8 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'data-analysis': 'Calculate from data. Identify patterns and suggest reasons.',
       'graph': 'Calculate gradient or read multiple values. Interpret meaning.',
       'compare': 'Compare with clear similarities AND differences.',
+      'proof': 'Multi-step proof requiring logical reasoning.',
+      'show-that': 'Show working with intermediate steps and reasoning.',
     },
     hard: {
       'multiple-choice': 'Test deeper understanding. Subtle distractors requiring careful analysis.',
@@ -284,6 +296,8 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'data-analysis': 'Complex analysis. Evaluate reliability. Draw nuanced conclusions.',
       'graph': 'Analyse shape, calculate gradient, extrapolate, and evaluate.',
       'compare': 'Analytical comparison with evaluation of significance.',
+      'proof': 'Complex proof using multiple methods or requiring creative insight.',
+      'show-that': 'Sophisticated verification with non-obvious approach.',
     },
   };
 

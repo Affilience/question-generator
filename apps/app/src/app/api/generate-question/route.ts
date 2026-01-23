@@ -405,6 +405,7 @@ import { getAQAChemistryRequiredPracticalPrompt } from '@/lib/prompts-chemistry-
 import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
 import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic } from '@/types';
+import { DiagramSpec } from '@/types/diagram';
 
 // Using Node.js runtime (default) - Edge runtime has 1MB limit which is exceeded by prompt imports
 
@@ -643,7 +644,7 @@ export async function POST(request: NextRequest) {
         solution: existingQuestion.solution,
         marks: existingQuestion.marks,
         markScheme: existingQuestion.mark_scheme,
-        diagram: existingQuestion.diagram,
+        diagram: existingQuestion.diagram ? (existingQuestion.diagram as unknown as DiagramSpec) : undefined,
       };
 
       return NextResponse.json(question, {
@@ -1527,7 +1528,7 @@ export async function POST(request: NextRequest) {
       questionData.solution,
       questionData.markScheme,
       questionData.marks,
-      questionData.diagram
+      questionData.diagram ? (questionData.diagram as unknown as Record<string, unknown>) : undefined
     ).catch(err => {
       console.error('Failed to store question in bank:', err);
       return null;

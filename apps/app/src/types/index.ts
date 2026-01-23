@@ -125,7 +125,9 @@ export type QuestionType =
   | 'extended'
   | 'data-analysis'
   | 'graph'
-  | 'compare';
+  | 'compare'
+  | 'proof'
+  | 'show-that';
 
 export interface PaperSection {
   id: string;
