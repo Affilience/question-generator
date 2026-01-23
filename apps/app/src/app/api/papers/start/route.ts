@@ -57,12 +57,69 @@ function transformConfig(
   const isEssaySubject = essaySubjects.includes(subject);
   
   if (isEssaySubject) {
-    // Essay subjects need different question types and distributions
+    // Subject-specific configurations based on real past papers
+    if (subject === 'economics') {
+      // Economics has mixed structure: extracts + short answers + essays
+      // Difficulty affects question type distribution
+      const hardWeight = simplified.difficulty.hard;
+      const easyWeight = simplified.difficulty.easy;
+      
+      // More hard = more essays, More easy = more short answers/MC
+      const shortAnswerWeight = Math.max(15, easyWeight * 0.8); // 15-32%
+      const essayWeight = Math.max(35, 35 + hardWeight * 0.5); // 35-60%
+      const extractWeight = 100 - shortAnswerWeight - essayWeight; // remainder for analysis
+      
+      return {
+        totalMarks: simplified.totalMarks,
+        timeLimit: Math.round(simplified.totalMarks * 1.4), // Economics needs time for data analysis
+        sections: [
+          {
+            id: 'section-a',
+            name: 'Section A',
+            targetMarks: Math.round(simplified.totalMarks * 0.5), // 50% for context section
+            instructions: 'Answer all questions in this section based on the extract provided.',
+            questionTypes: ['multiple-choice', 'short-answer', 'extract-analysis'],
+            order: 1,
+          },
+          {
+            id: 'section-b',
+            name: 'Section B', 
+            targetMarks: Math.round(simplified.totalMarks * 0.5), // 50% for essay section
+            instructions: 'Answer ONE question from this section.',
+            questionTypes: ['essay', 'extended'],
+            order: 2,
+          },
+        ],
+        selectedTopics: simplified.selectedTopics,
+        selectedSubtopics,
+        difficultyDistribution: {
+          easy: simplified.difficulty.easy,
+          medium: simplified.difficulty.medium,
+          hard: simplified.difficulty.hard,
+        },
+        questionTypeDistribution: {
+          essay: essayWeight,
+          extractAnalysis: extractWeight, 
+          shortAnswer: shortAnswerWeight,
+          multipleChoice: Math.max(5, easyWeight * 0.3), // More MC when easier
+          extended: Math.max(5, hardWeight * 0.2), // More extended when harder
+        },
+        settings: {
+          includeFormulaSheet: false,
+          includeDataBooklet: true, // Economics uses data extracts
+          showMarks: true,
+          calculatorAllowed: true, // Economics allows calculators
+          examConditions: true,
+        },
+      };
+    }
+    
+    // English Literature and History configurations
     const questionTypes = subject === 'english-literature' 
       ? ['extract-analysis', 'interpretation', 'essay']
       : subject === 'history'
       ? ['source-analysis', 'interpretation', 'essay'] 
-      : ['essay', 'extended', 'compare'];
+      : ['essay', 'extended', 'compare']; // Business/Psychology fallback
       
     return {
       totalMarks: simplified.totalMarks,
@@ -72,7 +129,11 @@ function transformConfig(
           id: 'section-a',
           name: 'Section A',
           targetMarks: Math.round(simplified.totalMarks * 0.4), // ~40% for analysis
-          instructions: isEssaySubject && subject === 'history' ? 'Analyse the sources provided.' : 'Answer the extract-based question.',
+          instructions: subject === 'history' 
+            ? 'Analyse the sources provided.' 
+            : subject === 'english-literature'
+            ? 'Answer the extract-based question.'
+            : 'Answer the context-based question.',
           questionTypes: [questionTypes[0]],
           order: 1,
         },
@@ -101,7 +162,7 @@ function transformConfig(
       },
       settings: {
         includeFormulaSheet: false,
-        includeDataBooklet: false,
+        includeDataBooklet: subject === 'history', // History uses source booklets
         showMarks: true,
         calculatorAllowed: false,
         examConditions: true,

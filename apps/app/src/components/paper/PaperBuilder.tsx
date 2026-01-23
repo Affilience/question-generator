@@ -107,16 +107,28 @@ export function PaperBuilder({
 
   const estimatedQuestions = useMemo(() => {
     // Subject-specific mark calculations based on real past papers
-    const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology'];
-    const isEssaySubject = essaySubjects.includes(subject);
+    const isEssaySubject = ['english-literature', 'history', 'economics', 'business', 'psychology'].includes(subject);
     
     if (isEssaySubject) {
-      // Essay subjects have fewer, higher-mark questions:
-      // English Lit: ~25 marks/question (75 marks = 3 questions)
-      // History: ~27 marks/question (80 marks = 3 questions)  
-      // Economics: ~25 marks/question (typical 25-mark essays)
-      const avgMarksPerQuestion = 25;
-      return Math.max(1, Math.round(totalMarks / avgMarksPerQuestion));
+      if (subject === 'economics') {
+        // Economics has mixed structure - difficulty affects question types
+        const hardWeight = difficulty.hard;
+        const easyWeight = difficulty.easy;
+        
+        // More hard = fewer, longer questions (more essays)
+        // More easy = more, shorter questions (more MC/short answer)
+        const baseQuestionsFor80Marks = 8; // Realistic baseline for 80-mark economics paper
+        const difficultyMultiplier = 1 + (easyWeight - hardWeight) * 0.01; // +/- 40% max
+        const questionsFor80 = Math.round(baseQuestionsFor80Marks * difficultyMultiplier);
+        
+        return Math.max(3, Math.round((totalMarks / 80) * questionsFor80));
+      } else {
+        // English Lit/History: Pure essay subjects
+        // English Lit: ~25 marks/question (75 marks = 3 questions)
+        // History: ~27 marks/question (80 marks = 3 questions)  
+        const avgMarksPerQuestion = 25;
+        return Math.max(1, Math.round(totalMarks / avgMarksPerQuestion));
+      }
     } else {
       // STEM subjects have more, lower-mark questions:
       // Maths/Sciences: calculation (2-5), explain (2-4), extended (6-12), etc.
@@ -124,7 +136,7 @@ export function PaperBuilder({
       const avgMarksPerQuestion = 3.8;
       return Math.round(totalMarks / avgMarksPerQuestion);
     }
-  }, [totalMarks, subject]);
+  }, [totalMarks, subject, difficulty]);
 
   return (
     <div className="space-y-6">

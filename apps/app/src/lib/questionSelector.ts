@@ -50,7 +50,7 @@ interface SubtopicAllocation {
  */
 const QUESTION_TYPE_MARKS: Record<QuestionType, number[]> = {
   'multiple-choice': [1],
-  'short-answer': [1, 2, 3],
+  'short-answer': [1, 2, 3, 4],
   'calculation': [2, 3, 4, 5],
   'explain': [2, 3, 4],
   'extended': [6, 8, 9, 12],
@@ -62,7 +62,7 @@ const QUESTION_TYPE_MARKS: Record<QuestionType, number[]> = {
   'essay': [20, 25, 30],
   'source-analysis': [25, 30],
   'interpretation': [25, 30],
-  'extract-analysis': [20, 25, 30],
+  'extract-analysis': [15, 20, 25], // Economics analysis questions
 };
 
 /**
