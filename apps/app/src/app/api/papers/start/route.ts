@@ -52,6 +52,64 @@ function transformConfig(
     }
   }
 
+  // Subject-specific configuration
+  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology'];
+  const isEssaySubject = essaySubjects.includes(subject);
+  
+  if (isEssaySubject) {
+    // Essay subjects need different question types and distributions
+    const questionTypes = subject === 'english-literature' 
+      ? ['extract-analysis', 'interpretation', 'essay']
+      : subject === 'history'
+      ? ['source-analysis', 'interpretation', 'essay'] 
+      : ['essay', 'extended', 'compare'];
+      
+    return {
+      totalMarks: simplified.totalMarks,
+      timeLimit: Math.round(simplified.totalMarks * 1.5), // More time for essays
+      sections: [
+        {
+          id: 'section-a',
+          name: 'Section A',
+          targetMarks: Math.round(simplified.totalMarks * 0.4), // ~40% for analysis
+          instructions: isEssaySubject && subject === 'history' ? 'Analyse the sources provided.' : 'Answer the extract-based question.',
+          questionTypes: [questionTypes[0]],
+          order: 1,
+        },
+        {
+          id: 'section-b', 
+          name: 'Section B',
+          targetMarks: Math.round(simplified.totalMarks * 0.6), // ~60% for essays
+          instructions: 'Answer TWO questions from this section.',
+          questionTypes: questionTypes.slice(1),
+          order: 2,
+        },
+      ],
+      selectedTopics: simplified.selectedTopics,
+      selectedSubtopics,
+      difficultyDistribution: {
+        easy: simplified.difficulty.easy,
+        medium: simplified.difficulty.medium,
+        hard: simplified.difficulty.hard,
+      },
+      questionTypeDistribution: {
+        essay: 60,
+        [questionTypes[0]]: 40,
+        interpretation: 0,
+        extractAnalysis: 0,
+        sourceAnalysis: 0,
+      },
+      settings: {
+        includeFormulaSheet: false,
+        includeDataBooklet: false,
+        showMarks: true,
+        calculatorAllowed: false,
+        examConditions: true,
+      },
+    };
+  }
+
+  // STEM subjects keep original configuration
   return {
     totalMarks: simplified.totalMarks,
     timeLimit: Math.round(simplified.totalMarks * 1.2), // ~1.2 min per mark

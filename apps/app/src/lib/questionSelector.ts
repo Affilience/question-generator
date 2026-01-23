@@ -59,6 +59,10 @@ const QUESTION_TYPE_MARKS: Record<QuestionType, number[]> = {
   'compare': [3, 4, 5, 6],
   'proof': [4, 5, 6, 8],
   'show-that': [3, 4, 5, 6],
+  'essay': [20, 25, 30],
+  'source-analysis': [25, 30],
+  'interpretation': [25, 30],
+  'extract-analysis': [20, 25, 30],
 };
 
 /**
@@ -76,6 +80,10 @@ const QUESTION_TYPE_DIFFICULTY_WEIGHTS: Record<QuestionType, Record<Difficulty, 
   'compare': { easy: 0.2, medium: 0.5, hard: 0.3 },
   'proof': { easy: 0.1, medium: 0.3, hard: 0.6 },
   'show-that': { easy: 0.2, medium: 0.4, hard: 0.4 },
+  'essay': { easy: 0.2, medium: 0.5, hard: 0.3 },
+  'source-analysis': { easy: 0.1, medium: 0.4, hard: 0.5 },
+  'interpretation': { easy: 0.1, medium: 0.3, hard: 0.6 },
+  'extract-analysis': { easy: 0.2, medium: 0.4, hard: 0.4 },
 };
 
 /**

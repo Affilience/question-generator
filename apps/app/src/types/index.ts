@@ -127,7 +127,11 @@ export type QuestionType =
   | 'graph'
   | 'compare'
   | 'proof'
-  | 'show-that';
+  | 'show-that'
+  | 'essay'
+  | 'source-analysis'
+  | 'interpretation'
+  | 'extract-analysis';
 
 export interface PaperSection {
   id: string;
