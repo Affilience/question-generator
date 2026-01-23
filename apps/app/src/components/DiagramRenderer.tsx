@@ -138,7 +138,9 @@ function getLabelOffset(position: string | undefined, offset: number = 12): Poin
 
 function renderPoint(el: PointElement, key: string, transform: (p: Point) => Point, scale: number): React.ReactNode {
   const p = transform(el.position);
-  const size = (el.size || 4) * scale;
+  // Points should be a fixed pixel size, not scaled with coordinates
+  // Use el.size directly as pixels, default to 5px for visibility
+  const size = el.size || 5;
   const color = el.color || DEFAULT_COLORS.stroke;
 
   return (
@@ -314,7 +316,7 @@ function renderCircle(el: CircleElement, key: string, transform: (p: Point) => P
           />
           <text
             x={center.x + radius / 2}
-            y={center.y - 10}
+            y={center.y + 20}
             fill={DEFAULT_COLORS.text}
             fontSize={12}
             textAnchor="middle"
@@ -364,7 +366,7 @@ function renderAngleMarker(el: AngleMarkerElement, key: string, transform: (p: P
   const vertex = transform(el.vertex);
   const ray1 = transform(el.ray1End);
   const ray2 = transform(el.ray2End);
-  const radius = (el.radius || 20) * scale;
+  const radius = el.radius || Math.max(12, Math.min(20, 15 * scale));
 
   if (el.isRightAngle) {
     // Draw right angle square
@@ -461,8 +463,24 @@ function renderArrow(el: ArrowElement, key: string, transform: (p: Point) => Poi
 
   const mid = getMidpoint(from, to);
 
+  // Create a unique marker ID for this arrow's color
+  const markerId = `arrowhead-${key}`;
+
   return (
     <g key={key}>
+      {/* Define a custom arrowhead marker with matching color */}
+      <defs>
+        <marker
+          id={markerId}
+          markerWidth="10"
+          markerHeight="7"
+          refX="9"
+          refY="3.5"
+          orient="auto"
+        >
+          <polygon points="0 0, 10 3.5, 0 7" fill={color} />
+        </marker>
+      </defs>
       <line
         x1={from.x}
         y1={from.y}
@@ -470,7 +488,7 @@ function renderArrow(el: ArrowElement, key: string, transform: (p: Point) => Poi
         y2={to.y}
         stroke={color}
         strokeWidth={strokeWidth}
-        markerEnd="url(#arrowhead)"
+        markerEnd={`url(#${markerId})`}
       />
       {el.label && (
         <text
@@ -653,15 +671,15 @@ function renderAxes(el: AxesElement, key: string, transform: (p: Point) => Point
     <line key="y-axis" x1={origin.x} y1={yAxisStart.y} x2={origin.x} y2={yAxisEnd.y} stroke={color} strokeWidth={2} markerEnd={el.showArrows ? 'url(#arrowhead)' : undefined} />
   );
 
-  // Axis labels
+  // Axis labels - positioned clearly away from tick numbers
   if (el.xLabel) {
     elements.push(
-      <text key="x-label" x={xAxisEnd.x - 10} y={origin.y + 25} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.xLabel}</text>
+      <text key="x-label" x={xAxisEnd.x} y={origin.y + 35} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="end">{el.xLabel}</text>
     );
   }
   if (el.yLabel) {
     elements.push(
-      <text key="y-label" x={origin.x - 25} y={yAxisEnd.y + 10} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.yLabel}</text>
+      <text key="y-label" x={origin.x + 5} y={yAxisEnd.y - 5} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="start">{el.yLabel}</text>
     );
   }
 
@@ -708,11 +726,12 @@ function renderTreeDiagram(el: TreeDiagramElement, key: string, renderWidth: num
 
   const elements: React.ReactNode[] = [];
 
-  function renderNode(node: TreeNode, x: number, y: number, depth: number): void {
+  // Use path-based keys to ensure uniqueness across all branches
+  function renderNode(node: TreeNode, x: number, y: number, path: string): void {
     // Draw node label
     elements.push(
       <text
-        key={`node-${depth}-${x}-${y}`}
+        key={`node-${path}`}
         x={x}
         y={y}
         fill={DEFAULT_COLORS.text}
@@ -732,11 +751,12 @@ function renderTreeDiagram(el: TreeDiagramElement, key: string, renderWidth: num
       node.children.forEach((branch, i) => {
         const childX = x + levelSpacing;
         const childY = startY + i * nodeSpacing;
+        const childPath = `${path}-${i}`;
 
         // Draw branch line
         elements.push(
           <line
-            key={`branch-${depth}-${i}`}
+            key={`branch-${childPath}`}
             x1={x + 20}
             y1={y}
             x2={childX - 20}
@@ -752,7 +772,7 @@ function renderTreeDiagram(el: TreeDiagramElement, key: string, renderWidth: num
           const midY = (y + childY) / 2;
           elements.push(
             <text
-              key={`prob-${depth}-${i}`}
+              key={`prob-${childPath}`}
               x={midX}
               y={midY - 8}
               fill={DEFAULT_COLORS.accent}
@@ -770,7 +790,7 @@ function renderTreeDiagram(el: TreeDiagramElement, key: string, renderWidth: num
           const midY = (y + childY) / 2;
           elements.push(
             <text
-              key={`label-${depth}-${i}`}
+              key={`label-${childPath}`}
               x={midX}
               y={midY + 10}
               fill={DEFAULT_COLORS.text}
@@ -783,22 +803,22 @@ function renderTreeDiagram(el: TreeDiagramElement, key: string, renderWidth: num
         }
 
         // Recursively render child node
-        renderNode(branch.node, childX, childY, depth + 1);
+        renderNode(branch.node, childX, childY, childPath);
       });
     }
   }
 
-  // Start rendering from root
-  renderNode(el.root, 50, renderHeight / 2, 0);
+  // Start rendering from root with initial path
+  renderNode(el.root, 50, renderHeight / 2, 'root');
 
   return <g key={key}>{elements}</g>;
 }
 
 function renderVennDiagram(el: VennDiagramElement, key: string, renderWidth: number, renderHeight: number): React.ReactNode {
   const cx = renderWidth / 2;
-  const cy = renderHeight / 2;
-  const radius = Math.min(renderWidth, renderHeight) * 0.3;
-  const overlap = radius * 0.6;
+  const cy = renderHeight / 2 + 10; // Shift down slightly for label space
+  const radius = Math.min(renderWidth, renderHeight) * 0.25; // Smaller radius to fit better
+  const separation = radius * 0.7; // Distance between circle centers
 
   const elements: React.ReactNode[] = [];
 
@@ -839,9 +859,9 @@ function renderVennDiagram(el: VennDiagramElement, key: string, renderWidth: num
       <text key="label-0" x={cx} y={cy - radius - 10} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.sets[0].label}</text>
     );
   } else if (el.sets.length === 2) {
-    // Two overlapping sets
-    const leftCx = cx - overlap / 2;
-    const rightCx = cx + overlap / 2;
+    // Two overlapping sets - properly centered
+    const leftCx = cx - separation / 2;
+    const rightCx = cx + separation / 2;
 
     elements.push(
       <circle
@@ -866,36 +886,41 @@ function renderVennDiagram(el: VennDiagramElement, key: string, renderWidth: num
       />
     );
 
-    // Labels
+    // Labels above circles
     elements.push(
-      <text key="label-0" x={leftCx - radius / 2} y={cy - radius - 10} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.sets[0].label}</text>
+      <text key="label-0" x={leftCx} y={cy - radius - 8} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.sets[0].label}</text>
     );
     elements.push(
-      <text key="label-1" x={rightCx + radius / 2} y={cy - radius - 10} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.sets[1].label}</text>
+      <text key="label-1" x={rightCx} y={cy - radius - 8} fill={DEFAULT_COLORS.text} fontSize={14} textAnchor="middle">{el.sets[1].label}</text>
     );
 
-    // Values
+    // Values - positioned in the correct regions
+    // Left only region (center of left circle minus overlap area)
     if (el.sets[0].values) {
+      const leftOnlyX = leftCx - radius * 0.4;
       elements.push(
-        <text key="val-0" x={leftCx - overlap / 2} y={cy} fill={DEFAULT_COLORS.text} fontSize={12} textAnchor="middle">{el.sets[0].values.join(', ')}</text>
+        <text key="val-0" x={leftOnlyX} y={cy} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="middle">{el.sets[0].values.join(', ')}</text>
       );
     }
+    // Right only region
     if (el.sets[1].values) {
+      const rightOnlyX = rightCx + radius * 0.4;
       elements.push(
-        <text key="val-1" x={rightCx + overlap / 2} y={cy} fill={DEFAULT_COLORS.text} fontSize={12} textAnchor="middle">{el.sets[1].values.join(', ')}</text>
+        <text key="val-1" x={rightOnlyX} y={cy} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="middle">{el.sets[1].values.join(', ')}</text>
       );
     }
+    // Intersection region (center between the two circle centers)
     if (el.intersection) {
       elements.push(
-        <text key="intersection" x={cx} y={cy} fill={DEFAULT_COLORS.text} fontSize={12} textAnchor="middle">{el.intersection.join(', ')}</text>
+        <text key="intersection" x={cx} y={cy} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="middle">{el.intersection.join(', ')}</text>
       );
     }
   }
 
-  // Outside values
+  // Outside values - bottom right corner
   if (el.outsideValues) {
     elements.push(
-      <text key="outside" x={renderWidth - 50} y={renderHeight - 40} fill={DEFAULT_COLORS.text} fontSize={12} textAnchor="end">{el.outsideValues.join(', ')}</text>
+      <text key="outside" x={renderWidth - 35} y={renderHeight - 30} fill={DEFAULT_COLORS.text} fontSize={11} textAnchor="end">{el.outsideValues.join(', ')}</text>
     );
   }
 
@@ -1457,8 +1482,8 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
     let xMin = 0, xMax = 10, yMin = 0, yMax = 10;
 
     if (sanitizedSpec.width && sanitizedSpec.height) {
-      xMax = sanitizedSpec.width;
-      yMax = sanitizedSpec.height;
+      xMax = Number(sanitizedSpec.width);
+      yMax = Number(sanitizedSpec.height);
     }
 
     // Check for axes to determine bounds
@@ -1470,29 +1495,33 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
       yMax = axesEl.yMax;
     }
 
-    const padding = sanitizedSpec.padding || 30;
-    const logicalWidth = xMax - xMin;
-    const logicalHeight = yMax - yMin;
+    const padding = Number(sanitizedSpec.padding) || 30;
+    const logicalWidth = Number(xMax - xMin);
+    const logicalHeight = Number(yMax - yMin);
 
     // Calculate render dimensions maintaining aspect ratio
     const aspectRatio = logicalWidth / logicalHeight;
-    let renderWidth = maxWidth;
-    let renderHeight = maxWidth / aspectRatio;
+    let renderWidth = Number(maxWidth);
+    let renderHeight = Number(maxWidth) / aspectRatio;
 
-    if (renderHeight > maxHeight) {
-      renderHeight = maxHeight;
-      renderWidth = maxHeight * aspectRatio;
+    if (renderHeight > Number(maxHeight)) {
+      renderHeight = Number(maxHeight);
+      renderWidth = Number(maxHeight) * aspectRatio;
     }
+
+    // Ensure final values are integers for consistency
+    renderWidth = Math.round(renderWidth);
+    renderHeight = Math.round(renderHeight);
 
     // Scale factor
     const scaleX = (renderWidth - 2 * padding) / logicalWidth;
     const scaleY = (renderHeight - 2 * padding) / logicalHeight;
     const scale = Math.min(scaleX, scaleY);
 
-    // Transform function: logical coords to render coords (rounded for performance)
+    // Transform function: logical coords to render coords (rounded for consistency)
     const transform = (p: Point): Point => ({
-      x: round(padding + (p.x - xMin) * scale),
-      y: round(renderHeight - padding - (p.y - yMin) * scale), // Flip Y axis
+      x: Math.round(padding + (Number(p.x) - xMin) * scale),
+      y: Math.round(renderHeight - padding - (Number(p.y) - yMin) * scale), // Flip Y axis
     });
 
     return {
@@ -1624,9 +1653,27 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
 // ============================================
 
 export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400, darkMode = false }: DiagramRendererProps) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Handle completely invalid/missing specs
   if (!spec || !spec.elements || spec.elements.length === 0) {
     return <DiagramFallback message="No diagram data available" />;
+  }
+
+  // Only render on client to prevent hydration mismatches
+  if (!isClient) {
+    return (
+      <div 
+        className={`flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg ${className || ''}`}
+        style={{ width: maxWidth, height: maxHeight }}
+      >
+        <div className="text-gray-500 text-sm">Loading diagram...</div>
+      </div>
+    );
   }
 
   return (

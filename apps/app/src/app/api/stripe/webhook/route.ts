@@ -16,7 +16,14 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
+    console.log('Webhook received:', {
+      hasSignature: !!signature,
+      bodyLength: body.length,
+      timestamp: new Date().toISOString()
+    });
+
     if (!signature) {
+      console.error('Missing stripe-signature header');
       return NextResponse.json(
         { error: 'Missing stripe-signature header' },
         { status: 400 }
@@ -27,6 +34,7 @@ export async function POST(request: NextRequest) {
 
     try {
       event = constructWebhookEvent(body, signature);
+      console.log('Webhook event verified:', { type: event.type, id: event.id });
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       return NextResponse.json(
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
+        console.log('Handling checkout.session.completed');
         await handleCheckoutCompleted(session);
         break;
       }
@@ -46,24 +55,28 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
+        console.log('Handling subscription event:', event.type);
         await handleSubscriptionUpdate(subscription);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
+        console.log('Handling subscription deletion');
         await handleSubscriptionDeleted(subscription);
         break;
       }
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
+        console.log('Handling invoice payment succeeded');
         await handleInvoicePaymentSucceeded(invoice);
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
+        console.log('Handling invoice payment failed');
         await handleInvoicePaymentFailed(invoice);
         break;
       }
@@ -71,6 +84,7 @@ export async function POST(request: NextRequest) {
       case 'payment_intent.succeeded': {
         // Handle one-time payments (Exam Season Pass)
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log('Handling payment intent succeeded');
         await handleOneTimePayment(paymentIntent);
         break;
       }
@@ -79,6 +93,7 @@ export async function POST(request: NextRequest) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    console.log('Webhook processed successfully:', event.type);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error);
@@ -102,6 +117,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerId = session.customer as string;
   const priceKey = session.metadata?.price_key;
 
+  console.log('Processing checkout.session.completed:', {
+    sessionId: session.id,
+    userId,
+    customerId,
+    priceKey,
+    mode: session.mode,
+    subscriptionId: session.subscription
+  });
+
   if (!userId) {
     console.error('No user_id in checkout session metadata');
     return;
@@ -109,27 +133,77 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Convert price_key to database price_id
   const priceId = priceKey ? PRICE_KEY_TO_DB_ID[priceKey] : null;
+  
+  if (!priceId) {
+    console.error('Could not map price_key to database price_id:', priceKey);
+    return;
+  }
 
-  // Update or create subscription record with customer ID
-  const { error } = await supabase
+  console.log('Mapped price_key to priceId:', { priceKey, priceId });
+
+  // Calculate proper period end based on plan type
+  const isAnnual = priceKey?.includes('annual');
+  const periodEndDate = isAnnual 
+    ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 1 month
+
+  // First check if subscription already exists
+  const { data: existing } = await supabase
     .from('user_subscriptions')
-    .upsert({
-      user_id: userId,
-      stripe_customer_id: customerId,
-      stripe_subscription_id: session.subscription as string || `one_time_${session.id}`,
-      status: session.mode === 'subscription' ? 'active' : 'active',
-      price_id: priceId,
-      current_period_start: new Date().toISOString(),
-      current_period_end: session.mode === 'subscription'
-        ? undefined // Will be set by subscription.updated event
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days for one-time
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'user_id,stripe_subscription_id',
-    });
+    .select('id')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .single();
 
-  if (error) {
-    console.error('Error updating subscription:', error);
+  if (existing) {
+    console.log('Active subscription already exists for user:', userId);
+    // Update existing subscription
+    const { error } = await supabase
+      .from('user_subscriptions')
+      .update({
+        stripe_customer_id: customerId,
+        stripe_subscription_id: session.subscription as string || `checkout_${session.id}`,
+        price_id: priceId,
+        current_period_start: new Date().toISOString(),
+        current_period_end: periodEndDate.toISOString(),
+        updated_at: new Date().toISOString(),
+        metadata: {
+          checkout_session_id: session.id,
+          payment_method: 'stripe',
+          subscription_type: isAnnual ? 'annual' : 'monthly'
+        }
+      })
+      .eq('id', existing.id);
+
+    if (error) {
+      console.error('Error updating existing subscription:', error);
+    } else {
+      console.log('Successfully updated existing subscription for user:', userId);
+    }
+  } else {
+    // Create new subscription
+    const { error } = await supabase
+      .from('user_subscriptions')
+      .insert({
+        user_id: userId,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: session.subscription as string || `checkout_${session.id}`,
+        status: 'active',
+        price_id: priceId,
+        current_period_start: new Date().toISOString(),
+        current_period_end: periodEndDate.toISOString(),
+        metadata: {
+          checkout_session_id: session.id,
+          payment_method: 'stripe',
+          subscription_type: isAnnual ? 'annual' : 'monthly'
+        }
+      });
+
+    if (error) {
+      console.error('Error creating new subscription:', error);
+    } else {
+      console.log('Successfully created new subscription for user:', userId);
+    }
   }
 }
 
@@ -178,7 +252,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         : null,
       updated_at: new Date().toISOString(),
     }, {
-      onConflict: 'user_id,stripe_subscription_id',
+      onConflict: 'stripe_subscription_id',
     });
 
   if (error) {

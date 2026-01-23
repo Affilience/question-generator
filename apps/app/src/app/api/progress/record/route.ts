@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Record the attempt
-    await supabase.from('question_attempts').insert({
+    const { data: attemptData, error: attemptError } = await supabase.from('question_attempts').insert({
       user_id: userId,
       topic_id: topicId,
       subtopic,
@@ -44,6 +44,16 @@ export async function POST(request: NextRequest) {
       exam_board: examBoard,
       qualification,
     });
+
+    if (attemptError) {
+      console.error('Error inserting question attempt:', attemptError);
+      return NextResponse.json(
+        { error: 'Failed to record question attempt', details: attemptError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log('Successfully recorded question attempt:', attemptData);
 
     // Update topic progress
     const { data: existing } = await supabase

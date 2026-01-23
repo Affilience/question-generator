@@ -247,6 +247,16 @@ function isValidMathContent(content: string, isInlineDelimiter: boolean): boolea
       return false;
     }
 
+    // Mark scheme notation: A1, M1, B1, E1, etc. (letter followed by number)
+    if (/^[A-Z]\d+$/.test(trimmed)) {
+      return false;
+    }
+
+    // Single letters (geometric points, variables): A, B, C, etc.
+    if (/^[A-Z]$/.test(trimmed)) {
+      return false;
+    }
+
     // If content contains LaTeX commands, it's definitely math
     // Check for backslash followed by letters (LaTeX command)
     if (/\\[a-zA-Z]+/.test(trimmed)) {

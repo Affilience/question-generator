@@ -4,24 +4,58 @@ import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 function SubscriptionSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const { refreshSubscription, tier, subscription } = useSubscription();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Refresh subscription data after successful checkout
-    const refresh = async () => {
-      await refreshSubscription();
-      setLoading(false);
+    const handleSubscriptionSetup = async () => {
+      try {
+        // First refresh to check if webhook already processed
+        await refreshSubscription();
+        
+        // Wait a moment for UI to update
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // If still no subscription after webhook processing, try fallback
+        if (tier === 'free' && sessionId && user) {
+          console.log('No subscription found after webhook processing, trying fallback...');
+          
+          const response = await fetch('/api/subscription/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              sessionId, 
+              userId: user.id 
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Fallback API result:', result);
+            
+            // Refresh subscription data after fallback creation
+            await refreshSubscription();
+          } else {
+            console.error('Fallback subscription creation failed');
+          }
+        }
+      } catch (error) {
+        console.error('Error setting up subscription:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Give Stripe webhook a moment to process
-    const timer = setTimeout(refresh, 2000);
+    // Give Stripe webhook a moment to process first
+    const timer = setTimeout(handleSubscriptionSetup, 2000);
     return () => clearTimeout(timer);
-  }, [refreshSubscription]);
+  }, [refreshSubscription, sessionId, user, tier]);
 
   const tierNames: Record<string, string> = {
     free: 'Free',

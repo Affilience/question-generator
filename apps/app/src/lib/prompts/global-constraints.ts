@@ -106,6 +106,40 @@ You MUST include a diagram specification for questions involving:
 - Motion graphs (distance-time, velocity-time)
 - Field patterns (magnetic, electric, gravitational)
 
+### DIAGRAM SIZE AND POSITIONING STANDARDS:
+Follow these EXACT specifications for all diagrams:
+
+**Canvas Sizing:**
+- Set width/height to match actual element bounds (e.g., if elements span x: 0-12, y: 0-10, use width: 12, height: 10)
+- NEVER use arbitrary large values like width: 240, height: 220
+
+**Element Sizing:**
+- Circles: radius: 1 (standard), radius: 0.5 (small details)
+- Rectangles: width: 2, height: 1.5 (standard), width: 1.5, height: 1 (compact)
+- Text: fontSize: 10 (standard), fontSize: 9 (small), fontSize: 12 (headings)
+
+**Text Positioning:**
+- Position text AWAY from shape centers to avoid overlap
+- For circles at (x, y), place labels at (x, y-1.5) or (x+1.2, y)
+- Use anchor: 'middle' for centered text, 'start'/'end' for aligned text
+
+**Spacing Requirements:**
+- Minimum 2 units between adjacent elements
+- Minimum 1.5 units between text and shapes
+- Leave 1 unit margin from canvas edges
+
+**Example - Triangle with correct sizing:**
+```
+elements: [
+  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
+  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
+  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
+  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
+],
+width: 10,   // matches element bounds (1.5 to 8.5)
+height: 9    // matches element bounds (2.5 to 8.5)
+```
+
 ### DIFFICULTY LEVELS FOR GCSE PHYSICS:
 
 **EASY (Grades 1-3):**
@@ -218,6 +252,40 @@ You MUST include a diagram specification for questions involving:
 - Apparatus setups (distillation, titration, electrolysis)
 - Energy level diagrams (enthalpy changes)
 - Graphs (rate curves, titration curves)
+
+### DIAGRAM SIZE AND POSITIONING STANDARDS:
+Follow these EXACT specifications for all diagrams:
+
+**Canvas Sizing:**
+- Set width/height to match actual element bounds (e.g., if elements span x: 0-12, y: 0-10, use width: 12, height: 10)
+- NEVER use arbitrary large values like width: 240, height: 220
+
+**Element Sizing:**
+- Circles: radius: 1 (standard), radius: 0.5 (small details)
+- Rectangles: width: 2, height: 1.5 (standard), width: 1.5, height: 1 (compact)
+- Text: fontSize: 10 (standard), fontSize: 9 (small), fontSize: 12 (headings)
+
+**Text Positioning:**
+- Position text AWAY from shape centers to avoid overlap
+- For circles at (x, y), place labels at (x, y-1.5) or (x+1.2, y)
+- Use anchor: 'middle' for centered text, 'start'/'end' for aligned text
+
+**Spacing Requirements:**
+- Minimum 2 units between adjacent elements
+- Minimum 1.5 units between text and shapes
+- Leave 1 unit margin from canvas edges
+
+**Example - Triangle with correct sizing:**
+```
+elements: [
+  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
+  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
+  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
+  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
+],
+width: 10,   // matches element bounds (1.5 to 8.5)
+height: 9    // matches element bounds (2.5 to 8.5)
+```
 
 ### DIFFICULTY LEVELS FOR GCSE CHEMISTRY:
 
@@ -332,6 +400,40 @@ You MUST include a diagram specification for questions involving:
 - Graphs (enzyme activity, population growth)
 - Food webs and pyramids
 - Microscope images (cell structures)
+
+### DIAGRAM SIZE AND POSITIONING STANDARDS:
+Follow these EXACT specifications for all diagrams:
+
+**Canvas Sizing:**
+- Set width/height to match actual element bounds (e.g., if elements span x: 0-12, y: 0-10, use width: 12, height: 10)
+- NEVER use arbitrary large values like width: 240, height: 220
+
+**Element Sizing:**
+- Circles: radius: 1 (standard), radius: 0.5 (small details)
+- Rectangles: width: 2, height: 1.5 (standard), width: 1.5, height: 1 (compact)
+- Text: fontSize: 10 (standard), fontSize: 9 (small), fontSize: 12 (headings)
+
+**Text Positioning:**
+- Position text AWAY from shape centers to avoid overlap
+- For circles at (x, y), place labels at (x, y-1.5) or (x+1.2, y)
+- Use anchor: 'middle' for centered text, 'start'/'end' for aligned text
+
+**Spacing Requirements:**
+- Minimum 2 units between adjacent elements
+- Minimum 1.5 units between text and shapes
+- Leave 1 unit margin from canvas edges
+
+**Example - Triangle with correct sizing:**
+```
+elements: [
+  { type: 'polygon', vertices: [{ x: 2, y: 8 }, { x: 8, y: 8 }, { x: 5, y: 3 }] },
+  { type: 'text', position: { x: 1.5, y: 8.5 }, content: 'A', fontSize: 10 },
+  { type: 'text', position: { x: 8.5, y: 8.5 }, content: 'B', fontSize: 10 },
+  { type: 'text', position: { x: 5, y: 2.5 }, content: 'C', fontSize: 10 }
+],
+width: 10,   // matches element bounds (1.5 to 8.5)
+height: 9    // matches element bounds (2.5 to 8.5)
+```
 
 ### DIFFICULTY LEVELS FOR GCSE BIOLOGY:
 
@@ -543,6 +645,28 @@ You MUST include a diagram specification for questions involving:
 - Shapes with measurements (rectangles, polygons, etc.)
 - Vectors (with arrows, labeled components)
 - Any spatial/geometric scenario
+
+### DIAGRAM SIZE AND POSITIONING STANDARDS:
+Follow these EXACT specifications for all diagrams:
+
+**Canvas Sizing:**
+- Set width/height to match actual element bounds (e.g., if elements span x: 0-12, y: 0-10, use width: 12, height: 10)
+- NEVER use arbitrary large values like width: 240, height: 220
+
+**Element Sizing:**
+- Circles: radius: 1 (standard), radius: 0.5 (small details)
+- Rectangles: width: 2, height: 1.5 (standard), width: 1.5, height: 1 (compact)
+- Text: fontSize: 10 (standard), fontSize: 9 (small), fontSize: 12 (headings)
+
+**Text Positioning:**
+- Position text AWAY from shape centers to avoid overlap
+- For circles at (x, y), place labels at (x, y-1.5) or (x+1.2, y)
+- Use anchor: 'middle' for centered text, 'start'/'end' for aligned text
+
+**Spacing Requirements:**
+- Minimum 2 units between adjacent elements
+- Minimum 1.5 units between text and shapes
+- Leave 1 unit margin from canvas edges
 
 Example diagram for triangle question:
 "diagram": {

@@ -403,6 +403,7 @@ import { getPracticalById } from '@/lib/practicals';
 import { getAQAPhysicsRequiredPracticalPrompt } from '@/lib/prompts-physics-aqa';
 import { getAQAChemistryRequiredPracticalPrompt } from '@/lib/prompts-chemistry-gcse-aqa';
 import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
+import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic } from '@/types';
 
 // Using Node.js runtime (default) - Edge runtime has 1MB limit which is exceeded by prompt imports
@@ -490,6 +491,9 @@ export async function POST(request: NextRequest) {
       questionType?: QuestionType;
       excludeContent?: string | string[];
     };
+
+    // Extract userId from request headers if available (for logged-in users)
+    const userId = request.headers.get('x-user-id') || null;
 
     // Handle practical questions
     if (isPractical && practicalId) {
@@ -613,6 +617,39 @@ export async function POST(request: NextRequest) {
     }
 
     const effectiveSubtopic = subtopic || topic.subtopics[0];
+
+    // Try to find existing question in bank first
+    const questionCriteria: QuestionCriteria = {
+      subject,
+      examBoard,
+      qualification,
+      topicId,
+      subtopic: effectiveSubtopic,
+      difficulty,
+      questionType: questionType === 'auto' ? undefined : questionType,
+    };
+
+    const existingQuestion = await findExistingQuestion(questionCriteria, userId);
+    
+    if (existingQuestion) {
+      // Record that this question was served
+      await recordQuestionServed(existingQuestion.id, userId, 'practice');
+      
+      const question: Question = {
+        id: crypto.randomUUID(),
+        topicId,
+        difficulty,
+        content: existingQuestion.content,
+        solution: existingQuestion.solution,
+        marks: existingQuestion.marks,
+        markScheme: existingQuestion.mark_scheme,
+        diagram: existingQuestion.diagram,
+      };
+
+      return NextResponse.json(question, {
+        headers: { 'X-Cache': 'BANK-HIT' },
+      });
+    }
 
     // Include subject and qualification in cache key for separation
     const cacheKey = `${subject}:${qualification}:${topicId}`;
@@ -1483,12 +1520,32 @@ export async function POST(request: NextRequest) {
       diagram: questionData.diagram,
     }).catch(err => console.error('Failed to cache question:', err));
 
+    // Store the generated question in the bank for future reuse (async, don't wait)
+    const bankQuestionId = await storeQuestion(
+      questionCriteria,
+      questionData.content,
+      questionData.solution,
+      questionData.markScheme,
+      questionData.marks,
+      questionData.diagram
+    ).catch(err => {
+      console.error('Failed to store question in bank:', err);
+      return null;
+    });
+
     const question: Question = {
       id: crypto.randomUUID(),
       topicId,
       difficulty,
       ...questionData,
     };
+
+    // If stored successfully, record that it was served
+    if (bankQuestionId) {
+      recordQuestionServed(bankQuestionId, userId, 'practice').catch(err => 
+        console.error('Failed to record question served:', err)
+      );
+    }
 
     return NextResponse.json(question, {
       headers: { 'X-Cache': 'MISS' },

@@ -21,21 +21,37 @@ const tiers = [
     ],
     cta: 'Continue Free',
     highlighted: false,
+    color: 'gray',
   },
   {
     name: 'Student+',
     price: '4.99',
     priceKey: 'student_plus_monthly',
-    description: 'Unlimited practice for serious students',
+    description: 'Great for regular practice',
+    features: [
+      '50 questions per day',
+      'Choose your difficulty',
+      '3 practice papers/week',
+      'Bookmark questions',
+    ],
+    cta: 'Get Started',
+    highlighted: false,
+    color: 'blue',
+  },
+  {
+    name: 'Exam Pro',
+    price: '9.99',
+    priceKey: 'exam_pro_monthly',
+    description: 'Everything for exam success',
     features: [
       'Unlimited questions',
-      'Choose your difficulty',
-      'Progress tracking',
-      '3 practice papers/week',
-      'Priority support',
+      'Full difficulty control',
+      '7 practice papers/week',
+      'Timed exam mode',
     ],
     cta: 'Get Started',
     highlighted: true,
+    color: 'purple',
   },
 ];
 
@@ -107,19 +123,21 @@ export default function WelcomePage() {
         {step === 'pricing' ? (
           <>
             {/* Pricing Cards */}
-            <div className="grid sm:grid-cols-2 gap-6 mb-8">
+            <div className="grid sm:grid-cols-3 gap-4 mb-8">
               {tiers.map((tierOption) => (
                 <div
                   key={tierOption.name}
-                  className={`relative bg-[#111] rounded-2xl border p-6 sm:p-8 transition-all ${
+                  className={`relative bg-[#111] rounded-2xl border p-5 sm:p-6 transition-all ${
                     tierOption.highlighted
-                      ? 'border-blue-500/50 shadow-lg shadow-blue-500/10'
+                      ? tierOption.color === 'purple'
+                        ? 'border-purple-500/50 shadow-lg shadow-purple-500/10'
+                        : 'border-blue-500/50 shadow-lg shadow-blue-500/10'
                       : 'border-white/[0.06]'
                   }`}
                 >
                   {tierOption.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      <span className={`${tierOption.color === 'purple' ? 'bg-purple-500' : 'bg-blue-500'} text-white text-xs font-medium px-3 py-1 rounded-full`}>
                         Most Popular
                       </span>
                     </div>
@@ -155,7 +173,11 @@ export default function WelcomePage() {
                           interval: 'month',
                         });
                       }}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors"
+                      className={`w-full py-3 rounded-lg font-medium transition-colors text-white ${
+                        tierOption.color === 'purple'
+                          ? 'bg-purple-500 hover:bg-purple-600'
+                          : 'bg-blue-500 hover:bg-blue-600'
+                      }`}
                     >
                       {tierOption.cta}
                     </button>
