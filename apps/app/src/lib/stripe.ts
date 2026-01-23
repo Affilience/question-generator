@@ -87,7 +87,7 @@ export async function createCheckoutSession({
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
     mode: 'subscription',
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'apple_pay', 'google_pay'],
     line_items: [
       {
         price: priceId,
