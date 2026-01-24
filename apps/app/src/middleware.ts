@@ -14,7 +14,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      * - api routes (let them handle their own auth)
+     * - auth/callback (OAuth callback handles its own session logic)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api|auth/callback).*)',
   ],
 };
