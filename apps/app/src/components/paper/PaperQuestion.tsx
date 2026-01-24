@@ -6,6 +6,12 @@ import { MarkBadge } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
 import { DiagramRenderer } from '@/components/DiagramRenderer';
 
+// Helper function to determine if a question asks the student to draw/sketch
+function isDrawQuestion(content: string): boolean {
+  const drawWords = ['draw', 'sketch', 'plot', 'graph', 'construct', 'complete the diagram'];
+  return drawWords.some(word => content.toLowerCase().includes(word.toLowerCase()));
+}
+
 // Parse mark scheme point to extract mark type and description
 function parseMarkSchemePoint(point: string): { part?: string; markType: string; description: string } {
   // Match patterns like:
@@ -200,8 +206,11 @@ export function PaperQuestion({
         )}
       </div>
 
-      {/* Diagram (if present) */}
-      {question.diagram && question.diagram.elements && question.diagram.elements.length > 0 && (
+      {/* Diagram (if present and not a "draw/sketch" question) */}
+      {question.diagram && 
+       question.diagram.elements && 
+       question.diagram.elements.length > 0 && 
+       !isDrawQuestion(question.content) && (
         <div className="p-4 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]">
           <DiagramRenderer
             spec={question.diagram}
@@ -298,6 +307,22 @@ function PaperSolutionDisplay({ question }: { question: GeneratedQuestion }) {
         </h4>
         <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-[var(--color-text-primary)]">
           <MathRenderer content={question.solution} />
+          
+          {/* Show diagram for draw/sketch questions in the solution */}
+          {question.diagram && 
+           question.diagram.elements && 
+           question.diagram.elements.length > 0 && 
+           isDrawQuestion(question.content) && (
+            <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+              <h5 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Expected Graph/Diagram:</h5>
+              <DiagramRenderer
+                spec={question.diagram}
+                maxWidth={400}
+                maxHeight={300}
+                className="w-full overflow-x-auto"
+              />
+            </div>
+          )}
         </div>
       </div>
 
