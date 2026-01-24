@@ -300,19 +300,27 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   // Normalize multiple backslashes before LaTeX commands (\\frac -> \frac)
   result = result.replace(/\\{2,}([a-zA-Z])/g, '\\$1');
   
-  // Fix common LaTeX command escaping issues in JSON responses
-  // Convert literal \text to proper LaTeX (in case AI under-escaped)
-  result = result.replace(/([^\\])\\text\{/g, '$1\\\\text{');
-  result = result.replace(/^\\text\{/g, '\\\\text{'); // Handle \text at start of string
+  // Fix common LaTeX \text command issues
+  // First, handle double backslashes that might be over-escaped
+  result = result.replace(/\\\\text\{/g, '\\text{');
   
-  // Fix chemistry-specific text rendering in mark schemes
-  result = result.replace(/\\text\{([^}]*)\}/g, (match, content) => {
-    // If content looks like a chemical formula, preserve it
-    if (/^[A-Z][a-z]?(\d+)*(\^[+-]?\d*)?(\([^)]*\))*$/.test(content.trim())) {
-      return `\\\\text{${content}}`;
-    }
-    return match;
+  // Then ensure all \text commands are properly formatted
+  // This handles cases where AI generates broken \text commands
+  result = result.replace(/([^\\]|^)\\text\{([^}]*)\}/g, (match, prefix, content) => {
+    // Clean the content - remove any stray backslashes and normalize whitespace
+    const cleanContent = content.trim().replace(/\\\\/g, '');
+    
+    // For units and simple text, use \text{}
+    // For chemical formulas, we might want \mathrm{} but \text{} works fine too
+    return `${prefix}\\text{${cleanContent}}`;
   });
+
+  // Fix common issues where "text" appears literally (from broken \text commands)
+  // Replace standalone "text" that appears to be broken LaTeX
+  result = result.replace(/\btext\s+(cm|m|kg|g|mol|s|min|hr|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|Hz|rad|degree|degrees)\b/g, '\\text{$1}');
+  
+  // Fix common chemistry/physics units that appear without proper LaTeX formatting
+  result = result.replace(/\b(cm|mm|km|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
 
   return result;
 }
