@@ -327,13 +327,13 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   
   // Then ensure all \text commands are properly formatted
   // This handles cases where AI generates broken \text commands
-  result = result.replace(/([^\\]|^)\\text\{([^}]*)\}/g, (match, prefix, content) => {
+  result = result.replace(/\\text\{([^}]*)\}/g, (match, content) => {
     // Clean the content - remove any stray backslashes and normalize whitespace
     const cleanContent = content.trim().replace(/\\\\/g, '');
     
     // For units and simple text, use \text{}
     // For chemical formulas, we might want \mathrm{} but \text{} works fine too
-    return `${prefix}\\text{${cleanContent}}`;
+    return `\\text{${cleanContent}}`;
   });
 
   // Fix common issues where "text" appears literally (from broken \text commands)
@@ -353,6 +353,94 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   result = result.replace(/\b(cm|mm|km|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
 
   return result;
+}
+
+// Handle \text{} commands that appear outside math delimiters
+function handleTextCommandsOutsideMath(text: string): string {
+  // Split text into math and non-math segments
+  const segments: { content: string; isMath: boolean }[] = [];
+  let currentIndex = 0;
+  
+  // Find all math delimiters (in order of priority to avoid conflicts)
+  const mathDelimiters = [
+    { pattern: /\$\$[\s\S]*?\$\$/g, name: 'display_dollar' },
+    { pattern: /\\\[[\s\S]*?\\\]/g, name: 'display_bracket' },
+    { pattern: /\\\([\s\S]*?\\\)/g, name: 'inline_paren' },
+    { pattern: /\$[^$\n]*?\$/g, name: 'inline_dollar' }
+  ];
+  
+  // Find all math segments
+  const mathRanges: Array<{ start: number; end: number }> = [];
+  
+  for (const delimiter of mathDelimiters) {
+    let match;
+    delimiter.pattern.lastIndex = 0; // Reset regex
+    while ((match = delimiter.pattern.exec(text)) !== null) {
+      // Check if this range overlaps with any existing range
+      const start = match.index;
+      const end = match.index + match[0].length;
+      
+      const overlaps = mathRanges.some(range => 
+        (start >= range.start && start < range.end) || 
+        (end > range.start && end <= range.end) ||
+        (start <= range.start && end >= range.end)
+      );
+      
+      if (!overlaps) {
+        mathRanges.push({ start, end });
+      }
+    }
+  }
+  
+  // Sort ranges by start position
+  mathRanges.sort((a, b) => a.start - b.start);
+  
+  // Build segments
+  currentIndex = 0;
+  for (const range of mathRanges) {
+    // Add text before this math segment
+    if (range.start > currentIndex) {
+      segments.push({
+        content: text.slice(currentIndex, range.start),
+        isMath: false
+      });
+    }
+    
+    // Add the math segment
+    segments.push({
+      content: text.slice(range.start, range.end),
+      isMath: true
+    });
+    
+    currentIndex = range.end;
+  }
+  
+  // Add remaining text
+  if (currentIndex < text.length) {
+    segments.push({
+      content: text.slice(currentIndex),
+      isMath: false
+    });
+  }
+  
+  // If no math segments found, treat entire text as non-math
+  if (segments.length === 0) {
+    segments.push({
+      content: text,
+      isMath: false
+    });
+  }
+  
+  // Process each segment
+  return segments.map(segment => {
+    if (segment.isMath) {
+      // Keep math segments as-is (preserve \text{} inside math)
+      return segment.content;
+    } else {
+      // Convert \text{} commands to regular text in non-math segments
+      return segment.content.replace(/\\text\{([^}]*)\}/g, '$1');
+    }
+  }).join('');
 }
 
 // Fix forward slashes used instead of backslashes for LaTeX commands
@@ -473,7 +561,12 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   // Process content once and memoize
   const processedContent = useMemo(() => {
     const escaped = processEscapeSequences(content, isStreaming);
-    return fixLatexEscaping(escaped);
+    let result = fixLatexEscaping(escaped);
+    
+    // Handle \text{} commands that appear outside math mode - convert to regular text
+    result = handleTextCommandsOutsideMath(result);
+    
+    return result;
   }, [content, isStreaming]);
 
   // Process markdown bold/italic
