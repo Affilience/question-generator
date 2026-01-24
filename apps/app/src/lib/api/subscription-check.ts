@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { TIER_LIMITS, SubscriptionTier } from '@/lib/subscription-types';
-import { getDailyUsage } from '@/lib/supabase';
 
 // Create Supabase admin client for server-side operations
 function getSupabaseAdmin() {
@@ -98,9 +97,15 @@ export async function checkQuestionGenerationAllowed(
     };
   }
 
-  // Check daily usage for free and student_plus tiers using reliable method
-  const dailyUsage = await getDailyUsage(userId);
-  const questionsGenerated = dailyUsage.questionsGenerated;
+  // Check daily usage for free and student_plus tiers
+  const { data: usage } = await supabase
+    .from('daily_usage')
+    .select('questions_generated')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .single();
+
+  const questionsGenerated = usage?.questions_generated || 0;
   const limit = limits.questionsPerDay;
 
   if (questionsGenerated >= limit) {

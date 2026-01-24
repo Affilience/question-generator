@@ -373,23 +373,21 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
   };
 }
 
-// Get daily usage stats using the same reliable pattern as Questions Practiced
+// Get daily usage stats from daily_usage table (tracks questions generated, not just attempted)
 export async function getDailyUsage(userId: string) {
   const today = new Date().toISOString().split('T')[0];
   
-  // Count questions generated today from user_topic_progress
-  const { data: todayProgress } = await supabase
-    .from('user_topic_progress')
-    .select('attempted')
+  // Get today's usage from daily_usage table
+  const { data: usage } = await supabase
+    .from('daily_usage')
+    .select('questions_generated, papers_generated')
     .eq('user_id', userId)
-    .gte('last_attempted_at', today + 'T00:00:00.000Z')
-    .lt('last_attempted_at', today + 'T23:59:59.999Z');
-
-  const questionsGenerated = todayProgress?.reduce((sum: number, p: any) => sum + (p.attempted || 0), 0) || 0;
+    .eq('date', today)
+    .single();
 
   return {
-    questionsGenerated,
-    papersGenerated: 0, // Keep for compatibility
+    questionsGenerated: usage?.questions_generated || 0,
+    papersGenerated: usage?.papers_generated || 0,
   };
 }
 

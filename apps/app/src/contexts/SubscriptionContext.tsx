@@ -108,6 +108,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   }, [user]);
 
+  // Helper to extract tier from price ID
+  function getTierFromPriceId(priceId: string): SubscriptionTier {
+    if (priceId.includes('student_plus')) return 'student_plus';
+    if (priceId.includes('exam_pro')) return 'exam_pro';
+    return 'free';
+  }
 
   // Check if user can generate a question
   const canGenerateQuestion = limits.questionsPerDay === null ||
