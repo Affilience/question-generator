@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // IMPORTANT: Don't use async/await here - it causes internal locks that block signOut
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, session: Session | null) => {
-        console.log('[AuthContext] Auth state change:', event, session ? 'session exists' : 'no session');
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -83,30 +82,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.addEventListener('pageshow', handleWindowFocus);
     }
 
-    // Handle localStorage changes for cross-tab session sync
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key?.startsWith('sb-') && event.newValue) {
-        // Session data changed in another tab, refresh our local session
-        refreshSession().catch(err => {
-          console.error('Failed to sync session from storage change:', err);
-        });
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorageChange);
-    }
-
     return () => {
       subscription.unsubscribe();
       if (typeof window !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleWindowFocus);
         window.removeEventListener('pageshow', handleWindowFocus);
-        window.removeEventListener('storage', handleStorageChange);
       }
     };
-  }, [refreshSession]); // Keep refreshSession but remove supabase to fix tab switching bug
+  }, [supabase, refreshSession]);
 
   // Sync auth user to our users table
   async function syncUserToDatabase(authUser: User) {
