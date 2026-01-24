@@ -46,21 +46,22 @@ export function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 animate-in slide-in-from-bottom duration-300"
+      className="fixed bottom-0 left-0 right-0 z-[9999] p-4 sm:p-6 animate-in slide-in-from-bottom duration-300"
       role="dialog"
       aria-label="Cookie consent"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="max-w-4xl mx-auto bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl shadow-2xl p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-900 border-2 border-blue-200 dark:border-blue-700 rounded-xl shadow-2xl p-4 sm:p-6 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex-1">
-            <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
               We use cookies
             </h3>
-            <p className="text-sm text-[var(--color-text-secondary)]">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
               We use essential cookies to make our site work. With your consent, we may also use non-essential cookies to improve your experience and analyse usage.{' '}
               <a
                 href="/privacy"
-                className="text-[var(--color-primary)] hover:underline"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
               >
                 Learn more
               </a>
@@ -69,13 +70,13 @@ export function CookieConsent() {
           <div className="flex gap-3 w-full sm:w-auto">
             <button
               onClick={handleReject}
-              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-hover)] transition-colors"
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Reject
             </button>
             <button
               onClick={handleAccept}
-              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors"
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors shadow-sm"
             >
               Accept
             </button>
