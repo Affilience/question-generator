@@ -299,6 +299,10 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
 
   // Normalize multiple backslashes before LaTeX commands (\\frac -> \frac)
   result = result.replace(/\\{2,}([a-zA-Z])/g, '\\$1');
+  
+  // Fix common LaTeX command escaping issues in JSON responses
+  // Convert literal \text to proper LaTeX (in case AI under-escaped)
+  result = result.replace(/([^\\])\\text\{/g, '$1\\text{');
 
   return result;
 }
