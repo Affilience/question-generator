@@ -46,6 +46,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Debug logging to understand what's happening
+  console.log(`[Middleware] ${request.nextUrl.pathname} - User: ${user ? user.email : 'null'}`);
+
   // Protected routes - require authentication
   const protectedPaths = ['/dashboard', '/bookmarks', '/app'];
   const isProtectedPath = protectedPaths.some(path =>
