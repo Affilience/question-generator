@@ -30,52 +30,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
 
   const refreshSession = useCallback(async () => {
-    const client = createClient();
-    const { data: { session } } = await client.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     setSession(session);
     setUser(session?.user ?? null);
-  }, []); // Remove supabase dependency
+  }, [supabase]);
 
   useEffect(() => {
-    // Get initial session with more aggressive checking
-    const initializeSession = async () => {
-      try {
-        // First try to get existing session
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
-        if (existingSession) {
-          // Session exists, verify it's still valid
-          const { data: { user: verifiedUser }, error } = await supabase.auth.getUser();
-          if (!error && verifiedUser) {
-            setSession(existingSession);
-            setUser(verifiedUser);
-          } else {
-            // Session invalid, try to refresh it
-            const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-            if (!refreshError && refreshedSession) {
-              setSession(refreshedSession);
-              setUser(refreshedSession.user);
-            } else {
-              // Unable to restore session
-              setSession(null);
-              setUser(null);
-            }
-          }
-        } else {
-          // No session found
-          setSession(null);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Failed to initialize session:', error);
-        setSession(null);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeSession();
+    // Get initial session
+    refreshSession().finally(() => setLoading(false));
 
     // Listen for auth changes
     // IMPORTANT: Don't use async/await here - it causes internal locks that block signOut
@@ -144,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.removeEventListener('storage', handleStorageChange);
       }
     };
-  }, []); // IMPORTANT: Remove supabase from dependencies to fix tab switching bug
+  }, [refreshSession]); // Keep refreshSession but remove supabase to fix tab switching bug
 
   // Sync auth user to our users table
   async function syncUserToDatabase(authUser: User) {
