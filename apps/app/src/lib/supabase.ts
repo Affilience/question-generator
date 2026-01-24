@@ -377,13 +377,18 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
 export async function getDailyUsage(userId: string) {
   const today = new Date().toISOString().split('T')[0];
   
+  // Debug logging
+  console.log('getDailyUsage called with userId:', userId, 'date:', today);
+  
   // Get today's usage from daily_usage table
-  const { data: usage } = await supabase
+  const { data: usage, error } = await supabase
     .from('daily_usage')
     .select('questions_generated, papers_generated')
     .eq('user_id', userId)
     .eq('date', today)
-    .single();
+    .maybeSingle(); // Use maybeSingle() instead of single() to handle no results
+
+  console.log('getDailyUsage result:', { usage, error });
 
   return {
     questionsGenerated: usage?.questions_generated || 0,

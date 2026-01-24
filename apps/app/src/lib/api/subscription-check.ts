@@ -103,7 +103,7 @@ export async function checkQuestionGenerationAllowed(
     .select('questions_generated')
     .eq('user_id', userId)
     .eq('date', today)
-    .single();
+    .maybeSingle();
 
   const questionsGenerated = usage?.questions_generated || 0;
   const limit = limits.questionsPerDay;
