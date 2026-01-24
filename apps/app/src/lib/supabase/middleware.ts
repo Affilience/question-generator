@@ -42,25 +42,19 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // First try to get the session to check if it exists
-  let user = null;
-  try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (session && !sessionError) {
-      // Session exists, get the user
-      const { data: { user: sessionUser }, error: userError } = await supabase.auth.getUser();
-      if (!userError && sessionUser) {
-        user = sessionUser;
-        console.log('[Middleware] User authenticated:', sessionUser.email);
-      }
-    } else if (sessionError) {
-      console.warn('[Middleware] Session error:', sessionError.message);
-    } else {
-      console.log('[Middleware] No session found');
-    }
-  } catch (error) {
-    console.error('[Middleware] Authentication check failed:', error);
+  // IMPORTANT: Use getUser() directly in middleware - it's guaranteed to revalidate the token
+  // Never trust getSession() in server code like middleware
+  const {
+    data: { user },
+    error
+  } = await supabase.auth.getUser();
+
+  if (error) {
+    console.warn('[Middleware] Auth error:', error.message);
+  } else if (user) {
+    console.log('[Middleware] User authenticated:', user.email);
+  } else {
+    console.log('[Middleware] No authenticated user');
   }
 
   // Protected routes - require authentication
