@@ -6,6 +6,25 @@ import { MarkBadge } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
 import { DiagramRenderer } from '@/components/DiagramRenderer';
 
+// Calculate actual marks from mark scheme
+function calculateMarksFromScheme(markScheme: string[]): number {
+  let totalMarks = 0;
+  for (const point of markScheme) {
+    const { markType } = parseMarkSchemePoint(point);
+    if (markType) {
+      // Extract number from mark type (M1, A2, B1, SC1, etc.)
+      const match = markType.match(/\d+/);
+      if (match) {
+        totalMarks += parseInt(match[0], 10);
+      } else {
+        // Default to 1 mark if no number specified
+        totalMarks += 1;
+      }
+    }
+  }
+  return totalMarks;
+}
+
 // Parse mark scheme point to extract mark type and description
 function parseMarkSchemePoint(point: string): { part?: string; markType: string; description: string } {
   // Match patterns like:
@@ -83,6 +102,8 @@ export function PaperQuestion({
     setLocalAnswer(value);
     onAnswerChange?.(value);
   };
+
+  const calculatedMarks = calculateMarksFromScheme(question.markScheme);
 
   // Format content with command words bolded
   const formatContent = (content: string): string => {
@@ -165,7 +186,7 @@ export function PaperQuestion({
           <div className="flex-1 min-w-0">
             {/* Meta badges */}
             <div className="flex items-center gap-2 mb-2">
-              {showMarks && <MarkBadge marks={question.marks} size="sm" />}
+              {showMarks && <MarkBadge marks={calculatedMarks} size="sm" />}
               <span
                 className={`w-2 h-2 rounded-full ${getDifficultyColor()}`}
                 title={`${question.difficulty} difficulty`}
@@ -230,7 +251,7 @@ export function PaperQuestion({
               value={localAnswer}
               onChange={(e) => handleAnswerChange(e.target.value)}
               disabled={disabled}
-              rows={getAnswerRowsForMarks(question.marks)}
+              rows={getAnswerRowsForMarks(calculatedMarks)}
               className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 disabled:opacity-50 resize-none font-mono"
               placeholder={getPlaceholderForType(question.questionType)}
             />
@@ -238,7 +259,7 @@ export function PaperQuestion({
 
           {/* Space indicator */}
           <p className="text-xs text-[var(--color-text-muted)]">
-            Approximately {getAnswerLinesForMarks(question.marks)} lines expected
+            Approximately {getAnswerLinesForMarks(calculatedMarks)} lines expected
           </p>
         </div>
       )}
@@ -532,7 +553,7 @@ export function PaperQuestionCompact({
           <div className="flex items-center gap-2 mt-2">
             {showMarks && (
               <span className="text-xs text-[var(--color-text-muted)]">
-                [{question.marks} {question.marks === 1 ? 'mark' : 'marks'}]
+                [{calculateMarksFromScheme(question.markScheme)} {calculateMarksFromScheme(question.markScheme) === 1 ? 'mark' : 'marks'}]
               </span>
             )}
             <span className="text-xs text-[var(--color-text-muted)]">
