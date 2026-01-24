@@ -312,7 +312,7 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
     // \n that's not a LaTeX command (nabla, neq, neg, nu, etc.)
     .replace(new RegExp(`\\\\n(?!(?:abla|eq|eg|u|ewline|warrow|earrow|exists|i|otin|ot|cong|less|geq|leq|gtr|mid|parallel|prec|succ|sim|subseteq|supseteq|vdash|vDash|Vdash|VDash)\\b)${endCheck}`, 'g'), '\n')
     // \t that's not a LaTeX command (theta, times, text, etc.)
-    .replace(new RegExp(`\\\\t(?!(?:heta|imes|ext|an|anh|op|au|herefore|riangle|o|extrm|extit|extbf|exttt|extsf|frac|ilde|iny)\\b)${endCheck}`, 'g'), '\t')
+    .replace(new RegExp(`\\\\t(?!(?:heta|imes|ext\\{|an|anh|op|au|herefore|riangle|o|extrm|extit|extbf|exttt|extsf|frac|ilde|iny)\\b)${endCheck}`, 'g'), '\t')
     // \r that's not a LaTeX command (rho, rightarrow, etc.)
     .replace(new RegExp(`\\\\r(?!(?:ho|ightarrow|Rightarrow|angle|ceil|floor|ight|vert|Vert|brace|brack|ule)\\b)${endCheck}`, 'g'), '\r')
     // Escaped quotes
