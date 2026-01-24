@@ -295,7 +295,7 @@ export function UsageIndicator() {
       <div className="flex items-center justify-between mb-3">
         <span className="text-[var(--color-text-secondary)] text-sm font-medium">Daily questions</span>
         <span className={`text-sm font-semibold ${remaining === 0 ? 'text-red-400' : remaining <= 3 ? 'text-yellow-400' : 'text-[var(--color-text-primary)]'}`}>
-          {remaining} / {total}
+          {used} / {total}
         </span>
       </div>
       <div className="h-2 bg-[var(--color-bg-deepest)] rounded-full overflow-hidden">
@@ -342,7 +342,7 @@ export function PaperUsageIndicator() {
       <div className="flex items-center justify-between mb-3">
         <span className="text-[var(--color-text-secondary)] text-sm font-medium">Weekly papers</span>
         <span className={`text-sm font-semibold ${remaining === 0 ? 'text-red-400' : remaining === 1 ? 'text-yellow-400' : 'text-[var(--color-text-primary)]'}`}>
-          {remaining} / {total}
+          {used} / {total}
         </span>
       </div>
       <div className="h-2 bg-[var(--color-bg-deepest)] rounded-full overflow-hidden">
