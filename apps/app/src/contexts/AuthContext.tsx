@@ -30,19 +30,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
 
   const refreshSession = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const client = createClient();
+    const { data: { session } } = await client.auth.getSession();
     setSession(session);
     setUser(session?.user ?? null);
-  }, [supabase]);
+  }, []); // Remove supabase dependency
 
   useEffect(() => {
-    // Get initial session
-    refreshSession().finally(() => setLoading(false));
+    // Get initial session with more aggressive checking
+    const initializeSession = async () => {
+      try {
+        // First try to get existing session
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (existingSession) {
+          // Session exists, verify it's still valid
+          const { data: { user: verifiedUser }, error } = await supabase.auth.getUser();
+          if (!error && verifiedUser) {
+            setSession(existingSession);
+            setUser(verifiedUser);
+          } else {
+            // Session invalid, try to refresh it
+            const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError && refreshedSession) {
+              setSession(refreshedSession);
+              setUser(refreshedSession.user);
+            } else {
+              // Unable to restore session
+              setSession(null);
+              setUser(null);
+            }
+          }
+        } else {
+          // No session found
+          setSession(null);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+        setSession(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeSession();
 
     // Listen for auth changes
     // IMPORTANT: Don't use async/await here - it causes internal locks that block signOut
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, session: Session | null) => {
+        console.log('[AuthContext] Auth state change:', event, session ? 'session exists' : 'no session');
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -82,15 +121,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.addEventListener('pageshow', handleWindowFocus);
     }
 
+    // Handle localStorage changes for cross-tab session sync
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key?.startsWith('sb-') && event.newValue) {
+        // Session data changed in another tab, refresh our local session
+        refreshSession().catch(err => {
+          console.error('Failed to sync session from storage change:', err);
+        });
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageChange);
+    }
+
     return () => {
       subscription.unsubscribe();
       if (typeof window !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleWindowFocus);
         window.removeEventListener('pageshow', handleWindowFocus);
+        window.removeEventListener('storage', handleStorageChange);
       }
     };
-  }, [supabase, refreshSession]);
+  }, []); // IMPORTANT: Remove supabase from dependencies to fix tab switching bug
 
   // Sync auth user to our users table
   async function syncUserToDatabase(authUser: User) {

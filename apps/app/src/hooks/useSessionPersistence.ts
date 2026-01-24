@@ -9,33 +9,42 @@ import { createClient } from '@/lib/supabase/client';
  */
 export function useSessionPersistence() {
   useEffect(() => {
-    const supabase = createClient();
 
-    // Set up interval to refresh session every 5 minutes
+    // Set up interval to refresh session every 2 minutes (more aggressive)
     const refreshInterval = setInterval(async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const client = createClient();
+        const { data: { session }, error } = await client.auth.getSession();
         if (error) {
-          console.error('Session refresh error:', error);
+          console.warn('[SessionPersistence] Session check error:', error.message);
         } else if (session) {
-          // Session is valid, refresh access token if needed
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (refreshError) {
-            console.error('Token refresh error:', refreshError);
+          // Check if token is expiring soon (within 10 minutes)
+          const expiresAt = session.expires_at;
+          const now = Math.floor(Date.now() / 1000);
+          const timeUntilExpiry = expiresAt ? expiresAt - now : 0;
+          
+          if (timeUntilExpiry < 600) { // Less than 10 minutes
+            const { error: refreshError } = await client.auth.refreshSession();
+            if (refreshError) {
+              console.error('[SessionPersistence] Token refresh error:', refreshError.message);
+            } else {
+              console.log('[SessionPersistence] Token refreshed successfully');
+            }
           }
         }
       } catch (error) {
-        console.error('Session persistence check failed:', error);
+        console.error('[SessionPersistence] Session persistence check failed:', error);
       }
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 2 * 60 * 1000); // 2 minutes
 
     // Handle online/offline events for mobile
     const handleOnline = async () => {
       try {
+        const client = createClient();
         // When coming back online, check and refresh session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await client.auth.getSession();
         if (session) {
-          await supabase.auth.refreshSession();
+          await client.auth.refreshSession();
         }
       } catch (error) {
         console.error('Failed to refresh session on coming online:', error);
@@ -46,8 +55,7 @@ export function useSessionPersistence() {
     const handleBeforeUnload = () => {
       // This ensures session data is saved before page closes
       try {
-        const currentSession = supabase.auth.getSession();
-        if (currentSession && typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
           // Force session data to be written to localStorage
           localStorage.setItem('supabase.auth.session-check', Date.now().toString());
         }

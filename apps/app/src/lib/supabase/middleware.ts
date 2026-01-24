@@ -42,9 +42,23 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // First try to get the session to check if it exists
+  let user = null;
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (session && !sessionError) {
+      // Session exists, get the user
+      const { data: { user: sessionUser }, error: userError } = await supabase.auth.getUser();
+      if (!userError && sessionUser) {
+        user = sessionUser;
+      }
+    } else if (sessionError) {
+      console.warn('[Middleware] Session error:', sessionError.message);
+    }
+  } catch (error) {
+    console.error('[Middleware] Authentication check failed:', error);
+  }
 
   // Protected routes - require authentication
   const protectedPaths = ['/dashboard', '/bookmarks', '/app'];

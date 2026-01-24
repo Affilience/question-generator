@@ -18,6 +18,12 @@ export function createClient() {
           storage: typeof window !== 'undefined' ? window.localStorage : undefined,
           // Automatically refresh sessions when the tab/app becomes active
           autoRefreshToken: true,
+          // Debug auth state changes
+          debug: process.env.NODE_ENV === 'development',
+          // Flow type for OAuth (important for mobile browsers)
+          flowType: 'pkce',
+          // Storage key to avoid conflicts
+          storageKey: 'sb-auth-token',
         },
         global: {
           headers: {
