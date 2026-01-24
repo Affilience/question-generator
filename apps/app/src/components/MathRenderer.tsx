@@ -111,7 +111,7 @@ function SafeInlineMath({ math }: { math: string }) {
   
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
-      <InlineMath math={processedMath} settings={{ throwOnError: false }} />
+      <InlineMath math={processedMath} />
     </MathErrorBoundary>
   );
 }
@@ -125,7 +125,7 @@ function SafeBlockMath({ math }: { math: string }) {
   
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
-      <BlockMath math={processedMath} settings={{ throwOnError: false }} />
+      <BlockMath math={processedMath} />
     </MathErrorBoundary>
   );
 }
@@ -337,16 +337,16 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   });
 
   // Fix common issues where "text" appears literally (from broken \text commands)
-  // First, handle cases where "text" appears before chemical formulas or units
-  result = result.replace(/\btext\s+([A-Za-z0-9₁₂₃₄₅₆₇₈₉₀⁻⁺]+)/g, '\\text{$1}');
+  // Only fix "text" patterns that are clearly LaTeX-related to avoid affecting normal prose
   
-  // Replace standalone "text" that appears to be broken LaTeX
-  result = result.replace(/\btext\s+(cm|m|kg|g|mol|s|min|hr|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|Hz|rad|degree|degrees)\b/g, '\\text{$1}');
-  
-  // Fix broken patterns like "text{stuff}" (missing backslash)
+  // Fix broken patterns like "text{stuff}" (missing backslash) - but only if it looks like LaTeX
   result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
   
-  // Fix cases where literal "text" appears in math mode (common AI generation error)
+  // Only fix "text" followed by units/chemical formulas if it's in a mathematical context
+  // Use more restrictive patterns to avoid affecting regular English text
+  result = result.replace(/(\$[^$]*)\btext\s+(cm|m|kg|g|mol|s|min|hr|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|Hz|rad|degree|degrees)\b([^$]*\$)/g, '$1\\text{$2}$3');
+  
+  // Fix cases where literal "text" appears in math mode (only between $ delimiters)
   result = result.replace(/(\$[^$]*)\btext\b([^$]*\$)/g, '$1\\text{}$2');
   
   // Fix common chemistry/physics units that appear without proper LaTeX formatting
@@ -413,14 +413,14 @@ function preprocessMathForKaTeX(math: string): string {
   // 1. Fix double backslashes in \text commands
   result = result.replace(/\\\\text\{/g, '\\text{');
   
-  // 2. Fix missing backslash before text commands
+  // 2. Fix missing backslash before text commands (only fix if it looks like a LaTeX command)
   result = result.replace(/\btext\{/g, '\\text{');
   
-  // 3. Fix literal "text" appearing before chemical formulas or units
-  result = result.replace(/\btext\s+([A-Za-z0-9₁₂₃₄₅₆₇₈₉₀⁻⁺\(\)]+)/g, '\\text{$1}');
+  // 3. Fix literal "text" appearing before chemical formulas or units (be more conservative)
+  // Only apply this fix if "text" appears to be a broken LaTeX command, not regular prose
+  result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6|cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b/g, '\\text{$1}');
   
-  // 4. Fix standalone "text" that should be \text{}
-  result = result.replace(/\btext\b(?!\{)/g, '\\text{}');
+  // 4. Only fix standalone "text" if it's clearly in a mathematical context (removed broad replacement)
   
   // 5. Fix underscores in \text commands (KaTeX parsing issue)
   result = result.replace(/\\text\{([^}]*_[^}]*)\}/g, (match, content) => {
