@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { Question, Difficulty, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 interface StreamingState {
   isStreaming: boolean;
@@ -110,9 +111,16 @@ export function useStreamingQuestion() {
     });
 
     try {
+      // Get auth session for proper user tracking
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch('/api/generate-question-stream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
         body: JSON.stringify({
           ...options,
           stream: true,

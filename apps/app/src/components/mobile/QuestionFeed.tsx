@@ -5,6 +5,7 @@ import { Question, Difficulty, Topic, Practical, PracticalSubtopic } from '@/typ
 import { DiagramSpec } from '@/types/diagram';
 import { QuestionSlide } from './QuestionSlide';
 import { SwipeHint, useSwipeHint } from './SwipeHint';
+import { createClient } from '@/lib/supabase/client';
 
 interface QuestionFeedProps {
   // For regular topics
@@ -79,10 +80,17 @@ export function QuestionFeed({
       : subtopic;
 
     try {
+      // Get auth session for proper user tracking
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       // Use the faster generate-question-stream endpoint (uses Groq when available)
       const response = await fetch('/api/generate-question-stream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
         body: JSON.stringify({
           // For practicals, use practicalId; for topics, use topicId
           ...(isPractical ? { practicalId: itemId, isPractical: true } : { topicId: itemId }),
