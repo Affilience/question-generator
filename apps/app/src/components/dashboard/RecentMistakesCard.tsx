@@ -27,7 +27,7 @@ export function RecentMistakesCard({ mistakes }: RecentMistakesCardProps) {
     const topic = getTopicById(mistake.topic_id);
     if (topic) {
       // Navigate to the practice page for this specific topic and difficulty
-      router.push(`/practice?subject=${topic.subject}&level=${topic.level}&board=${topic.examBoard}&topicId=${mistake.topic_id}&difficulty=${mistake.difficulty}&subtopic=${encodeURIComponent(mistake.subtopic)}`);
+      router.push(`/practice?subject=${topic.subject}&level=${topic.qualification}&board=${topic.examBoard}&topicId=${mistake.topic_id}&difficulty=${mistake.difficulty}&subtopic=${encodeURIComponent(mistake.subtopic)}`);
     }
   };
 
