@@ -52,9 +52,12 @@ export async function updateSession(request: NextRequest) {
       const { data: { user: sessionUser }, error: userError } = await supabase.auth.getUser();
       if (!userError && sessionUser) {
         user = sessionUser;
+        console.log('[Middleware] User authenticated:', sessionUser.email);
       }
     } else if (sessionError) {
       console.warn('[Middleware] Session error:', sessionError.message);
+    } else {
+      console.log('[Middleware] No session found');
     }
   } catch (error) {
     console.error('[Middleware] Authentication check failed:', error);
@@ -82,7 +85,14 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthPath && user) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/start';
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect logged-in users from homepage to start page
+  if (request.nextUrl.pathname === '/' && user) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/start';
     return NextResponse.redirect(url);
   }
 
