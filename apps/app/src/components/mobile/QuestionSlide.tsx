@@ -59,6 +59,25 @@ function getMarkTypeColor(markType: string): string {
   return 'bg-white/10 text-white/60';
 }
 
+// Calculate actual marks from mark scheme
+function calculateMarksFromScheme(markScheme: string[]): number {
+  let totalMarks = 0;
+  for (const point of markScheme) {
+    const { markType } = parseMarkSchemePoint(point);
+    if (markType) {
+      // Extract number from mark type (M1, A2, B1, SC1, etc.)
+      const match = markType.match(/\d+/);
+      if (match) {
+        totalMarks += parseInt(match[0], 10);
+      } else {
+        // Default to 1 mark if no number specified
+        totalMarks += 1;
+      }
+    }
+  }
+  return totalMarks;
+}
+
 const difficultyConfig = {
   easy: { label: 'Easy', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
   medium: { label: 'Medium', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
@@ -186,7 +205,12 @@ export function QuestionSlide({
             )}
             {question && (
               <span className="text-sm font-semibold text-[var(--color-accent)]">
-                {question.marks} {question.marks === 1 ? 'mark' : 'marks'}
+                {(() => {
+                  const actualMarks = question.markScheme?.length > 0 
+                    ? calculateMarksFromScheme(question.markScheme) 
+                    : question.marks;
+                  return `${actualMarks} ${actualMarks === 1 ? 'mark' : 'marks'}`;
+                })()}
               </span>
             )}
           </div>
@@ -227,8 +251,8 @@ export function QuestionSlide({
             <DiagramErrorBoundary>
               <DiagramRenderer
                 spec={question.diagram}
-                maxWidth={320}
-                maxHeight={260}
+                maxWidth={360}
+                maxHeight={300}
                 className="bg-white rounded-lg p-3 mx-auto"
               />
             </DiagramErrorBoundary>
