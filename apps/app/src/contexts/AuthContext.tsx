@@ -59,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Handle session recovery on page visibility change (mobile app switching, browser tab switching)
     const handleVisibilityChange = () => {
       if (typeof window !== 'undefined' && !document.hidden) {
-        // Refresh session when page becomes visible again
+        console.log('[AuthContext] Page became visible, refreshing session...');
+        // Refresh session when page becomes visible again (critical for mobile OAuth returns)
         refreshSession().catch(err => {
           console.error('Failed to refresh session on visibility change:', err);
         });
