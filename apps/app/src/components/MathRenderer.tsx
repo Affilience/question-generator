@@ -316,8 +316,17 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   });
 
   // Fix common issues where "text" appears literally (from broken \text commands)
+  // First, handle cases where "text" appears before chemical formulas or units
+  result = result.replace(/\btext\s+([A-Za-z0-9₁₂₃₄₅₆₇₈₉₀⁻⁺]+)/g, '\\text{$1}');
+  
   // Replace standalone "text" that appears to be broken LaTeX
   result = result.replace(/\btext\s+(cm|m|kg|g|mol|s|min|hr|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|Hz|rad|degree|degrees)\b/g, '\\text{$1}');
+  
+  // Fix broken patterns like "text{stuff}" (missing backslash)
+  result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
+  
+  // Fix cases where literal "text" appears in math mode (common AI generation error)
+  result = result.replace(/(\$[^$]*)\btext\b([^$]*\$)/g, '$1\\text{}$2');
   
   // Fix common chemistry/physics units that appear without proper LaTeX formatting
   result = result.replace(/\b(cm|mm|km|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
