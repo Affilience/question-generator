@@ -43,10 +43,10 @@ export function LoginForm() {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
-        // New users go to welcome, returning users go to dashboard
-        router.push(count === 0 ? '/welcome' : '/dashboard');
+        // New users go to welcome, returning users go to start
+        router.push(count === 0 ? '/welcome' : '/start');
       } else {
-        router.push('/dashboard');
+        router.push('/start');
       }
     }
   };

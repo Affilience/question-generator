@@ -22,8 +22,8 @@ export async function GET(request: Request) {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', data.user.id);
 
-      // New users (no attempts) go to welcome, returning users go to dashboard
-      const redirectTo = count === 0 ? '/welcome' : '/dashboard';
+      // New users (no attempts) go to welcome, returning users go to start
+      const redirectTo = count === 0 ? '/welcome' : '/start';
       return NextResponse.redirect(`${origin}${redirectTo}`);
     }
   }
