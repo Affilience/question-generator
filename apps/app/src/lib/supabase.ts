@@ -525,7 +525,7 @@ export async function isBookmarked(userId: string, questionContent: string): Pro
       .select('id')
       .eq('user_id', userId)
       .eq('question_content', questionContent)
-      .single();
+      .maybeSingle();
 
     return data?.id || null;
   } catch {
