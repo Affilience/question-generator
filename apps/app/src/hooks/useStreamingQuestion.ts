@@ -116,7 +116,6 @@ export function useStreamingQuestion() {
         body: JSON.stringify({
           ...options,
           stream: true,
-          userId: user?.id,
         }),
         signal: abortControllerRef.current.signal,
       });

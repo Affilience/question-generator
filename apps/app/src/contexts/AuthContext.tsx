@@ -56,7 +56,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Handle session recovery on page visibility change (mobile app switching, browser tab switching)
+    const handleVisibilityChange = () => {
+      if (typeof window !== 'undefined' && !document.hidden) {
+        // Refresh session when page becomes visible again
+        refreshSession().catch(err => {
+          console.error('Failed to refresh session on visibility change:', err);
+        });
+      }
+    };
+
+    // Handle session recovery on window focus (browser/app regaining focus)
+    const handleWindowFocus = () => {
+      refreshSession().catch(err => {
+        console.error('Failed to refresh session on window focus:', err);
+      });
+    };
+
+    // Add event listeners for better mobile/desktop session persistence
+    if (typeof window !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('focus', handleWindowFocus);
+      
+      // Also handle page show event (back/forward navigation, PWA)
+      window.addEventListener('pageshow', handleWindowFocus);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (typeof window !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', handleWindowFocus);
+        window.removeEventListener('pageshow', handleWindowFocus);
+      }
+    };
   }, [supabase, refreshSession]);
 
   // Sync auth user to our users table

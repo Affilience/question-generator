@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
+import { CompactXPDisplay } from './XPDisplay';
 
 interface HeaderProps {
   showBack?: boolean;
@@ -35,9 +36,11 @@ export function Header({ showBack, backHref = '/', backLabel = 'Back' }: HeaderP
           </Link>
         </div>
 
-        {/* Right side - Navigation */}
-        <nav className="flex items-center gap-1 sm:gap-2">
-          <Link
+        {/* Right side - XP Display & Navigation */}
+        <div className="flex items-center gap-3">
+          <CompactXPDisplay />
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <Link
             href="/past-papers"
             className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] hover:bg-[var(--color-accent)]/10 transition-colors"
           >
@@ -65,7 +68,8 @@ export function Header({ showBack, backHref = '/', backLabel = 'Back' }: HeaderP
             <span className="hidden sm:inline">Saved</span>
           </Link>
           <ThemeToggle />
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
   );

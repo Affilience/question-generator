@@ -9,6 +9,8 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { StreakDisplay } from '@/components/dashboard/StreakDisplay';
 import { RecentMistakesCard } from '@/components/dashboard/RecentMistakesCard';
 import { SubscriptionStatus } from '@/components/dashboard/SubscriptionStatus';
+import { XPDisplay } from '@/components/XPDisplay';
+import { useXP } from '@/hooks/useXP';
 
 interface DashboardStats {
   totalAttempted: number;
@@ -60,6 +62,7 @@ const LEVELS = [
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { xpData, loading: xpLoading } = useXP();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -223,6 +226,14 @@ export default function DashboardPage() {
             </svg>
             Generate Practice Paper
           </Link>
+        </div>
+
+        {/* XP Progress Section */}
+        <div className="mb-8">
+          <div className="bg-[var(--color-bg-elevated)] rounded-lg p-6 border border-[var(--color-border)]">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Your Progress</h2>
+            <XPDisplay />
+          </div>
         </div>
 
         {/* Stats Grid */}

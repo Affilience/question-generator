@@ -8,6 +8,8 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SentryProvider } from "@/components/SentryProvider";
+import { SessionManager } from "@/components/SessionManager";
+import { SessionDebugInfo } from "@/components/SessionDebugInfo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,6 +76,7 @@ export default function RootLayout({
       >
         <SentryProvider>
           <AuthProvider>
+            <SessionManager />
             <SubscriptionProvider>
               <ThemeProvider>
               {/* Background glow orbs - contained to prevent scroll issues */}
@@ -88,6 +91,7 @@ export default function RootLayout({
               </div>
               <CommandPalette />
               <CookieConsent />
+              <SessionDebugInfo />
               </ThemeProvider>
             </SubscriptionProvider>
           </AuthProvider>

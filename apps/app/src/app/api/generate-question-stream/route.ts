@@ -11,6 +11,7 @@ import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
+import { getSubjectSpecificMarkRange } from '@/lib/prompt-router';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 // Import real extract/source databases for English Literature and History
 import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
@@ -56,7 +57,7 @@ function getMaxTokens(subject: Subject, difficulty: Difficulty): number {
   }
 }
 
-// Get mark range - uses essay config if available, otherwise defaults
+// Get mark range - uses essay config if available, otherwise uses subject-specific ranges from prompt-router
 function getMarkRange(difficulty: Difficulty, subject: Subject, level: QualificationLevel, board?: ExamBoard): { min: number; max: number } {
   const config = getQuestionConfig(subject, level, difficulty, board);
   if (config) {
@@ -64,12 +65,8 @@ function getMarkRange(difficulty: Difficulty, subject: Subject, level: Qualifica
     return { min: marks, max: marks };
   }
 
-  // Fallback for quantitative subjects
-  switch (difficulty) {
-    case 'easy': return { min: 1, max: 2 };
-    case 'medium': return { min: 3, max: 4 };
-    case 'hard': return { min: 5, max: 6 };
-  }
+  // Use subject-specific mark ranges from the prompt router
+  return getSubjectSpecificMarkRange(difficulty, subject, level);
 }
 
 /**
@@ -1009,12 +1006,10 @@ function buildPracticalPrompt(
 
   const guidance = getPracticalSubtopicGuidance(subtopic, practical, difficulty);
 
-  // Determine marks based on difficulty
-  const markRange = difficulty === 'easy'
-    ? { min: 1, max: 3 }
-    : difficulty === 'medium'
-    ? { min: 3, max: 5 }
-    : { min: 5, max: 6 };
+  // Determine marks based on difficulty using subject-specific ranges
+  const subjectType = subject as Subject;
+  const levelType = practical.qualification as QualificationLevel;
+  const markRange = getSubjectSpecificMarkRange(difficulty, subjectType, levelType);
 
   const targetMarks = Math.floor(Math.random() * (markRange.max - markRange.min + 1)) + markRange.min;
 
@@ -1113,6 +1108,12 @@ function buildPrompt(
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user from server-side session for accurate usage tracking
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || null;
+
     const body = await request.json();
     const {
       topicId,
@@ -1124,7 +1125,6 @@ export async function POST(request: NextRequest) {
       subject = 'maths',
       excludeContent,
       stream = true,
-      userId, // Optional user ID for rate limiting
     } = body as {
       topicId: string;
       difficulty: Difficulty;
@@ -1135,7 +1135,6 @@ export async function POST(request: NextRequest) {
       subject?: Subject;
       excludeContent?: string | string[];
       stream?: boolean;
-      userId?: string;
     };
 
     // Rate limiting
@@ -1144,7 +1143,7 @@ export async function POST(request: NextRequest) {
       ? RATE_LIMITS.QUESTION_GENERATION_AUTH
       : RATE_LIMITS.QUESTION_GENERATION_ANON;
 
-    const rateLimitResult = await checkRateLimit(rateLimitConfig, userId, clientIP);
+    const rateLimitResult = await checkRateLimit(rateLimitConfig, userId || undefined, clientIP);
 
     if (!rateLimitResult.allowed) {
       return new Response(

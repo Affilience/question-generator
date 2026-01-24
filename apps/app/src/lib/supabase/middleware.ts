@@ -22,7 +22,16 @@ export async function updateSession(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // Enhanced cookie settings for better persistence
+              httpOnly: options?.httpOnly ?? false,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              // Set longer expiration for session cookies (30 days)
+              maxAge: options?.maxAge ?? 60 * 60 * 24 * 30,
+              path: '/',
+            })
           );
         },
       },

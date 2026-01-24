@@ -584,8 +584,9 @@ export interface XPGainResult {
 }
 
 // Get user's XP and level
-export async function getUserXP(userId: string): Promise<{ totalXP: number; currentLevel: number }> {
-  const { data } = await supabase
+export async function getUserXP(userId: string, customClient?: any): Promise<{ totalXP: number; currentLevel: number }> {
+  const client = customClient || supabase;
+  const { data } = await client
     .from('users')
     .select('total_xp, current_level')
     .eq('id', userId)
@@ -598,11 +599,17 @@ export async function getUserXP(userId: string): Promise<{ totalXP: number; curr
 }
 
 // Update user's XP and level
-export async function updateUserXP(userId: string, newXP: number, newLevel: number): Promise<void> {
-  await supabase
+export async function updateUserXP(userId: string, newXP: number, newLevel: number, customClient?: any): Promise<void> {
+  const client = customClient || supabase;
+  const { error } = await client
     .from('users')
     .update({ total_xp: newXP, current_level: newLevel })
     .eq('id', userId);
+  
+  if (error) {
+    console.error('Error updating user XP:', error);
+    throw error;
+  }
 }
 
 // Get all achievements
@@ -799,10 +806,11 @@ export async function processQuestionAnswer(
   userId: string,
   difficulty: 'easy' | 'medium' | 'hard',
   isCorrect: boolean,
-  correctStreak: number
+  correctStreak: number,
+  customClient?: any
 ): Promise<XPGainResult> {
   // Get current XP
-  const { totalXP: currentXP, currentLevel: previousLevel } = await getUserXP(userId);
+  const { totalXP: currentXP, currentLevel: previousLevel } = await getUserXP(userId, customClient);
 
   // Calculate XP gained
   const rewards = XP_REWARDS[difficulty] || XP_REWARDS.medium;
@@ -814,7 +822,7 @@ export async function processQuestionAnswer(
   const leveledUp = newLevel > previousLevel;
 
   // Update user XP in database
-  await updateUserXP(userId, newTotalXP, newLevel);
+  await updateUserXP(userId, newTotalXP, newLevel, customClient);
 
   // Get stats and check achievements
   const stats = await getGamificationStats(userId);

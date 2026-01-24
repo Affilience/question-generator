@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { processQuestionAnswer } from '@/lib/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: NextRequest) {
   try {
@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
       userId,
       difficulty as 'easy' | 'medium' | 'hard',
       correct,
-      correctStreak
+      correctStreak,
+      supabase
     );
 
     return NextResponse.json({

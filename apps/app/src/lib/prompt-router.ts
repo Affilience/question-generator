@@ -63,12 +63,44 @@ function getMarkRange(difficulty: Difficulty, subject: Subject, level: Qualifica
     const marks = config.totalMarks;
     return { min: marks, max: marks };
   }
+  
+  // Subject-specific fallback mark allocation
+  return getSubjectSpecificMarkRange(difficulty, subject, level);
+}
 
-  // Fallback for quantitative subjects
+export function getSubjectSpecificMarkRange(difficulty: Difficulty, subject: Subject, level: QualificationLevel): { min: number; max: number } {
+  // Maths and Further Maths - typically have more granular mark ranges
+  if (subject === 'maths' || subject === 'further-maths') {
+    if (level === 'gcse') {
+      switch (difficulty) {
+        case 'easy': return { min: 1, max: 2 };     // Basic arithmetic, recall
+        case 'medium': return { min: 3, max: 5 };   // Multi-step calculations, application
+        case 'hard': return { min: 6, max: 9 };     // Problem solving, reasoning
+      }
+    } else { // A-Level
+      switch (difficulty) {
+        case 'easy': return { min: 2, max: 4 };     // Standard methods, direct application
+        case 'medium': return { min: 5, max: 7 };   // Multi-step, combines topics
+        case 'hard': return { min: 8, max: 12 };    // Problem solving, proof questions
+      }
+    }
+  }
+  
+  // Combined Science - mirrors individual science subjects
+  if (subject === 'combined-science') {
+    switch (difficulty) {
+      case 'easy': return { min: 1, max: 3 };       // Short answer/recall questions
+      case 'medium': return { min: 4, max: 6 };     // Application and explanation questions  
+      case 'hard': return { min: 6, max: 9 };       // Extended response and analysis
+    }
+  }
+  
+  // Generic fallback for any remaining quantitative subjects
   switch (difficulty) {
-    case 'easy': return { min: 1, max: 2 };
-    case 'medium': return { min: 3, max: 4 };
-    case 'hard': return { min: 5, max: 6 };
+    case 'easy': return { min: 1, max: 3 };
+    case 'medium': return { min: 4, max: 6 };
+    case 'hard': return { min: 7, max: 10 };
+    default: return { min: 4, max: 6 };
   }
 }
 
