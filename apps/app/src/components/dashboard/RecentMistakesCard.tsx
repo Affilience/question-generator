@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getTopicById } from '@/lib/topics';
 import { MathRenderer } from '@/components/MathRenderer';
 
@@ -20,6 +21,15 @@ interface RecentMistakesCardProps {
 
 export function RecentMistakesCard({ mistakes }: RecentMistakesCardProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleRetryTopic = (mistake: QuestionAttempt) => {
+    const topic = getTopicById(mistake.topic_id);
+    if (topic) {
+      // Navigate to the practice page for this specific topic and difficulty
+      router.push(`/practice?subject=${topic.subject}&level=${topic.level}&board=${topic.examBoard}&topicId=${mistake.topic_id}&difficulty=${mistake.difficulty}&subtopic=${encodeURIComponent(mistake.subtopic)}`);
+    }
+  };
 
   if (mistakes.length === 0) {
     return (
@@ -101,11 +111,25 @@ export function RecentMistakesCard({ mistakes }: RecentMistakesCardProps) {
                     {mistake.question_solution && (
                       <>
                         <div className="text-xs font-medium text-[#666666] mb-2">SOLUTION</div>
-                        <div className="text-sm text-[#a1a1a1] bg-[#1a1a1a] rounded-lg p-3">
+                        <div className="text-sm text-[#a1a1a1] bg-[#1a1a1a] rounded-lg p-3 mb-4">
                           <MathRenderer content={mistake.question_solution} />
                         </div>
                       </>
                     )}
+
+                    {/* Retry Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRetryTopic(mistake);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Practice More {mistake.difficulty === 'easy' ? 'Easy' : mistake.difficulty === 'medium' ? 'Medium' : 'Hard'} Questions
+                    </button>
                   </div>
                 </div>
               )}
