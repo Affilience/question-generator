@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Client } from '@upstash/qstash';
-import { PaperConfig, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { PaperConfig, ExamBoard, QualificationLevel, Subject, QuestionType } from '@/types';
 import { checkPaperGenerationAllowed } from '@/lib/api/subscription-check';
 import { selectQuestionsForPaper } from '@/lib/questionSelector';
 import { getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
@@ -40,7 +40,7 @@ function transformConfig(
   qualification: QualificationLevel
 ): PaperConfig {
   // Get all topics to build selectedSubtopics
-  const allTopics = getTopicsBySubjectBoardAndLevel(subject, examBoard, qualification);
+  const allTopics = getTopicsBySubjectBoardAndLevel(subject as Subject, examBoard, qualification);
 
   // Build selectedSubtopics from selectedTopics
   // subtopics is string[] (subtopic names), not objects
@@ -52,117 +52,897 @@ function transformConfig(
     }
   }
 
-  // Subject-specific configuration
-  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology'];
+  // Subject-specific configuration with exam board differences
+  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'];
   const isEssaySubject = essaySubjects.includes(subject);
   
   if (isEssaySubject) {
-    // Subject-specific configurations based on real past papers
+    // Economics configurations by exam board
     if (subject === 'economics') {
-      // Economics has mixed structure: extracts + short answers + essays
-      // Difficulty affects question type distribution
       const hardWeight = simplified.difficulty.hard;
       const easyWeight = simplified.difficulty.easy;
       
-      // More hard = more essays, More easy = more short answers/MC
-      const shortAnswerWeight = Math.max(15, easyWeight * 0.8); // 15-32%
-      const essayWeight = Math.max(35, 35 + hardWeight * 0.5); // 35-60%
-      const extractWeight = 100 - shortAnswerWeight - essayWeight; // remainder for analysis
-      
+      if (examBoard === 'edexcel') {
+        // Edexcel: 25 marks short answer + 50 marks data response + 25 marks essay (100 marks total)
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.2), // Edexcel allows less time per mark
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.25), // 25% short answers
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['multiple-choice', 'short-answer'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B', 
+              targetMarks: Math.round(simplified.totalMarks * 0.50), // 50% data response
+              instructions: 'Answer the data response question.',
+              questionTypes: ['extract-analysis', 'data-analysis', 'short-answer'],
+              order: 2,
+            },
+            {
+              id: 'section-c',
+              name: 'Section C',
+              targetMarks: Math.round(simplified.totalMarks * 0.25), // 25% essay
+              instructions: 'Answer ONE question from this section.',
+              questionTypes: ['essay'],
+              order: 3,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 25,
+            extractAnalysis: 30,
+            dataAnalysis: 20,
+            shortAnswer: 20,
+            multipleChoice: 5,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'ocr') {
+        // OCR: 25-mark essays common, uses KAA structure
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.3),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'extract-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer TWO questions from this section.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60,
+            extractAnalysis: 25,
+            shortAnswer: 15,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      } else {
+        // AQA Economics: 50% context + 50% essays (original implementation)
+        const shortAnswerWeight = Math.max(15, easyWeight * 0.8); // 15-32%
+        const essayWeight = Math.max(35, 35 + hardWeight * 0.5); // 35-60%
+        const extractWeight = 100 - shortAnswerWeight - essayWeight;
+        
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.5),
+              instructions: 'Answer all questions in this section based on the extract provided.',
+              questionTypes: ['multiple-choice', 'short-answer', 'extract-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B', 
+              targetMarks: Math.round(simplified.totalMarks * 0.5),
+              instructions: 'Answer ONE question from this section.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: essayWeight,
+            extractAnalysis: extractWeight, 
+            shortAnswer: shortAnswerWeight,
+            multipleChoice: Math.max(5, easyWeight * 0.3),
+            extended: Math.max(5, hardWeight * 0.2),
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Geography configurations
+    if (subject === 'geography') {
       return {
         totalMarks: simplified.totalMarks,
-        timeLimit: Math.round(simplified.totalMarks * 1.4), // Economics needs time for data analysis
+        timeLimit: Math.round(simplified.totalMarks * 1.5), // 2.5 hours for 120 marks typically
         sections: [
           {
             id: 'section-a',
             name: 'Section A',
-            targetMarks: Math.round(simplified.totalMarks * 0.5), // 50% for context section
-            instructions: 'Answer all questions in this section based on the extract provided.',
-            questionTypes: ['multiple-choice', 'short-answer', 'extract-analysis'],
+            targetMarks: Math.round(simplified.totalMarks * 0.3), // ~30% for short answers
+            instructions: 'Answer all questions in this section.',
+            questionTypes: ['short-answer', 'data-analysis'],
             order: 1,
           },
           {
             id: 'section-b',
-            name: 'Section B', 
-            targetMarks: Math.round(simplified.totalMarks * 0.5), // 50% for essay section
-            instructions: 'Answer ONE question from this section.',
-            questionTypes: ['essay', 'extended'],
+            name: 'Section B',
+            targetMarks: Math.round(simplified.totalMarks * 0.7), // ~70% for essays
+            instructions: 'Answer TWO questions from this section.',
+            questionTypes: ['essay', 'compare'],
             order: 2,
           },
         ],
         selectedTopics: simplified.selectedTopics,
         selectedSubtopics,
-        difficultyDistribution: {
-          easy: simplified.difficulty.easy,
-          medium: simplified.difficulty.medium,
-          hard: simplified.difficulty.hard,
-        },
+        difficultyDistribution: simplified.difficulty,
         questionTypeDistribution: {
-          essay: essayWeight,
-          extractAnalysis: extractWeight, 
-          shortAnswer: shortAnswerWeight,
-          multipleChoice: Math.max(5, easyWeight * 0.3), // More MC when easier
-          extended: Math.max(5, hardWeight * 0.2), // More extended when harder
+          essay: 60, // 20-mark questions
+          dataAnalysis: 20, // 6-mark questions
+          shortAnswer: 20, // 4-mark questions
         },
         settings: {
           includeFormulaSheet: false,
-          includeDataBooklet: true, // Economics uses data extracts
+          includeDataBooklet: false,
           showMarks: true,
-          calculatorAllowed: true, // Economics allows calculators
+          calculatorAllowed: false,
           examConditions: true,
         },
       };
     }
     
-    // English Literature and History configurations
-    const questionTypes = subject === 'english-literature' 
-      ? ['extract-analysis', 'interpretation', 'essay']
-      : subject === 'history'
-      ? ['source-analysis', 'interpretation', 'essay'] 
-      : ['essay', 'extended', 'compare']; // Business/Psychology fallback
-      
+    // Business Studies configurations
+    if (subject === 'business') {
+      return {
+        totalMarks: simplified.totalMarks,
+        timeLimit: Math.round(simplified.totalMarks * 1.5),
+        sections: [
+          {
+            id: 'section-a',
+            name: 'Section A',
+            targetMarks: Math.round(simplified.totalMarks * 0.4),
+            instructions: 'Answer all questions in this section.',
+            questionTypes: ['short-answer', 'explain'],
+            order: 1,
+          },
+          {
+            id: 'section-b',
+            name: 'Section B',
+            targetMarks: Math.round(simplified.totalMarks * 0.6),
+            instructions: 'Answer TWO questions from this section.',
+            questionTypes: ['essay', 'compare'],
+            order: 2,
+          },
+        ],
+        selectedTopics: simplified.selectedTopics,
+        selectedSubtopics,
+        difficultyDistribution: simplified.difficulty,
+        questionTypeDistribution: {
+          essay: 60, // 20-25 mark evaluation questions
+          explain: 25, // 9-mark analysis questions  
+          shortAnswer: 15,
+        },
+        settings: {
+          includeFormulaSheet: false,
+          includeDataBooklet: false,
+          showMarks: true,
+          calculatorAllowed: true,
+          examConditions: true,
+        },
+      };
+    }
+    
+    // English Literature configurations by exam board
+    if (subject === 'english-literature') {
+      if (examBoard === 'aqa') {
+        // AQA: Texts provided in exam, more forgiving grading
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.5),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer the extract-based question. Text is provided.',
+              questionTypes: ['extract-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer TWO questions from this section.',
+              questionTypes: ['essay', 'interpretation'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60,
+            extractAnalysis: 40,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true, // AQA provides texts
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: false, // Texts provided
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel: Open book (all texts allowed)
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.3), // Less time needed with open book
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.5),
+              instructions: 'Answer all questions. All texts may be consulted.',
+              questionTypes: ['extract-analysis', 'compare'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.5),
+              instructions: 'Answer ONE question from this section.',
+              questionTypes: ['essay'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 50,
+            extractAnalysis: 30,
+            compare: 20,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false, // Open book
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: false, // Open book
+          },
+        };
+      } else {
+        // OCR: No texts in exam, much harder grading
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.8), // More time needed without texts
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Answer the close reading question. No texts provided.',
+              questionTypes: ['interpretation'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.7),
+              instructions: 'Answer TWO questions from this section.',
+              questionTypes: ['essay', 'compare'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 70,
+            interpretation: 30,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false, // No texts provided
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true, // Closed book
+          },
+        };
+      }
+    }
+    
+    // History configurations by exam board
+    if (subject === 'history') {
+      if (examBoard === 'aqa') {
+        // AQA: 80 marks (30 sources + 2×25 essays), specific timing
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.6), // 1hr + 2×45min structure
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.375), // 30/80 = 37.5%
+              instructions: 'Answer the compulsory source analysis question. Spend approximately 1 hour.',
+              questionTypes: ['source-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.625), // 50/80 = 62.5%
+              instructions: 'Answer TWO questions from this section. Spend approximately 45 minutes on each.',
+              questionTypes: ['essay'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 62.5,
+            sourceAnalysis: 37.5,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true, // Sources provided
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel: Coursework weighted differently (AO3 15% + AO1 5%)
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Answer the breadth study question.',
+              questionTypes: ['source-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer the depth study question.',
+              questionTypes: ['essay'],
+              order: 2,
+            },
+            {
+              id: 'section-c',
+              name: 'Section C',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Historical investigation component.',
+              questionTypes: ['extended'],
+              order: 3,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 40,
+            sourceAnalysis: 30,
+            extended: 30, // Coursework component
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      } else {
+        // OCR: 30+20 mark structure, different essay breakdowns
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.5),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A - Enquiry',
+              targetMarks: Math.round(simplified.totalMarks * 0.6), // 30/50 = 60%
+              instructions: 'Answer the enquiry element questions.',
+              questionTypes: ['source-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B - Period Study',
+              targetMarks: Math.round(simplified.totalMarks * 0.4), // 20/50 = 40%
+              instructions: 'Answer the period study questions.',
+              questionTypes: ['essay', 'short-answer'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            sourceAnalysis: 60,
+            essay: 30,
+            shortAnswer: 10,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Geography configurations by exam board
+    if ((subject as Subject) === 'geography') {
+      if (examBoard === 'aqa') {
+        // AQA Geography: 120 marks across 3 papers, 20-mark essays common
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.25), // 2.5hrs for 120 marks typically
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.25), // Short answers & data analysis
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'data-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.75), // 20-mark essays
+              instructions: 'Answer THREE questions from this section.',
+              questionTypes: ['essay', 'compare'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 65, // 20-mark questions dominate
+            dataAnalysis: 20, // 6-mark questions
+            shortAnswer: 15, // 4-mark questions
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel Geography: More fieldwork focus
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.3),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Answer questions on fieldwork and data analysis.',
+              questionTypes: ['data-analysis', 'short-answer'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.7),
+              instructions: 'Answer essay questions on geographical themes.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60,
+            extended: 10,
+            dataAnalysis: 20,
+            shortAnswer: 10,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true, // Data booklets for fieldwork
+            showMarks: true,
+            calculatorAllowed: true, // Statistics calculations
+            examConditions: true,
+          },
+        };
+      } else {
+        // OCR Geography: Different paper structure
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.35),
+              instructions: 'Answer structured questions on geographical processes.',
+              questionTypes: ['explain', 'data-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.65),
+              instructions: 'Answer essay questions with geographical analysis.',
+              questionTypes: ['essay', 'compare'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 55,
+            compare: 10,
+            explain: 20,
+            dataAnalysis: 15,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Business Studies configurations by exam board
+    if ((subject as Subject) === 'business') {
+      if (examBoard === 'aqa') {
+        // AQA Business: 20-mark evaluation questions, 9-mark analysis
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.5),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'explain'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer TWO evaluation questions from this section.',
+              questionTypes: ['essay', 'compare'], // 20-mark evaluation questions
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60, // 20-mark evaluation questions
+            explain: 25, // 9-mark analysis questions
+            shortAnswer: 15,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: true, // Financial calculations
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel Business: Case study focus
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Answer questions based on the case study provided.',
+              questionTypes: ['data-analysis', 'short-answer'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.7),
+              instructions: 'Answer essay questions with reference to the case study.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60,
+            extended: 10,
+            dataAnalysis: 20,
+            shortAnswer: 10,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true, // Case study booklet
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      } else {
+        // OCR Business: Different assessment structure
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer structured business analysis questions.',
+              questionTypes: ['explain', 'calculation'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer extended response questions.',
+              questionTypes: ['essay', 'compare'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 50,
+            explain: 25,
+            compare: 15,
+            calculation: 10,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Psychology configurations by exam board
+    if ((subject as Subject) === 'psychology') {
+      if (examBoard === 'aqa') {
+        // AQA Psychology: 81% market share, 50% essay marks, 8-mark + 16-mark essays
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.5),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.35), // Short answer questions
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'explain'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.35), // 8-mark essays
+              instructions: 'Answer the required questions from this section.',
+              questionTypes: ['extended'], // 8-mark essays
+              order: 2,
+            },
+            {
+              id: 'section-c',
+              name: 'Section C', 
+              targetMarks: Math.round(simplified.totalMarks * 0.30), // 16-mark essays
+              instructions: 'Answer the required questions from this section.',
+              questionTypes: ['essay'], // 16-mark essays
+              order: 3,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 30, // 16-mark essays
+            extended: 35, // 8-mark essays
+            explain: 20, // Explain questions
+            shortAnswer: 15, // Short answers
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel Psychology: Clinical/criminological applications focus
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer questions on core psychological theories.',
+              questionTypes: ['explain', 'compare'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer questions on clinical and criminological applications.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 50, // Applications focus
+            extended: 10, 
+            explain: 25,
+            compare: 15,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      } else {
+        // OCR Psychology: Detailed marking schemes, challenging papers
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.6), // More time for detailed responses
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.3),
+              instructions: 'Answer structured questions on psychological research.',
+              questionTypes: ['explain', 'data-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.7),
+              instructions: 'Answer extended response questions requiring detailed knowledge.',
+              questionTypes: ['essay', 'extended'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 60, // Emphasis on detailed knowledge
+            extended: 10,
+            explain: 20,
+            dataAnalysis: 10, // Research focus
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: false,
+            showMarks: true,
+            calculatorAllowed: false,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Fallback for any remaining subjects
     return {
       totalMarks: simplified.totalMarks,
-      timeLimit: Math.round(simplified.totalMarks * 1.5), // More time for essays
+      timeLimit: Math.round(simplified.totalMarks * 1.5),
       sections: [
         {
           id: 'section-a',
           name: 'Section A',
-          targetMarks: Math.round(simplified.totalMarks * 0.4), // ~40% for analysis
-          instructions: subject === 'history' 
-            ? 'Analyse the sources provided.' 
-            : subject === 'english-literature'
-            ? 'Answer the extract-based question.'
-            : 'Answer the context-based question.',
-          questionTypes: [questionTypes[0]],
+          targetMarks: Math.round(simplified.totalMarks * 0.4),
+          instructions: 'Answer all questions in this section.',
+          questionTypes: ['short-answer', 'explain'],
           order: 1,
         },
         {
-          id: 'section-b', 
+          id: 'section-b',
           name: 'Section B',
-          targetMarks: Math.round(simplified.totalMarks * 0.6), // ~60% for essays
+          targetMarks: Math.round(simplified.totalMarks * 0.6),
           instructions: 'Answer TWO questions from this section.',
-          questionTypes: questionTypes.slice(1),
+          questionTypes: ['essay', 'extended'],
           order: 2,
         },
       ],
       selectedTopics: simplified.selectedTopics,
       selectedSubtopics,
-      difficultyDistribution: {
-        easy: simplified.difficulty.easy,
-        medium: simplified.difficulty.medium,
-        hard: simplified.difficulty.hard,
-      },
+      difficultyDistribution: simplified.difficulty,
       questionTypeDistribution: {
         essay: 60,
-        [questionTypes[0]]: 40,
-        interpretation: 0,
-        extractAnalysis: 0,
-        sourceAnalysis: 0,
+        explain: 25,
+        shortAnswer: 15,
       },
       settings: {
         includeFormulaSheet: false,
-        includeDataBooklet: subject === 'history', // History uses source booklets
+        includeDataBooklet: false,
         showMarks: true,
         calculatorAllowed: false,
         examConditions: true,

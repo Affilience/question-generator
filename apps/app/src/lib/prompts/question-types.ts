@@ -22,6 +22,10 @@ export const QUESTION_TYPE_DESCRIPTIONS: Record<QuestionType, string> = {
   'compare': 'a compare/contrast question analyzing similarities and differences',
   'proof': 'a mathematical proof question requiring logical reasoning and justification',
   'show-that': 'a show-that question where answer is given and working must be shown',
+  'essay': 'a long-form essay question requiring structured argument and analysis',
+  'source-analysis': 'an essay question analyzing historical sources or documents',
+  'interpretation': 'an essay question interpreting texts, themes, or significance',
+  'extract-analysis': 'a question analyzing an extract or passage from economics/literature',
 };
 
 // ============================================================================
@@ -39,6 +43,10 @@ export const COMMAND_WORDS_BY_TYPE: Record<QuestionType, string[]> = {
   'compare': ['Compare', 'Contrast', 'Distinguish between', 'What are the similarities and differences'],
   'proof': ['Prove', 'Show that', 'Prove by induction', 'Demonstrate'],
   'show-that': ['Show that', 'Verify that', 'Confirm that'],
+  'essay': ['Evaluate', 'Assess', 'To what extent', 'Discuss', 'Analyse'],
+  'source-analysis': ['Analyse', 'Evaluate', 'How useful', 'To what extent'],
+  'interpretation': ['Explore', 'Analyse', 'Discuss', 'How does'],
+  'extract-analysis': ['Analyse', 'Evaluate', 'Assess', 'To what extent'],
 };
 
 // ============================================================================
@@ -56,6 +64,10 @@ export const MARK_RANGES_BY_TYPE: Record<QuestionType, { min: number; max: numbe
   'compare': { min: 3, max: 6 },
   'proof': { min: 4, max: 8 },
   'show-that': { min: 3, max: 6 },
+  'essay': { min: 20, max: 30 },
+  'source-analysis': { min: 25, max: 30 },
+  'interpretation': { min: 25, max: 30 },
+  'extract-analysis': { min: 15, max: 25 },
 };
 
 // ============================================================================
@@ -252,6 +264,10 @@ export function getQuestionTypeTemplate(type: QuestionType): string {
     'compare': COMPARE_TEMPLATE,
     'proof': CALCULATION_TEMPLATE, // Similar to calculation but with proof structure
     'show-that': CALCULATION_TEMPLATE, // Similar to calculation but with given answer
+    'essay': EXTENDED_RESPONSE_TEMPLATE, // Essays use extended response template
+    'source-analysis': EXTENDED_RESPONSE_TEMPLATE, // Historical source analysis
+    'interpretation': EXTENDED_RESPONSE_TEMPLATE, // Literary interpretation
+    'extract-analysis': EXTENDED_RESPONSE_TEMPLATE, // Economics extract analysis
   };
 
   return templates[type] || EXPLAIN_TEMPLATE;
@@ -274,6 +290,10 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'compare': 'List basic similarities OR differences (not both required).',
       'proof': 'Simple proof with direct application of basic theorem.',
       'show-that': 'Straightforward verification with simple substitution.',
+      'essay': 'Straightforward essay with clear structure required. Basic analysis.',
+      'source-analysis': 'Basic source analysis with obvious strengths/limitations.',
+      'interpretation': 'Clear interpretation of obvious themes or meanings.',
+      'extract-analysis': 'Simple analysis of extract with basic economic concepts.',
     },
     medium: {
       'multiple-choice': 'Test application. Distractors based on common errors.',
@@ -286,6 +306,10 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'compare': 'Compare with clear similarities AND differences.',
       'proof': 'Multi-step proof requiring logical reasoning.',
       'show-that': 'Show working with intermediate steps and reasoning.',
+      'essay': 'Well-structured essay with balanced analysis and evaluation.',
+      'source-analysis': 'Detailed source analysis considering context and purpose.',
+      'interpretation': 'Nuanced interpretation with multiple perspectives.',
+      'extract-analysis': 'Thorough analysis linking extract to economic theory.',
     },
     hard: {
       'multiple-choice': 'Test deeper understanding. Subtle distractors requiring careful analysis.',
@@ -298,6 +322,10 @@ export function getDifficultyModifierForType(type: QuestionType, difficulty: Dif
       'compare': 'Analytical comparison with evaluation of significance.',
       'proof': 'Complex proof using multiple methods or requiring creative insight.',
       'show-that': 'Sophisticated verification with non-obvious approach.',
+      'essay': 'Complex essay requiring synthesis, critical evaluation, and sophisticated argument.',
+      'source-analysis': 'Critical evaluation of source value with historiographical awareness.',
+      'interpretation': 'Complex interpretation considering multiple layers of meaning.',
+      'extract-analysis': 'Advanced analysis synthesizing multiple economic theories and concepts.',
     },
   };
 

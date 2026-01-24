@@ -149,11 +149,20 @@ export interface DifficultyDistribution {
 }
 
 export interface QuestionTypeDistribution {
-  calculation: number;
-  explain: number;
-  dataAnalysis: number;
-  extended: number;
-  multipleChoice: number;
+  calculation?: number;
+  explain?: number;
+  dataAnalysis?: number;
+  extended?: number;
+  multipleChoice?: number;
+  shortAnswer?: number;
+  essay?: number;
+  sourceAnalysis?: number;
+  interpretation?: number;
+  extractAnalysis?: number;
+  compare?: number;
+  proof?: number;
+  showThat?: number;
+  graph?: number;
 }
 
 export interface PaperSettings {
