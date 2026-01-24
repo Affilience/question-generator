@@ -53,7 +53,7 @@ function transformConfig(
   }
 
   // Subject-specific configuration with exam board differences
-  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'];
+  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography', 'biology'];
   const isEssaySubject = essaySubjects.includes(subject);
   
   if (isEssaySubject) {
@@ -910,7 +910,143 @@ function transformConfig(
       }
     }
     
-    // Fallback for any remaining subjects
+    // Biology A-Level configurations by exam board (has significant essay components)
+    if ((subject as Subject) === 'biology' && qualification === 'a-level') {
+      if (examBoard === 'aqa') {
+        // AQA A-Level Biology: 15-25 mark synoptic essays + 6-mark extended responses
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.3), // More time for extended responses
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.5), // Calculations and short answers
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'calculation', 'explain'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.3), // 6-mark extended responses
+              instructions: 'Answer the required questions from this section.',
+              questionTypes: ['extended'], // 6-mark extended responses
+              order: 2,
+            },
+            {
+              id: 'section-c',
+              name: 'Section C',
+              targetMarks: Math.round(simplified.totalMarks * 0.2), // 15-25 mark essays
+              instructions: 'Answer the required questions from this section.',
+              questionTypes: ['essay'], // Synoptic essays
+              order: 3,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 20, // 15-25 mark synoptic essays
+            extended: 30, // 6-mark extended responses
+            explain: 25, // 4-mark explanation questions
+            shortAnswer: 15, // Knowledge recall
+            calculation: 10, // Biological calculations
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true, // Biology data sheet
+            showMarks: true,
+            calculatorAllowed: true, // Needed for calculations
+            examConditions: true,
+          },
+        };
+      } else if (examBoard === 'edexcel') {
+        // Edexcel A-Level Biology: More practical focus, different essay structure
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.25),
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.6), // Mixed questions
+              instructions: 'Answer all questions in this section.',
+              questionTypes: ['short-answer', 'calculation', 'data-analysis'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.4), // Extended responses
+              instructions: 'Answer the required questions from this section.',
+              questionTypes: ['extended', 'essay'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 25, // Evaluation essays
+            extended: 25, // Extended responses
+            dataAnalysis: 20, // Practical analysis
+            explain: 15,
+            shortAnswer: 10,
+            calculation: 5,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      } else {
+        // OCR A-Level Biology: Different assessment approach
+        return {
+          totalMarks: simplified.totalMarks,
+          timeLimit: Math.round(simplified.totalMarks * 1.4), // More time for detailed responses
+          sections: [
+            {
+              id: 'section-a',
+              name: 'Section A',
+              targetMarks: Math.round(simplified.totalMarks * 0.4),
+              instructions: 'Answer structured questions on biological principles.',
+              questionTypes: ['short-answer', 'explain'],
+              order: 1,
+            },
+            {
+              id: 'section-b',
+              name: 'Section B',
+              targetMarks: Math.round(simplified.totalMarks * 0.6),
+              instructions: 'Answer extended response questions requiring detailed analysis.',
+              questionTypes: ['extended', 'essay'],
+              order: 2,
+            },
+          ],
+          selectedTopics: simplified.selectedTopics,
+          selectedSubtopics,
+          difficultyDistribution: simplified.difficulty,
+          questionTypeDistribution: {
+            essay: 35, // Detailed essays
+            extended: 25, // Extended explanations
+            explain: 25, // Structured explanations
+            shortAnswer: 15,
+          },
+          settings: {
+            includeFormulaSheet: false,
+            includeDataBooklet: true,
+            showMarks: true,
+            calculatorAllowed: true,
+            examConditions: true,
+          },
+        };
+      }
+    }
+    
+    // Fallback for any remaining subjects  
     return {
       totalMarks: simplified.totalMarks,
       timeLimit: Math.round(simplified.totalMarks * 1.5),

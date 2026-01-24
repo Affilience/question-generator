@@ -107,7 +107,8 @@ export function PaperBuilder({
 
   const estimatedQuestions = useMemo(() => {
     // Subject-specific mark calculations based on real past papers
-    const isEssaySubject = ['english-literature', 'history', 'economics', 'business', 'psychology'].includes(subject);
+    const isEssaySubject = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'].includes(subject);
+    const isBiologyALevel = subject === 'biology' && level === 'a-level';
     
     if (isEssaySubject) {
       if (subject === 'economics') {
@@ -129,6 +130,22 @@ export function PaperBuilder({
         const avgMarksPerQuestion = 25;
         return Math.max(1, Math.round(totalMarks / avgMarksPerQuestion));
       }
+    } else if (isBiologyALevel) {
+      // Biology A-Level has mixed structure: calculations + 6-mark extended + 15-25 mark essays
+      // Difficulty affects distribution: more hard = more essays, more easy = more calculations
+      const hardWeight = difficulty.hard;
+      const easyWeight = difficulty.easy;
+      
+      // Calculate weighted average marks per question
+      // Easy questions: 2-4 marks, Extended: 6 marks, Essays: 15-25 marks
+      const easyAvg = 3; // Short calculations/explanations
+      const extendedAvg = 6; // Extended responses
+      const essayAvg = 20; // Essays
+      
+      // Weight based on difficulty distribution
+      const weightedAvg = (easyWeight/100 * easyAvg) + (difficulty.medium/100 * extendedAvg) + (hardWeight/100 * essayAvg);
+      
+      return Math.max(3, Math.round(totalMarks / Math.max(4, weightedAvg)));
     } else {
       // STEM subjects have more, lower-mark questions:
       // Maths/Sciences: calculation (2-5), explain (2-4), extended (6-12), etc.
@@ -136,7 +153,7 @@ export function PaperBuilder({
       const avgMarksPerQuestion = 3.8;
       return Math.round(totalMarks / avgMarksPerQuestion);
     }
-  }, [totalMarks, subject, difficulty]);
+  }, [totalMarks, subject, level, difficulty]);
 
   return (
     <div className="space-y-6">
