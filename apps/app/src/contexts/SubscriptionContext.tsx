@@ -130,35 +130,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return !!limits[feature];
   };
 
-  // Increment question usage - optimistic update then refresh from database
+  // Increment question usage - simply refresh data since it now uses reliable source
   const incrementQuestionUsage = async () => {
-    // Optimistic update for immediate UI feedback
-    const newCount = dailyUsage.questionsGenerated + 1;
-    setDailyUsage(prev => ({
-      ...prev,
-      questionsGenerated: newCount,
-    }));
-    
-    // Refresh from database after longer delay to ensure server update completes
-    // Use the optimistic count as minimum to prevent going backwards
-    setTimeout(async () => {
-      try {
-        const response = await fetch('/api/subscription');
-        const data = await response.json();
-        
-        const serverCount = data.dailyUsage?.questionsGenerated || 0;
-        // Only update if server count is higher than our optimistic count
-        if (serverCount >= newCount) {
-          setDailyUsage({
-            questionsGenerated: serverCount,
-            papersGenerated: data.dailyUsage?.papersGenerated || 0,
-          });
-        }
-      } catch (error) {
-        console.error('Error refreshing usage:', error);
-        // Keep optimistic update on error
-      }
-    }, 500);
+    // Just refresh subscription data - no optimistic updates needed
+    // The new implementation uses user_topic_progress which is reliable
+    await refreshSubscription();
   };
 
   // Increment paper usage (UI only - server handles DB)

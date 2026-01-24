@@ -373,6 +373,26 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
   };
 }
 
+// Get daily usage stats using the same reliable pattern as Questions Practiced
+export async function getDailyUsage(userId: string) {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Count questions generated today from user_topic_progress
+  const { data: todayProgress } = await supabase
+    .from('user_topic_progress')
+    .select('attempted')
+    .eq('user_id', userId)
+    .gte('last_attempted_at', today + 'T00:00:00.000Z')
+    .lt('last_attempted_at', today + 'T23:59:59.999Z');
+
+  const questionsGenerated = todayProgress?.reduce((sum: number, p: any) => sum + (p.attempted || 0), 0) || 0;
+
+  return {
+    questionsGenerated,
+    papersGenerated: 0, // Keep for compatibility
+  };
+}
+
 // Calculate current streak from streak data
 function calculateStreak(streaks: UserStreak[]): number {
   if (streaks.length === 0) return 0;

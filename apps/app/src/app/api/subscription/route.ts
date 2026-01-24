@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getDailyUsage } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -32,12 +33,8 @@ export async function GET() {
         .order('created_at', { ascending: false })
         .limit(1)
         .single(),
-      supabase
-        .from('daily_usage')
-        .select('questions_generated, papers_generated')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .single(),
+      // Use the same reliable pattern as Questions Practiced
+      getDailyUsage(user.id),
       // Count papers generated in the last 7 days (rolling window)
       supabase
         .from('generated_papers')
@@ -47,7 +44,7 @@ export async function GET() {
     ]);
 
     const { data: subData } = subResult;
-    const { data: usageData } = usageResult;
+    const usageData = usageResult; // getDailyUsage returns data directly
     const weeklyPaperCount = weeklyPaperResult.count || 0;
 
     let subscription = null;
@@ -72,8 +69,8 @@ export async function GET() {
     return NextResponse.json({
       subscription,
       dailyUsage: {
-        questionsGenerated: usageData?.questions_generated || 0,
-        papersGenerated: usageData?.papers_generated || 0,
+        questionsGenerated: usageData.questionsGenerated,
+        papersGenerated: usageData.papersGenerated,
       },
       weeklyPaperUsage: {
         papersGenerated: weeklyPaperCount,
