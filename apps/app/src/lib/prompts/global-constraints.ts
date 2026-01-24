@@ -1541,8 +1541,12 @@ You MUST return valid JSON matching this exact structure:
    - Length must equal marks value
 
 5. **diagram** (optional, object):
-   - Include only if question requires visual representation
+   - Include only if question requires visual representation for REFERENCE or CONTEXT
    - Follow the diagram specification schema
+   - **CRITICAL**: For "draw/sketch/plot" questions where students must create a diagram:
+     * DO NOT include a diagram field (this would show the answer)
+     * Describe what to draw in the question content text
+     * Describe the expected answer in the solution text only
 
 ### Do NOT:
 - Include any text outside the JSON
