@@ -1117,29 +1117,11 @@ function buildPrompt(
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user from authorization header or server-side session for accurate usage tracking
-    let userId: string | null = null;
-    
-    // First try to get user from Authorization header
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data: { user } } = await supabase.auth.getUser(token);
-      userId = user?.id || null;
-    }
-    
-    // Fallback to server-side session (cookies)
-    if (!userId) {
-      const { createClient } = await import('@/lib/supabase/server');
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id || null;
-    }
+    // Get user from server-side session (cookies) for accurate usage tracking
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || null;
 
     const body = await request.json();
     const {

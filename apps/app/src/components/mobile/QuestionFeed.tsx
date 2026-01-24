@@ -102,6 +102,7 @@ export function QuestionFeed({
           stream: true,
           excludeContent: previousQuestionsRef.current.map(q => q.substring(0, 100)),
         }),
+        credentials: 'include', // Include cookies for server-side auth
       });
 
       if (!response.ok) throw new Error('Failed to generate question');

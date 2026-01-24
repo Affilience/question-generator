@@ -125,6 +125,7 @@ export function useStreamingQuestion() {
           ...options,
           stream: true,
         }),
+        credentials: 'include', // Include cookies for server-side auth
         signal: abortControllerRef.current.signal,
       });
 
