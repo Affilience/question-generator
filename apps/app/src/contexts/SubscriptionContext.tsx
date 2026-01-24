@@ -63,7 +63,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const tier: SubscriptionTier = subscription?.tier || 'free';
   const limits = TIER_LIMITS[tier];
 
-  // Fetch subscription data via server API (more reliable than client-side queries)
+  // Fetch subscription and usage data directly from database (same reliable pattern as dashboard)
   const refreshSubscription = useCallback(async () => {
     if (!user) {
       setSubscription(null);
@@ -72,33 +72,66 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      const response = await fetch('/api/subscription');
-      const data = await response.json();
+      const today = new Date().toISOString().split('T')[0];
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      if (data.subscription) {
-        setSubscription({
-          id: data.subscription.id,
-          status: data.subscription.status,
-          tier: data.subscription.tier as SubscriptionTier,
-          priceId: data.subscription.priceId,
-          currentPeriodEnd: data.subscription.currentPeriodEnd
-            ? new Date(data.subscription.currentPeriodEnd)
-            : null,
-          cancelAtPeriodEnd: data.subscription.cancelAtPeriodEnd || false,
-          isTrialing: data.subscription.isTrialing || false,
-        });
-      } else {
-        setSubscription(null);
+      // Query subscription and usage data directly - same pattern as getUserStats
+      const [subResult, usageResult, weeklyPaperResult] = await Promise.all([
+        supabase
+          .from('user_subscriptions')
+          .select('*, subscription_prices(product_id, subscription_products(metadata))')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('daily_usage')
+          .select('questions_generated, papers_generated')
+          .eq('user_id', user.id)
+          .eq('date', today)
+          .maybeSingle(),
+        supabase
+          .from('generated_papers')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('created_at', oneWeekAgo.toISOString()),
+      ]);
+
+      // Handle subscription data
+      const { data: subData } = subResult;
+      let subscription = null;
+      if (subData) {
+        const productMetadata = subData.subscription_prices?.subscription_products?.metadata;
+        const tierFromMetadata = productMetadata?.tier;
+        const tierFromPriceId = subData.price_id?.includes('student_plus') ? 'student_plus'
+          : subData.price_id?.includes('exam_pro') ? 'exam_pro'
+          : 'free';
+
+        subscription = {
+          id: subData.id,
+          status: subData.status,
+          tier: tierFromMetadata || tierFromPriceId || 'free',
+          priceId: subData.price_id,
+          currentPeriodEnd: subData.current_period_end,
+          cancelAtPeriodEnd: subData.cancel_at_period_end || false,
+          isTrialing: subData.status === 'trialing',
+        };
       }
+      setSubscription(subscription);
 
-      // Always use server data as the single source of truth
+      // Handle usage data - direct from database like dashboard stats
+      const { data: usage } = usageResult;
       setDailyUsage({
-        questionsGenerated: data.dailyUsage?.questionsGenerated || 0,
-        papersGenerated: data.dailyUsage?.papersGenerated || 0,
+        questionsGenerated: usage?.questions_generated || 0,
+        papersGenerated: usage?.papers_generated || 0,
       });
 
+      // Handle weekly paper count
+      const weeklyPaperCount = weeklyPaperResult.count || 0;
       setWeeklyPaperUsage({
-        papersGenerated: data.weeklyPaperUsage?.papersGenerated || 0,
+        papersGenerated: weeklyPaperCount,
       });
     } catch (error) {
       console.error('Error refreshing subscription:', error);
@@ -106,7 +139,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, supabase]);
 
   // Helper to extract tier from price ID
   function getTierFromPriceId(priceId: string): SubscriptionTier {
@@ -136,10 +169,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return !!limits[feature];
   };
 
-  // Increment question usage - simply refresh data since it now uses reliable source
+  // Increment question usage - direct database refresh (same reliable pattern as dashboard)
   const incrementQuestionUsage = async () => {
-    // Just refresh subscription data - no optimistic updates needed
-    // The new implementation uses user_topic_progress which is reliable
     await refreshSubscription();
   };
 
