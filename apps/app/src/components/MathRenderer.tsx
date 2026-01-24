@@ -71,8 +71,8 @@ interface MathRendererProps {
 }
 
 // Error boundary for KaTeX rendering failures
-class MathErrorBoundary extends Component<{ children: ReactNode; fallback: string }, { hasError: boolean }> {
-  constructor(props: { children: ReactNode; fallback: string }) {
+class MathErrorBoundary extends Component<{ children: ReactNode; fallback: string; originalMath: string }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; fallback: string; originalMath: string }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -83,7 +83,20 @@ class MathErrorBoundary extends Component<{ children: ReactNode; fallback: strin
 
   render() {
     if (this.state.hasError) {
-      return <code className="text-amber-500 bg-amber-500/10 px-1 rounded">{this.props.fallback}</code>;
+      // Try to render as plain text if it contains obvious text content
+      const cleanText = this.props.originalMath
+        .replace(/\\text\{([^}]+)\}/g, '$1') // Extract text from \text{} commands
+        .replace(/\\mathrm\{([^}]+)\}/g, '$1') // Extract text from \mathrm{} commands
+        .replace(/\\/g, '') // Remove remaining backslashes
+        .trim();
+      
+      // If it looks like plain text, render it normally
+      if (cleanText && !/[\\{}^_$]/.test(cleanText)) {
+        return <span>{cleanText}</span>;
+      }
+      
+      // Otherwise show as code with a warning
+      return <code className="text-amber-500 bg-amber-500/10 px-1 rounded" title="LaTeX parsing error">{this.props.fallback}</code>;
     }
     return this.props.children;
   }
@@ -92,9 +105,13 @@ class MathErrorBoundary extends Component<{ children: ReactNode; fallback: strin
 // Safe wrapper for InlineMath
 function SafeInlineMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
+  
+  // Preprocess math to fix common LaTeX issues
+  const processedMath = preprocessMathForKaTeX(math);
+  
   return (
-    <MathErrorBoundary fallback={`$${math}$`}>
-      <InlineMath math={math} />
+    <MathErrorBoundary fallback={processedMath} originalMath={math}>
+      <InlineMath math={processedMath} settings={{ throwOnError: false }} />
     </MathErrorBoundary>
   );
 }
@@ -102,9 +119,13 @@ function SafeInlineMath({ math }: { math: string }) {
 // Safe wrapper for BlockMath
 function SafeBlockMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
+  
+  // Preprocess math to fix common LaTeX issues
+  const processedMath = preprocessMathForKaTeX(math);
+  
   return (
-    <MathErrorBoundary fallback={`$$${math}$$`}>
-      <BlockMath math={math} />
+    <MathErrorBoundary fallback={processedMath} originalMath={math}>
+      <BlockMath math={processedMath} settings={{ throwOnError: false }} />
     </MathErrorBoundary>
   );
 }
@@ -381,6 +402,38 @@ function fixLatexEscaping(text: string): string {
     result = result.replace(new RegExp(`//${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
     result = result.replace(new RegExp(`/(?!/)${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
   }
+  return result;
+}
+
+// Preprocess LaTeX specifically for KaTeX to handle common AI generation errors
+function preprocessMathForKaTeX(math: string): string {
+  let result = math;
+  
+  // Fix common \text command issues that cause KaTeX parsing errors
+  // 1. Fix double backslashes in \text commands
+  result = result.replace(/\\\\text\{/g, '\\text{');
+  
+  // 2. Fix missing backslash before text commands
+  result = result.replace(/\btext\{/g, '\\text{');
+  
+  // 3. Fix literal "text" appearing before chemical formulas or units
+  result = result.replace(/\btext\s+([A-Za-z0-9₁₂₃₄₅₆₇₈₉₀⁻⁺\(\)]+)/g, '\\text{$1}');
+  
+  // 4. Fix standalone "text" that should be \text{}
+  result = result.replace(/\btext\b(?!\{)/g, '\\text{}');
+  
+  // 5. Fix underscores in \text commands (KaTeX parsing issue)
+  result = result.replace(/\\text\{([^}]*_[^}]*)\}/g, (match, content) => {
+    const escapedContent = content.replace(/_/g, '\\_');
+    return `\\text{${escapedContent}}`;
+  });
+  
+  // 6. Fix common chemistry notation issues
+  result = result.replace(/\b(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6)\b/g, '\\text{$1}');
+  
+  // 7. Fix units that appear without proper LaTeX formatting
+  result = result.replace(/\b(cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
+  
   return result;
 }
 
