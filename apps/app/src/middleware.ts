@@ -16,6 +16,6 @@ export const config = {
      * - api routes (let them handle their own auth)
      * - auth/callback (OAuth callback handles its own session logic)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api).*)',
   ],
 };
