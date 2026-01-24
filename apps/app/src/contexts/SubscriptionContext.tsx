@@ -58,6 +58,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [weeklyPaperUsage, setWeeklyPaperUsage] = useState<WeeklyPaperUsage>({
     papersGenerated: 0,
   });
+  
+  // Track optimistic updates to prevent race conditions
+  const [optimisticQuestionCount, setOptimisticQuestionCount] = useState(0);
 
   // Determine current tier
   const tier: SubscriptionTier = subscription?.tier || 'free';
@@ -91,10 +94,19 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         setSubscription(null);
       }
 
+      // Use the higher of server data or optimistic count to prevent race condition resets
+      const serverQuestionCount = data.dailyUsage?.questionsGenerated || 0;
+      const finalQuestionCount = Math.max(serverQuestionCount, optimisticQuestionCount);
+      
       setDailyUsage({
-        questionsGenerated: data.dailyUsage?.questionsGenerated || 0,
+        questionsGenerated: finalQuestionCount,
         papersGenerated: data.dailyUsage?.papersGenerated || 0,
       });
+      
+      // Reset optimistic count if server caught up
+      if (serverQuestionCount >= optimisticQuestionCount) {
+        setOptimisticQuestionCount(0);
+      }
 
       setWeeklyPaperUsage({
         papersGenerated: data.weeklyPaperUsage?.papersGenerated || 0,
@@ -137,12 +149,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Increment question usage (UI only - server handles DB)
   const incrementQuestionUsage = async () => {
-    // Just update local state for immediate UI feedback
-    // The server already increments the database count
+    // Update both local state and optimistic counter to prevent race conditions
     setDailyUsage(prev => ({
       ...prev,
       questionsGenerated: prev.questionsGenerated + 1,
     }));
+    
+    // Track optimistic updates to prevent server refresh from resetting counter
+    setOptimisticQuestionCount(prev => prev + 1);
   };
 
   // Increment paper usage (UI only - server handles DB)
