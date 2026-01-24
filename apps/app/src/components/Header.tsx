@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { CompactXPDisplay } from './XPDisplay';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   showBack?: boolean;
@@ -11,6 +12,8 @@ interface HeaderProps {
 }
 
 export function Header({ showBack, backHref = '/', backLabel = 'Back' }: HeaderProps) {
+  const { user } = useAuth();
+  
   return (
     <header className="sticky top-0 z-50 bg-[var(--color-bg-deepest)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -28,7 +31,7 @@ export function Header({ showBack, backHref = '/', backLabel = 'Back' }: HeaderP
             </Link>
           )}
           <Link
-            href="/"
+            href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 font-bold text-lg text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors"
           >
             <span className="text-[var(--color-accent)]">∞</span>

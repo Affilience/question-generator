@@ -302,7 +302,17 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   
   // Fix common LaTeX command escaping issues in JSON responses
   // Convert literal \text to proper LaTeX (in case AI under-escaped)
-  result = result.replace(/([^\\])\\text\{/g, '$1\\text{');
+  result = result.replace(/([^\\])\\text\{/g, '$1\\\\text{');
+  result = result.replace(/^\\text\{/g, '\\\\text{'); // Handle \text at start of string
+  
+  // Fix chemistry-specific text rendering in mark schemes
+  result = result.replace(/\\text\{([^}]*)\}/g, (match, content) => {
+    // If content looks like a chemical formula, preserve it
+    if (/^[A-Z][a-z]?(\d+)*(\^[+-]?\d*)?(\([^)]*\))*$/.test(content.trim())) {
+      return `\\\\text{${content}}`;
+    }
+    return match;
+  });
 
   return result;
 }

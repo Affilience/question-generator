@@ -578,16 +578,25 @@ function buildEssayPrompt(
     markSchemeGuidance = `
 MARK SCHEME REQUIREMENTS:
 - Total marks: ${config.totalMarks}
-- Award method marks (M) for correct process
-- Award accuracy marks (A) for correct answer
-- Award marks for correct units where applicable`;
+- Award method marks (M) for correct process/formula
+- Award accuracy marks (A) for correct calculation/answer
+- Include follow-through (ft) marks where appropriate
+- Award marks for correct units where applicable
+- Specify when answers must be "correct and obvious" (cao)
+- Include detailed marking guidance for each mark point
+EXAMPLE: For a 4-mark calculation question:
+["M1: Correct formula/method identified", "M1: Correct substitution of values", "A1: Correct calculation of intermediate step", "A1 cao: Final answer with correct units"]`;
   } else if (selectedFormat === 'definition' || selectedFormat === 'short_answer') {
     markSchemeGuidance = `
 MARK SCHEME REQUIREMENTS:
 - Total marks: ${config.totalMarks}
-- List specific points that earn marks
+- List specific points that earn marks with clear marking codes
 - Award 1 mark per valid point typically
-- Include acceptable alternative answers`;
+- Include acceptable alternative answers and synonyms
+- Specify mark types: B (independent), A (accuracy), or M (method)
+- Include detailed descriptions for each mark point
+EXAMPLE: For a 3-mark definition question:
+["B1: States [key concept 1] or equivalent", "B1: Explains [key concept 2] or [acceptable alternative]", "B1: Links/connects [relationship] or describes [specific example]"]`;
   } else if (config.totalMarks >= 8) {
     markSchemeGuidance = `
 MARK SCHEME REQUIREMENTS:
