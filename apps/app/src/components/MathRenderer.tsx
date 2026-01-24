@@ -304,6 +304,42 @@ function isValidMathContent(content: string, isInlineDelimiter: boolean): boolea
 // TEXT PREPROCESSING
 // =============================================================================
 
+// Detect and wrap bare LaTeX expressions in math delimiters
+function wrapBareLatexExpressions(text: string): string {
+  // Common LaTeX patterns that should be in math mode
+  const latexPatterns = [
+    // Trigonometric functions with \text commands
+    /\\?(sin|cos|tan|cot|sec|csc)\\text\{[^}]+\}/g,
+    // Mathematical expressions with \text commands and operators
+    /\\text\{[^}]+\}\s*[≤≥<>=]\s*\\text\{[^}]+\}/g,
+    // Sequences of LaTeX commands and operators
+    /(?:\\[a-zA-Z]+(?:\{[^}]*\})?[\s]*[≤≥<>=+\-*/][\s]*)+\\[a-zA-Z]+(?:\{[^}]*\})?/g,
+    // Single LaTeX commands followed by operators
+    /\\[a-zA-Z]+(?:\{[^}]*\})?\s*[≤≥<>=]\s*\\[a-zA-Z]+(?:\{[^}]*\})?/g,
+  ];
+
+  let result = text;
+  
+  // Check if text already has math delimiters
+  const hasDelimiters = /\$|\\\[|\\\(/.test(result);
+  
+  if (!hasDelimiters) {
+    // Apply patterns to detect bare LaTeX
+    for (const pattern of latexPatterns) {
+      result = result.replace(pattern, (match) => {
+        // Don't wrap if already wrapped
+        if (match.startsWith('$') || match.startsWith('\\[') || match.startsWith('\\(')) {
+          return match;
+        }
+        // Wrap in inline math delimiters
+        return `$${match}$`;
+      });
+    }
+  }
+  
+  return result;
+}
+
 // Process JSON escape sequences while protecting LaTeX commands
 function processEscapeSequences(text: string, isStreaming: boolean = false): string {
   const endCheck = isStreaming ? '(?=.)' : '';
@@ -357,90 +393,37 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
 
 // Handle \text{} commands that appear outside math delimiters
 function handleTextCommandsOutsideMath(text: string): string {
-  // Split text into math and non-math segments
-  const segments: { content: string; isMath: boolean }[] = [];
-  let currentIndex = 0;
+  // Use a more conservative approach - only fix \text{} that are clearly outside math
+  // Don't process \text{} commands that might be part of proper LaTeX math expressions
   
-  // Find all math delimiters (in order of priority to avoid conflicts)
-  const mathDelimiters = [
-    { pattern: /\$\$[\s\S]*?\$\$/g, name: 'display_dollar' },
-    { pattern: /\\\[[\s\S]*?\\\]/g, name: 'display_bracket' },
-    { pattern: /\\\([\s\S]*?\\\)/g, name: 'inline_paren' },
-    { pattern: /\$[^$\n]*?\$/g, name: 'inline_dollar' }
-  ];
+  // First, protect all math expressions by replacing them with placeholders
+  const mathBlocks: string[] = [];
+  let protectedText = text;
   
-  // Find all math segments
-  const mathRanges: Array<{ start: number; end: number }> = [];
+  // Protect display math ($$...$$, \[...\])
+  protectedText = protectedText.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, (match) => {
+    const placeholder = `__MATH_BLOCK_${mathBlocks.length}__`;
+    mathBlocks.push(match);
+    return placeholder;
+  });
   
-  for (const delimiter of mathDelimiters) {
-    let match;
-    delimiter.pattern.lastIndex = 0; // Reset regex
-    while ((match = delimiter.pattern.exec(text)) !== null) {
-      // Check if this range overlaps with any existing range
-      const start = match.index;
-      const end = match.index + match[0].length;
-      
-      const overlaps = mathRanges.some(range => 
-        (start >= range.start && start < range.end) || 
-        (end > range.start && end <= range.end) ||
-        (start <= range.start && end >= range.end)
-      );
-      
-      if (!overlaps) {
-        mathRanges.push({ start, end });
-      }
-    }
-  }
+  // Protect inline math (\(...\), $...$)  
+  protectedText = protectedText.replace(/(\\\([^)]*\\\)|\$[^$\n]*?\$)/g, (match) => {
+    const placeholder = `__MATH_BLOCK_${mathBlocks.length}__`;
+    mathBlocks.push(match);
+    return placeholder;
+  });
   
-  // Sort ranges by start position
-  mathRanges.sort((a, b) => a.start - b.start);
+  // Now only process \text{} commands in the non-math parts
+  // Only convert \text{} to regular text if it's clearly outside math delimiters
+  protectedText = protectedText.replace(/\\text\{([^}]*)\}/g, '$1');
   
-  // Build segments
-  currentIndex = 0;
-  for (const range of mathRanges) {
-    // Add text before this math segment
-    if (range.start > currentIndex) {
-      segments.push({
-        content: text.slice(currentIndex, range.start),
-        isMath: false
-      });
-    }
-    
-    // Add the math segment
-    segments.push({
-      content: text.slice(range.start, range.end),
-      isMath: true
-    });
-    
-    currentIndex = range.end;
-  }
+  // Restore the math blocks
+  mathBlocks.forEach((block, index) => {
+    protectedText = protectedText.replace(`__MATH_BLOCK_${index}__`, block);
+  });
   
-  // Add remaining text
-  if (currentIndex < text.length) {
-    segments.push({
-      content: text.slice(currentIndex),
-      isMath: false
-    });
-  }
-  
-  // If no math segments found, treat entire text as non-math
-  if (segments.length === 0) {
-    segments.push({
-      content: text,
-      isMath: false
-    });
-  }
-  
-  // Process each segment
-  return segments.map(segment => {
-    if (segment.isMath) {
-      // Keep math segments as-is (preserve \text{} inside math)
-      return segment.content;
-    } else {
-      // Convert \text{} commands to regular text in non-math segments
-      return segment.content.replace(/\\text\{([^}]*)\}/g, '$1');
-    }
-  }).join('');
+  return protectedText;
 }
 
 // Fix forward slashes used instead of backslashes for LaTeX commands
@@ -562,6 +545,9 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
   const processedContent = useMemo(() => {
     const escaped = processEscapeSequences(content, isStreaming);
     let result = fixLatexEscaping(escaped);
+    
+    // Detect and wrap bare LaTeX expressions that lack math delimiters
+    result = wrapBareLatexExpressions(result);
     
     // Handle \text{} commands that appear outside math mode - convert to regular text
     result = handleTextCommandsOutsideMath(result);
