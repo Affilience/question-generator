@@ -373,20 +373,22 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   });
 
   // Fix common issues where "text" appears literally (from broken \text commands)
-  // Only fix "text" patterns that are clearly LaTeX-related to avoid affecting normal prose
   
-  // Fix broken patterns like "text{stuff}" (missing backslash) - but only if it looks like LaTeX
+  // Fix broken patterns like "text{stuff}" (missing backslash)
   result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
   
-  // Only fix "text" followed by units/chemical formulas if it's in a mathematical context
-  // Use more restrictive patterns to avoid affecting regular English text
-  result = result.replace(/(\$[^$]*)\btext\s+(cm|m|kg|g|mol|s|min|hr|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|Hz|rad|degree|degrees)\b([^$]*\$)/g, '$1\\text{$2}$3');
+  // Fix patterns where backslash was stripped: "textword" -> "\text{word}"
+  // This handles cases like "textnumberofatoms", "textmass", etc.
+  result = result.replace(/\btext([a-zA-Z][a-zA-Z\s]*[a-zA-Z])\b/g, '\\text{$1}');
   
-  // Fix cases where literal "text" appears in math mode (only between $ delimiters)
-  result = result.replace(/(\$[^$]*)\btext\b([^$]*\$)/g, '$1\\text{}$2');
+  // Fix patterns where text command got mangled with units: "3.545extcm^3" -> "3.545 \text{cm}^3"
+  result = result.replace(/(\d+(?:\.\d+)?)\s*ext([a-zA-Z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
   
   // Fix common chemistry/physics units that appear without proper LaTeX formatting
-  result = result.replace(/\b(cm|mm|km|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
+  result = result.replace(/\b(cm|mm|km|m|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:\)])/g, '\\text{$1}');
+  
+  // Fix chemistry terms that should be in text mode
+  result = result.replace(/\b(number\s+of\s+atoms|mass|volume|density|concentration|temperature|pressure|molar\s+mass|relative\s+atomic\s+mass|relative\s+molecular\s+mass)\b/gi, '\\text{$1}');
 
   return result;
 }
