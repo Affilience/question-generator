@@ -373,26 +373,38 @@ export async function getUserStats(userId: string, filter?: StatsFilter) {
   };
 }
 
-// Get daily usage stats from daily_usage table (tracks questions generated, not just attempted)
+// Get daily usage stats from user_topic_progress table (tracks questions attempted today)
 export async function getDailyUsage(userId: string) {
   const today = new Date().toISOString().split('T')[0];
+  const todayStart = new Date(today + 'T00:00:00.000Z').toISOString();
+  const todayEnd = new Date(today + 'T23:59:59.999Z').toISOString();
   
   // Debug logging
   console.log('getDailyUsage called with userId:', userId, 'date:', today);
   
-  // Get today's usage from daily_usage table
-  const { data: usage, error } = await supabase
-    .from('daily_usage')
-    .select('questions_generated, papers_generated')
+  // Count how many questions were attempted today by counting question_attempts records
+  const { data: todayAttempts, error } = await supabase
+    .from('question_attempts')
+    .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('date', today)
-    .maybeSingle(); // Use maybeSingle() instead of single() to handle no results
+    .gte('created_at', todayStart)
+    .lte('created_at', todayEnd);
 
-  console.log('getDailyUsage result:', { usage, error });
+  if (error) {
+    console.error('getDailyUsage error:', error);
+    return {
+      questionsGenerated: 0,
+      papersGenerated: 0,
+    };
+  }
+
+  const questionsToday = todayAttempts || 0;
+  
+  console.log('getDailyUsage result - questions today:', questionsToday);
 
   return {
-    questionsGenerated: usage?.questions_generated || 0,
-    papersGenerated: usage?.papers_generated || 0,
+    questionsGenerated: questionsToday,
+    papersGenerated: 0, // Keep papers at 0 for now since we're not tracking that in user_topic_progress
   };
 }
 
