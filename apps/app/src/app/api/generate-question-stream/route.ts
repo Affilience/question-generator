@@ -1126,6 +1126,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       topicId,
+      practicalId,
+      isPractical,
       difficulty,
       subtopic,
       skipCache,
@@ -1135,7 +1137,9 @@ export async function POST(request: NextRequest) {
       excludeContent,
       stream = true,
     } = body as {
-      topicId: string;
+      topicId?: string;
+      practicalId?: string;
+      isPractical?: boolean;
       difficulty: Difficulty;
       subtopic?: string;
       skipCache?: boolean;
@@ -1197,39 +1201,52 @@ export async function POST(request: NextRequest) {
       effectiveDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
     }
 
-    if (!topicId || !difficulty) {
+    if ((!topicId && !practicalId) || !difficulty) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields: need either topicId or practicalId, and difficulty' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try to find as a topic first, then as a practical
-    const topic = getTopicByIdSubjectBoardAndLevel(topicId, subject, examBoard, qualification) || getTopicById(topicId);
-    const practical = !topic ? getPracticalById(topicId) : null;
+    // Determine topic or practical based on request
+    let topic: any = null;
+    let practical: any = null;
 
-    if (!topic && !practical) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid topic or practical ID' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (practicalId || isPractical) {
+      // Handle practical request
+      practical = getPracticalById(practicalId || topicId!);
+      if (!practical) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid practical ID' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      // Handle regular topic request
+      topic = getTopicByIdSubjectBoardAndLevel(topicId!, subject, examBoard, qualification) || getTopicById(topicId!);
+      if (!topic) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid topic ID' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Determine if this is a practical question
-    const isPractical = !!practical;
+    const isPracticalQuestion = !!practical;
 
     // Get effective subtopic - for practicals, use provided subtopic or first practical subtopic
-    const effectiveSubtopic = isPractical
+    const effectiveSubtopic = isPracticalQuestion
       ? (subtopic || practical!.subtopics[0])
       : (subtopic || topic!.subtopics[0]);
 
-    const cacheKey = isPractical
-      ? `practical:${practical!.subject}:${practical!.qualification}:${topicId}`
+    const cacheKey = isPracticalQuestion
+      ? `practical:${practical!.subject}:${practical!.qualification}:${practicalId || topicId}`
       : `${subject}:${qualification}:${topicId}`;
 
     // QUESTION BANK: Try to find an existing question the user hasn't seen
     // This dramatically reduces API costs by reusing questions across users
-    if (!skipCache && !isPractical) {
+    if (!skipCache && !isPracticalQuestion) {
       const bankQuestion = await findExistingQuestion(
         {
           subject,
@@ -1390,18 +1407,18 @@ export async function POST(request: NextRequest) {
 
     // Generate question with OpenAI
     // Use practical-specific prompt for practicals, standard prompt for topics
-    const basePrompt = isPractical
+    const basePrompt = isPracticalQuestion
       ? buildPracticalPrompt(practical!, effectiveSubtopic as PracticalSubtopic, effectiveDifficulty)
       : buildPrompt(subject, qualification, examBoard, topic!.name, effectiveSubtopic, effectiveDifficulty);
 
     // Add global constraints (copyright, accuracy, safety) to the prompt
-    const effectiveSubject = isPractical ? practical!.subject : subject;
+    const effectiveSubject = isPracticalQuestion ? practical!.subject : subject;
     const subjectConstraints = getAllConstraints(effectiveSubject);
     const prompt = `${subjectConstraints}\n\n${basePrompt}`;
 
     // Use exam board-specific system prompt with enhanced constraints
-    const effectiveBoard = isPractical ? practical!.examBoard : examBoard;
-    const effectiveLevel = isPractical ? practical!.qualification : qualification;
+    const effectiveBoard = isPracticalQuestion ? practical!.examBoard : examBoard;
+    const effectiveLevel = isPracticalQuestion ? practical!.qualification : qualification;
     const systemPrompt = getEnhancedSystemPrompt(effectiveSubject, effectiveBoard, effectiveLevel);
 
     // Use OpenAI with streaming for quality + fast perceived response
@@ -1569,7 +1586,7 @@ export async function POST(request: NextRequest) {
               }).catch(console.error);
 
               // QUESTION BANK: Store for reuse by other users
-              if (!isPractical) {
+              if (!isPracticalQuestion) {
                 storeQuestion(
                   {
                     subject: effectiveSubject,
@@ -1690,7 +1707,7 @@ export async function POST(request: NextRequest) {
     }).catch(console.error);
 
     // QUESTION BANK: Store for reuse by other users
-    if (!isPractical) {
+    if (!isPracticalQuestion) {
       const bankId = await storeQuestion(
         {
           subject: effectiveSubject,

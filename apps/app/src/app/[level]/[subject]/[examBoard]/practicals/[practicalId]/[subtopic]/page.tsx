@@ -99,7 +99,8 @@ export default function PracticalSubtopicPracticePage() {
 
     // Use streaming API for typing animation
     const result = await generate({
-      topicId: practicalId, // Use practicalId as topicId for the API
+      practicalId: practicalId, // Use practicalId for proper practical question generation
+      isPractical: true,
       difficulty,
       subtopic: selectedSubtopic,
       examBoard: examBoard as ExamBoard,

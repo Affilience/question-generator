@@ -55,7 +55,9 @@ class ContentBuffer {
 }
 
 interface GenerateOptions {
-  topicId: string;
+  topicId?: string;
+  practicalId?: string;
+  isPractical?: boolean;
   difficulty: Difficulty;
   subtopic?: string;
   examBoard?: ExamBoard;
