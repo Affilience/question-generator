@@ -1246,7 +1246,7 @@ export async function POST(request: NextRequest) {
 
     // QUESTION BANK: Try to find an existing question the user hasn't seen
     // This dramatically reduces API costs by reusing questions across users
-    if (!skipCache && !isPracticalQuestion) {
+    if (!skipCache && !isPracticalQuestion && topicId) {
       const bankQuestion = await findExistingQuestion(
         {
           subject,
@@ -1563,7 +1563,7 @@ export async function POST(request: NextRequest) {
                 diagram?: DiagramSpec;
               } = {
                 id: crypto.randomUUID(),
-                topicId,
+                topicId: topicId || practicalId || 'unknown',
                 difficulty: effectiveDifficulty,
                 content: parsed.content || '',
                 solution: parsed.solution || '',
@@ -1592,7 +1592,7 @@ export async function POST(request: NextRequest) {
                     subject: effectiveSubject,
                     examBoard: effectiveBoard,
                     qualification: effectiveLevel,
-                    topicId,
+                    topicId: topicId || practicalId || 'unknown',
                     subtopic: effectiveSubtopic,
                     difficulty: effectiveDifficulty,
                   },
@@ -1684,7 +1684,7 @@ export async function POST(request: NextRequest) {
       diagram?: DiagramSpec;
     } = {
       id: crypto.randomUUID(),
-      topicId,
+      topicId: topicId || practicalId || 'unknown',
       difficulty: effectiveDifficulty,
       content: parsed.content || '',
       solution: parsed.solution || '',
@@ -1713,7 +1713,7 @@ export async function POST(request: NextRequest) {
           subject: effectiveSubject,
           examBoard: effectiveBoard,
           qualification: effectiveLevel,
-          topicId,
+          topicId: topicId || practicalId || 'unknown',
           subtopic: effectiveSubtopic,
           difficulty: effectiveDifficulty,
         },
