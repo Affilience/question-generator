@@ -79,7 +79,7 @@ export function getSubjectSpecificMarkRange(difficulty: Difficulty, subject: Sub
       }
     } else { // A-Level
       switch (difficulty) {
-        case 'easy': return { min: 2, max: 4 };     // Standard methods, direct application
+        case 'easy': return { min: 1, max: 4 };     // FIXED: Include 1-mark simple questions (e.g., "State the formula for...")
         case 'medium': return { min: 5, max: 7 };   // Multi-step, combines topics
         case 'hard': return { min: 8, max: 12 };    // Problem solving, proof questions
       }

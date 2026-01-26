@@ -415,7 +415,21 @@ Return JSON:
 }
 
 /**
- * Generate a single question with enhanced prompts
+ * Generate a single question with enhanced prompts and content exclusion
+ */
+async function generateSingleQuestionWithExclusion(
+  plan: QuestionPlan,
+  subject: Subject,
+  examBoard: ExamBoard,
+  qualification: QualificationLevel,
+  openai: ReturnType<typeof getOpenAIClient>,
+  excludeContent: string[] = []
+): Promise<GeneratedQuestion> {
+  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, excludeContent);
+}
+
+/**
+ * Generate a single question with enhanced prompts (legacy version without exclusion)
  */
 async function generateSingleQuestion(
   plan: QuestionPlan,
@@ -423,6 +437,20 @@ async function generateSingleQuestion(
   examBoard: ExamBoard,
   qualification: QualificationLevel,
   openai: ReturnType<typeof getOpenAIClient>
+): Promise<GeneratedQuestion> {
+  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, []);
+}
+
+/**
+ * Internal question generation logic with optional content exclusion
+ */
+async function generateSingleQuestionInternal(
+  plan: QuestionPlan,
+  subject: Subject,
+  examBoard: ExamBoard,
+  qualification: QualificationLevel,
+  openai: ReturnType<typeof getOpenAIClient>,
+  excludeContent: string[] = []
 ): Promise<GeneratedQuestion> {
   const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
                 getTopicById(plan.topicId);
@@ -433,9 +461,19 @@ async function generateSingleQuestion(
     ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
     : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
 
+  // Add content exclusion constraints if provided
+  let exclusionPrompt = '';
+  if (excludeContent.length > 0) {
+    exclusionPrompt = `\n\nCONTENT EXCLUSION REQUIREMENTS:
+Avoid generating questions that start with or are similar to these previously generated questions:
+${excludeContent.map((content, i) => `${i + 1}. "${content}..."`).join('\n')}
+
+IMPORTANT: Create a completely different question scenario, context, and wording to ensure variety.`;
+  }
+
   // Add global constraints
   const subjectConstraints = getAllConstraints(subject);
-  const prompt = `${subjectConstraints}\n\n${basePrompt}`;
+  const prompt = `${subjectConstraints}\n\n${basePrompt}${exclusionPrompt}`;
 
   // Get system prompt
   const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);
@@ -593,11 +631,18 @@ export async function POST(request: NextRequest) {
         // Send initial progress
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', current: 0, total: totalQuestions })}\n\n`));
 
-        // Generate questions one at a time with progress updates
+        // Generate questions one at a time with progress updates and deduplication
+        const seenContent: string[] = []; // Track content prefixes to avoid repetition
+        
         for (let i = 0; i < allPlans.length; i++) {
           const plan = allPlans[i];
-          const question = await generateSingleQuestion(plan, subject, examBoard, qualification, openai);
+          const question = await generateSingleQuestionWithExclusion(plan, subject, examBoard, qualification, openai, seenContent);
           generatedQuestions.push(question);
+          
+          // Track content prefix for deduplication (first 100 characters)
+          if (question.content && !question.content.startsWith('[Failed')) {
+            seenContent.push(question.content.substring(0, 100));
+          }
 
           // Send progress update
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', current: i + 1, total: totalQuestions })}\n\n`));
