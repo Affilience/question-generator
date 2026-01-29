@@ -214,8 +214,8 @@ function buildEssayQuestionPrompt(
   switch (selectedFormat) {
     case 'data_response':
       const dataGuidance = getSubjectDataGuidance(subject, plan.marks, topicName, plan.subtopic);
-      formatGuidance = dataGuidance.questionGuidance;
-      commandWords = ['Using the data', 'With reference to', 'Study Figure 1'];
+      formatGuidance = `${dataGuidance.questionGuidance}\n\nIMPORTANT: If using data/table references, MUST provide actual data table or clear description of data trends in the question text.`;
+      commandWords = ['Calculate', 'Analyse', 'Compare', 'Determine from the data'];
       break;
     case 'explain':
       formatGuidance = `QUESTION TYPE: EXPLAIN (${plan.marks} marks)\nRequires developed explanation with reasoning chains.`;
@@ -361,8 +361,8 @@ function buildQuantitativeQuestionPrompt(
       break;
     default:
       typeDescription = 'GRAPH/DIAGRAM';
-      requirements = 'Interpret or sketch graphs/diagrams. Describe key features.';
-      commandWords = ['Sketch', 'Draw', 'Using the diagram'];
+      requirements = 'MUST provide clear description of any diagram referenced. For sketching questions, specify diagram type and key features to include.';
+      commandWords = ['Sketch', 'Draw', 'Complete the diagram'];
   }
 
   const commandWord = commandWords[Math.floor(Math.random() * commandWords.length)];

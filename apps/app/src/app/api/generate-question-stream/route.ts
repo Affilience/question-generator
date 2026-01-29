@@ -245,7 +245,7 @@ MODEL ANSWER:
 - Identify and explain trends/patterns in relation to ${subtopic}
 - Apply ${subtopic} concepts to analyse the data
 - Draw conclusions supported by the evidence`,
-        commandWords: ['Using the data in Figure 1', 'With reference to the data', 'Using the information provided', 'Calculate and explain']
+        commandWords: ['Analyse the data', 'Calculate using the data', 'Interpret the results', 'Calculate and explain']
       };
 
     case 'psychology':
@@ -313,7 +313,7 @@ MODEL ANSWER:
 - Apply ${subtopic} concepts and terminology
 - Explain patterns, processes, or relationships shown
 - Use case study knowledge where relevant to ${subtopic}`,
-        commandWords: ['Study Figure 1', 'Using Figure 1', 'Describe the pattern shown', 'Using evidence from']
+        commandWords: ['Analyse the pattern', 'Describe the relationship', 'Explain the process shown', 'Using evidence from the data']
       };
 
     case 'computer-science':
@@ -765,7 +765,7 @@ The markScheme array for 6-mark questions MUST include:
 - Describe key features to include
 - Link graph features to concepts
 - For ${subject}: use appropriate graph types`,
-        commandWords: ['Sketch', 'Draw', 'Using the diagram', 'Describe the shape of']
+        commandWords: ['Sketch', 'Draw', 'Complete the diagram', 'Describe the shape of']
       };
   }
 }
