@@ -136,8 +136,11 @@ function getQuantitativeFormatGuidance(format: QuestionFormat, subject: Subject)
       return {
         typeDescription: 'GRAPH/DATA ANALYSIS',
         requirements: `
-- Include data in question (table or describe graph/trend)
-- Requires interpretation of the data
+- MUST include actual data visualization or clear data description in question
+- If using command words like "What does the graph show", MUST provide a detailed graph description
+- For table data: provide actual data table with numerical values
+- For graph data: describe graph type, axes, trends, and key values clearly
+- Requires interpretation of the provided data
 - May ask to identify patterns/trends
 - Link data analysis to concepts`,
         commandWords: ['Using the data', 'What does the graph show', 'Describe the trend', 'Analyse']
@@ -181,10 +184,11 @@ The markScheme array for 6-mark questions MUST include:
       return {
         typeDescription: 'GRAPH/DIAGRAM INTERPRETATION',
         requirements: `
-- May involve interpreting or sketching graphs/diagrams
-- Describe key features to include
-- Link graph features to concepts
-- For ${subject}: use appropriate graph types`,
+- MUST provide clear description of any diagram/graph referenced in question
+- For sketching questions: clearly specify what type of graph and key features to include
+- For interpretation questions: provide detailed description of the graph/diagram
+- Link graph/diagram features to ${subject} concepts
+- For ${subject}: use appropriate graph types and terminology`,
         commandWords: ['Sketch', 'Draw', 'Using the diagram', 'Describe the shape of']
       };
   }
