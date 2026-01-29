@@ -10,15 +10,22 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SentryProvider } from "@/components/SentryProvider";
 import { SessionManager } from "@/components/SessionManager";
 import { SessionDebugInfo } from "@/components/SessionDebugInfo";
+import { GlowOrbs } from "@/components/GlowOrbs";
+import { LayoutStabilizer } from "@/components/LayoutStabilizer";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap', // Prevent FOIT for better LCP
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: 'swap', // Prevent FOIT for better LCP
+  preload: false, // Only preload primary font
 });
 
 export const metadata: Metadata = {
@@ -64,27 +71,51 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Viewport meta tag for responsive design and CLS prevention */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        
+        {/* Preload critical resources for better LCP */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
+        
+        {/* Critical CSS for preventing layout shifts */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            body { margin: 0; padding: 0; }
+            .container { max-width: 100%; overflow-x: hidden; }
+            [data-layout-stable] { min-height: 1px; }
+          `
+        }} />
+        
         {/* KaTeX CSS for math rendering - load immediately to prevent flash of unstyled content */}
         <link
-          rel="stylesheet"
+          rel="preload"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
+          as="style"
+          onLoad="this.onload=null;this.rel='stylesheet'"
           crossOrigin="anonymous"
         />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
+            crossOrigin="anonymous"
+          />
+        </noscript>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
       >
+        <LayoutStabilizer />
         <SentryProvider>
           <AuthProvider>
             <SessionManager />
             <SubscriptionProvider>
               <ThemeProvider>
-              {/* Background glow orbs - contained to prevent scroll issues */}
-              <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="glow-orb glow-orb-blue glow-orb-animated w-[500px] h-[500px] -top-32 -left-32" />
-                <div className="glow-orb glow-orb-purple glow-orb-animated w-[400px] h-[400px] top-1/3 -right-32" style={{ animationDelay: '2s' }} />
-                <div className="glow-orb glow-orb-cyan glow-orb-animated w-[350px] h-[350px] bottom-0 left-1/4" style={{ animationDelay: '4s' }} />
-              </div>
+              {/* Background glow orbs - lazy loaded to improve LCP */}
+              <GlowOrbs />
 
               <div className="relative z-10 min-h-screen">
                 {children}
@@ -92,6 +123,7 @@ export default function RootLayout({
               <CommandPalette />
               <CookieConsent />
               <SessionDebugInfo />
+              <SpeedInsights />
               </ThemeProvider>
             </SubscriptionProvider>
           </AuthProvider>

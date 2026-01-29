@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,12 +9,41 @@ import { createClient } from '@/lib/supabase/client';
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
+  const urlError = searchParams.get('error');
+  const errorCode = searchParams.get('error_code');
+  const errorDescription = searchParams.get('error_description');
+
+  // Handle URL-based errors (like expired OTP links)
+  const getInitialError = () => {
+    if (urlError) {
+      if (errorCode === 'otp_expired') {
+        return 'Your email verification link has expired. Please request a new one.';
+      }
+      if (errorCode === 'access_denied') {
+        return errorDescription || 'Access was denied. Please try signing in again.';
+      }
+      return urlError;
+    }
+    return '';
+  };
+
+  const [error, setError] = useState(() => getInitialError());
+
+  // Clear URL error parameters after showing the error
+  useEffect(() => {
+    if (urlError && (errorCode || errorDescription)) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      url.searchParams.delete('error_code');
+      url.searchParams.delete('error_description');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [urlError, errorCode, errorDescription]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

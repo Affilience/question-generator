@@ -2,6 +2,29 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // Core Web Vitals optimizations
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Enable compression for better loading times
+  compress: true,
+  
+  // Optimize bundle splitting
+  experimental: {
+    optimizePackageImports: [
+      'framer-motion',
+      '@supabase/supabase-js',
+      'react-katex',
+    ],
+  },
+  
+  // External packages for server components
+  serverExternalPackages: ['katex'],
+  
   async redirects() {
     return [
       // Redirect old /[examBoard] routes to /gcse/[examBoard] for backwards compatibility
@@ -38,6 +61,38 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
+          {
+            key: 'Preload-Policy',
+            value: 'accept',
+          },
+        ],
+      },
+      {
+        // Optimized cache for images
+        source: '/:path*\\.(jpg|jpeg|png|gif|webp|avif|svg|ico)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+      {
+        // Font optimization headers
+        source: '/:path*\\.(woff|woff2|ttf|eot)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       },
       {
@@ -48,10 +103,14 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=0, must-revalidate',
           },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
         ],
       },
       {
-        // Add security headers for all routes
+        // Performance and security headers for all routes
         source: '/:path*',
         headers: [
           {
@@ -69,6 +128,10 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
           },
         ],
       },

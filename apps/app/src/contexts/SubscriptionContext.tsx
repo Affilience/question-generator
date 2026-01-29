@@ -169,9 +169,19 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return !!limits[feature];
   };
 
-  // Increment question usage - direct database refresh (same reliable pattern as dashboard)
+  // Increment question usage - update local state immediately for better UX
   const incrementQuestionUsage = async () => {
-    await refreshSubscription();
+    // Update local state immediately for better UX
+    setDailyUsage(prev => ({
+      ...prev,
+      questionsGenerated: prev.questionsGenerated + 1,
+    }));
+    
+    // Also refresh from server to stay in sync (in case of concurrent updates)
+    // Use shorter delay for better responsiveness
+    setTimeout(() => {
+      refreshSubscription();
+    }, 200);
   };
 
   // Increment paper usage (UI only - server handles DB)
