@@ -4,6 +4,8 @@ import { getAQAEnhancedPrompt } from '@/lib/prompts-aqa';
 import { getEdexcelEnhancedPrompt } from '@/lib/prompts-edexcel';
 import { getOCREnhancedPrompt } from '@/lib/prompts-ocr';
 import { getTopicById } from '@/lib/topics';
+import { checkQuestionGenerationAllowed, incrementQuestionUsage } from '@/lib/api/subscription-check';
+import { getClientIP } from '@/lib/rate-limit';
 import { Difficulty, ExamBoard } from '@/types';
 
 export const runtime = 'edge';
@@ -24,6 +26,30 @@ export async function POST(request: NextRequest) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: topicId and difficulty' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check for admin authorization (for scripts and internal tools)
+    const adminKey = request.headers.get('x-admin-key');
+    const isAdmin = adminKey === process.env.INTERNAL_API_KEY && !!process.env.INTERNAL_API_KEY;
+
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(request);
+
+    // Extract userId from request headers if available (for logged-in users)
+    const userId = request.headers.get('x-user-id') || null;
+
+    // Check if user can generate a question based on their subscription tier
+    const usageCheck = await checkQuestionGenerationAllowed(userId, clientIP, isAdmin);
+    if (!usageCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: usageCheck.error,
+          tier: usageCheck.tier,
+          remaining: usageCheck.remaining,
+          upgrade: true,
+        }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -71,6 +97,10 @@ export async function POST(request: NextRequest) {
               controller.enqueue(encoder.encode(content));
             }
           }
+          
+          // Increment usage tracking after successful generation
+          await incrementQuestionUsage(userId, clientIP, isAdmin);
+          
           controller.close();
         } catch (error) {
           controller.error(error);

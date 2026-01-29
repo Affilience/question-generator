@@ -5,7 +5,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface UpgradePromptProps {
   /** The reason for showing the prompt */
-  reason: 'daily_limit' | 'difficulty_control' | 'papers' | 'papers_limit_reached' | 'bookmarks' | 'history';
+  reason: 'daily_limit' | 'difficulty_control' | 'papers' | 'papers_limit_reached' | 'bookmarks' | 'history' | 'auth_required';
   /** Custom message to show */
   message?: string;
   /** Whether to show as a modal overlay */
@@ -71,6 +71,14 @@ const PROMPT_CONFIG: Record<UpgradePromptProps['reason'], PromptConfig> = {
     icon: '📊',
     recommendedPlan: 'Student Plus',
     price: '£4.99',
+  },
+  auth_required: {
+    title: 'Sign up to get started',
+    description: "Create your free account to generate practice questions. Free accounts get 15 questions per day!",
+    highlight: '15 questions daily + progress tracking',
+    icon: '🚀',
+    recommendedPlan: 'Free Account',
+    price: 'Free',
   },
 };
 
@@ -159,10 +167,10 @@ function UpgradeContent({
 
           <div className="flex items-center gap-3">
             <Link
-              href="/pricing"
+              href={config.recommendedPlan === 'Free Account' ? '/signup' : '/pricing'}
               className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              View Plans
+              {config.recommendedPlan === 'Free Account' ? 'Sign Up Free' : 'View Plans'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>

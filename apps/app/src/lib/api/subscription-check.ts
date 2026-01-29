@@ -21,39 +21,29 @@ interface UsageCheckResult {
  */
 export async function checkQuestionGenerationAllowed(
   userId: string | null,
-  clientIP: string
+  clientIP: string,
+  isAdmin: boolean = false
 ): Promise<UsageCheckResult> {
+  // Admin bypass - always allow with unlimited tier
+  if (isAdmin) {
+    return {
+      allowed: true,
+      tier: 'exam_pro',
+      remaining: null,
+    };
+  }
   const supabase = getSupabaseAdmin();
 
   // Get current date for usage tracking
   const today = new Date().toISOString().split('T')[0];
 
   if (!userId) {
-    // Anonymous user - track by IP with free tier limits
-    const { data: usage } = await supabase
-      .from('daily_usage')
-      .select('questions_generated')
-      .eq('ip_address', clientIP)
-      .eq('date', today)
-      .is('user_id', null)
-      .single();
-
-    const questionsGenerated = usage?.questions_generated || 0;
-    const limit = TIER_LIMITS.free.questionsPerDay!;
-
-    if (questionsGenerated >= limit) {
-      return {
-        allowed: false,
-        tier: 'free',
-        remaining: 0,
-        error: `Daily limit of ${limit} questions reached. Sign up for unlimited questions!`,
-      };
-    }
-
+    // Anonymous users must sign up to generate questions
     return {
-      allowed: true,
+      allowed: false,
       tier: 'free',
-      remaining: limit - questionsGenerated,
+      remaining: 0,
+      error: 'Please sign up to generate questions. Free accounts get 15 questions per day!',
     };
   }
 
@@ -132,38 +122,18 @@ export async function checkQuestionGenerationAllowed(
  */
 export async function incrementQuestionUsage(
   userId: string | null,
-  clientIP: string
+  clientIP: string,
+  isAdmin: boolean = false
 ): Promise<void> {
+  // Skip usage tracking for admin operations
+  if (isAdmin) {
+    return;
+  }
   const supabase = getSupabaseAdmin();
   const today = new Date().toISOString().split('T')[0];
 
   if (!userId) {
-    // Anonymous user - track by IP
-    const { data: existing } = await supabase
-      .from('daily_usage')
-      .select('id, questions_generated')
-      .eq('ip_address', clientIP)
-      .eq('date', today)
-      .is('user_id', null)
-      .single();
-
-    if (existing) {
-      await supabase
-        .from('daily_usage')
-        .update({
-          questions_generated: (existing.questions_generated || 0) + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id);
-    } else {
-      await supabase
-        .from('daily_usage')
-        .insert({
-          ip_address: clientIP,
-          date: today,
-          questions_generated: 1,
-        });
-    }
+    // Anonymous users should not reach this point - they should be blocked at usage check
     return;
   }
 

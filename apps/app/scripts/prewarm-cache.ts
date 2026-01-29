@@ -66,7 +66,10 @@ async function generateQuestion(params: {
   try {
     const response = await fetch(`${API_BASE}/api/generate-question`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-admin-key': process.env.INTERNAL_API_KEY || '',
+      },
       body: JSON.stringify({
         ...params,
         skipCache: false, // Allow caching

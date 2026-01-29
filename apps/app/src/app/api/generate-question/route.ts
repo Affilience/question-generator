@@ -404,6 +404,8 @@ import { getAQAPhysicsRequiredPracticalPrompt } from '@/lib/prompts-physics-aqa'
 import { getAQAChemistryRequiredPracticalPrompt } from '@/lib/prompts-chemistry-gcse-aqa';
 import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
 import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
+import { checkQuestionGenerationAllowed, incrementQuestionUsage } from '@/lib/api/subscription-check';
+import { getClientIP } from '@/lib/rate-limit';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 
@@ -496,6 +498,27 @@ export async function POST(request: NextRequest) {
     // Extract userId from request headers if available (for logged-in users)
     const userId = request.headers.get('x-user-id') || null;
 
+    // Check for admin authorization (for scripts and internal tools)
+    const adminKey = request.headers.get('x-admin-key');
+    const isAdmin = adminKey === process.env.INTERNAL_API_KEY && !!process.env.INTERNAL_API_KEY;
+
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(request);
+
+    // Check if user can generate a question based on their subscription tier
+    const usageCheck = await checkQuestionGenerationAllowed(userId, clientIP, isAdmin);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.error,
+          tier: usageCheck.tier,
+          remaining: usageCheck.remaining,
+          upgrade: true,
+        },
+        { status: 429 }
+      );
+    }
+
     // Handle practical questions
     if (isPractical && practicalId) {
       const practical = getPracticalById(practicalId);
@@ -524,6 +547,9 @@ export async function POST(request: NextRequest) {
             markScheme: cached.markScheme,
             diagram: cached.diagram,
           };
+
+          // Increment usage tracking
+          await incrementQuestionUsage(userId, clientIP, isAdmin);
 
           return NextResponse.json(question, {
             headers: { 'X-Cache': 'HIT' },
@@ -595,6 +621,9 @@ export async function POST(request: NextRequest) {
         ...questionData,
       };
 
+      // Increment usage tracking
+      await incrementQuestionUsage(userId, clientIP, isAdmin);
+
       return NextResponse.json(question, {
         headers: { 'X-Cache': 'MISS' },
       });
@@ -647,6 +676,9 @@ export async function POST(request: NextRequest) {
         diagram: existingQuestion.diagram ? (existingQuestion.diagram as unknown as DiagramSpec) : undefined,
       };
 
+      // Increment usage tracking
+      await incrementQuestionUsage(userId, clientIP, isAdmin);
+
       return NextResponse.json(question, {
         headers: { 'X-Cache': 'BANK-HIT' },
       });
@@ -670,6 +702,9 @@ export async function POST(request: NextRequest) {
           markScheme: cached.markScheme,
           diagram: cached.diagram,
         };
+
+        // Increment usage tracking
+        await incrementQuestionUsage(userId, clientIP);
 
         // Add header to indicate cache hit
         return NextResponse.json(question, {
@@ -1547,6 +1582,9 @@ export async function POST(request: NextRequest) {
         console.error('Failed to record question served:', err)
       );
     }
+
+    // Increment usage tracking
+    await incrementQuestionUsage(userId, clientIP, isAdmin);
 
     return NextResponse.json(question, {
       headers: { 'X-Cache': 'MISS' },

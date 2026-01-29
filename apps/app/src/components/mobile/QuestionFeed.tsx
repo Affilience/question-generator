@@ -5,6 +5,8 @@ import { Question, Difficulty, Topic, Practical, PracticalSubtopic } from '@/typ
 import { DiagramSpec } from '@/types/diagram';
 import { QuestionSlide } from './QuestionSlide';
 import { SwipeHint, useSwipeHint } from './SwipeHint';
+import { UpgradePrompt } from '../UpgradePrompt';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { createClient } from '@/lib/supabase/client';
 
 interface QuestionFeedProps {
@@ -51,11 +53,15 @@ export function QuestionFeed({
   const [sessionStats, setSessionStats] = useState({ attempted: 0, correct: 0 });
   const [correctStreak, setCorrectStreak] = useState(0);
   const [xpGained, setXpGained] = useState<number | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<'daily_limit' | 'auth_required'>('daily_limit');
+  const [upgradeMessage, setUpgradeMessage] = useState<string>();
   const containerRef = useRef<HTMLDivElement>(null);
   const previousQuestionsRef = useRef<string[]>([]);
   const isGeneratingRef = useRef(false); // Ref to track generation state without re-renders
   const questionsLengthRef = useRef(0); // Ref to track questions length
   const { showHint, dismissHint } = useSwipeHint();
+  const { incrementQuestionUsage } = useSubscription();
 
   // Keep refs in sync
   useEffect(() => {
@@ -105,7 +111,17 @@ export function QuestionFeed({
         credentials: 'include', // Include cookies for server-side auth
       });
 
-      if (!response.ok) throw new Error('Failed to generate question');
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Handle rate limit - show upgrade prompt
+          const errorData = await response.json();
+          setUpgradeMessage(errorData.error || 'Daily limit reached');
+          setUpgradeReason(errorData.error?.includes('sign up') ? 'auth_required' : 'daily_limit');
+          setShowUpgradeModal(true);
+          return;
+        }
+        throw new Error('Failed to generate question');
+      }
 
       // Check content-type to determine response format
       // Note: cached responses are now also streamed for consistent UX
@@ -128,6 +144,8 @@ export function QuestionFeed({
         setQuestions((prev) => [...prev, newQuestion]);
         previousQuestionsRef.current.push(data.content);
         setStreamingContent('');
+        // Refresh usage tracking
+        await incrementQuestionUsage();
         return;
       }
 
@@ -185,6 +203,8 @@ export function QuestionFeed({
                   setQuestions((prev) => [...prev, newQuestion]);
                   previousQuestionsRef.current.push(questionData.content);
                   questionAdded = true;
+                  // Refresh usage tracking after successful generation
+                  incrementQuestionUsage();
                 }
               } catch (e) {
                 // Log parsing errors for debugging
@@ -423,6 +443,16 @@ export function QuestionFeed({
           isActive={currentIndex >= questions.length}
         />
       </div>
+      
+      {/* Upgrade modal */}
+      {showUpgradeModal && (
+        <UpgradePrompt 
+          reason={upgradeReason}
+          message={upgradeMessage}
+          modal={true}
+          onDismiss={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }
