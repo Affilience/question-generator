@@ -63,7 +63,15 @@ export default function WorkedExamplesPage() {
   // Load topic when params are ready
   useEffect(() => {
     if (paramsReady) {
-      const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      let foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      
+      // If topic not found, try common fallbacks for wave topics
+      if (!foundTopic && topicId === 'wave-properties' && subject === 'physics' && level === 'a-level') {
+        foundTopic = getTopicByIdSubjectBoardAndLevel('alevel-physics-waves', subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      }
+      
+      // Add more fallbacks as needed for other common mismatches
+      
       setTopic(foundTopic || null);
       setTopicLoaded(true);
     }
@@ -93,11 +101,14 @@ export default function WorkedExamplesPage() {
       setError(null);
 
       try {
+        // Use the actual topic ID from the found topic (handles fallbacks)
+        const actualTopicId = topic.id;
+        
         const response = await fetch('/api/worked-examples', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            topicId,
+            topicId: actualTopicId,
             subtopic: actualSubtopicName,
             qualification: level,
             examBoard,

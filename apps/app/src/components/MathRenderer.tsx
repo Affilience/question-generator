@@ -384,6 +384,9 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   // Fix patterns where text command got mangled with units: "3.545extcm^3" -> "3.545 \text{cm}^3"
   result = result.replace(/(\d+(?:\.\d+)?)\s*ext([a-zA-Z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
   
+  // Fix literal "text" appearing before units: "1textHz" -> "1 \text{Hz}"
+  result = result.replace(/(\d+(?:\.\d+)?)\s*text([A-Za-z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
+  
   // Fix common chemistry/physics units that appear without proper LaTeX formatting
   result = result.replace(/\b(cm|mm|km|m|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:\)])/g, '\\text{$1}');
   
@@ -418,7 +421,16 @@ function handleTextCommandsOutsideMath(text: string): string {
   
   // Now only process \text{} commands in the non-math parts
   // Only convert \text{} to regular text if it's clearly outside math delimiters
-  protectedText = protectedText.replace(/\\text\{([^}]*)\}/g, '$1');
+  // But be more conservative - don't convert if it might be part of a math expression
+  protectedText = protectedText.replace(/\\text\{([^}]*)\}/g, (match, content) => {
+    // If the content looks like units, chemical formulas, or mathematical text, keep the \text{} command
+    // This ensures proper rendering within math expressions
+    if (/^(cm|mm|km|m|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr|number|mass|volume|density|concentration|temperature|pressure)(\s|$)/i.test(content)) {
+      return match; // Keep the \text{} command
+    }
+    // Only convert to plain text for clearly non-mathematical content
+    return content;
+  });
   
   // Restore the math blocks
   mathBlocks.forEach((block, index) => {
@@ -492,6 +504,9 @@ function preprocessMathForKaTeX(math: string): string {
   // 3. Fix literal "text" appearing before chemical formulas or units (be more conservative)
   // Only apply this fix if "text" appears to be a broken LaTeX command, not regular prose
   result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6|cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b/g, '\\text{$1}');
+  
+  // Fix literal "text" appearing directly before units without space: "1textHz" -> "1 \text{Hz}"
+  result = result.replace(/(\d+(?:\.\d+)?)\s*text([A-Za-z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
   
   // 4. Only fix standalone "text" if it's clearly in a mathematical context (removed broad replacement)
   

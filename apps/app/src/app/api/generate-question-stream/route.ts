@@ -861,11 +861,11 @@ LaTeX/Math Formatting (CRITICAL):
 - Greek: $\\\\theta$, $\\\\alpha$, $\\\\lambda$, $\\\\mu$, $\\\\pi$, $\\\\omega$
 - Symbols: $\\\\approx$, $\\\\times$, $\\\\div$, $\\\\pm$, $\\\\leq$, $\\\\geq$, $\\\\neq$
 - Trig: $\\\\sin\\\\theta$, $\\\\cos 30°$, $\\\\tan^{-1}$
-- Units with exponents: $\\\\text{m s}^{-1}$, $\\\\text{kg m}^{-2}$
+- Units with exponents: $\\text{m s}^{-1}$, $\\text{kg m}^{-2}$
 
 Chemistry Notation (for science subjects):
-- Chemical formulas: use subscripts like $\\\\text{H}_2\\\\text{O}$, $\\\\text{CO}_2$, $\\\\text{CaCO}_3$
-- Ions: $\\\\text{Na}^+$, $\\\\text{OH}^-$, $\\\\text{SO}_4^{2-}$
+- Chemical formulas: use subscripts like $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{CaCO}_3$
+- Ions: $\\text{Na}^+$, $\\text{OH}^-$, $\\text{SO}_4^{2-}$
 - Reaction arrows: $\\\\rightarrow$ for reactions
 - State symbols in text: (s), (l), (g), (aq)
 
@@ -1083,7 +1083,7 @@ MARK SCHEME FORMAT:
 
 LaTeX/Math Formatting:
 - Wrap ALL math in $...$ delimiters
-- Units: $\\\\text{m s}^{-1}$, $\\\\text{kg}$
+- Units: $\\text{m s}^{-1}$, $\\text{kg}$
 - Formulas: $\\\\frac{1}{2}mv^2$, $E = mc^2$
 - Use DOUBLE backslashes for LaTeX commands
 ${diagramInstructions}

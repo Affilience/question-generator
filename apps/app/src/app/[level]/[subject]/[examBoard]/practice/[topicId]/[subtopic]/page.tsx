@@ -83,7 +83,13 @@ export default function SubtopicPracticePage() {
   // Load topic when params are ready
   useEffect(() => {
     if (paramsReady) {
-      const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      let foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      
+      // If topic not found, try common fallbacks for wave topics
+      if (!foundTopic && topicId === 'wave-properties' && subject === 'physics' && level === 'a-level') {
+        foundTopic = getTopicByIdSubjectBoardAndLevel('alevel-physics-waves', subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+      }
+      
       setTopic(foundTopic || null);
     }
   }, [paramsReady, topicId, subject, examBoard, level]);
@@ -106,7 +112,7 @@ export default function SubtopicPracticePage() {
     const excludeContent = seenQuestionsRef.current.map(q => q.substring(0, 100));
 
     const result = await generate({
-      topicId,
+      topicId: topic.id,
       difficulty,
       subtopic: selectedSubtopic,
       examBoard: examBoard as ExamBoard,
@@ -118,7 +124,7 @@ export default function SubtopicPracticePage() {
     if (result) {
       seenQuestionsRef.current.push(result.content);
     }
-  }, [topicId, topic, difficulty, subtopic, isRandom, examBoard, subject, generate]);
+  }, [topic?.id, topic, difficulty, subtopic, isRandom, examBoard, subject, generate]);
 
   // Generate question when topic loads (only once)
   useEffect(() => {

@@ -564,26 +564,26 @@ LaTeX/Math Formatting (CRITICAL):
 - Variables: $x$, $y$, $v$, $F$
 - Subscripts: $F_{net}$, $F_{friction}$, $v_{initial}$, $x_1$, $x_2$
 - Superscripts: $x^2$, $m^{-1}$, $s^{-2}$
-- Fractions: $\\\\frac{1}{2}$, $\\\\frac{a}{b}$, $\\\\dfrac{dy}{dx}$
-- Roots: $\\\\sqrt{3}$, $\\\\sqrt{x^2 + y^2}$
-- Greek: $\\\\theta$, $\\\\alpha$, $\\\\lambda$, $\\\\mu$, $\\\\pi$, $\\\\omega$
-- Symbols: $\\\\approx$, $\\\\times$, $\\\\div$, $\\\\pm$, $\\\\leq$, $\\\\geq$, $\\\\neq$
-- Trig: $\\\\sin\\\\theta$, $\\\\cos 30°$, $\\\\tan^{-1}$
-- Units with exponents: $\\\\text{m s}^{-1}$, $\\\\text{kg m}^{-2}$
+- Fractions: $\\frac{1}{2}$, $\\frac{a}{b}$, $\\dfrac{dy}{dx}$
+- Roots: $\\sqrt{3}$, $\\sqrt{x^2 + y^2}$
+- Greek: $\\theta$, $\\alpha$, $\\lambda$, $\\mu$, $\\pi$, $\\omega$
+- Symbols: $\\approx$, $\\times$, $\\div$, $\\pm$, $\\leq$, $\\geq$, $\\neq$
+- Trig: $\\sin\\theta$, $\\cos 30°$, $\\tan^{-1}$
+- Units with exponents: $\\text{m s}^{-1}$, $\\text{kg m}^{-2}$
 
 Chemistry Notation (for science subjects):
-- Chemical formulas: use subscripts like $\\\\text{H}_2\\\\text{O}$, $\\\\text{CO}_2$, $\\\\text{CaCO}_3$
-- Ions: $\\\\text{Na}^+$, $\\\\text{OH}^-$, $\\\\text{SO}_4^{2-}$
-- Reaction arrows: $\\\\rightarrow$ for reactions
+- Chemical formulas: use subscripts like $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{CaCO}_3$
+- Ions: $\\text{Na}^+$, $\\text{OH}^-$, $\\text{SO}_4^{2-}$
+- Reaction arrows: $\\rightarrow$ for reactions
 - State symbols in text: (s), (l), (g), (aq)
 
 Physics Notation:
-- Vectors can use bold: $\\\\mathbf{F}$ or with arrows: $\\\\vec{v}$
-- Dot product: $\\\\cdot$
-- Standard form: $3.0 \\\\times 10^8$
+- Vectors can use bold: $\\mathbf{F}$ or with arrows: $\\vec{v}$
+- Dot product: $\\cdot$
+- Standard form: $3.0 \\times 10^8$
 ${diagramInstructions}
 
-Use DOUBLE backslashes for ALL LaTeX commands in JSON (e.g., $\\\\frac{1}{2}$)
+IMPORTANT: The AI will generate JSON responses with properly escaped LaTeX (double backslashes).
 Use \\n for line breaks in strings
 
 Return exactly this JSON structure (no markdown code blocks):

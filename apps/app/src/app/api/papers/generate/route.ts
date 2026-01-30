@@ -406,8 +406,8 @@ LaTeX Math Formatting:
 - Variables: $x$, $F_{net}$, $v^2$
 - Fractions: $\\\\frac{a}{b}$
 - Greek: $\\\\theta$, $\\\\alpha$
-- Chemistry: $\\\\text{H}_2\\\\text{O}$, $\\\\text{Na}^+$
-- Units: $\\\\text{m s}^{-1}$
+- Chemistry: $\\text{H}_2\\text{O}$, $\\text{Na}^+$
+- Units: $\\text{m s}^{-1}$
 ${diagramInstructions}
 
 Return JSON:

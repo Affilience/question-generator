@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai';
-import { getTopicById } from '@/lib/topics';
+import { getTopicByIdSubjectBoardAndLevel } from '@/lib/topics';
 import { getCachedExamples, cacheExamples, WorkedExample } from '@/lib/workedExamplesCache';
 import { ExamBoard, QualificationLevel, Subject } from '@/types';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
@@ -92,10 +92,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const topic = getTopicById(topicId);
+    // Use the proper topic lookup that considers subject, board, and level
+    const topic = getTopicByIdSubjectBoardAndLevel(
+      topicId, 
+      subject, 
+      examBoard, 
+      qualification
+    );
     if (!topic) {
       return NextResponse.json(
-        { error: 'Invalid topic ID' },
+        { error: `Topic not found for ${subject} ${qualification} ${examBoard} with ID: ${topicId}` },
         { status: 400 }
       );
     }
