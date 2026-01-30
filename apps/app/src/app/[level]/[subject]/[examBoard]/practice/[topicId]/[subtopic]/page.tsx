@@ -68,6 +68,13 @@ export default function SubtopicPracticePage() {
     generate,
   } = useStreamingQuestion();
 
+  // Clear any cached state when URL params change to prevent stale state
+  useEffect(() => {
+    // Reset component state to ensure fresh lookup on URL changes
+    setTopic(null);
+    setParamsReady(false);
+  }, [topicId, subtopicParam]);
+
   // Check if params are ready (handles client-side navigation)
   useEffect(() => {
     if (subtopicParam && level && subject && examBoard && topicId) {

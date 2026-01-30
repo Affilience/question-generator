@@ -53,6 +53,14 @@ export default function WorkedExamplesPage() {
   const [error, setError] = useState<string | null>(null);
   const [paramsReady, setParamsReady] = useState(false);
 
+  // Clear any cached state when URL params change to prevent stale state
+  useEffect(() => {
+    // Reset component state to ensure fresh lookup on URL changes
+    setTopic(null);
+    setTopicLoaded(false);
+    setParamsReady(false);
+  }, [topicId, subtopicParam]);
+
   // Check if params are ready
   useEffect(() => {
     if (subtopicParam && level && subject && examBoard && topicId) {
