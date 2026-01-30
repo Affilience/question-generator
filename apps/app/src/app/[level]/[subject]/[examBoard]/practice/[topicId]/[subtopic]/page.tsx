@@ -249,13 +249,16 @@ export default function SubtopicPracticePage() {
   }
 
   // Find the actual subtopic name from the slug
-  // The subtopic param should already be URL-decoded by Next.js params
-  // We need to match it against the slugified versions of available subtopics
-  let subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  // First decode the URL-encoded subtopic param and then slugify it for comparison
+  const decodedSubtopic = decodeURIComponent(subtopic);
+  const normalizedSubtopic = slugify(decodedSubtopic);
+  let subtopicName = topic.subtopics.find(s => slugify(s) === normalizedSubtopic);
 
   // Debug logging
   console.log('[SubtopicPage] Looking for subtopic:', {
     subtopic,
+    decodedSubtopic,
+    normalizedSubtopic,
     availableSubtopics: topic.subtopics,
     availableSlugs: topic.subtopics.map(s => slugify(s)),
     topicId: topic.id,
@@ -292,6 +295,8 @@ export default function SubtopicPracticePage() {
   if (!isRandom && !subtopicName) {
     console.error('[SubtopicPage] SUBTOPIC NOT FOUND ERROR:', {
       subtopic,
+      decodedSubtopic,
+      normalizedSubtopic,
       topicId,
       topicName: topic?.name,
       availableSubtopics: topic?.subtopics,
