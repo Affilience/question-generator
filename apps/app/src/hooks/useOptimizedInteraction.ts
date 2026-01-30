@@ -15,7 +15,7 @@ export function useOptimizedInteraction<T extends (...args: any[]) => void>(
   } = {}
 ): T {
   const { debounceMs = 0, useIdleCallback = false, priority = 'high' } = options;
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastCallRef = useRef<number>(0);
 
   const optimizedCallback = useCallback((...args: Parameters<T>) => {

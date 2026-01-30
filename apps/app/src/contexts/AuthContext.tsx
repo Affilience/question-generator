@@ -59,18 +59,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Handle session recovery on page visibility change (mobile app switching, browser tab switching)
     const handleVisibilityChange = () => {
       if (typeof window !== 'undefined' && !document.hidden) {
-        // Refresh session when page becomes visible again
-        refreshSession().catch(err => {
-          console.error('Failed to refresh session on visibility change:', err);
-        });
+        // Enhanced session management handles this automatically, but keep as fallback
+        // Add a small delay for mobile Safari to stabilize
+        setTimeout(() => {
+          refreshSession().catch(err => {
+            console.error('Failed to refresh session on visibility change:', err);
+          });
+        }, 500);
       }
     };
 
     // Handle session recovery on window focus (browser/app regaining focus)
     const handleWindowFocus = () => {
-      refreshSession().catch(err => {
-        console.error('Failed to refresh session on window focus:', err);
-      });
+      // Enhanced session management handles this automatically, but keep as fallback
+      // Add a small delay for iOS Safari
+      setTimeout(() => {
+        refreshSession().catch(err => {
+          console.error('Failed to refresh session on window focus:', err);
+        });
+      }, 300);
     };
 
     // Add event listeners for better mobile/desktop session persistence
