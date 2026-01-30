@@ -39,29 +39,10 @@ export default function SubtopicPracticePage() {
   const subject = (params.subject as string) || '';
   const examBoard = (params.examBoard as string) || '';
   const topicId = (params.topicId as string) || '';
-  const subtopicParam = (params.subtopic as string) || '';
-  const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
+  const subtopic = (params.subtopic as string) || '';
   const isRandom = subtopic === 'random';
 
-  // Create a key that forces remount when route parameters change
-  // This fixes Next.js 16.1.1 Cache Components navigation caching issues
-  const routeKey = `${level}-${subject}-${examBoard}-${topicId}-${subtopicParam}`;
 
-  // Aggressive cache clearing for navigation issues
-  useEffect(() => {
-    // Clear Next.js router cache aggressively
-    if (typeof window !== 'undefined') {
-      // Force router cache invalidation
-      router.refresh();
-      
-      // Clear any stale browser cache
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          registrations.forEach(registration => registration.unregister());
-        });
-      }
-    }
-  }, [routeKey, router]);
 
   // All hooks must be called before any conditional returns
   const { user } = useAuth();
@@ -97,38 +78,15 @@ export default function SubtopicPracticePage() {
     setCurrentSubtopic('');
     seenQuestionsRef.current = [];
     hasGeneratedRef.current = false;
-    console.log('[SubtopicPage] Params changed, clearing state. New subtopic:', subtopicParam);
-    
-    // Force refresh router cache to prevent stale data
-    router.refresh();
-    
-    // AGGRESSIVE: If this is a known problematic navigation pattern, force reload
-    if (typeof window !== 'undefined') {
-      const currentUrl = window.location.href;
-      const isSubtopicNavigation = currentUrl.includes('/practice/') && subtopicParam;
-      const isRevisitingSubtopic = sessionStorage.getItem('last-subtopic-url') === currentUrl;
-      
-      if (isSubtopicNavigation && isRevisitingSubtopic) {
-        console.log('[SubtopicPage] AGGRESSIVE: Forcing page reload for revisited subtopic navigation');
-        // Clear the session marker and force reload
-        sessionStorage.removeItem('last-subtopic-url');
-        window.location.reload();
-        return;
-      }
-      
-      // Track this navigation for next time
-      if (isSubtopicNavigation) {
-        sessionStorage.setItem('last-subtopic-url', currentUrl);
-      }
-    }
-  }, [topicId, subtopicParam, level, subject, examBoard, router]);
+    console.log('[SubtopicPage] Params changed, clearing state. New subtopic:', subtopic);
+  }, [topicId, subtopic, level, subject, examBoard]);
 
   // Check if params are ready (handles client-side navigation)
   useEffect(() => {
-    if (subtopicParam && level && subject && examBoard && topicId) {
+    if (subtopic && level && subject && examBoard && topicId) {
       setParamsReady(true);
     }
-  }, [subtopicParam, level, subject, examBoard, topicId]);
+  }, [subtopic, level, subject, examBoard, topicId]);
 
   // Derived values (only valid when params are ready)
   const examBoardInfo = paramsReady ? getExamBoardInfo(examBoard as ExamBoard) : null;
@@ -290,26 +248,19 @@ export default function SubtopicPracticePage() {
     );
   }
 
-  // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
-  // First decode the URL param to handle any double-encoding issues
-  const decodedSubtopic = decodeURIComponent(subtopic);
-  let subtopicName = topic.subtopics.find(s => slugify(s) === decodedSubtopic);
+  // Find the actual subtopic name from the slug
+  // The subtopic param should already be URL-decoded by Next.js params
+  // We need to match it against the slugified versions of available subtopics
+  let subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
 
   // Debug logging
   console.log('[SubtopicPage] Looking for subtopic:', {
-    originalSubtopic: subtopic,
-    decodedSubtopic,
+    subtopic,
     availableSubtopics: topic.subtopics,
     availableSlugs: topic.subtopics.map(s => slugify(s)),
     topicId: topic.id,
     topicName: topic.name
   });
-
-  // If no exact match with decoded version, try with original
-  if (!subtopicName) {
-    subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
-    console.log('[SubtopicPage] No match with decoded, trying original. Found:', subtopicName);
-  }
 
   // If still no match and not random, try fuzzy matching for backwards compatibility
   if (!subtopicName && !isRandom) {
@@ -322,11 +273,8 @@ export default function SubtopicPracticePage() {
       .replace(/^-+|-+$/g, '')
       .trim();
 
-    // Try fuzzy matching with both decoded and original
-    let fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === decodedSubtopic);
-    if (!fuzzyMatch) {
-      fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
-    }
+    // Try fuzzy matching with the subtopic param
+    let fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
 
     if (fuzzyMatch) {
       // Redirect to the correct URL
@@ -391,7 +339,7 @@ export default function SubtopicPracticePage() {
   }
 
   return (
-    <div key={routeKey} className="min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 pt-4 pb-8">
         <header className="mb-4">
           <Link

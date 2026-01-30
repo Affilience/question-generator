@@ -19,8 +19,6 @@ export default function TopicPage() {
   const examBoard = params.examBoard as string;
   const topicId = params.topicId as string;
 
-  // Create a key that forces remount when route parameters change
-  const routeKey = `${level}-${subject}-${examBoard}-${topicId}`;
 
   // All hooks must be called before any conditional returns
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -37,24 +35,6 @@ export default function TopicPage() {
     });
     setTopic(foundTopic || null);
     
-    // AGGRESSIVE: Clear any layout caching when returning from subtopic pages
-    if (typeof window !== 'undefined') {
-      const currentUrl = window.location.href;
-      const referrer = document.referrer;
-      const isReturningFromSubtopic = referrer.includes(`/practice/${topicId}/`) && 
-                                      !referrer.includes(`/practice/${topicId}?`) && 
-                                      referrer !== currentUrl;
-      
-      if (isReturningFromSubtopic) {
-        console.log('[TopicPage] AGGRESSIVE: Detected return from subtopic, forcing layout reset');
-        // Force a complete DOM reflow to clear cached layout state
-        requestAnimationFrame(() => {
-          document.body.style.display = 'none';
-          document.body.offsetHeight; // Trigger reflow
-          document.body.style.display = '';
-        });
-      }
-    }
   }, [topicId, subject, examBoard, level]);
 
   // Get progress using the synced hook
@@ -105,7 +85,7 @@ export default function TopicPage() {
     : null;
 
   return (
-    <div key={routeKey} className="min-h-screen safe-area-inset-top">
+    <div className="min-h-screen safe-area-inset-top">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 safe-area-inset-bottom">
         <header className="mb-6 sm:mb-8">
           <Link
