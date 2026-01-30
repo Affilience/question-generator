@@ -36,6 +36,25 @@ export default function TopicPage() {
       matches: foundTopic?.id === topicId 
     });
     setTopic(foundTopic || null);
+    
+    // AGGRESSIVE: Clear any layout caching when returning from subtopic pages
+    if (typeof window !== 'undefined') {
+      const currentUrl = window.location.href;
+      const referrer = document.referrer;
+      const isReturningFromSubtopic = referrer.includes(`/practice/${topicId}/`) && 
+                                      !referrer.includes(`/practice/${topicId}?`) && 
+                                      referrer !== currentUrl;
+      
+      if (isReturningFromSubtopic) {
+        console.log('[TopicPage] AGGRESSIVE: Detected return from subtopic, forcing layout reset');
+        // Force a complete DOM reflow to clear cached layout state
+        requestAnimationFrame(() => {
+          document.body.style.display = 'none';
+          document.body.offsetHeight; // Trigger reflow
+          document.body.style.display = '';
+        });
+      }
+    }
   }, [topicId, subject, examBoard, level]);
 
   // Get progress using the synced hook

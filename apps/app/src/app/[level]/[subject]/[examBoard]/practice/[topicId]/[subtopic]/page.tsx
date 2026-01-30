@@ -101,6 +101,26 @@ export default function SubtopicPracticePage() {
     
     // Force refresh router cache to prevent stale data
     router.refresh();
+    
+    // AGGRESSIVE: If this is a known problematic navigation pattern, force reload
+    if (typeof window !== 'undefined') {
+      const currentUrl = window.location.href;
+      const isSubtopicNavigation = currentUrl.includes('/practice/') && subtopicParam;
+      const isRevisitingSubtopic = sessionStorage.getItem('last-subtopic-url') === currentUrl;
+      
+      if (isSubtopicNavigation && isRevisitingSubtopic) {
+        console.log('[SubtopicPage] AGGRESSIVE: Forcing page reload for revisited subtopic navigation');
+        // Clear the session marker and force reload
+        sessionStorage.removeItem('last-subtopic-url');
+        window.location.reload();
+        return;
+      }
+      
+      // Track this navigation for next time
+      if (isSubtopicNavigation) {
+        sessionStorage.setItem('last-subtopic-url', currentUrl);
+      }
+    }
   }, [topicId, subtopicParam, level, subject, examBoard, router]);
 
   // Check if params are ready (handles client-side navigation)
