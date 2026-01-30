@@ -211,11 +211,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
       }
     }
 
-    // Validate topic exists
-    if (topic && examBoard && subject && level) {
+    // Validate topic exists (but skip validation for practical routes)
+    if (topic && examBoard && subject && level && topic !== 'practicals') {
       const validTopics = getAllTopicParams().map(p => `${p.level}|${p.subject}|${p.examBoard}|${p.topic}`);
       if (!validTopics.includes(`${level}|${subject}|${examBoard}|${topic}`)) {
         console.warn(`Invalid topic in sitemap: ${level}/${subject}/${examBoard}/${topic} - ${url}`);
+        return false;
+      }
+    }
+
+    // Validate practical routes separately
+    if (topic === 'practicals' && segments[4]) {
+      const practicalId = segments[4];
+      const validPracticals = getAllPracticalParams().map(p => `${p.level}|${p.subject}|${p.examBoard}|${p.practicalId}`);
+      if (!validPracticals.includes(`${level}|${subject}|${examBoard}|${practicalId}`)) {
+        console.warn(`Invalid practical in sitemap: ${level}/${subject}/${examBoard}/practicals/${practicalId} - ${url}`);
         return false;
       }
     }
