@@ -94,7 +94,11 @@ export default function RootLayout({
           rel="preload"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
           as="style"
-          onLoad="this.onload=null;this.rel='stylesheet'"
+          onLoad={(e) => {
+            const target = e.target as HTMLLinkElement;
+            target.onload = null;
+            target.rel = 'stylesheet';
+          }}
           crossOrigin="anonymous"
         />
         <noscript>
