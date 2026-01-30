@@ -48,10 +48,11 @@ class ServiceWorkerSessionBridge {
         this.sw = sw;
         
         if (sw.state !== 'activated') {
-          await new Promise((resolve) => {
-            sw.addEventListener('statechange', () => {
-              if (sw.state === 'activated') {
-                resolve(void 0);
+          await new Promise<void>((resolve) => {
+            const serviceWorker = sw; // Capture in closure to satisfy TypeScript
+            serviceWorker.addEventListener('statechange', () => {
+              if (serviceWorker.state === 'activated') {
+                resolve();
               }
             });
           });
