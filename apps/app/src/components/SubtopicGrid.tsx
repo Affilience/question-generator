@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { ExamBoard, QualificationLevel, Subject } from '@/types';
 import { SubtopicCard } from './SubtopicCard';
 
@@ -13,24 +12,9 @@ interface SubtopicGridProps {
 }
 
 export function SubtopicGrid({ topicId, subtopics, examBoard = 'aqa', level = 'gcse', subject = 'maths' }: SubtopicGridProps) {
-  // Force grid remount to prevent layout caching issues
-  const [gridKey, setGridKey] = useState(0);
-  
-  useEffect(() => {
-    // Force grid layout reset when props change to prevent cached layout state
-    setGridKey(prev => prev + 1);
-    
-    // Force a layout recalculation by triggering a reflow
-    if (typeof window !== 'undefined') {
-      requestAnimationFrame(() => {
-        // Trigger a forced reflow to clear any cached layout
-        document.body.offsetHeight;
-      });
-    }
-  }, [topicId, examBoard, level, subject]);
 
   return (
-    <div key={gridKey} className="space-y-3">
+    <div className="space-y-3">
       {/* Random Practice Card - always first */}
       <SubtopicCard
         topicId={topicId}
@@ -50,10 +34,10 @@ export function SubtopicGrid({ topicId, subtopics, examBoard = 'aqa', level = 'g
       </div>
 
       {/* Subtopic Cards - force unique keys for complete remount */}
-      <div key={`grid-${gridKey}`} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {subtopics.map((subtopic, index) => (
           <SubtopicCard
-            key={`${gridKey}-${subtopic}-${index}`}
+            key={`${subtopic}-${index}`}
             topicId={topicId}
             subtopic={subtopic}
             index={index}
