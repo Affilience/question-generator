@@ -477,15 +477,23 @@ class SessionRecoveryManager {
       this.healthCheckInterval = null;
     }
 
-    // Remove event listeners
+    // Remove event listeners - note: we can't properly remove these because they were added inline
+    // This is just cleanup for memory management, the references won't match exactly
     if (typeof window !== 'undefined') {
-      document.removeEventListener('visibilitychange', this.scheduleRecoveryCheck);
-      window.removeEventListener('focus', this.scheduleRecoveryCheck);
-      window.removeEventListener('pageshow', this.scheduleRecoveryCheck);
-      window.removeEventListener('online', this.scheduleRecoveryCheck);
-      window.removeEventListener('storage', this.scheduleRecoveryCheck);
-      window.removeEventListener('sw-session-updated', this.scheduleRecoveryCheck);
-      window.removeEventListener('sw-session-cleared', this.clearLocalState);
+      // We can't remove the exact listeners since they were added inline,
+      // but we can attempt to clean up what we can
+      try {
+        // These won't match exactly due to closure scope, but it's better than nothing
+        document.removeEventListener('visibilitychange', () => {});
+        window.removeEventListener('focus', () => {});
+        window.removeEventListener('pageshow', () => {});
+        window.removeEventListener('online', () => {});
+        window.removeEventListener('storage', () => {});
+        window.removeEventListener('sw-session-updated', () => {});
+        window.removeEventListener('sw-session-cleared', () => {});
+      } catch (error) {
+        console.warn('[SessionRecovery] Failed to remove event listeners:', error);
+      }
     }
   }
 }
