@@ -94,13 +94,21 @@ export default function RootLayout({
           rel="preload"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
           as="style"
-          onLoad={(e) => {
-            const target = e.target as HTMLLinkElement;
-            target.onload = null;
-            target.rel = 'stylesheet';
-          }}
           crossOrigin="anonymous"
         />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('DOMContentLoaded', function() {
+              var katexLink = document.querySelector('link[href*="katex"][rel="preload"]');
+              if (katexLink) {
+                katexLink.onload = function() {
+                  this.onload = null;
+                  this.rel = 'stylesheet';
+                };
+              }
+            });
+          `
+        }} />
         <noscript>
           <link
             rel="stylesheet"
