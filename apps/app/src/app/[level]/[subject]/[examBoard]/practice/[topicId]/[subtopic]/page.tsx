@@ -230,11 +230,16 @@ export default function SubtopicPracticePage() {
   }
 
   // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
-  let subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  // First decode the URL param to handle any double-encoding issues
+  const decodedSubtopic = decodeURIComponent(subtopic);
+  let subtopicName = topic.subtopics.find(s => slugify(s) === decodedSubtopic);
 
-  // If no exact match, try fuzzy matching for backwards compatibility
-  // This handles URLs generated with the old incorrect slugification that
-  // stripped special characters like = instead of converting to -equals-
+  // If no exact match with decoded version, try with original
+  if (!subtopicName) {
+    subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  }
+
+  // If still no match and not random, try fuzzy matching for backwards compatibility
   if (!subtopicName && !isRandom) {
     // Generate what the old broken slugification would have produced
     const brokenSlugify = (s: string) => s
@@ -245,7 +250,11 @@ export default function SubtopicPracticePage() {
       .replace(/^-+|-+$/g, '')
       .trim();
 
-    const fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
+    // Try fuzzy matching with both decoded and original
+    let fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === decodedSubtopic);
+    if (!fuzzyMatch) {
+      fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
+    }
 
     if (fuzzyMatch) {
       // Redirect to the correct URL

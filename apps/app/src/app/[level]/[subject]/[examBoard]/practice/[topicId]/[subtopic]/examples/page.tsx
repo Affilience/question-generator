@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTopicByIdSubjectBoardAndLevel, getExamBoardsByLevel } from '@/lib/topics';
 import { slugify } from '@/lib/seo/utils';
@@ -33,6 +33,7 @@ const validSubjects: Subject[] = [
 
 export default function WorkedExamplesPage() {
   const params = useParams();
+  const router = useRouter();
 
   // Extract params with fallbacks for loading state
   const level = (params.level as string) || '';
@@ -197,7 +198,44 @@ export default function WorkedExamplesPage() {
   }
 
   // Find the actual subtopic name from the slug (subtopic param is URL-encoded slug)
-  const subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  // First decode the URL param to handle any double-encoding issues
+  const decodedSubtopic = decodeURIComponent(subtopic);
+  let subtopicName = topic.subtopics.find(s => slugify(s) === decodedSubtopic);
+
+  // If no exact match with decoded version, try with original
+  if (!subtopicName) {
+    subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+  }
+
+  // If still no match, try fuzzy matching for backwards compatibility
+  if (!subtopicName) {
+    // Generate what the old broken slugification would have produced
+    const brokenSlugify = (s: string) => s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+
+    // Try fuzzy matching with both decoded and original
+    let fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === decodedSubtopic);
+    if (!fuzzyMatch) {
+      fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
+    }
+
+    if (fuzzyMatch) {
+      // Redirect to the correct URL
+      const correctSlug = slugify(fuzzyMatch);
+      router.replace(`/${level}/${subject}/${examBoard}/practice/${topicId}/${correctSlug}/examples`);
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-[#666666]">Redirecting...</div>
+        </div>
+      );
+    }
+  }
+
   if (!subtopicName) {
     return (
       <div className="min-h-screen flex items-center justify-center">

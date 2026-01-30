@@ -470,22 +470,35 @@ export function getAQAALevelEconomicsQuestionPrompt(topic: Topic, difficulty: Di
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
-    medium: `Create a question requiring analysis with chains of reasoning (AO2/AO3).
+    medium: `Create a question requiring SUBSTANTIAL analysis with MULTIPLE chains of reasoning (AO2/AO3).
+
+**CRITICAL: 8-12 mark questions must be COGNITIVELY DEMANDING - not simple data interpretation!**
 
 **Question Types for Medium:**
-- "Using the data, analyse [economic issue]" [8-10 marks]
-- "Explain how [factor] affects [outcome]" [8 marks]
-- "Analyse the likely effects of [policy/change] on [market/economy]" [10 marks]
-- "With reference to a diagram, explain [economic relationship]" [8-10 marks]
+- "Analyse the likely effects of [complex policy] on [multiple stakeholders]" (8-10 marks)
+- "Examine the factors that determine [economic relationship]" (8-10 marks) 
+- "Analyse how [economic theory] applies in [specific context] and assess its limitations" (10-12 marks)
+- "Using the data, analyse [complex economic issue requiring multiple chains of reasoning]" (10 marks)
+
+**What makes these 8-12 mark questions:**
+- Multiple analytical chains required (cause → effect → further consequence)
+- Application to specific contexts with real-world examples
+- Analysis of competing factors/forces
+- Some evaluative thinking but not full evaluation
+
+**NOT acceptable for 8-12 marks:**
+- Simple data interpretation ("interpret the results")
+- Basic explanations that could be done in 2-4 marks
+- Single-chain analysis without development
 
 **Mark Scheme Format:**
-Use levels of response where appropriate:
-- Level 3: Thorough analysis with multiple chains of reasoning
-- Level 2: Good analysis with some development
-- Level 1: Limited analysis
+Use levels of response:
+- Level 4 (9-12): Thorough analysis with multiple developed chains of reasoning
+- Level 3 (6-8): Good analysis with some chains developed
+- Level 2 (3-5): Some relevant analysis, limited development
+- Level 1 (1-2): Limited relevant points
 
-For data response: require specific use of data from extracts
-Include indicative content listing key points
+Include indicative content listing multiple analytical chains expected
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
@@ -548,6 +561,13 @@ ${visualInstructions}
 - For diagram-based questions, describe expected diagram elements
 - Ensure economic concepts are technically accurate
 - ONLY test content from the AQA A-Level Economics specification
+
+**CRITICAL MARK ALLOCATION RULES:**
+- Questions using "Interpret" or "Describe" command words: MAX 4 marks
+- Questions asking for multiple chains of reasoning: 8+ marks
+- Questions requiring evaluation/judgement: 15+ marks  
+- Simple data interpretation (like wealth effects table) = 2-4 marks MAX
+- Extended essay responses with evaluation = 15-25 marks ONLY
 
 Return valid JSON:
 {

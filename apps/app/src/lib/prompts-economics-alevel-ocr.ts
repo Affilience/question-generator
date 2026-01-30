@@ -427,23 +427,35 @@ export function getOCRALevelEconomicsQuestionPrompt(topic: Topic, difficulty: Di
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
-    medium: `Create a question requiring analysis with chains of reasoning (AO2/AO3).
+    medium: `Create a question requiring SUBSTANTIAL analysis with MULTIPLE chains of reasoning (AO2/AO3).
+
+**CRITICAL: 8-12 mark questions must be COGNITIVELY DEMANDING - not simple data interpretation!**
 
 **Question Types for Medium:**
-- "Using the data/extract, analyse [economic issue]" [8-12]
-- "Analyse the likely effects of [change] on [market/economy]" [8-10]
-- "Explain how [economic concept/process] works" [8-10]
+- "Analyse the likely effects of [complex policy] on [multiple stakeholders]" (8-10 marks)
+- "Examine the factors that determine [economic relationship]" (8-10 marks) 
+- "Analyse how [economic theory] applies in [specific context] and assess its limitations" (10-12 marks)
+- "Using the data/extract, analyse [complex economic issue requiring multiple chains of reasoning]" (10 marks)
 
-For data response: Include a brief extract or data set
+**What makes these 8-12 mark questions:**
+- Multiple analytical chains required (cause → effect → further consequence)
+- Application to specific contexts with real-world examples
+- Analysis of competing factors/forces
+- Some evaluative thinking but not full evaluation
+
+**NOT acceptable for 8-12 marks:**
+- Simple data interpretation ("interpret the results")
+- Basic explanations that could be done in 2-4 marks
+- Single-chain analysis without development
 
 **Mark Scheme Format:**
 Use levels of response:
-- Level 4 (10-12): Well-developed analysis, clear chains of reasoning
-- Level 3 (7-9): Good analysis with development
-- Level 2 (4-6): Some analysis, limited development
-- Level 1 (1-3): Basic points only
+- Level 4 (10-12): Thorough analysis with multiple developed chains of reasoning
+- Level 3 (7-9): Good analysis with some chains developed
+- Level 2 (4-6): Some relevant analysis, limited development
+- Level 1 (1-3): Limited relevant points
 
-Include indicative content listing analytical points expected
+Include indicative content listing multiple analytical chains expected
 
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.`,
 
@@ -487,6 +499,13 @@ ${difficultyGuidance[difficulty]}
 - For extended response, note QWC assessment
 - Specify diagram requirements where relevant
 - For data response, include realistic extract or data
+
+**CRITICAL MARK ALLOCATION RULES:**
+- Questions using "Interpret" or "Describe" command words: MAX 4 marks
+- Questions asking for multiple chains of reasoning: 8+ marks
+- Questions requiring evaluation/judgement: 15+ marks  
+- Simple data interpretation (like wealth effects table) = 2-4 marks MAX
+- Extended essay responses with evaluation = 15-25 marks ONLY
 
 Return valid JSON:
 {
