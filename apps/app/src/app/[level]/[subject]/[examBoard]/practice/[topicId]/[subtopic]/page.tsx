@@ -292,7 +292,6 @@ export default function SubtopicPracticePage() {
   if (!isRandom && !subtopicName) {
     console.error('[SubtopicPage] SUBTOPIC NOT FOUND ERROR:', {
       subtopic,
-      decodedSubtopic,
       topicId,
       topicName: topic?.name,
       availableSubtopics: topic?.subtopics,
