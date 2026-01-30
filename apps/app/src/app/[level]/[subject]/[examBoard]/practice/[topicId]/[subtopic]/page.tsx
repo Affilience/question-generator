@@ -34,6 +34,22 @@ export default function SubtopicPracticePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
 
+  // Aggressive cache clearing for navigation issues
+  useEffect(() => {
+    // Clear Next.js router cache aggressively
+    if (typeof window !== 'undefined') {
+      // Force router cache invalidation
+      router.refresh();
+      
+      // Clear any stale browser cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => registration.unregister());
+        });
+      }
+    }
+  }, [routeKey, router]);
+
   // Extract params with fallbacks for loading state
   const level = (params.level as string) || '';
   const subject = (params.subject as string) || '';
@@ -42,6 +58,10 @@ export default function SubtopicPracticePage() {
   const subtopicParam = (params.subtopic as string) || '';
   const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
   const isRandom = subtopic === 'random';
+
+  // Create a key that forces remount when route parameters change
+  // This fixes Next.js 16.1.1 Cache Components navigation caching issues
+  const routeKey = `${level}-${subject}-${examBoard}-${topicId}-${subtopicParam}`;
 
   // All hooks must be called before any conditional returns
   const { user } = useAuth();
@@ -73,7 +93,15 @@ export default function SubtopicPracticePage() {
     // Reset component state to ensure fresh lookup on URL changes
     setTopic(null);
     setParamsReady(false);
-  }, [topicId, subtopicParam]);
+    // Also reset other state that could become stale
+    setCurrentSubtopic('');
+    seenQuestionsRef.current = [];
+    hasGeneratedRef.current = false;
+    console.log('[SubtopicPage] Params changed, clearing state. New subtopic:', subtopicParam);
+    
+    // Force refresh router cache to prevent stale data
+    router.refresh();
+  }, [topicId, subtopicParam, level, subject, examBoard, router]);
 
   // Check if params are ready (handles client-side navigation)
   useEffect(() => {
@@ -247,9 +275,20 @@ export default function SubtopicPracticePage() {
   const decodedSubtopic = decodeURIComponent(subtopic);
   let subtopicName = topic.subtopics.find(s => slugify(s) === decodedSubtopic);
 
+  // Debug logging
+  console.log('[SubtopicPage] Looking for subtopic:', {
+    originalSubtopic: subtopic,
+    decodedSubtopic,
+    availableSubtopics: topic.subtopics,
+    availableSlugs: topic.subtopics.map(s => slugify(s)),
+    topicId: topic.id,
+    topicName: topic.name
+  });
+
   // If no exact match with decoded version, try with original
   if (!subtopicName) {
     subtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+    console.log('[SubtopicPage] No match with decoded, trying original. Found:', subtopicName);
   }
 
   // If still no match and not random, try fuzzy matching for backwards compatibility
@@ -283,11 +322,22 @@ export default function SubtopicPracticePage() {
 
   // Validate subtopic exists (unless random)
   if (!isRandom && !subtopicName) {
+    console.error('[SubtopicPage] SUBTOPIC NOT FOUND ERROR:', {
+      subtopic,
+      decodedSubtopic,
+      topicId,
+      topicName: topic?.name,
+      availableSubtopics: topic?.subtopics,
+      url: window?.location?.href
+    });
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-2">Subtopic not found</h1>
           <p className="text-[#a1a1a1] mb-4">&quot;{subtopic}&quot; is not a valid subtopic</p>
+          <p className="text-xs text-[#666666] mb-4">
+            Available: {topic?.subtopics?.map(s => slugify(s)).join(', ')}
+          </p>
           <Link
             href={`/${level}/${subject}/${examBoard}/practice/${topicId}`}
             className="text-[#3b82f6] hover:text-[#60a5fa] transition-colors"
@@ -321,7 +371,7 @@ export default function SubtopicPracticePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div key={routeKey} className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 pt-4 pb-8">
         <header className="mb-4">
           <Link
@@ -366,18 +416,6 @@ export default function SubtopicPracticePage() {
               <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
                 A-Level
               </span>
-            )}
-            {/* View Examples link - only for specific subtopics, not random */}
-            {!isRandom && (
-              <Link
-                href={`/${level}/${subject}/${examBoard}/practice/${topicId}/${encodeURIComponent(subtopic)}/examples`}
-                className="inline-flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors ml-auto"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                Examples
-              </Link>
             )}
           </div>
         </header>

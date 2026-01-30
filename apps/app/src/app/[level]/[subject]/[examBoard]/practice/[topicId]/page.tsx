@@ -19,12 +19,22 @@ export default function TopicPage() {
   const examBoard = params.examBoard as string;
   const topicId = params.topicId as string;
 
+  // Create a key that forces remount when route parameters change
+  const routeKey = `${level}-${subject}-${examBoard}-${topicId}`;
+
   // All hooks must be called before any conditional returns
   const [topic, setTopic] = useState<Topic | null>(null);
   const { getTopicProgress, loading: progressLoading } = useSyncedProgress();
 
   useEffect(() => {
+    console.log('🔍 Main Topic Page - Looking up topic:', { topicId, subject, examBoard, level });
     const foundTopic = getTopicByIdSubjectBoardAndLevel(topicId, subject as Subject, examBoard as ExamBoard, level as QualificationLevel);
+    console.log('✅ Main Topic Page - Found topic:', { 
+      found: !!foundTopic, 
+      id: foundTopic?.id, 
+      name: foundTopic?.name,
+      matches: foundTopic?.id === topicId 
+    });
     setTopic(foundTopic || null);
   }, [topicId, subject, examBoard, level]);
 
@@ -76,7 +86,7 @@ export default function TopicPage() {
     : null;
 
   return (
-    <div className="min-h-screen safe-area-inset-top">
+    <div key={routeKey} className="min-h-screen safe-area-inset-top">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 safe-area-inset-bottom">
         <header className="mb-6 sm:mb-8">
           <Link

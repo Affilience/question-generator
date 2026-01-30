@@ -44,7 +44,7 @@ class EnhancedSessionManager {
 
   private readonly DEFAULT_OPTIONS: Required<EnhancedSessionOptions> = {
     enableEnhancedStorage: true,
-    enableServiceWorker: true,
+    enableServiceWorker: false, // DISABLED - causing navigation caching issues
     enableSessionRecovery: true,
     enableIOSWorkarounds: true,
     enableMonitoring: true,

@@ -21,7 +21,7 @@ export function useSessionPersistence() {
         
         await sessionManager.initialize({
           enableEnhancedStorage: true,
-          enableServiceWorker: true,
+          enableServiceWorker: false, // DISABLED - causing navigation caching issues
           enableSessionRecovery: true,
           enableIOSWorkarounds: true,
           enableMonitoring: true,

@@ -71,6 +71,27 @@ export default function RootLayout({
             `,
           }}
         />
+        
+        {/* Force unregister all Service Workers to fix navigation caching */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (var i = 0; i < registrations.length; i++) {
+                      registrations[i].unregister().then(function(success) {
+                        if (success) console.log('[SW Cleanup] Service Worker unregistered successfully');
+                      });
+                    }
+                  }).catch(function(error) {
+                    console.log('[SW Cleanup] Service Worker unregistration failed:', error);
+                  });
+                }
+              })();
+            `,
+          }}
+        />
         {/* Viewport meta tag for responsive design and CLS prevention */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         

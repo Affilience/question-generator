@@ -23,6 +23,10 @@ class ServiceWorkerSessionBridge {
    * Register service worker and set up session bridging
    */
   async initialize(): Promise<void> {
+    // DISABLED - Service Worker completely disabled to fix navigation caching issues
+    console.log('[SW Bridge] Service Worker registration disabled to fix caching issues');
+    return;
+
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       console.warn('[SW Bridge] Service Workers not supported');
       return;

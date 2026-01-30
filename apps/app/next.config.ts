@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   // Enable compression for better loading times
   compress: true,
   
+  // Disable Cache Components to fix navigation caching issues in Next.js 16
+  cacheComponents: false,
+  
   // Optimize bundle splitting
   experimental: {
     optimizePackageImports: [
@@ -96,12 +99,24 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Short cache for HTML pages to pick up new chunk references faster
+        // Aggressive no-cache for HTML pages to prevent navigation caching issues
         source: '/:path((?!_next|api).*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+          {
+            key: 'Surrogate-Control',
+            value: 'no-store',
           },
           {
             key: 'X-DNS-Prefetch-Control',
