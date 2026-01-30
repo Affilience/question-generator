@@ -34,6 +34,19 @@ export default function SubtopicPracticePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
 
+  // Extract params with fallbacks for loading state
+  const level = (params.level as string) || '';
+  const subject = (params.subject as string) || '';
+  const examBoard = (params.examBoard as string) || '';
+  const topicId = (params.topicId as string) || '';
+  const subtopicParam = (params.subtopic as string) || '';
+  const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
+  const isRandom = subtopic === 'random';
+
+  // Create a key that forces remount when route parameters change
+  // This fixes Next.js 16.1.1 Cache Components navigation caching issues
+  const routeKey = `${level}-${subject}-${examBoard}-${topicId}-${subtopicParam}`;
+
   // Aggressive cache clearing for navigation issues
   useEffect(() => {
     // Clear Next.js router cache aggressively
@@ -49,19 +62,6 @@ export default function SubtopicPracticePage() {
       }
     }
   }, [routeKey, router]);
-
-  // Extract params with fallbacks for loading state
-  const level = (params.level as string) || '';
-  const subject = (params.subject as string) || '';
-  const examBoard = (params.examBoard as string) || '';
-  const topicId = (params.topicId as string) || '';
-  const subtopicParam = (params.subtopic as string) || '';
-  const subtopic = subtopicParam ? decodeURIComponent(subtopicParam) : '';
-  const isRandom = subtopic === 'random';
-
-  // Create a key that forces remount when route parameters change
-  // This fixes Next.js 16.1.1 Cache Components navigation caching issues
-  const routeKey = `${level}-${subject}-${examBoard}-${topicId}-${subtopicParam}`;
 
   // All hooks must be called before any conditional returns
   const { user } = useAuth();
