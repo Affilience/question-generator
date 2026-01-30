@@ -1384,9 +1384,6 @@ export async function POST(request: NextRequest) {
       // Non-streaming cached response (for backwards compatibility)
       const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludeContent);
       if (cached) {
-        // Track usage for subscription limits (cache hit still counts)
-        await incrementQuestionUsage(userId || null, clientIP);
-
         const question = {
           id: crypto.randomUUID(),
           topicId,
@@ -1727,9 +1724,6 @@ export async function POST(request: NextRequest) {
         await recordQuestionServed(bankId, userId, 'practice');
       }
     }
-
-    // Track usage for subscription limits
-    await incrementQuestionUsage(userId || null, clientIP);
 
     return new Response(JSON.stringify(question), {
       headers: {

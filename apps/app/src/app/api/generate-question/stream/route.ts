@@ -98,9 +98,6 @@ export async function POST(request: NextRequest) {
             }
           }
           
-          // Increment usage tracking after successful generation
-          await incrementQuestionUsage(userId, clientIP, isAdmin);
-          
           controller.close();
         } catch (error) {
           controller.error(error);

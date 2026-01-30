@@ -76,7 +76,7 @@ export function useStreamingQuestion() {
     upgradeNeeded: false,
   });
 
-  const { incrementQuestionUsage } = useSubscription();
+  const { refreshSubscription } = useSubscription();
   const { user } = useAuth();
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -157,8 +157,25 @@ export function useStreamingQuestion() {
           error: null,
           upgradeNeeded: false,
         });
-        // Update client-side usage counter
-        incrementQuestionUsage();
+        
+        // Track usage via API endpoint
+        if (user) {
+          try {
+            await fetch('/api/usage/increment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                userId: user.id,
+                type: 'question'
+              }),
+            });
+            // Refresh subscription data after successful tracking
+            refreshSubscription();
+          } catch (error) {
+            console.error('Failed to track usage:', error);
+          }
+        }
+        
         return question;
       }
 
@@ -212,8 +229,25 @@ export function useStreamingQuestion() {
                   error: null,
                   upgradeNeeded: false,
                 });
-                // Update client-side usage counter
-                incrementQuestionUsage();
+                
+                // Track usage via API endpoint
+                if (user) {
+                  try {
+                    await fetch('/api/usage/increment', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        userId: user.id,
+                        type: 'question'
+                      }),
+                    });
+                    // Refresh subscription data after successful tracking
+                    refreshSubscription();
+                  } catch (error) {
+                    console.error('Failed to track usage:', error);
+                  }
+                }
+                
                 return data.question;
               }
             } catch {
@@ -241,7 +275,7 @@ export function useStreamingQuestion() {
       }));
       return null;
     }
-  }, [incrementQuestionUsage, user]);
+  }, [refreshSubscription, user]);
 
   const abort = useCallback(() => {
     if (abortControllerRef.current) {

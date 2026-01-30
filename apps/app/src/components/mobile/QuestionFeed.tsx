@@ -7,6 +7,7 @@ import { QuestionSlide } from './QuestionSlide';
 import { SwipeHint, useSwipeHint } from './SwipeHint';
 import { UpgradePrompt } from '../UpgradePrompt';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
 interface QuestionFeedProps {
@@ -61,7 +62,8 @@ export function QuestionFeed({
   const isGeneratingRef = useRef(false); // Ref to track generation state without re-renders
   const questionsLengthRef = useRef(0); // Ref to track questions length
   const { showHint, dismissHint } = useSwipeHint();
-  const { incrementQuestionUsage } = useSubscription();
+  const { user } = useAuth();
+  const { refreshSubscription } = useSubscription();
 
   // Keep refs in sync
   useEffect(() => {
@@ -144,8 +146,24 @@ export function QuestionFeed({
         setQuestions((prev) => [...prev, newQuestion]);
         previousQuestionsRef.current.push(data.content);
         setStreamingContent('');
-        // Refresh usage tracking
-        await incrementQuestionUsage();
+        
+        // Track usage via API endpoint and refresh subscription data
+        if (user) {
+          try {
+            await fetch('/api/usage/increment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                userId: user.id,
+                type: 'question'
+              }),
+            });
+            // Refresh subscription data after successful tracking
+            refreshSubscription();
+          } catch (error) {
+            console.error('Failed to track usage:', error);
+          }
+        }
         return;
       }
 
@@ -203,8 +221,24 @@ export function QuestionFeed({
                   setQuestions((prev) => [...prev, newQuestion]);
                   previousQuestionsRef.current.push(questionData.content);
                   questionAdded = true;
-                  // Refresh usage tracking after successful generation
-                  incrementQuestionUsage();
+                  
+                  // Track usage via API endpoint after successful generation
+                  if (user) {
+                    try {
+                      await fetch('/api/usage/increment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          userId: user.id,
+                          type: 'question'
+                        }),
+                      });
+                      // Refresh subscription data after successful tracking
+                      refreshSubscription();
+                    } catch (error) {
+                      console.error('Failed to track usage:', error);
+                    }
+                  }
                 }
               } catch (e) {
                 // Log parsing errors for debugging

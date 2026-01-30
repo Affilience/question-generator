@@ -171,17 +171,36 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Increment question usage - update local state immediately for better UX
   const incrementQuestionUsage = async () => {
+    if (!user) return;
+    
     // Update local state immediately for better UX
     setDailyUsage(prev => ({
       ...prev,
       questionsGenerated: prev.questionsGenerated + 1,
     }));
     
-    // Also refresh from server to stay in sync (in case of concurrent updates)
-    // Use shorter delay for better responsiveness
-    setTimeout(() => {
+    try {
+      // Call the API to increment usage on server
+      await fetch('/api/usage/increment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user.id,
+          type: 'question'
+        }),
+      });
+      
+      // Only refresh from server after API call completes successfully
+      // This prevents overwriting our optimistic update with stale data
       refreshSubscription();
-    }, 200);
+    } catch (error) {
+      console.error('Failed to increment usage:', error);
+      // Revert optimistic update on error
+      setDailyUsage(prev => ({
+        ...prev,
+        questionsGenerated: Math.max(0, prev.questionsGenerated - 1),
+      }));
+    }
   };
 
   // Increment paper usage (UI only - server handles DB)

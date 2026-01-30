@@ -548,9 +548,6 @@ export async function POST(request: NextRequest) {
             diagram: cached.diagram,
           };
 
-          // Increment usage tracking
-          await incrementQuestionUsage(userId, clientIP, isAdmin);
-
           return NextResponse.json(question, {
             headers: { 'X-Cache': 'HIT' },
           });
@@ -621,9 +618,6 @@ export async function POST(request: NextRequest) {
         ...questionData,
       };
 
-      // Increment usage tracking
-      await incrementQuestionUsage(userId, clientIP, isAdmin);
-
       return NextResponse.json(question, {
         headers: { 'X-Cache': 'MISS' },
       });
@@ -676,9 +670,6 @@ export async function POST(request: NextRequest) {
         diagram: existingQuestion.diagram ? (existingQuestion.diagram as unknown as DiagramSpec) : undefined,
       };
 
-      // Increment usage tracking
-      await incrementQuestionUsage(userId, clientIP, isAdmin);
-
       return NextResponse.json(question, {
         headers: { 'X-Cache': 'BANK-HIT' },
       });
@@ -702,9 +693,6 @@ export async function POST(request: NextRequest) {
           markScheme: cached.markScheme,
           diagram: cached.diagram,
         };
-
-        // Increment usage tracking
-        await incrementQuestionUsage(userId, clientIP);
 
         // Add header to indicate cache hit
         return NextResponse.json(question, {
@@ -1582,9 +1570,6 @@ export async function POST(request: NextRequest) {
         console.error('Failed to record question served:', err)
       );
     }
-
-    // Increment usage tracking
-    await incrementQuestionUsage(userId, clientIP, isAdmin);
 
     return NextResponse.json(question, {
       headers: { 'X-Cache': 'MISS' },
