@@ -790,13 +790,38 @@ export const SUBJECT_DIAGRAM_EXAMPLES: Record<string, string> = {
   biology: `
 ### Biology Diagram Examples:
 
-**Simple Cell:**
+**Simple Animal Cell:**
 \`\`\`json
-{"diagram":{"width":10,"height":10,"showNotAccurate":true,"elements":[
-  {"type":"circle","center":{"x":5,"y":5},"radius":4},
-  {"type":"circle","center":{"x":5,"y":5},"radius":1.5},
-  {"type":"text","position":{"x":5,"y":5},"content":"Nucleus"},
-  {"type":"text","position":{"x":5,"y":9.5},"content":"Cell membrane"}
+{"diagram":{"width":12,"height":12,"showNotAccurate":true,"elements":[
+  {"type":"circle","center":{"x":6,"y":6},"radius":4.2,"stroke":"#000","strokeWidth":2,"fill":"rgba(200,220,255,0.1)"},
+  {"type":"circle","center":{"x":6,"y":6},"radius":1.5,"stroke":"#000","strokeWidth":2,"fill":"rgba(150,150,255,0.3)"},
+  {"type":"circle","center":{"x":3,"y":3.5},"radius":0.5,"stroke":"#000","strokeWidth":1,"fill":"rgba(255,150,150,0.5)"},
+  {"type":"circle","center":{"x":9,"y":8.5},"radius":0.4,"stroke":"#000","strokeWidth":1,"fill":"rgba(150,255,150,0.5)"},
+  {"type":"circle","center":{"x":3.5,"y":9},"radius":0.4,"stroke":"#000","strokeWidth":1,"fill":"rgba(255,200,150,0.5)"},
+  {"type":"text","position":{"x":6,"y":6},"content":"Nucleus","fontSize":10},
+  {"type":"text","position":{"x":3,"y":2.5},"content":"Mitochondria","fontSize":8},
+  {"type":"text","position":{"x":9,"y":9.5},"content":"Ribosome","fontSize":8},
+  {"type":"text","position":{"x":3.5,"y":10},"content":"Lysosome","fontSize":8},
+  {"type":"text","position":{"x":9.5,"y":11.2},"content":"Cell membrane","fontSize":9}
+]}}
+\`\`\`
+
+**Simple Plant Cell:**
+\`\`\`json
+{"diagram":{"width":12,"height":12,"showNotAccurate":true,"elements":[
+  {"type":"rectangle","topLeft":{"x":1,"y":1},"width":10,"height":10,"stroke":"#000","strokeWidth":3,"fill":"rgba(200,255,200,0.1)"},
+  {"type":"rectangle","topLeft":{"x":1.3,"y":1.3},"width":9.4,"height":9.4,"stroke":"#666","strokeWidth":1,"fill":"rgba(220,240,255,0.1)"},
+  {"type":"circle","center":{"x":5.5,"y":6},"radius":1.6,"stroke":"#000","strokeWidth":2,"fill":"rgba(150,150,255,0.3)"},
+  {"type":"circle","center":{"x":3,"y":4},"radius":0.5,"stroke":"#000","strokeWidth":1,"fill":"rgba(255,150,150,0.5)"},
+  {"type":"rectangle","topLeft":{"x":7.5,"y":3.5},"width":1.2,"height":2,"stroke":"#000","strokeWidth":1,"fill":"rgba(100,255,100,0.6)"},
+  {"type":"rectangle","topLeft":{"x":8,"y":7},"width":1,"height":1.5,"stroke":"#000","strokeWidth":1,"fill":"rgba(100,255,100,0.6)"},
+  {"type":"circle","center":{"x":6.5,"y":8.5},"radius":0.8,"fill":"rgba(240,240,240,0.8)","stroke":"#999","strokeWidth":1},
+  {"type":"text","position":{"x":5.5,"y":6},"content":"Nucleus","fontSize":9},
+  {"type":"text","position":{"x":3,"y":3},"content":"Mitochondria","fontSize":7},
+  {"type":"text","position":{"x":8.1,"y":4.5},"content":"Chloroplast","fontSize":7},
+  {"type":"text","position":{"x":6.5,"y":8.5},"content":"Vacuole","fontSize":7},
+  {"type":"text","position":{"x":1.5,"y":0.5},"content":"Cell wall","fontSize":8},
+  {"type":"text","position":{"x":10.5,"y":11.5},"content":"Cell membrane","fontSize":7}
 ]}}
 \`\`\`
 
@@ -888,6 +913,28 @@ export const SUBJECT_DIAGRAM_EXAMPLES: Record<string, string> = {
   {"type":"line","from":{"x":5,"y":0.5},"to":{"x":5,"y":7.5},"dashed":true},
   {"type":"text","position":{"x":3,"y":3},"content":"Left"},
   {"type":"text","position":{"x":7,"y":3},"content":"Right"}
+]}}
+\`\`\``,
+
+  history: `
+### History Diagram Examples:
+
+**Simple Timeline:**
+\`\`\`json
+{"diagram":{"width":14,"height":6,"showNotAccurate":true,"elements":[
+  {"type":"line","from":{"x":2,"y":3},"to":{"x":12,"y":3},"strokeWidth":3},
+  {"type":"point","position":{"x":3,"y":3},"style":"dot","size":6},
+  {"type":"point","position":{"x":6,"y":3},"style":"dot","size":6},
+  {"type":"point","position":{"x":9,"y":3},"style":"dot","size":6},
+  {"type":"point","position":{"x":11,"y":3},"style":"dot","size":6},
+  {"type":"text","position":{"x":3,"y":1.5},"content":"1914","fontSize":11},
+  {"type":"text","position":{"x":6,"y":1.5},"content":"1916","fontSize":11},
+  {"type":"text","position":{"x":9,"y":1.5},"content":"1917","fontSize":11},
+  {"type":"text","position":{"x":11,"y":1.5},"content":"1918","fontSize":11},
+  {"type":"text","position":{"x":3,"y":4.5},"content":"War begins","fontSize":9},
+  {"type":"text","position":{"x":6,"y":4.5},"content":"Battle of Somme","fontSize":9},
+  {"type":"text","position":{"x":9,"y":4.5},"content":"USA enters","fontSize":9},
+  {"type":"text","position":{"x":11,"y":4.5},"content":"War ends","fontSize":9}
 ]}}
 \`\`\``,
 
