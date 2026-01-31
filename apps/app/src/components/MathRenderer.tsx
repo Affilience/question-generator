@@ -420,16 +420,24 @@ function handleTextCommandsOutsideMath(text: string): string {
   });
   
   // Now only process \text{} commands in the non-math parts
-  // Only convert \text{} to regular text if it's clearly outside math delimiters
-  // But be more conservative - don't convert if it might be part of a math expression
+  // Convert \text{} to regular text when it's clearly outside math delimiters
   protectedText = protectedText.replace(/\\text\{([^}]*)\}/g, (match, content) => {
-    // If the content looks like units, chemical formulas, or mathematical text, keep the \text{} command
-    // This ensures proper rendering within math expressions
-    if (/^(cm|mm|km|m|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr|number|mass|volume|density|concentration|temperature|pressure)(\s|$)/i.test(content)) {
-      return match; // Keep the \text{} command
+    // For single letters or simple text content outside math, convert to plain text
+    // This fixes cases like "\text{a}" appearing as literal "/text{a}"
+    const trimmedContent = content.trim();
+    
+    // If it's a single letter (like "a", "b", "c"), convert to plain text
+    if (/^[a-zA-Z]$/.test(trimmedContent)) {
+      return trimmedContent;
     }
-    // Only convert to plain text for clearly non-mathematical content
-    return content;
+    
+    // If it's a simple word without mathematical notation, convert to plain text
+    if (/^[a-zA-Z]+$/.test(trimmedContent) && trimmedContent.length > 1) {
+      return trimmedContent;
+    }
+    
+    // Keep the \text{} command for units, formulas, or complex content
+    return match;
   });
   
   // Restore the math blocks
