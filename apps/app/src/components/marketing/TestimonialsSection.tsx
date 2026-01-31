@@ -127,7 +127,7 @@ export function TestimonialsSection() {
                   </svg>
                 ))}
               </div>
-              <span className="text-sm">4.8/5 from 180+ students</span>
+              <span className="text-sm">4.8/5 from thousands of students</span>
             </div>
             <div className="text-sm">
               ✓ Used by students at 50+ UK schools
