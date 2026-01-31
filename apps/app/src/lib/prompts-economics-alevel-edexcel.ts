@@ -480,22 +480,32 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
 
 **CRITICAL: 8-12 mark questions must be COGNITIVELY DEMANDING - not simple data interpretation!**
 
-**Question Types for Medium:**
-- "Analyse the likely effects of [complex policy] on [multiple stakeholders]" (8-10 marks)
-- "Examine the factors that determine [economic relationship]" (8-10 marks) 
-- "Analyse how [economic theory] applies in [specific context] and assess its limitations" (10-12 marks)
-- "With reference to Extract X, analyse [complex economic issue requiring multiple chains of reasoning]" (10 marks)
+**Acceptable Question Types for Medium (8-12 marks):**
+- "Analyse the likely effects of [specific policy change] on [multiple stakeholders - e.g., consumers, producers, government]" (9-10 marks)
+- "Examine the factors that might determine the success of [specific economic policy]" (10 marks)
+- "With reference to Extract X, analyse the causes of [specific economic issue shown in data] and examine the likely consequences for the economy" (10 marks)
+- "Analyse the extent to which [economic theory] explains [specific real-world phenomenon]" (9 marks)
+
+**FORBIDDEN Question Types (Too vague/unrealistic):**
+- "Analyse the data" (without specific economic focus)
+- "Interpret the results" 
+- "What does the data show?" 
+- Simple data description questions
+- Generic "analyse" without specifying what economic aspect to focus on
 
 **What makes these 8-12 mark questions:**
-- Multiple analytical chains required (cause → effect → further consequence)
+- SPECIFIC economic focus (not just "analyse data")
+- Multiple analytical chains required (cause → effect → further consequence)  
 - Application to specific contexts with real-world examples
 - Analysis of competing factors/forces
-- Some evaluative thinking but not full evaluation
+- Clear economic theory application required
+- Data must be analyzed for SPECIFIC economic insights, not just described
 
-**NOT acceptable for 8-12 marks:**
-- Simple data interpretation ("interpret the results")
-- Basic explanations that could be done in 2-4 marks
-- Single-chain analysis without development
+**Essential Structure for Data-Based Questions:**
+- MUST specify WHAT economic aspect to analyze from the data
+- MUST require economic theory application
+- MUST ask for consequences/implications, not just description
+- Example: "With reference to Extract A, analyse the factors that explain the changes in unemployment shown and examine the likely effects on government fiscal policy"
 
 For data response: Create substantial extract requiring deep analysis
 
