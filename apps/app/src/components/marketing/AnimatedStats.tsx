@@ -10,9 +10,9 @@ interface Stat {
 
 const stats: Stat[] = [
   { value: 12, suffix: '+', label: 'Subjects' },
-  { value: 300, suffix: '+', label: 'Topics' },
+  { value: 400, suffix: '+', label: 'Topics' },
   { value: 3, suffix: '', label: 'Exam Boards' },
-  { value: 100, suffix: '%', label: 'Curriculum Coverage' },
+  { value: 85, suffix: '%', label: 'Curriculum Coverage' },
 ];
 
 export function AnimatedStats() {

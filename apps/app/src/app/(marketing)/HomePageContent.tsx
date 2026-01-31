@@ -12,6 +12,7 @@ import { TypingDemo } from '@/components/marketing/TypingDemo';
 import { AnimatedStats } from '@/components/marketing/AnimatedStats';
 import { HowItWorksSteps } from '@/components/marketing/HowItWorksSteps';
 import { AnimatedSubjectsGrid } from '@/components/marketing/AnimatedSubjectsGrid';
+import { TestimonialsSection } from '@/components/marketing/TestimonialsSection';
 import { createAnimationVariants } from '@/components/marketing/animations';
 
 export default function HomePageContent() {
@@ -217,6 +218,9 @@ export default function HomePageContent() {
             <AnimatedSubjectsGrid />
           </div>
         </section>
+
+        {/* Testimonials */}
+        <TestimonialsSection />
 
         {/* How It Works */}
         <section id="how-it-works" className="py-20 md:py-28 bg-[#0a0a0a]" aria-labelledby="how-heading">
