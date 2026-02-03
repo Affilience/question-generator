@@ -71,9 +71,32 @@ let client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function createClient() {
   if (!client) {
+    // Gracefully handle missing environment variables to prevent runtime errors
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('[Supabase Client] Missing environment variables, using placeholder client');
+      // Return a minimal client that won't crash but will log warnings
+      return {
+        auth: {
+          getUser: async () => ({ data: { user: null }, error: null }),
+          getSession: async () => ({ data: { session: null }, error: null }),
+          signInWithOAuth: async () => ({ data: null, error: new Error('Supabase not configured') }),
+          signOut: async () => ({ error: null }),
+        },
+        from: () => ({
+          select: () => ({ data: null, error: new Error('Supabase not configured') }),
+          insert: () => ({ data: null, error: new Error('Supabase not configured') }),
+          update: () => ({ data: null, error: new Error('Supabase not configured') }),
+          delete: () => ({ data: null, error: new Error('Supabase not configured') }),
+        }),
+      } as any;
+    }
+
     client = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         auth: {
           // Enable persistent sessions across browser closures and mobile app switches

@@ -6,6 +6,13 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  // Skip middleware if Supabase credentials are not configured
+  // This prevents hanging during deployment when env vars aren't set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.warn('[Middleware] Supabase credentials not configured, skipping auth middleware');
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
