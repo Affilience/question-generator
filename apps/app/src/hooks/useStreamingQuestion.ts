@@ -263,11 +263,21 @@ export function useStreamingQuestion() {
     } catch (error) {
       bufferRef.current?.cancel();
 
+      // Handle AbortError silently - this is expected behavior when requests are cancelled
       if ((error as Error).name === 'AbortError') {
+        // Don't report to Sentry - this is intentional cancellation
+        setState(prev => ({
+          ...prev,
+          isStreaming: false,
+          error: null, // Clear any existing errors
+        }));
         return null;
       }
 
+      // Only report unexpected errors to Sentry
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
+      console.error('Question generation error:', error);
+      
       setState(prev => ({
         ...prev,
         isStreaming: false,

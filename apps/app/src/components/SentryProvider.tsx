@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
+import { filterErrorForSentry } from '@/lib/error-filter';
 
 let initialized = false;
 
@@ -17,6 +18,7 @@ export function SentryProvider({ children }: { children: React.ReactNode }) {
         debug: false,
         replaysOnErrorSampleRate: 1.0,
         replaysSessionSampleRate: 0.1,
+        beforeSend: filterErrorForSentry,
         integrations: [
           Sentry.replayIntegration({
             maskAllText: true,
