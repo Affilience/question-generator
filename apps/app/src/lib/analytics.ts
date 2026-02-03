@@ -3,7 +3,7 @@
  * Tracks user behavior and drop-off points throughout onboarding flow
  */
 
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 // Define journey events that indicate user progression
 export type JourneyEvent = 

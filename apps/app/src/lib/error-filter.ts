@@ -51,11 +51,14 @@ export function shouldReportError(error: Error): boolean {
   return true;
 }
 
-export function filterErrorForSentry(error: Error, hint?: any) {
+export function filterErrorForSentry(event: any, hint?: any) {
+  // Extract error from the event
+  const error = hint?.originalException || hint?.syntheticException || new Error(event.exception?.values?.[0]?.value || 'Unknown error');
+  
   // Filter out errors that shouldn't be reported
-  if (!shouldReportError(error)) {
+  if (error instanceof Error && !shouldReportError(error)) {
     return null;
   }
 
-  return error;
+  return event;
 }

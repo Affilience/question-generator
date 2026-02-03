@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { calculateFunnelMetrics } from '@/lib/analytics';
 
 export async function GET(request: NextRequest) {
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
     const funnelData = calculateFunnelMetrics(events || []);
     
     // Calculate additional metrics
-    const totalSessions = new Set(events?.map(e => e.session_id)).size;
+    const totalSessions = new Set(events?.map((e: any) => e.session_id)).size;
     const authenticatedSessions = new Set(
-      events?.filter(e => e.user_id).map(e => e.session_id)
+      events?.filter((e: any) => e.user_id).map((e: any) => e.session_id)
     ).size;
     
     // Find biggest drop-off points
@@ -43,11 +43,11 @@ export async function GET(request: NextRequest) {
     
     // Calculate completion rates for key milestones
     const milestones = {
-      reachedPractice: events?.filter(e => e.event === 'practice_page_load').length || 0,
-      generatedQuestion: events?.filter(e => e.event === 'first_question_generate').length || 0,
-      completedQuestion: events?.filter(e => e.event.includes('question_complete')).length || 0,
-      viewedSolution: events?.filter(e => e.event === 'solution_view').length || 0,
-      secondQuestion: events?.filter(e => e.event === 'second_question_start').length || 0,
+      reachedPractice: events?.filter((e: any) => e.event === 'practice_page_load').length || 0,
+      generatedQuestion: events?.filter((e: any) => e.event === 'first_question_generate').length || 0,
+      completedQuestion: events?.filter((e: any) => e.event.includes('question_complete')).length || 0,
+      viewedSolution: events?.filter((e: any) => e.event === 'solution_view').length || 0,
+      secondQuestion: events?.filter((e: any) => e.event === 'second_question_start').length || 0,
     };
     
     return NextResponse.json({

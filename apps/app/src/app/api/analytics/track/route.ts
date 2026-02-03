@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import type { JourneyEventData } from '@/lib/analytics';
+import { getClientIP } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
     const eventData: JourneyEventData = await request.json();
     
     // Add IP address from request headers
-    const ipAddress = request.ip || 
-                     request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                     request.headers.get('x-real-ip') ||
-                     'unknown';
+    const ipAddress = getClientIP(request);
     
     const supabase = createClient();
     
