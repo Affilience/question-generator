@@ -8,6 +8,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SentryProvider } from "@/components/SentryProvider";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { GlowOrbs } from "@/components/GlowOrbs";
 import { LayoutStabilizer } from "@/components/LayoutStabilizer";
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -144,12 +145,14 @@ export default function RootLayout({
           <AuthProvider>
             <SubscriptionProvider>
               <ThemeProvider>
-              {/* Background glow orbs - lazy loaded to improve LCP */}
-              <GlowOrbs />
+                <AnalyticsProvider>
+                  {/* Background glow orbs - lazy loaded to improve LCP */}
+                  <GlowOrbs />
 
-              <div className="relative z-10 min-h-screen">
-                {children}
-              </div>
+                  <div className="relative z-10 min-h-screen">
+                    {children}
+                  </div>
+                </AnalyticsProvider>
               <CommandPalette />
               <CookieConsent />
               <SpeedInsights />
