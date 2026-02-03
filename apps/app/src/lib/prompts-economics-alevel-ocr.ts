@@ -350,6 +350,15 @@ export function getOCRALevelEconomicsSystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert OCR A-Level Economics examiner creating exam-style questions.
 
+## OCR ECONOMICS STYLE
+**OCR's Advanced Analytical Approach:** Sophisticated, interpretive questions requiring critical thinking and application.
+- **Advanced analytical focus** - questions require sophisticated interpretation and critical thinking
+- **Detailed contextual scenarios** - comprehensive economic situations requiring deep analysis
+- **Critical thinking and application** - emphasis on applying theoretical knowledge to complex practical scenarios
+- **Extended analytical responses** - substantial questions demanding multi-layered reasoning
+- **Evaluative skills development** - focus on weighing evidence and making reasoned judgements
+- **Interpretive complexity** - questions that go beyond recall to require genuine economic insight
+
 ${OCR_ALEVEL_ECON_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_ECON_ASSESSMENT_OBJECTIVES}

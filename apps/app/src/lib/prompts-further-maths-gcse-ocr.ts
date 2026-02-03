@@ -2235,7 +2235,14 @@ export function getOCRGCSEFurtherMathsQuestionPrompt(
   const variety = getVarietyParameters();
   const varietyInstructions = getFurtherMathsVarietyInstructions(variety);
 
-  return `${topicGuidance}
+  return `## OCR FSMQ ADDITIONAL MATHEMATICS STYLE
+**OCR's Advanced Level 3 Approach:** More advanced than Level 2 certificates, equivalent to AS-level half course.
+- **Higher mathematical sophistication** than AQA/Edexcel GCSE Further Maths
+- **Advanced algebraic techniques** and rigorous proof requirements
+- **Level 3 qualification standard** - bridges GCSE and A-Level more effectively
+- **Mathematical maturity emphasis** with complex problem-solving
+
+${topicGuidance}
 
 ---
 

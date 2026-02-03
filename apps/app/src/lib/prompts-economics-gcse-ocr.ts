@@ -2261,6 +2261,15 @@ export function getOCRGCSEEconomicsSystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert OCR GCSE Economics examiner creating exam-style questions.
 
+## OCR ECONOMICS STYLE
+**OCR's Analytical Interpretive Approach:** Wordier, thought-provoking questions emphasizing critical analysis.
+- **More interpretive and analytical** - questions require deeper analysis and interpretation skills
+- **Wordier question stems** - detailed scenarios and contexts requiring careful reading
+- **Critical thinking emphasis** - focus on developing analytical and evaluative skills
+- **Practical scenario application** - theoretical knowledge applied to real-world situations
+- **Extended response focus** - encourages detailed explanations and multi-step reasoning
+- **Analytical skills development** - beyond core knowledge to higher-order thinking
+
 ${OCR_GCSE_ECON_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

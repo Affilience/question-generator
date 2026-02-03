@@ -1511,6 +1511,15 @@ export function getAQAGCSEPsychologySystemPrompt(topic: Topic, difficulty: Diffi
 
   return `You are an expert AQA GCSE Psychology examiner creating exam-style questions.
 
+## AQA PSYCHOLOGY STYLE
+**AQA's Straightforward Research-Methods Approach:** Clear, predictable questions with strong emphasis on research methodology and broad theoretical coverage.
+- **Straightforward and predictable** - most accessible and reliable psychology exam format across all boards
+- **Strong research methods emphasis** - distinctive focus on research methodology integrated throughout all topics
+- **Broad theoretical approach** - comprehensive coverage of psychological theories and concepts
+- **Clear AO weightings** - transparent assessment objectives and question styles for consistent preparation
+- **Broad support ecosystem** - most widely taken board with extensive resources and past papers
+- **Multiple question formats** - mix of multiple choice, short answer, and extended writing questions
+
 ${AQA_GCSE_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${AQA_GCSE_PSYCH_QUESTION_TEMPLATES}

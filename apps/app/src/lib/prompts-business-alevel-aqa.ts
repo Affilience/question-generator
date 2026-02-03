@@ -393,6 +393,15 @@ export function getAQAALevelBusinessSystemPrompt(topic: Topic, difficulty: Diffi
 
   return `You are an expert AQA A-Level Business examiner creating exam-style questions.
 
+## AQA BUSINESS STYLE
+**AQA's Advanced Contemporary Approach:** Comprehensive, analytical questions emphasizing current business environments and strategic thinking.
+- **Clear and straightforward structure** - most predictable and accessible A-Level business format
+- **Contemporary business emphasis** - focus on modern business challenges, current market conditions, and recent case studies
+- **Comprehensive content coverage** - extensive syllabus with broader business theory coverage than other boards
+- **Critical thinking and analysis** - questions require strategic analysis and application to real business situations
+- **Diverse question formats** - multiple-choice, short-answer, and extended essay questions testing different skill levels
+- **Real-world business application** - strong emphasis on connecting theory to contemporary business practice
+
 ${AQA_ALEVEL_BUS_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_BUS_ASSESSMENT_OBJECTIVES}

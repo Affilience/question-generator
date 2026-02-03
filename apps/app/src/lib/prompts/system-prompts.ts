@@ -158,6 +158,13 @@ const MATHS_CONVENTIONS: Record<ExamBoard, string> = {
   aqa: `
 AQA GCSE MATHS (8300) SPECIFIC CONVENTIONS:
 
+BOARD-SPECIFIC STYLE GUIDANCE: Straightforward and predictable approach
+- Papers have clear, gradual progression from easy to hard questions
+- Often start with Multiple Choice questions to build confidence  
+- Focus on clarity and accessibility with structured question formats
+- Traditional mathematical terminology and conventional layouts
+- Questions build incrementally with clear logical progression
+
 COMMAND WORDS (use these exact wordings):
 - "Calculate" / "Work out" - One or more calculations needed; show working for multi-mark questions
 - "Show that" - Give every step of the process to reach the required outcome; no steps can be skipped
@@ -198,6 +205,13 @@ QUESTION PHRASING PATTERNS:
 
   edexcel: `
 EDEXCEL GCSE MATHS (1MA1) SPECIFIC CONVENTIONS:
+
+BOARD-SPECIFIC STYLE GUIDANCE: Analytical and data-driven approach  
+- Questions often more challenging and complex, requiring deeper analysis
+- Strong emphasis on real-world contexts and practical applications
+- Data-heavy questions requiring interpretation and analysis skills
+- Rigorous logical structure supporting step-by-step problem-solving
+- Questions designed to stretch high-achieving students
 
 COMMAND WORDS (use these exact wordings):
 - "Work out" - Use given information to calculate the answer; working usually needed
@@ -241,6 +255,13 @@ QUESTION PHRASING PATTERNS:
   ocr: `
 OCR GCSE MATHS (J560) SPECIFIC CONVENTIONS:
 
+BOARD-SPECIFIC STYLE GUIDANCE: Interpretive and real-world focused
+- Questions tend to be wordier with more context and explanation required
+- Strong emphasis on real-world applications and practical scenarios
+- Questions test ability to apply mathematical knowledge to unfamiliar situations
+- More interpretive approach requiring students to analyse and connect concepts
+- Focus on developing mathematical reasoning and problem-solving skills
+
 COMMAND WORDS (use these exact wordings):
 - "Calculate" / "Work out" - Work out the answer using mathematical operations
 - "Show" / "Show that" - All working needed to get to a given answer; complete diagrams to show given information
@@ -282,6 +303,13 @@ const A_LEVEL_MATHS_CONVENTIONS: Record<ExamBoard, string> = {
   aqa: `
 AQA A-LEVEL MATHS (7357) SPECIFIC CONVENTIONS:
 
+BOARD-SPECIFIC STYLE GUIDANCE: Traditional structured approach with clear progression
+- Questions follow established mathematical conventions and traditional layouts  
+- Clear incremental progression building from GCSE knowledge
+- Emphasis on formal mathematical proofs and rigorous reasoning
+- Systematic approach to complex mathematical concepts
+- Questions designed to build mathematical confidence through clear structure
+
 COMMAND WORDS (use these exact wordings):
 - "Prove" - Formal proof with each step shown; must contain concluding statement
 - "Prove by contradiction" - Must use this specific method; other methods won't receive full marks
@@ -318,6 +346,13 @@ CONTENT AREAS:
   edexcel: `
 EDEXCEL A-LEVEL MATHS (9MA0) SPECIFIC CONVENTIONS:
 
+BOARD-SPECIFIC STYLE GUIDANCE: Modular flexibility with analytical rigor
+- Modular specification allowing flexible teaching order and approach
+- Questions often incorporate more complex analytical techniques  
+- Strong integration of mathematical modelling and real-world applications
+- Emphasis on synoptic understanding connecting different mathematical areas
+- Questions designed to test higher-order analytical and problem-solving skills
+
 COMMAND WORDS:
 - "Calculate" - Obtain numerical answer with relevant working shown
 - "Deduce" - Draw/reach conclusions from information provided
@@ -351,6 +386,13 @@ CONTENT AREAS:
 
   ocr: `
 OCR A-LEVEL MATHS A (H240) SPECIFIC CONVENTIONS:
+
+BOARD-SPECIFIC STYLE GUIDANCE: Mathematical thinking and problem-solving focus
+- Questions emphasise development of mathematical thinking and reasoning skills
+- Strong focus on extended response questions requiring sustained argument
+- Emphasis on stretch and challenge with questions designed for A* differentiation
+- Mix of shorter procedural questions and longer investigative problems
+- Questions encourage independent mathematical exploration and discovery
 
 COMMAND WORDS:
 - "Calculate" / "Work out" - Obtain answer with working shown
@@ -1013,6 +1055,135 @@ PRACTICAL ENDORSEMENT:
 - PAG 1-12 (Practical Activity Groups)
 - Practical skills tested in all written papers
 - At least 10% of marks assess mathematical skills`,
+};
+
+// Combined Science specific conventions (GCSE only - worth 2 GCSEs)
+const COMBINED_SCIENCE_CONVENTIONS: Record<ExamBoard, string> = {
+  aqa: `
+AQA GCSE COMBINED SCIENCE: TRILOGY (8464) SPECIFIC CONVENTIONS:
+
+BOARD-SPECIFIC APPROACH: Comprehensive systematic coverage with balanced assessment
+- Trilogy route: 6 papers (2 biology, 2 chemistry, 2 physics) of 1h 15m each, 70 marks per paper
+- Synergy route: 4 papers (integrated content) of 1h 45m each, 100 marks per paper
+- Total of 420 marks across all papers for both routes
+- Two GCSE grades awarded (9-9 to 1-1)
+
+COMMAND WORDS:
+- "Calculate" - Use numbers to work out answer; show formula, working, units
+- "Compare" - Describe similarities AND/OR differences
+- "Define" - Give the meaning of a term
+- "Describe" - Recall facts/events/processes accurately
+- "Design" - Plan or devise a procedure
+- "Determine" - Use given data/information to obtain answer
+- "Estimate" - Assign approximate value
+- "Evaluate" - Consider evidence for AND against when making judgement
+- "Explain" - Make something clear OR state reasons for something happening
+- "Give/State/Name" - Short answer required, no explanation
+- "Identify" - Name or otherwise characterise
+- "Justify" - Use evidence to support an answer
+- "Plan" - Write a method for an investigation
+- "Predict" - Give plausible outcome based on information
+- "Show" - Provide structured evidence to reach conclusion
+- "Suggest" - Apply knowledge to a new situation
+
+6-MARK EXTENDED RESPONSE (Levels-based marking):
+- Level 3 (5-6 marks): Comprehensive, detailed, logically structured
+- Level 2 (3-4 marks): Some relevant points, partial explanation
+- Level 1 (1-2 marks): Limited response, basic points only
+
+ASSESSMENT OBJECTIVES:
+- AO1 (40%): Knowledge and understanding
+- AO2 (40%): Application of knowledge
+- AO3 (20%): Analysis, interpretation and evaluation
+
+REQUIRED PRACTICALS:
+- 21 required practicals total (8 biology, 8 chemistry, 5 physics)
+- 15% of marks assess practical skills
+- Questions may use novel practical contexts`,
+
+  edexcel: `
+EDEXCEL GCSE COMBINED SCIENCE (1SC0) SPECIFIC CONVENTIONS:
+
+BOARD-SPECIFIC APPROACH: Real-world applications with data analysis emphasis
+- 6 papers (2 biology, 2 chemistry, 2 physics) of 1h 10m each, 60 marks per paper
+- Total of 360 marks across all papers
+- Two GCSE grades awarded (9-9 to 1-1)
+- Strong emphasis on data interpretation and mathematical skills
+- Real-world contexts and case studies integrated throughout
+
+COMMAND WORDS:
+- "Calculate" - Numerical answer with working shown
+- "Compare" - State similarities and/or differences
+- "Complete" - Add information to a diagram, table, or statement
+- "Define" - State the meaning of a term
+- "Describe" - Give an account of facts/events/processes
+- "Design" - Plan an investigation or procedure
+- "Determine" - Use data to reach a conclusion
+- "Draw" - Produce a diagram with labels where needed
+- "Evaluate" - Consider information, weigh evidence, make judgement
+- "Explain" - Give reasons with scientific terminology
+- "Give/State" - Brief answer, no explanation required
+- "Identify" - Recognise and name
+- "Justify" - Support conclusion with evidence
+- "Name" - Give a word or phrase
+- "Plan" - Design an experimental procedure
+- "Predict" - State what will happen based on evidence
+- "Show" - Demonstrate with calculation or reasoning
+- "Suggest" - Apply knowledge to unfamiliar context
+
+CORE PRACTICALS:
+- 16 mandatory core practicals (varies by paper)
+- Practical skills assessed in written exams
+- Questions test ability to analyse data and evaluate methods
+- Strong mathematical component
+
+ASSESSMENT OBJECTIVES:
+- AO1 (40%): Knowledge and understanding
+- AO2 (40%): Application of knowledge and understanding
+- AO3 (20%): Analysis, interpretation and evaluation`,
+
+  ocr: `
+OCR GCSE COMBINED SCIENCE A - GATEWAY (J250) SPECIFIC CONVENTIONS:
+
+BOARD-SPECIFIC APPROACH: Gateway route with analytical interpretive focus
+- 6 papers (2 biology, 2 chemistry, 2 physics) of 1h 30m each, 70 marks per paper
+- Total of 420 marks across all papers
+- Two GCSE grades awarded (9-9 to 1-1)
+- Gateway approach emphasises conceptual understanding and analytical skills
+- Strong focus on making connections between different areas of science
+
+COMMAND WORDS:
+- "Calculate" - Work out numerical answer showing method
+- "Compare" - State similarities and differences
+- "Describe" - Give account of what happens
+- "Discuss" - Present key points; may include different views
+- "Estimate" - Give approximate answer or value
+- "Evaluate" - Review evidence and make reasoned judgement
+- "Explain" - Give reasons for something; use scientific ideas
+- "Give/State/Name" - Short answer, recall fact
+- "Identify" - Recognise or select from given information
+- "Justify" - Give reasons to support a conclusion
+- "Outline" - Set out main points briefly
+- "Plan" - Design a procedure/investigation
+- "Predict" - State expected outcome with reasoning
+- "Sketch" - Draw roughly showing key features
+- "Suggest" - Apply understanding to unfamiliar situations
+
+PRACTICAL ASSESSMENT:
+- 15% of exam marks assess practical content
+- Practical activities integrated across all science areas
+- Emphasis on investigative skills and data analysis
+
+ASSESSMENT OBJECTIVES:
+- AO1 (40%): Knowledge and understanding
+- AO2 (40%): Application of knowledge
+- AO3 (20%): Analysis, interpretation and evaluation
+
+MARK SCHEME NOTATION:
+- Levels-based marking for extended response
+- Accept alternative valid scientific explanations
+- Credit correct science even if not in mark scheme
+- Gateway route encourages conceptual connections across sciences`,
 };
 
 // Computer Science specific conventions
@@ -2011,10 +2182,9 @@ function getSubjectConventions(subject: Subject, examBoard: ExamBoard, qualifica
     }
     return ENGLISH_LITERATURE_CONVENTIONS[examBoard] || '';
   }
-  // Combined science uses the same conventions as the separate sciences
+  // Combined science has specific board variations in structure and approach
   if (subject === 'combined-science') {
-    // Return chemistry conventions as a base (similar structure for all sciences)
-    return CHEMISTRY_CONVENTIONS[examBoard] || '';
+    return COMBINED_SCIENCE_CONVENTIONS[examBoard] || '';
   }
   return '';
 }

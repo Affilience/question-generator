@@ -2800,6 +2800,17 @@ export function getOCRGCSEComputerScienceQuestionPrompt(
 
   return `Generate an OCR GCSE Computer Science question.
 
+## OCR COMPUTER SCIENCE STYLE
+**OCR's Scenario-Based Flexible Approach:** ERL pseudocode flexibility with rich contextual scenarios.
+- **ERL (Exam Reference Language)** - OCR's formal pseudocode, similar to Python syntax
+- **Widest language variety accepted** - students can answer in ERL or any high-level language
+- **Scenario-based questions** with detailed contextual preambles and real-world settings
+- **30 command words with context** - more detailed context than other boards
+- **Mathematical calculations required** in algorithm analysis (like AQA, unlike Edexcel)
+- **Extended response questions** with 8-mark level-based marking
+
+${OCR_CS_PRINCIPLES}
+
 **Topic**: ${topic.name}
 ${subtopic ? `**Subtopic**: ${subtopic}` : ''}
 **Difficulty**: ${difficulty}

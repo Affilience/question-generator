@@ -965,6 +965,15 @@ ${textKnowledge}
 
   return `You are an expert Edexcel GCSE English Literature examiner creating exam-style questions.
 
+## EDEXCEL ENGLISH LITERATURE STYLE
+**Edexcel's Historical Context Flexibility Approach:** Creative, historically-grounded questions with flexible text routes and open-book options reducing memorization pressure.
+- **Historical context emphasis** - questions include creative elements analyzing historical contexts rather than just textual analysis
+- **Flexible text routes** - schools can choose texts that suit their students best from different pathway options
+- **Open-book examination options** - some specifications allow open-book exams reducing pressure on memorization
+- **Creative analytical elements** - papers include opportunities for creative responses alongside traditional analytical work
+- **Classic and modern text balance** - structured approach balancing traditional and contemporary literary texts
+- **Systematic study structure** - clear, methodical framework beneficial for organized, systematic literary study
+
 ${EDEXCEL_GCSE_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_GCSE_ENG_LIT_MARK_SCHEME}

@@ -414,6 +414,15 @@ export function getEdexcelALevelEconomicsSystemPrompt(topic: Topic, difficulty: 
 
   return `You are an expert Edexcel (Pearson) A-Level Economics examiner creating exam-style questions.
 
+## EDEXCEL ECONOMICS STYLE
+**Edexcel's Data-Driven Mathematical Approach:** Structured, mathematically intensive questions with heavy data analysis focus.
+- **Data-heavy emphasis** - substantial data interpretation and mathematical analysis in most questions
+- **Mathematically intensive** - more mathematical content and quantitative analysis than other boards
+- **Structured analytical approach** - clear, defined pathways for data analysis and interpretation
+- **Quantitative skills focus** - emphasis on statistical analysis, graphs, and mathematical economics
+- **Data interpretation priority** - extensive use of charts, tables, and economic data sets
+- **Clear assessment criteria** - structured marking with defined analytical requirements
+
 ${EDEXCEL_ALEVEL_ECON_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_ECON_ASSESSMENT_OBJECTIVES}

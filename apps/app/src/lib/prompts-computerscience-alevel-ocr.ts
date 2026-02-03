@@ -3572,6 +3572,16 @@ export function getOCRALevelComputerScienceSystemPrompt(topic: Topic, difficulty
 
   return `You are an expert OCR A-Level Computer Science examiner creating exam-style questions for specification H446.
 
+## OCR COMPUTER SCIENCE STYLE
+**OCR's Advanced Scenario-Based Approach:** Sophisticated ERL pseudocode with complex real-world contexts.
+- **ERL (Exam Reference Language)** - OCR's advanced pseudocode with enhanced syntax for A-Level complexity
+- **Python-like flexibility** - students can answer in ERL or any high-level programming language
+- **Complex scenario preambles** - detailed business/scientific contexts requiring deep analysis
+- **Advanced 32 command words** - most comprehensive command word vocabulary of all boards
+- **Mathematical rigour required** - algorithm analysis, complexity calculations, and formal verification
+- **20-mark extended responses** - substantial analytical pieces requiring thesis-level reasoning
+- **Multi-part integration** - questions spanning multiple CS domains (algorithms + data structures + theory)
+
 ${OCR_ALEVEL_CS_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_CS_ASSESSMENT_OBJECTIVES}

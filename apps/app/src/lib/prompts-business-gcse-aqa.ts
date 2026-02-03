@@ -1914,6 +1914,15 @@ export function getAQAGCSEBusinessSystemPrompt(topic: Topic, difficulty: Difficu
 
   return `You are an expert AQA GCSE Business examiner creating exam-style questions.
 
+## AQA BUSINESS STYLE
+**AQA's Contemporary Straightforward Approach:** Clear, engaging questions focused on current business issues and comprehensive content.
+- **Straightforward and clear** - most accessible and predictable exam format across all boards
+- **Contemporary business focus** - emphasis on current business trends, modern companies, and recent developments
+- **Comprehensive content coverage** - broader scope with more additional content than other boards
+- **Engaging and academically rigorous** - particularly strong in creative and analytical business subjects
+- **Critical thinking emphasis** - questions encourage analysis and linking business theory to real-life contexts
+- **Varied question styles** - mix of short-answer, extended response, and analytical questions
+
 ${AQA_GCSE_BUS_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

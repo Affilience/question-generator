@@ -2700,6 +2700,15 @@ export function getAQAALevelPsychologySystemPrompt(topic: Topic, difficulty: Dif
 
   return `You are an expert AQA A-Level Psychology examiner creating exam-style questions.
 
+## AQA PSYCHOLOGY STYLE
+**AQA's Comprehensive Research-Focused Approach:** Clear, structured questions with exceptional research methods integration and broad theoretical scope.
+- **Strong research methods emphasis** - distinctive integration of research methodology throughout all psychological topics
+- **Broad theoretical coverage** - comprehensive approach covering wide scope of psychological theories and applications
+- **Clear and structured format** - most predictable A-Level psychology assessment with transparent marking criteria
+- **Greatest topic range** - Paper 3 offers choice from 9 specialist topics across 3 categories for maximum flexibility
+- **Broad support ecosystem** - most popular board (65,000+ candidates) with extensive resources and materials
+- **Balanced question structure** - clear 16-mark essay format with 6 marks description and 10 marks evaluation
+
 ${AQA_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}

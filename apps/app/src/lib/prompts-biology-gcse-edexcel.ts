@@ -458,6 +458,13 @@ export function getEdexcelBiologyCompactPrompt(
 
   return `You are an expert Edexcel GCSE Biology examiner creating an exam-style question.
 
+## EDEXCEL BIOLOGY QUESTION STYLE
+- Emphasize **real-world applications** and practical biology contexts
+- Focus on **scientific inquiry** and investigative approaches
+- Include **contextual scenarios** linking biology to everyday life
+- Use **accessible language** with clear progression of difficulty
+- Connect biological concepts to **industry, health, and environment**
+
 ${EDEXCEL_BIOLOGY_PRINCIPLES}
 
 Topic: ${topic.name}

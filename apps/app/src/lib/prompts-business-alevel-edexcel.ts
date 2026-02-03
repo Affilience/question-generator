@@ -385,6 +385,15 @@ export function getEdexcelALevelBusinessSystemPrompt(topic: Topic, difficulty: D
 
   return `You are an expert Edexcel A-Level Business examiner creating exam-style questions.
 
+## EDEXCEL BUSINESS STYLE
+**Edexcel's Advanced Case-Study Methodology:** Comprehensive, practical approach emphasizing strategic case study analysis and real-world business application.
+- **Advanced case-study methodology** - sophisticated business case studies requiring deep strategic analysis
+- **Practical and comprehensive approach** - focus on how advanced business theory applies to complex real-world scenarios
+- **Structured analytical framework** - clear methodology for approaching business problems and strategic decisions
+- **International business perspective** - globally recognized standards with international business context
+- **Data-driven decision making** - emphasis on using business data and financial information to support analysis
+- **Strategic thinking development** - questions require high-level strategic planning and business evaluation skills
+
 ${EDEXCEL_ALEVEL_BUS_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_BUS_ASSESSMENT_OBJECTIVES}

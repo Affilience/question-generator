@@ -2426,6 +2426,16 @@ YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`
 
   return `Generate an Edexcel GCSE Computer Science question.
 
+## EDEXCEL COMPUTER SCIENCE STYLE
+**Edexcel's Python-Focused Practical Approach:** Exclusive Python programming with revolutionary on-screen practical assessment.
+- **Python 3 exclusively** - all programming tasks and code questions use Python only
+- **2-hour on-screen practical exam** - students code in real Python IDEs, not paper-based
+- **Streamlined assessment** with only 15 command words (compared to 28 for AQA)
+- **Expression creation emphasis** - focus on creating expressions rather than full calculations
+- **Practical programming focus** with real-world implementation scenarios
+
+${EDEXCEL_CS_PRINCIPLES}
+
 **Topic**: ${topic.name}
 **Subtopic**: ${subtopic || 'General'}
 **Difficulty**: ${difficulty}

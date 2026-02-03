@@ -496,6 +496,15 @@ ${textKnowledge}
 
   return `You are an expert AQA A-Level English Literature A examiner creating exam-style questions.
 
+## AQA ENGLISH LITERATURE STYLE
+**AQA's Advanced Contemporary Critical Approach:** Sophisticated comparative essays integrating contemporary literature with advanced critical literary theories and closed-book analysis.
+- **Contemporary literature and critical theories** - advanced focus on diverse, modern literary selection with sophisticated theoretical frameworks
+- **Comparative essay methodology** - questions require comparative analysis across texts, themes, contexts, and literary techniques
+- **Closed-book advanced analysis** - students must demonstrate memorized textual knowledge with sophisticated critical engagement
+- **Text analysis and insights assessment** - evaluation of deep insights into themes, contexts, and literary techniques across diverse genres
+- **Diverse genre integration** - comprehensive coverage across poetry, drama, and prose ensuring broad literary understanding
+- **Advanced critical perspectives** - questions demand high-level critical thinking and theoretical application to literary analysis
+
 ${AQA_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}

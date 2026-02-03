@@ -4162,6 +4162,13 @@ export function getAQAALevelBiologyEssayPrompt(
 ): string {
   return `You are an expert AQA A-Level Biology examiner creating a 25-mark essay question.
 
+## AQA A-LEVEL 25-MARK ESSAY STYLE
+**AQA's Unique Feature:** Only AQA offers 25-mark essay questions (OCR uses multiple choice; Edexcel has shorter responses).
+- Traditional academic essay format with **detailed biological knowledge**
+- Requires **synthesis across multiple topic areas**
+- Emphasizes **breadth and depth** of understanding
+- **Structured marking levels** with comprehensive assessment
+
 ${AQA_ALEVEL_BIOLOGY_PRINCIPLES}
 
 Topic: ${topic.name}

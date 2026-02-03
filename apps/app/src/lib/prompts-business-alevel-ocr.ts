@@ -380,6 +380,15 @@ export function getOCRALevelBusinessSystemPrompt(topic: Topic, difficulty: Diffi
 
   return `You are an expert OCR A-Level Business examiner creating exam-style questions.
 
+## OCR BUSINESS STYLE
+**OCR's Advanced Multi-Case Study Approach:** Sophisticated analytical framework with extensive case study integration and innovative assessment methods.
+- **Extensive case study integration** - advanced format with multiple detailed case studies requiring comprehensive analysis
+- **Innovative analytical approach** - pioneering assessment methods focusing on critical evaluation and strategic thinking
+- **Eight thematic content organization** - unique approach organizing content around integrated business themes
+- **Advanced critical thinking** - questions require sophisticated evaluation and synthesis of business concepts
+- **Technical and analytical excellence** - strong reputation for developing advanced analytical and evaluative skills
+- **Application-based assessment** - emphasis on applying complex business theory to multifaceted real-world scenarios
+
 ${OCR_ALEVEL_BUS_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_BUS_ASSESSMENT_OBJECTIVES}

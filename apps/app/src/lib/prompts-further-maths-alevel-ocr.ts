@@ -2103,7 +2103,14 @@ export function getOCRALevelFurtherMathsQuestionPrompt(
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
     : '';
 
-  return `${OCR_FM_QUESTION_PRINCIPLES}
+  return `## OCR A-LEVEL FURTHER MATHEMATICS STYLE
+**OCR's Rigorous Approach:** Higher algebraic complexity with unique geometric and advanced content areas.
+- **Challenging algebraic manipulation** requiring sophisticated mathematical techniques
+- **Area between curve and y-axis** - unique to OCR geometric interpretation
+- **2-dimensional moments problems** and advanced statistical mechanics
+- **Mathematical rigor emphasis** with proof-based reasoning
+
+${OCR_FM_QUESTION_PRINCIPLES}
 
 ${topicGuidance}
 

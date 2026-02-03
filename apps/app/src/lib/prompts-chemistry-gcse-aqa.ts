@@ -76,7 +76,9 @@ const AQA_CHEMISTRY_REQUIRED_PRACTICALS = `
 `;
 
 const AQA_CHEMISTRY_COMMAND_WORDS = `
-## AQA GCSE Chemistry Command Words (Official Definitions)
+## AQA GCSE Chemistry Command Words (Board-Specific Preferences)
+
+**AQA Preferred Style:** Clear, structured language with step-by-step guidance. Emphasizes "calculate" and "explain" with comprehensive working.
 
 ### Knowledge Commands (AO1)
 | Command | Meaning | Typical Marks |
@@ -642,6 +644,13 @@ export function getAQAChemistryCompactPrompt(
 
   return `You are an expert AQA GCSE Chemistry examiner creating an exam-style question.
 
+## AQA QUESTION STYLE
+- Use **structured, step-by-step guidance** in questions
+- Provide **clear data and information** when needed
+- Use **straightforward, unambiguous language**
+- Guide students through logical progression of ideas
+- Include comprehensive context and background information
+
 ${AQA_CHEMISTRY_PRINCIPLES}
 
 Topic: ${topic.name}
@@ -963,7 +972,8 @@ export function getAQAChemistryRequiredPracticalPrompt(
 
 ---
 
-## Required Practical Context
+## AQA Required Practical Context
+**AQA Practical Style:** Structured, step-by-step procedures with comprehensive safety considerations and detailed method descriptions.
 
 **Practical:** ${practical.name}
 **Description:** ${practical.description}

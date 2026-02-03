@@ -71,7 +71,9 @@ const EDEXCEL_CHEMISTRY_CORE_PRACTICALS = `
 `;
 
 const EDEXCEL_CHEMISTRY_COMMAND_WORDS = `
-## Edexcel GCSE Chemistry Command Words (Official Definitions)
+## Edexcel GCSE Chemistry Command Words (Board-Specific Preferences)
+
+**Edexcel Preferred Style:** Data-rich analytical questions. Emphasizes "analyse", "evaluate" and "use the data" with real-world contexts.
 
 ### Knowledge Commands (AO1)
 | Command | Meaning | Typical Marks |
@@ -718,6 +720,13 @@ export function getEdexcelChemistryCompactPrompt(
 
   return `You are an expert Edexcel GCSE Chemistry examiner creating an exam-style question.
 
+## EDEXCEL QUESTION STYLE
+- Include **real-world applications** and practical contexts
+- Emphasize **data interpretation and analysis**
+- Use **progressive difficulty** within multi-part questions
+- Focus on **analytical problem-solving** skills
+- Connect chemistry concepts to **industry and everyday life**
+
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
 
 ${EDEXCEL_CHEMISTRY_REFERENCE_DATA}
@@ -1097,6 +1106,9 @@ export function getEdexcelChemistryPracticalMethodPrompt(
   subtopic?: PracticalSubtopic
 ): string {
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
+
+## EDEXCEL CORE PRACTICAL STYLE
+**Edexcel Practical Approach:** Traditional structured practicals with clear links to curriculum content. Emphasizes data interpretation and real-world applications.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
 

@@ -404,6 +404,15 @@ export function getAQAALevelEconomicsSystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert AQA A-Level Economics examiner creating exam-style questions.
 
+## AQA ECONOMICS STYLE
+**AQA's Comprehensive Contemporary Approach:** Clear, structured questions with strong emphasis on current economic analysis.
+- **Structured and predictable** - most reliable and organized exam format across all boards
+- **Contemporary issues emphasis** - focus on current economic affairs and policy implications
+- **Clear language and progression** - accessible yet rigorous academic language
+- **Real-world application focus** - connecting economic theory to current events and policy debates
+- **Comprehensive coverage** - balanced approach to microeconomics and macroeconomics
+- **Multiple-choice, short-answer, and essay** - varied question types testing different skills
+
 ${AQA_ALEVEL_ECON_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_ECON_ASSESSMENT_OBJECTIVES}

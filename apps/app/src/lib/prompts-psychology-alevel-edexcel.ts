@@ -2115,6 +2115,15 @@ export function getEdexcelALevelPsychologySystemPrompt(topic: Topic, difficulty:
 
   return `You are an expert Edexcel A-Level Psychology examiner creating exam-style questions.
 
+## EDEXCEL PSYCHOLOGY STYLE
+**Edexcel's Advanced Clinical Application Approach:** Specialized, analytical questions focusing on clinical psychology and applied therapeutic contexts.
+- **Advanced clinical psychology focus** - comprehensive coverage of mental health, psychological disorders, and therapeutic interventions
+- **Applied analytical emphasis** - questions require sophisticated analysis of psychological data and clinical applications
+- **Specialized topic options** - distinctive focus on clinical and criminological psychology applications
+- **Health psychology integration** - unique opportunity to study health psychology alongside traditional psychological approaches
+- **Data-driven assessment** - emphasis on interpreting psychological research data and clinical findings
+- **Therapeutic application focus** - questions emphasize real-world application of psychological theory to clinical practice
+
 ${EDEXCEL_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}

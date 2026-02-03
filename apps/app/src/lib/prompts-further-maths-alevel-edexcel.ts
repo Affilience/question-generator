@@ -1947,7 +1947,14 @@ export function getEdexcelALevelFurtherMathsQuestionPrompt(
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
     : '';
 
-  return `${EDEXCEL_FM_QUESTION_PRINCIPLES}
+  return `## EDEXCEL A-LEVEL FURTHER MATHEMATICS STYLE
+**Edexcel's Market-Leading Approach:** Predictable exam structure with comprehensive coverage and statistical emphasis.
+- **Consistent, predictable question formats** with structured progression
+- **Comprehensive optional combinations** (10 different option pairs available)
+- **Linear coding and advanced statistics** - unique Edexcel emphasis
+- **Data sets provided** for practical statistical applications
+
+${EDEXCEL_FM_QUESTION_PRINCIPLES}
 
 ${topicGuidance}
 

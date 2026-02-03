@@ -285,6 +285,15 @@ ${textKnowledge}
 
   return `You are an expert Edexcel A-Level English Literature examiner creating exam-style questions.
 
+## EDEXCEL ENGLISH LITERATURE STYLE
+**Edexcel's Advanced Open-Book Historical Approach:** Sophisticated analysis combining open-book accessibility with systematic study of balanced classic and modern texts.
+- **Open-book examination format** - all A-Level exams are open-book (except Critical Anthology), reducing memorization pressure
+- **Classic and modern text balance** - structured approach providing systematic study of both traditional and contemporary literature
+- **Historical context integration** - advanced analysis of historical contexts and their influence on literary works
+- **Systematic study methodology** - clear, organized framework beneficial for methodical literary analysis and study
+- **Flexible assessment pathways** - different examination routes allowing adaptation to student strengths and interests
+- **Creative and analytical synthesis** - questions blend creative interpretation with rigorous analytical literary criticism
+
 ${EDEXCEL_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}

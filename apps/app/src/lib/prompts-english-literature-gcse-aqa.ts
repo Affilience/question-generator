@@ -1385,6 +1385,15 @@ ${textKnowledge}
 
   return `You are an expert AQA GCSE English Literature examiner creating exam-style questions.
 
+## AQA ENGLISH LITERATURE STYLE
+**AQA's Contemporary Critical Theory Approach:** Clear, essay-based questions emphasizing contemporary literature and critical literary theories with closed-book memorization.
+- **Contemporary literature emphasis** - focus on diverse, modern literary selection and current critical perspectives
+- **Closed-book examination format** - students must memorize key quotes, themes, and textual evidence
+- **Critical literary theories integration** - questions incorporate contemporary critical approaches and theoretical frameworks
+- **Clear essay-based structure** - straightforward questions focusing on character, theme, and writers' language techniques
+- **Critical thinking and analysis** - emphasis on developing analytical skills through extended written responses
+- **Creative subjects strength** - particularly strong approach for students who excel in English and creative analytical writing
+
 ${AQA_GCSE_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${AQA_GCSE_ENG_LIT_MARK_SCHEME}

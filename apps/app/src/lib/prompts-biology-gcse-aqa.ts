@@ -494,6 +494,13 @@ export function getAQABiologyCompactPrompt(
 
   return `You are an expert AQA GCSE Biology examiner creating an exam-style question.
 
+## AQA BIOLOGY QUESTION STYLE
+- Use **traditional, structured approach** with clear step-by-step guidance
+- Provide **detailed experimental procedures** when relevant
+- Use **straightforward, unambiguous scientific language**
+- Include potential for **extended response questions** at higher difficulties
+- Focus on **systematic biological knowledge** building
+
 ${AQA_BIOLOGY_PRINCIPLES}
 
 Topic: ${topic.name}

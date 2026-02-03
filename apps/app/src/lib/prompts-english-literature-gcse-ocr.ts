@@ -405,6 +405,15 @@ ${textKnowledge}
 
   return `You are an expert OCR GCSE English Literature examiner creating exam-style questions.
 
+## OCR ENGLISH LITERATURE STYLE
+**OCR's Thematic Interpretive Approach:** Detailed, wordier questions emphasizing thematic frameworks and interpretive analysis with clear structural application.
+- **Thematic framework emphasis** - questions encourage detailed exploration of texts within comprehensive thematic structures
+- **Wordier interpretive questions** - detailed question stems requiring careful interpretation and extended analytical responses
+- **Clear structural application** - questions praised for clear structure with strong focus on practical literary application
+- **Extended writing and interpretation** - assessment designed for students who excel in extended analytical writing and critical thinking
+- **Technical and analytical excellence** - strong reputation for developing advanced interpretive skills in humanities subjects
+- **Essay-based analytical learning** - particularly suited for students who enjoy deep analytical exploration of literary texts
+
 ${OCR_GCSE_ENG_LIT_ASSESSMENT_OBJECTIVES}
 
 ${OCR_GCSE_ENG_LIT_MARK_SCHEME}

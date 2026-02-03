@@ -2633,6 +2633,15 @@ ${INTERPRETATION_GUIDANCE}
 
   return `You are an expert AQA GCSE History examiner creating exam-style questions.
 
+## AQA HISTORY STYLE
+**AQA's Thematic Critical Thinking Approach:** Clear, straightforward questions emphasizing thematic analysis and critical evaluation across broad historical periods.
+- **Thematic analytical approach** - questions encourage thematic rather than chronological analysis of historical developments
+- **Straightforward and predictable** - clear, accessible question formats with transparent assessment criteria  
+- **Critical thinking emphasis** - focus on developing critical thinking and analytical interpretation skills
+- **Broad historical periods** - comprehensive coverage of modern world history and extensive thematic studies
+- **Progressive question structure** - shorter answers building to extended analytical responses rewarding structured writing
+- **Contextual knowledge priority** - questions require wider contextual historical knowledge and understanding
+
 ${AQA_GCSE_HIST_ASSESSMENT_OBJECTIVES}
 
 ${AQA_GCSE_HIST_QUESTION_TEMPLATES}

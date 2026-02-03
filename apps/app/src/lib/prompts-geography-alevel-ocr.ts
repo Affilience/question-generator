@@ -1727,6 +1727,15 @@ export function getOCRALevelGeographySystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert OCR A-Level Geography examiner creating exam-style questions.
 
+## OCR GEOGRAPHY STYLE
+**OCR's Advanced Analytical GIS Approach:** Sophisticated interpretive questions integrating modern GIS skills with balanced theoretical perspectives.
+- **Advanced analytical interpretation** - sophisticated questions requiring deep critical analysis and evaluation of geographical concepts
+- **Modern GIS skills integration** - unique emphasis on Geographic Information Systems and technological geographical analysis
+- **Skills-based practical learning** - strong fieldwork component combining practical skills with theoretical knowledge
+- **Balanced theoretical approach** - equal emphasis on physical and human geography with integrated conceptual frameworks
+- **Smaller cohort specialization** - smaller entry numbers allowing for specialized, detailed geographical analysis approaches
+- **Project-based coursework variety** - diverse assessment methods including varied coursework and project-based evaluations
+
 ${OCR_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}

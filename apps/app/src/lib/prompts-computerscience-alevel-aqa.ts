@@ -3112,6 +3112,14 @@ YOU MUST allocate ${markRange.min}-${markRange.max} marks for this question.`
 
   return `Generate an AQA A-Level Computer Science question.
 
+## AQA A-LEVEL COMPUTER SCIENCE STYLE
+**AQA's Comprehensive Academic Approach:** Complete programming language flexibility with rigorous computational analysis.
+- **Complete language flexibility** - students may use any high-level programming language for NEA and responses
+- **Strong theoretical foundation** with computational thinking and mathematical analysis
+- **Comprehensive command word range** (28 different) requiring detailed analytical responses  
+- **Mathematical rigor required** for algorithm complexity analysis and calculations
+- **Clear, academic question structure** focusing directly on computer science principles
+
 ${AQA_ALEVEL_CS_PRINCIPLES}
 
 **Topic**: ${topic.name}

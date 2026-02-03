@@ -74,7 +74,9 @@ OCR uses flexible PAGs rather than fixed Required Practicals. Centres can choose
 `;
 
 const OCR_CHEMISTRY_COMMAND_WORDS = `
-## OCR GCSE Chemistry Command Words (Official Definitions)
+## OCR GCSE Chemistry Command Words (Board-Specific Preferences)
+
+**OCR Preferred Style:** Context-driven interpretive questions. Emphasizes "suggest", "discuss" and "outline" requiring application to unfamiliar scenarios.
 
 ### Knowledge Commands (AO1)
 | Command | Meaning | Typical Marks |
@@ -687,6 +689,13 @@ export function getOCRChemistryCompactPrompt(
 
   return `You are an expert OCR GCSE Chemistry examiner creating an exam-style question.
 
+## OCR QUESTION STYLE
+- Use **context-led scenarios** with real-world chemistry applications
+- Require **application of knowledge to unfamiliar situations**
+- Include **interpretive and analytical elements** in questions
+- Use **breadth and depth assessment approach**
+- Present chemistry in **practical, applied contexts**
+
 ${OCR_CHEMISTRY_PRINCIPLES}
 
 ${OCR_CHEMISTRY_REFERENCE_DATA}
@@ -1062,6 +1071,9 @@ export function getOCRChemistryPracticalMethodPrompt(
   subtopic?: PracticalSubtopic
 ): string {
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG (Practical Activity Group) question.
+
+## OCR PAG PRACTICAL STYLE  
+**OCR PAG Approach:** Flexible practical activity groups allowing teacher discretion. Emphasizes application to unfamiliar contexts and interpretive analysis.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
 

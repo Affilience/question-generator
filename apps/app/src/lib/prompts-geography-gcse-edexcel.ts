@@ -1022,6 +1022,15 @@ export function getEdexcelGCSEGeographySystemPrompt(topic: Topic, difficulty: Di
 
   return `You are an expert Edexcel GCSE Geography examiner creating exam-style questions.
 
+## EDEXCEL GEOGRAPHY STYLE
+**Edexcel's Global International Approach:** Internationally-focused questions emphasizing global case studies and prescribed fieldwork methodologies.
+- **Global international perspective** - diverse range of international case studies and worldwide geographical contexts
+- **Prescribed fieldwork environments** - specific environments linked to specified content for structured fieldwork experiences
+- **Internationally recognized standards** - globally diverse examples suitable for international student perspectives
+- **Analytical and data-heavy** - questions requiring detailed analysis of geographical data and international comparisons
+- **Broad global context focus** - emphasis on worldwide geographical processes and international development issues
+- **Clear structured methodology** - well-defined assessment approaches with international case study requirements
+
 ${EDEXCEL_GCSE_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

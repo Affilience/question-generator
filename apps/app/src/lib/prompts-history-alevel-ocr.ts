@@ -989,6 +989,15 @@ export function getOCRALevelHistorySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert OCR A-Level History examiner creating exam-style questions.
 
+## OCR HISTORY STYLE
+**OCR's Advanced Synthesis Integration Approach:** Sophisticated comparative analysis emphasizing synthesis across periods with diverse modular integration.
+- **Advanced synthesis emphasis** - sophisticated requirement to make comparisons and links between disparate historical periods
+- **Thematic helicopter approach** - breadth essays covering whole periods thematically rather than chronologically
+- **Diverse modular integration** - balanced mix of world, British, and thematic history with integrated perspectives
+- **Comparative temporal analysis** - questions require explanation of similarities and differences over extended time periods
+- **Two-section paper structure** - compulsory source questions (30 marks) with choice essay questions (20 marks)
+- **Multiple question choice flexibility** - students choose between comprehensive question sets rather than individual questions
+
 ${OCR_ALEVEL_HIST_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}

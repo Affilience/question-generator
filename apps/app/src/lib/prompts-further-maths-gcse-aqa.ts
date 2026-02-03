@@ -2557,7 +2557,14 @@ export function getAQAGCSEFurtherMathsQuestionPrompt(
   const variety = getVarietyParameters();
   const varietyInstructions = getVarietyInstructions(variety);
 
-  return `${topicGuidance}
+  return `## AQA FURTHER MATHEMATICS STYLE
+**AQA's Traditional Approach:** Structured, comprehensive methodology with emphasis on algebraic reasoning and mathematical rigor.
+- **Systematic algebraic manipulation** and clear logical progression  
+- **Traditional mathematical presentation** with step-by-step working
+- **Emphasis on infinite sums** and iterative sequence methods
+- **Pure mathematics focus** without excessive applied contexts
+
+${topicGuidance}
 
 ---
 

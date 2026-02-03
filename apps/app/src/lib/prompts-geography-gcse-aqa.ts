@@ -909,6 +909,15 @@ export function getAQAGCSEGeographySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert AQA GCSE Geography examiner creating exam-style questions.
 
+## AQA GEOGRAPHY STYLE
+**AQA's UK-Focused Practical Approach:** Clear, straightforward questions emphasizing British geographical contexts and practical application.
+- **UK-focused examples** - strong emphasis on British geographical issues, environments, and case studies
+- **Straightforward and predictable** - clear, accessible question formats with transparent assessment criteria
+- **Practical application emphasis** - focus on real-world geographical skills and fieldwork applications
+- **Flexible fieldwork choices** - freedom for teachers to choose appropriate topics and locations within specified content
+- **Contemporary issues focus** - questions tied to current UK geographical challenges and developments
+- **Balanced physical/human geography** - comprehensive coverage of both physical and human geographical processes
+
 ${AQA_GCSE_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

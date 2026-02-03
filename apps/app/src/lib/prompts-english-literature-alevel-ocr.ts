@@ -266,6 +266,15 @@ ${textKnowledge}
 
   return `You are an expert OCR A-Level English Literature examiner creating exam-style questions.
 
+## OCR ENGLISH LITERATURE STYLE
+**OCR's Advanced Creative Thematic Approach:** Sophisticated thematic exploration with creative writing options and diverse literary perspectives within closed-text analysis.
+- **Thematic framework sophistication** - advanced detailed exploration of texts within comprehensive thematic structures promoting analytical skills
+- **Creative writing integration** - genuine opportunities for creative writing within both NEA and examined components
+- **Closed-text demanding analysis** - closed-text examination requiring high-level interpretative skills and textual analysis of unseen texts
+- **Broad literature coverage** - comprehensive range across poetry, drama, and prose developing deep understanding of literary diversity
+- **Critical perspective development** - questions encourage sophisticated critical perspectives and advanced literary analysis
+- **Re-creative writing with commentary** - unique options for re-creative writing tasks alongside traditional close reading analysis
+
 ${OCR_ALEVEL_ENG_LIT_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_ENG_LIT_ASSESSMENT_OBJECTIVES}

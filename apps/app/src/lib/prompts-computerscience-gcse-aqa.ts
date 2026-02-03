@@ -2112,6 +2112,14 @@ export function getAQAGCSEComputerScienceQuestionPrompt(
 
   return `Generate an AQA GCSE Computer Science question.
 
+## AQA COMPUTER SCIENCE STYLE
+**AQA's Multi-Language Approach:** Flexible programming language choice with strong computational thinking emphasis.
+- **Any high-level language supported** (Python, C#, VB.NET) - students choose their preferred language
+- **Computational thinking focus** balanced with practical programming skills
+- **28 comprehensive command words** requiring detailed, nuanced responses
+- **Clear, structured approach** getting straight to computer science concepts
+- **Mathematical calculations required** in algorithm analysis and data representation
+
 ${AQA_CS_PRINCIPLES}
 
 **Topic**: ${topic.name}

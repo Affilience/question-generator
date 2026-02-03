@@ -1077,6 +1077,15 @@ export function getOCRGCSEGeographySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert OCR GCSE Geography examiner creating exam-style questions.
 
+## OCR GEOGRAPHY STYLE
+**OCR's Analytical Essay-Based Approach:** Interpretive, wordier questions emphasizing critical analysis and balanced geographical perspectives.
+- **Essay-based analytical learning** - questions require extended written responses and critical thinking skills
+- **Wordier interpretive questions** - detailed question stems requiring careful reading and interpretation
+- **Balanced physical/human approach** - equal emphasis on both physical and human geography with integrated perspectives
+- **Critical thinking emphasis** - questions encourage extended analysis and evaluation of geographical concepts
+- **Flexible fieldwork methodology** - freedom for teachers to choose appropriate fieldwork topics and locations
+- **Varied coursework approaches** - diverse project-based assessments and coursework options for practical skills
+
 ${OCR_GCSE_GEOG_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

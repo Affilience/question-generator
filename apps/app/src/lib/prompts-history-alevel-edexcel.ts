@@ -1109,6 +1109,15 @@ export function getEdexcelALevelHistorySystemPrompt(topic: Topic, difficulty: Di
 
   return `You are an expert Edexcel A-Level History examiner creating exam-style questions.
 
+## EDEXCEL HISTORY STYLE
+**Edexcel's Advanced Source-Interpretation Focus:** Sophisticated source evaluation with structured thematic studies and detailed historical interpretations.
+- **Advanced source analysis** - sophisticated interrogation of sources with confidence and discrimination
+- **Thematic studies with breadth** - comprehensive thematic studies combined with breadth and source evaluations
+- **Detailed course structure** - well-defined focus on depth studies, thematic studies, and period studies for nuanced understanding
+- **Historical interpretations emphasis** - dedicated sections assessing ability to analyze and evaluate historical interpretations
+- **Three-section paper structure** - clear division into essay questions and compulsory interpretation analysis
+- **Historical complexity appreciation** - questions enhance students' ability to connect events and appreciate historical narrative complexity
+
 ${EDEXCEL_ALEVEL_HIST_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}

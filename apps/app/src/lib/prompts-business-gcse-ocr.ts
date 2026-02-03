@@ -2102,6 +2102,15 @@ export function getOCRGCSEBusinessSystemPrompt(topic: Topic, difficulty: Difficu
 
   return `You are an expert OCR GCSE Business examiner creating exam-style questions.
 
+## OCR BUSINESS STYLE
+**OCR's Multi-Case Study Analytical Approach:** Innovative, case study-intensive questions emphasizing analytical skills and critical thinking.
+- **Multiple case studies per paper** - unique format with 3 case studies per paper (most of any board)
+- **Analytical and innovative approach** - focus on developing critical thinking and evaluation skills
+- **Essay-based analytical learning** - particularly strong for students who enjoy extended analytical writing
+- **Short case studies with data** - concise scenarios requiring data interpretation and analysis
+- **Clear structure and application focus** - questions emphasize practical application of business theory
+- **Critical thinking development** - questions require deep analysis rather than just recall of business concepts
+
 ${OCR_GCSE_BUS_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

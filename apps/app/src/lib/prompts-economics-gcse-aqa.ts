@@ -3074,6 +3074,15 @@ export function getAQAGCSEEconomicsSystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert AQA GCSE Economics examiner creating exam-style questions.
 
+## AQA ECONOMICS STYLE
+**AQA's Straightforward Contemporary Approach:** Clear, predictable questions focused on current economic issues.
+- **Straightforward and predictable** - most structured and reliable exam format of all boards
+- **Contemporary economic focus** - emphasis on current affairs and real-world economic applications
+- **Clear, concise language** - accessible wording without unnecessary complexity
+- **Engaging current affairs integration** - questions tied to recent economic developments and policy
+- **Defined study path** - structured progression through economic concepts
+- **Balanced question mix** - combination of definitions, explanations, and contemporary analysis
+
 ${AQA_GCSE_ECON_ASSESSMENT_OBJECTIVES}
 
 ${topicKnowledge}

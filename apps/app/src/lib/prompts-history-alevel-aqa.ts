@@ -1809,6 +1809,15 @@ export function getAQAALevelHistorySystemPrompt(topic: Topic, difficulty: Diffic
 
   return `You are an expert AQA A-Level History examiner creating exam-style questions.
 
+## AQA HISTORY STYLE
+**AQA's Advanced Thematic Synthesis Approach:** Comprehensive thematic analysis requiring sophisticated evaluation of historical evidence and coherent argumentation.
+- **Advanced thematic approach** - sophisticated thematic rather than chronological analysis of complex historical developments
+- **Source-based with essay integration** - balanced mix of source evaluation and extended essay writing in cohesive assessment
+- **Critical evidence evaluation** - advanced skills in critically evaluating historical evidence and presenting coherent arguments
+- **Breadth and depth studies** - comprehensive assessment ensuring well-rounded evaluation of historical understanding
+- **Factor-based essay questions** - questions exploring multiple factors and themes like "Henry VII successfully consolidated power"
+- **Balanced judgment emphasis** - mark schemes require balanced judgment and evaluation for specific purposes
+
 ${AQA_ALEVEL_HIST_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_HIST_ASSESSMENT_OBJECTIVES}

@@ -1071,6 +1071,15 @@ export function getEdexcelGCSEPsychologySystemPrompt(topic: Topic, difficulty: D
 
   return `You are an expert Edexcel GCSE Psychology examiner creating exam-style questions.
 
+## EDEXCEL PSYCHOLOGY STYLE
+**Edexcel's Applied Analytical Approach:** Topic-focused questions emphasizing clinical and applied psychology applications with analytical depth.
+- **Applied psychology focus** - strong emphasis on clinical psychology and real-world applications of psychological theory
+- **Topic choice flexibility** - students choose from specialized optional topics including criminological applications
+- **Analytical and data-heavy** - questions require detailed analysis of psychological data and research findings
+- **Clinical psychology emphasis** - distinctive focus on mental health, therapeutic approaches, and psychological disorders
+- **Health psychology integration** - unique option to study health psychology alongside core psychological concepts
+- **Structured analytical assessment** - clear frameworks for analyzing psychological concepts and applications
+
 ${EDEXCEL_GCSE_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_GCSE_PSYCH_QUESTION_TEMPLATES}

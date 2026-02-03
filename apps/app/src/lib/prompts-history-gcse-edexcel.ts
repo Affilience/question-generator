@@ -1310,6 +1310,15 @@ ${EDEXCEL_SOURCE_GUIDANCE}
 
   return `You are an expert Edexcel GCSE History examiner creating exam-style questions.
 
+## EDEXCEL HISTORY STYLE
+**Edexcel's Source Analysis Enquiry Approach:** Structured, source-focused questions emphasizing detailed case studies and historical enquiry skills.
+- **Source analysis focus** - primary emphasis on source analysis and historical enquiry methodology
+- **Detailed case studies** - comprehensive detailed case studies requiring in-depth analysis of specific historical examples
+- **Historical enquiry skills** - emphasis on developing skills in evaluating different types of historical information
+- **Structured analytical approach** - clear, methodical framework for approaching historical problems and evidence evaluation
+- **Approachable format** - often more accessible with simple 'bullet point' approach to answer structures
+- **Historical context integration** - opportunities for deeper analysis of historical contexts rather than just surface analysis
+
 ${EDEXCEL_GCSE_HIST_ASSESSMENT_OBJECTIVES}
 
 ${EDEXCEL_GCSE_HIST_QUESTION_TEMPLATES}

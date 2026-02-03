@@ -1296,6 +1296,15 @@ export function getOCRGCSEPsychologySystemPrompt(topic: Topic, difficulty: Diffi
 
   return `You are an expert OCR GCSE Psychology examiner creating exam-style questions.
 
+## OCR PSYCHOLOGY STYLE
+**OCR's Core Studies Interpretive Approach:** Detailed study-focused questions emphasizing classic research and analytical interpretation skills.
+- **Core studies emphasis** - focus on learning specific classic and contemporary psychological studies in detail
+- **Interpretive and analytical** - questions require deeper interpretation and critical analysis of psychological research
+- **Studies-through-approach structure** - unique methodology building evaluation skills through detailed study analysis
+- **More detailed topic coverage** - covers psychological topics in greater depth than other boards
+- **Real-life application requirement** - questions require applying psychological knowledge to unprepared real-world scenarios
+- **Classic research focus** - emphasis on well-known, foundational psychological studies from diverse areas
+
 ${OCR_GCSE_PSYCH_ASSESSMENT_OBJECTIVES}
 
 ${OCR_GCSE_PSYCH_QUESTION_TEMPLATES}

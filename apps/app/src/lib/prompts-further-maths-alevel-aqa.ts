@@ -2458,7 +2458,14 @@ export function getAQAALevelFurtherMathsQuestionPrompt(
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
     : '';
 
-  return `${topicGuidance}
+  return `## AQA A-LEVEL FURTHER MATHEMATICS STYLE
+**AQA's Traditional Academic Approach:** Emphasis on algebraic reasoning, mathematical rigor, and systematic pure mathematics.
+- **Structured logical progression** with clear mathematical development
+- **Traditional proof techniques** and rigorous algebraic manipulation  
+- **Infinite sums and iterative sequences** - AQA's unique strength area
+- **Pure mathematics emphasis** - less applied context than other boards
+
+${topicGuidance}
 
 ---
 

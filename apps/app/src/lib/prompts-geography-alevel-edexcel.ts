@@ -1688,6 +1688,15 @@ export function getEdexcelALevelGeographySystemPrompt(topic: Topic, difficulty: 
 
   return `You are an expert Edexcel A-Level Geography examiner creating exam-style questions.
 
+## EDEXCEL GEOGRAPHY STYLE
+**Edexcel's Advanced Global Research Approach:** Internationally-oriented questions with strong research methodology and global case study focus.
+- **Global international emphasis** - extensive focus on worldwide geographical processes, international development, and global case studies
+- **Research-focused methodology** - strong support for independent investigation (13,753 students) with clear research frameworks
+- **International perspective priority** - questions emphasize global contexts, international comparisons, and worldwide geographical issues
+- **Data-driven analytical approach** - emphasis on interpreting international geographical data, global statistics, and comparative analysis
+- **Prescribed structured fieldwork** - specific methodological approaches for fieldwork with international examples and contexts
+- **Global challenges focus** - questions address worldwide geographical challenges, international development, and global environmental issues
+
 ${EDEXCEL_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
 
 ${EDEXCEL_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}

@@ -131,7 +131,66 @@ export type QuestionType =
   | 'essay'
   | 'source-analysis'
   | 'interpretation'
-  | 'extract-analysis';
+  | 'extract-analysis'
+  // Mathematics-specific question types (calculation-focused)
+  | 'construction'
+  | 'loci'
+  | 'algebraic-manipulation'
+  | 'simultaneous-equations'
+  | 'optimization'
+  | 'differential-equations'
+  | 'integration-by-parts'
+  | 'statistical-hypothesis'
+  | 'sequence-series'
+  | 'transformation-geometry'
+  // Physics-specific question types
+  | 'practical-method'
+  | 'practical-analysis'
+  | 'circuit-design'
+  | 'wave-calculation'
+  | 'nuclear-decay'
+  | 'energy-transfer'
+  // Chemistry-specific question types
+  | 'chemical-equation'
+  | 'structure-drawing'
+  | 'titration-calculation'
+  | 'organic-mechanism'
+  | 'inorganic-analysis'
+  | 'bonding-structure'
+  // Biology-specific question types
+  | 'microscopy-drawing'
+  | 'lifecycle-diagram'
+  | 'food-web-analysis'
+  | 'genetics-calculation'
+  | 'plant-adaptation'
+  | 'human-physiology'
+  // Computer Science-specific question types
+  | 'algorithm-design'
+  | 'code-analysis'
+  | 'data-structure'
+  | 'pseudocode-writing'
+  | 'trace-table'
+  | 'system-design'
+  // Economics-specific question types
+  | 'data-response'
+  | 'diagram-analysis'
+  | 'economic-calculation'
+  | 'case-study-analysis'
+  // Business-specific question types
+  | 'business-calculation'
+  | 'stakeholder-analysis'
+  // Psychology-specific question types
+  | 'research-methods'
+  | 'study-evaluation'
+  // Geography-specific question types
+  | 'map-analysis'
+  | 'fieldwork-method'
+  // History-specific question types
+  | 'chronology-analysis'
+  | 'historical-significance'
+  // English Literature-specific question types
+  | 'poetry-comparison'
+  | 'character-analysis';
 
 export interface PaperSection {
   id: string;
@@ -163,6 +222,59 @@ export interface QuestionTypeDistribution {
   proof?: number;
   showThat?: number;
   graph?: number;
+  // Mathematics-specific distributions
+  construction?: number;
+  loci?: number;
+  algebraicManipulation?: number;
+  simultaneousEquations?: number;
+  optimization?: number;
+  differentialEquations?: number;
+  integrationByParts?: number;
+  statisticalHypothesis?: number;
+  sequenceSeries?: number;
+  transformationGeometry?: number;
+  // Physics-specific distributions
+  practicalMethod?: number;
+  practicalAnalysis?: number;
+  circuitDesign?: number;
+  waveCalculation?: number;
+  nuclearDecay?: number;
+  energyTransfer?: number;
+  // Chemistry-specific distributions
+  chemicalEquation?: number;
+  structureDrawing?: number;
+  titrationCalculation?: number;
+  organicMechanism?: number;
+  inorganicAnalysis?: number;
+  bondingStructure?: number;
+  // Biology-specific distributions
+  microscopyDrawing?: number;
+  lifecycleDiagram?: number;
+  foodWebAnalysis?: number;
+  geneticsCalculation?: number;
+  plantAdaptation?: number;
+  humanPhysiology?: number;
+  // Subject-specific distributions for remaining subjects
+  algorithmDesign?: number;
+  codeAnalysis?: number;
+  dataStructure?: number;
+  pseudocodeWriting?: number;
+  traceTable?: number;
+  systemDesign?: number;
+  dataResponse?: number;
+  diagramAnalysis?: number;
+  economicCalculation?: number;
+  caseStudyAnalysis?: number;
+  businessCalculation?: number;
+  stakeholderAnalysis?: number;
+  researchMethods?: number;
+  studyEvaluation?: number;
+  mapAnalysis?: number;
+  fieldworkMethod?: number;
+  chronologyAnalysis?: number;
+  historicalSignificance?: number;
+  poetryComparison?: number;
+  characterAnalysis?: number;
 }
 
 export interface PaperSettings {

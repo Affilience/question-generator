@@ -990,6 +990,15 @@ ${OCR_SOURCE_GUIDANCE}
 
   return `You are an expert OCR GCSE History examiner creating exam-style questions.
 
+## OCR HISTORY STYLE
+**OCR's Local Synthesis Approach:** Interpretive, comparative questions emphasizing local history integration and rigorous analytical assessment.
+- **Local area history integration** - unique option allowing study of local area history alongside global historical events
+- **Synthesis and comparative analysis** - emphasis on making comparisons and links between different historical periods
+- **Wordier interpretive questions** - detailed, interpretive question stems requiring careful analysis and extended responses
+- **Rigorous analytical assessment** - renowned for in-depth, academically challenging questions in humanities subjects
+- **Clear structured application** - questions praised for clear structure with strong focus on practical historical application
+- **Convincing analysis requirement** - mark schemes demand convincing, fully supported analysis of historical sources and contexts
+
 ${OCR_GCSE_HIST_ASSESSMENT_OBJECTIVES}
 
 ${OCR_GCSE_HIST_QUESTION_TEMPLATES}

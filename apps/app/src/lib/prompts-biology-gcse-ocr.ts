@@ -432,6 +432,13 @@ export function getOCRBiologyCompactPrompt(
 
   return `You are an expert OCR Gateway GCSE Biology examiner creating an exam-style question.
 
+## OCR BIOLOGY QUESTION STYLE
+- Use **positive marking approach** - not designed to catch students out
+- Include **practical application** to unfamiliar biological contexts  
+- Emphasize **flexible PAG-based** practical scenarios
+- Use **multiple choice elements** where appropriate
+- Focus on **applied learning** and biological problem-solving
+
 ${OCR_BIOLOGY_PRINCIPLES}
 
 Topic: ${topic.name}
@@ -527,6 +534,12 @@ export function getOCRBiologyMultipleChoicePrompt(
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
 
   return `You are an expert OCR Gateway GCSE Biology examiner creating a multiple choice question.
+
+## OCR MULTIPLE CHOICE EMPHASIS
+**OCR's Distinctive Feature:** Unlike AQA's essays, OCR uses multiple choice questions as a key assessment method.
+- **Positive marking approach** - designed to allow students to demonstrate knowledge
+- **Applied biological contexts** requiring knowledge application
+- **Clear, unambiguous options** with realistic distractors
 
 ${OCR_BIOLOGY_PRINCIPLES}
 
@@ -797,7 +810,14 @@ export function getOCRBiologyPAGPrompt(
   // Get subtopic-specific guidance
   const subtopicGuidance = getBiologyPracticalSubtopicGuidance(subtopic, practical);
 
-  return `${OCR_BIOLOGY_PRINCIPLES}
+  return `## OCR PAG SYSTEM FLEXIBILITY
+**OCR's Unique Approach:** PAGs (Practical Activity Groups) allow teachers discretion over when and how to integrate practicals.
+- **Flexible practical combinations** within activity groups
+- **Teacher choice** in specific experiments within each PAG
+- **Applied contexts** linking practicals to real-world biology
+- **Breadth and depth** assessment model
+
+${OCR_BIOLOGY_PRINCIPLES}
 
 ---
 

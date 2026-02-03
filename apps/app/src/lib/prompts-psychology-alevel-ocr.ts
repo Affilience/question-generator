@@ -1146,6 +1146,15 @@ export function getOCRALevelPsychologySystemPrompt(topic: Topic, difficulty: Dif
 
   return `You are an expert OCR A-Level Psychology examiner creating exam-style questions.
 
+## OCR PSYCHOLOGY STYLE
+**OCR's Advanced Core Studies Approach:** Sophisticated study-centered questions requiring deep analysis of classic psychological research and complex real-world applications.
+- **Comprehensive core studies focus** - extensive emphasis on classic and contemporary psychological studies requiring detailed knowledge
+- **Advanced interpretive analysis** - questions demand sophisticated interpretation and critical evaluation of psychological research
+- **Studies-through-methodology** - unique approach building advanced evaluation skills through intensive study analysis
+- **Detailed topic exploration** - covers psychological concepts in greater depth and complexity than other boards
+- **Unprepared application scenarios** - questions require applying study knowledge to novel, unprepared real-life situations
+- **Specialized topic options** - unique modules including sports/exercise psychology and environmental psychology
+
 ${OCR_ALEVEL_PSYCH_COGNITIVE_CHALLENGE}
 
 ${OCR_ALEVEL_PSYCH_ASSESSMENT_OBJECTIVES}

@@ -2669,6 +2669,15 @@ export function getAQAALevelGeographySystemPrompt(topic: Topic, difficulty: Diff
 
   return `You are an expert AQA A-Level Geography examiner creating exam-style questions.
 
+## AQA GEOGRAPHY STYLE
+**AQA's Comprehensive UK-Contemporary Approach:** Structured, UK-focused questions with strong emphasis on contemporary geographical issues and practical fieldwork.
+- **UK-focused case studies** - primary emphasis on British geographical contexts, environments, and contemporary challenges
+- **Comprehensive structured approach** - most popular A-Level geography board (14,450 students) with clear, predictable assessment format
+- **Contemporary issues integration** - strong focus on current geographical challenges, climate change, and modern urban development
+- **Independent investigation flexibility** - 3,000-4,000 word fieldwork investigation with freedom to choose topics within specification
+- **Physical/human balance** - comprehensive coverage ensuring equal emphasis on both physical and human geographical processes
+- **Clear analytical framework** - transparent assessment criteria for essays, data interpretation, and case study analysis
+
 ${AQA_ALEVEL_GEOG_COGNITIVE_CHALLENGE}
 
 ${AQA_ALEVEL_GEOG_ASSESSMENT_OBJECTIVES}
