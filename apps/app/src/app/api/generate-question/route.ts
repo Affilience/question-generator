@@ -463,8 +463,20 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validation = validateRequest(GenerateQuestionRequestSchema, body);
     if (!validation.success) {
+      // Log validation errors for debugging
+      console.error('Question generation validation failed:', {
+        body,
+        error: validation.error,
+        details: validation.details
+      });
+      
       return NextResponse.json(
-        { error: 'Invalid request', details: validation.error },
+        { 
+          error: 'Invalid request', 
+          message: validation.error,
+          details: validation.details,
+          receivedData: body 
+        },
         { status: 400 }
       );
     }

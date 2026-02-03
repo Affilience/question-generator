@@ -19,18 +19,18 @@ export interface RateLimitResult {
   error?: string;
 }
 
-// Default rate limits
+// Default rate limits - Optimized for user onboarding and engagement
 export const RATE_LIMITS = {
-  // Question generation: 30 requests per hour for authenticated users
+  // Question generation: 200 requests per hour for authenticated users
   QUESTION_GENERATION_AUTH: {
     endpoint: 'generate-question',
-    maxRequests: 30,
+    maxRequests: 200,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
-  // Question generation: 10 requests per hour for anonymous users
+  // Question generation: 50 requests per hour for anonymous users (enough for proper trial)
   QUESTION_GENERATION_ANON: {
     endpoint: 'generate-question',
-    maxRequests: 10,
+    maxRequests: 50,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
 } as const;
