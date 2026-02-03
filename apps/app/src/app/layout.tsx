@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SentryProvider } from "@/components/SentryProvider";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import { GlowOrbs } from "@/components/GlowOrbs";
 import { LayoutStabilizer } from "@/components/LayoutStabilizer";
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -155,6 +156,7 @@ export default function RootLayout({
                 </AnalyticsProvider>
               <CommandPalette />
               <CookieConsent />
+              <NetworkStatus />
               <SpeedInsights />
               </ThemeProvider>
             </SubscriptionProvider>
