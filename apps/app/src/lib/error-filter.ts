@@ -34,6 +34,7 @@ export function shouldReportError(error: Error): boolean {
     'Load failed',
     'Network request failed',
     'Fetch aborted',
+    'Failed to fetch',
   ];
 
   // Don't report if error name is in ignored list
