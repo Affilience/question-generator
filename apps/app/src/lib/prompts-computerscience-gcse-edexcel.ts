@@ -60,6 +60,29 @@ const EDEXCEL_CS_ASSESSMENT_OBJECTIVES = `
 - No coursework component - 100% exam assessed
 `;
 
+const EDEXCEL_CS_PRINCIPLES = `
+## Edexcel GCSE Computer Science Core Principles
+
+### Assessment Philosophy
+- **Practical programming emphasis** using Python 3 syntax throughout
+- **Real-world problem solving** with authentic scenarios and contexts
+- **Computational thinking** applied to solve complex problems
+- **No pseudocode** - all programming questions use actual Python 3
+
+### Question Construction Guidelines
+- Use **authentic Python 3 syntax** in all programming questions
+- Include **real-world contexts** and practical scenarios
+- Focus on **application of knowledge** rather than just recall
+- Ensure questions test **computational thinking skills**
+- Use **clear, unambiguous language** matching official specification
+- Include appropriate **technical terminology** from the specification
+
+### Mark Allocation Principles
+- **1-2 marks**: Basic recall and identification
+- **3-4 marks**: Application and basic analysis
+- **5-8 marks**: Extended response, evaluation, and complex programming
+`;
+
 const EDEXCEL_CS_PYTHON_REFERENCE = `
 ## Edexcel GCSE Computer Science Python Reference
 

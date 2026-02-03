@@ -65,7 +65,7 @@ interface SubtopicAllocation {
  * - Edexcel A-Level: 90-120 mark papers, Mathematics Level 2+ requirements
  * - Universal 6-mark QWC across ALL science subjects (AQA/Edexcel/OCR)
  */
-const QUESTION_TYPE_MARKS: Record<QuestionType, number[]> = {
+const QUESTION_TYPE_MARKS: Partial<Record<QuestionType, number[]>> = {
   // Basic question types (STEM subjects - Maths, Sciences, Computer Science)
   'multiple-choice': [1], // Universal across all subjects and boards
   'short-answer': [1, 2, 3, 4], // Simple recall, definitions, basic calculations
@@ -91,7 +91,7 @@ const QUESTION_TYPE_MARKS: Record<QuestionType, number[]> = {
  * Question type to difficulty compatibility
  * Some question types naturally suit certain difficulties
  */
-const QUESTION_TYPE_DIFFICULTY_WEIGHTS: Record<QuestionType, Record<Difficulty, number>> = {
+const QUESTION_TYPE_DIFFICULTY_WEIGHTS: Partial<Record<QuestionType, Record<Difficulty, number>>> = {
   'multiple-choice': { easy: 0.6, medium: 0.3, hard: 0.1 },
   'short-answer': { easy: 0.4, medium: 0.4, hard: 0.2 },
   'calculation': { easy: 0.3, medium: 0.4, hard: 0.3 },
@@ -343,7 +343,9 @@ export class QuestionSelector {
   ): QuestionType | null {
     // Filter types that can fit in remaining marks
     const viableTypes = availableTypes.filter((type) => {
-      const minMarks = Math.min(...QUESTION_TYPE_MARKS[type]);
+      const typeMarks = QUESTION_TYPE_MARKS[type];
+      if (!typeMarks || typeMarks.length === 0) return false;
+      const minMarks = Math.min(...typeMarks);
       return minMarks <= remainingMarks;
     });
 
@@ -357,7 +359,9 @@ export class QuestionSelector {
    * Choose marks for a question type
    */
   private chooseMarks(questionType: QuestionType, remainingMarks: number): number {
-    const possibleMarks = QUESTION_TYPE_MARKS[questionType].filter((m) => m <= remainingMarks);
+    const typeMarks = QUESTION_TYPE_MARKS[questionType];
+    if (!typeMarks) return 0;
+    const possibleMarks = typeMarks.filter((m) => m <= remainingMarks);
     if (possibleMarks.length === 0) return 0;
 
     // Prefer marks that don't leave tiny remainders
@@ -393,7 +397,7 @@ export class QuestionSelector {
     const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
     const scores = difficulties.map((d) => ({
       difficulty: d,
-      score: Math.max(0, deficits[d]) * typeWeights[d] + (typeWeights[d] * 0.1), // Small base weight
+      score: Math.max(0, deficits[d]) * (typeWeights?.[d] || 0) + ((typeWeights?.[d] || 0) * 0.1), // Small base weight
     }));
 
     // Weighted random selection

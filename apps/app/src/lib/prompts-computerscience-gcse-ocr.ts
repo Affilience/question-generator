@@ -56,6 +56,29 @@ const OCR_CS_ASSESSMENT_OBJECTIVES = `
 - **Includes programming questions using OCR Exam Reference Language**
 `;
 
+const OCR_CS_PRINCIPLES = `
+## OCR GCSE Computer Science Core Principles
+
+### Assessment Philosophy
+- **Balanced approach** with equal weighting to systems and programming
+- **Exam Reference Language** for programming questions (pseudocode)
+- **Level-based marking** for extended response questions
+- **Real-world contexts** with detailed scenario descriptions
+
+### Question Construction Guidelines
+- Use **OCR Exam Reference Language** for programming questions
+- Include **detailed contextual preambles** for scenario-based questions
+- Focus on **computational thinking** and problem-solving skills
+- Test **knowledge application** in unfamiliar contexts
+- Use **precise technical terminology** from the specification
+- Include **level-based marking** for 8-mark extended responses
+
+### Mark Allocation Principles
+- **1-3 marks**: Recall and basic understanding (AO1)
+- **4-6 marks**: Application and analysis (AO2/AO3)
+- **8 marks**: Extended response with levels (AO1/AO2/AO3 combined)
+`;
+
 const OCR_CS_EXAM_REFERENCE_LANGUAGE = `
 ## OCR Exam Reference Language (Official Pseudocode)
 

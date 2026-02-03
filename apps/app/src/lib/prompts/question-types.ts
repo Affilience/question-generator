@@ -11,7 +11,7 @@ import { QuestionType, Difficulty } from '@/types';
 // QUESTION TYPE DESCRIPTIONS
 // ============================================================================
 
-export const QUESTION_TYPE_DESCRIPTIONS: Record<QuestionType, string> = {
+export const QUESTION_TYPE_DESCRIPTIONS: Partial<Record<QuestionType, string>> = {
   'multiple-choice': 'a multiple choice question with 4 options (A, B, C, D) where exactly ONE is correct',
   'short-answer': 'a short answer question requiring a brief response (1-3 sentences or a calculation)',
   'calculation': 'a calculation/numerical problem that requires showing working steps',
@@ -87,7 +87,7 @@ export const QUESTION_TYPE_DESCRIPTIONS: Record<QuestionType, string> = {
 // COMMAND WORDS BY QUESTION TYPE
 // ============================================================================
 
-export const COMMAND_WORDS_BY_TYPE: Record<QuestionType, string[]> = {
+export const COMMAND_WORDS_BY_TYPE: Partial<Record<QuestionType, string[]>> = {
   'multiple-choice': ['Which', 'What', 'Select'],
   'short-answer': ['State', 'Name', 'Give', 'Write', 'Identify'],
   'calculation': ['Calculate', 'Work out', 'Find', 'Determine'],
@@ -140,7 +140,7 @@ export const COMMAND_WORDS_BY_TYPE: Record<QuestionType, string[]> = {
 // MARK RANGES BY QUESTION TYPE
 // ============================================================================
 
-export const MARK_RANGES_BY_TYPE: Record<QuestionType, { min: number; max: number }> = {
+export const MARK_RANGES_BY_TYPE: Partial<Record<QuestionType, { min: number; max: number }>> = {
   'multiple-choice': { min: 1, max: 1 },
   'short-answer': { min: 1, max: 3 },
   'calculation': { min: 2, max: 5 },
@@ -714,7 +714,7 @@ Level-based marking with emphasis on quality of reasoning and use of evidence
 // ============================================================================
 
 export function getQuestionTypeTemplate(type: QuestionType): string {
-  const templates: Record<QuestionType, string> = {
+  const templates: Partial<Record<QuestionType, string>> = {
     'multiple-choice': MULTIPLE_CHOICE_TEMPLATE,
     'calculation': CALCULATION_TEMPLATE,
     'short-answer': EXPLAIN_TEMPLATE, // Uses same template as explain for short answers
@@ -771,7 +771,7 @@ export function getQuestionTypeTemplate(type: QuestionType): string {
 // ============================================================================
 
 export function getDifficultyModifierForType(type: QuestionType, difficulty: Difficulty): string {
-  const baseModifier: Record<Difficulty, Record<QuestionType, string>> = {
+  const baseModifier: Record<Difficulty, Partial<Record<QuestionType, string>>> = {
     easy: {
       'multiple-choice': 'Test basic recall. Distractors should be clearly different from correct answer.',
       'short-answer': 'Brief response requiring basic recall.',

@@ -134,7 +134,7 @@ function buildInstanceParameters(params: InstanceParams): string {
 
   // Calculate marks if not specified
   const markRange = MARK_RANGES_BY_TYPE[questionType];
-  const marks = targetMarks || Math.floor((markRange.min + markRange.max) / 2);
+  const marks = targetMarks || (markRange ? Math.floor((markRange.min + markRange.max) / 2) : 4);
 
   // Difficulty descriptions
   const difficultyDesc = {
@@ -202,7 +202,7 @@ export function buildCompactPrompt(params: QuestionGenerationParams): PromptLaye
   const levelDisplay = qualification === 'a-level' ? 'A-Level' : 'GCSE';
   const boardUpper = examBoard.toUpperCase();
   const markRange = MARK_RANGES_BY_TYPE[questionType];
-  const marks = targetMarks || Math.floor((markRange.min + markRange.max) / 2);
+  const marks = targetMarks || (markRange ? Math.floor((markRange.min + markRange.max) / 2) : 4);
 
   const systemPrompt = `You are a ${boardUpper} ${levelDisplay} ${formatSubject(subject)} examiner. Generate original exam-style questions. Return ONLY valid JSON.
 
