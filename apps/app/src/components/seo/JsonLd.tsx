@@ -125,3 +125,57 @@ export function WebsiteJsonLd({ baseUrl = 'https://past-papers.co.uk' }: Website
     />
   );
 }
+
+interface OrganizationJsonLdProps {
+  baseUrl?: string;
+}
+
+export function OrganizationJsonLd({ baseUrl = 'https://past-papers.co.uk' }: OrganizationJsonLdProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: 'Past Papers',
+    description: 'AI-powered educational platform providing unlimited practice questions for GCSE and A-Level students',
+    url: baseUrl,
+    logo: `${baseUrl}/icon-512.png`,
+    sameAs: [
+      // Add social media profiles when available
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      availableLanguage: 'English'
+    },
+    areaServed: 'GB',
+    educationalCredentialAwarded: 'Practice Questions and Solutions',
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Educational Practice Questions',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Course',
+            name: 'GCSE Practice Questions',
+            description: 'Comprehensive practice questions for all GCSE subjects'
+          }
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Course', 
+            name: 'A-Level Practice Questions',
+            description: 'Advanced practice questions for A-Level subjects'
+          }
+        }
+      ]
+    }
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}

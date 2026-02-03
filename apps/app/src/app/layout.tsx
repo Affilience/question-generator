@@ -101,12 +101,29 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
         
-        {/* Critical CSS for preventing layout shifts */}
+        {/* Additional resource hints for Core Web Vitals */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} />
+        <link rel="dns-prefetch" href="https://api.anthropic.com" />
+        <link rel="dns-prefetch" href="https://api.openai.com" />
+        
+        {/* Prefetch critical pages for faster navigation */}
+        <link rel="prefetch" href="/gcse" />
+        <link rel="prefetch" href="/a-level" />
+        
+        {/* Critical CSS for preventing layout shifts and mobile optimization */}
         <style dangerouslySetInnerHTML={{
           __html: `
             body { margin: 0; padding: 0; }
             .container { max-width: 100%; overflow-x: hidden; }
             [data-layout-stable] { min-height: 1px; }
+            /* Mobile-first performance optimizations */
+            * { -webkit-tap-highlight-color: transparent; }
+            img { content-visibility: auto; contain: layout style paint; }
+            .math-display { contain: layout style; }
+            @media (max-width: 768px) {
+              body { font-size: 16px; } /* Prevent iOS zoom on form focus */
+              .question-container { transform: translateZ(0); } /* Hardware acceleration */
+            }
           `
         }} />
         
