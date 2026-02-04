@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '#features', label: 'Features' },
   { href: '#subjects', label: 'Subjects' },
   { href: '/paper-generator', label: 'Paper Generator' },
+  { href: '/blog', label: 'Study Guides' },
   { href: '#how-it-works', label: 'How It Works' },
   { href: '/pricing', label: 'Pricing' },
 ];
