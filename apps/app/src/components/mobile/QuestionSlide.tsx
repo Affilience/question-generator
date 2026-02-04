@@ -6,7 +6,7 @@ import { DiagramSpec } from '@/types/diagram';
 import { MathRenderer } from '../MathRenderer';
 import { BookmarkButton } from '../BookmarkButton';
 import { DiagramRenderer } from '../DiagramRenderer';
-import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
+import { getValidatedMarks, formatMarksDisplay, validateQuestionCompleteness } from '@/lib/markValidation';
 
 // Error boundary for diagram rendering
 class DiagramErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -149,6 +149,9 @@ export function QuestionSlide({
 
   // No question and not streaming - shouldn't happen but handle gracefully
   if (!question && !streamedContent) return null;
+
+  // Validate question completeness for multi-part questions
+  const validation = question ? validateQuestionCompleteness(question) : null;
 
   return (
     <div className="h-dvh w-full snap-start snap-always flex flex-col bg-[var(--color-bg-page)] safe-area-inset-top safe-area-inset-bottom relative overflow-hidden">
@@ -322,6 +325,29 @@ export function QuestionSlide({
                       className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
                     />
                   </DiagramErrorBoundary>
+                </div>
+              </div>
+            )}
+
+            {/* Validation Warning */}
+            {validation && !validation.overallValid && (
+              <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.517-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h4 className="text-xs font-medium text-amber-800 mb-1">
+                        Mark Scheme Issues
+                      </h4>
+                      <ul className="text-xs text-amber-700 space-y-1">
+                        {validation.issues.map((issue, index) => (
+                          <li key={index}>• {issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

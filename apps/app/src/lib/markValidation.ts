@@ -78,3 +78,105 @@ export function getValidatedMarks(question: { marks: number; markScheme: string[
 export function formatMarksDisplay(marks: number): string {
   return `${marks} ${marks === 1 ? 'mark' : 'marks'}`;
 }
+
+// Extract question parts from content (a), (b), (c), etc.
+export function extractQuestionParts(content: string): string[] {
+  const partRegex = /\(([a-z]|[ivxlcdm]+|\d+)\)/gi;
+  const matches = content.match(partRegex);
+  if (!matches) return [];
+  
+  return [...new Set(matches.map(match => match.toLowerCase()))].sort();
+}
+
+// Extract parts covered in mark scheme
+export function extractMarkSchemeParts(markScheme: string[]): string[] {
+  const parts: string[] = [];
+  for (const point of markScheme) {
+    // Match patterns like "(a) M1:", "(b) A1:", etc.
+    const match = point.match(/^\(([a-z]|[ivxlcdm]+|\d+)\)/i);
+    if (match) {
+      parts.push(match[0].toLowerCase());
+    }
+  }
+  return [...new Set(parts)].sort();
+}
+
+// Validate multi-part question completeness
+export function validateMultiPartMarkScheme(question: { 
+  content: string; 
+  markScheme: string[]; 
+  marks: number 
+}): {
+  isComplete: boolean;
+  questionParts: string[];
+  markSchemeParts: string[];
+  missingParts: string[];
+  hasMultipleParts: boolean;
+  validationMessage?: string;
+} {
+  const questionParts = extractQuestionParts(question.content);
+  const markSchemeParts = extractMarkSchemeParts(question.markScheme);
+  const hasMultipleParts = questionParts.length > 1;
+  
+  if (!hasMultipleParts) {
+    return {
+      isComplete: true,
+      questionParts,
+      markSchemeParts,
+      missingParts: [],
+      hasMultipleParts: false
+    };
+  }
+  
+  const missingParts = questionParts.filter(part => !markSchemeParts.includes(part));
+  const isComplete = missingParts.length === 0;
+  
+  let validationMessage: string | undefined;
+  if (!isComplete) {
+    validationMessage = `Mark scheme missing for parts: ${missingParts.join(', ')}. Question has parts: ${questionParts.join(', ')}, but mark scheme only covers: ${markSchemeParts.join(', ') || 'none'}`;
+  }
+  
+  return {
+    isComplete,
+    questionParts,
+    markSchemeParts,
+    missingParts,
+    hasMultipleParts,
+    validationMessage
+  };
+}
+
+// Comprehensive validation function
+export function validateQuestionCompleteness(question: { 
+  content: string; 
+  markScheme: string[]; 
+  marks: number 
+}): {
+  markConsistency: ReturnType<typeof validateMarkConsistency>;
+  multiPartValidation: ReturnType<typeof validateMultiPartMarkScheme>;
+  overallValid: boolean;
+  issues: string[];
+} {
+  const markConsistency = validateMarkConsistency(question);
+  const multiPartValidation = validateMultiPartMarkScheme(question);
+  
+  const issues: string[] = [];
+  
+  if (!markConsistency.isConsistent) {
+    issues.push(`Mark total mismatch: Expected ${markConsistency.expectedMarks}, calculated ${markConsistency.calculatedMarks}`);
+  }
+  
+  if (multiPartValidation.hasMultipleParts && !multiPartValidation.isComplete) {
+    issues.push(multiPartValidation.validationMessage!);
+  }
+  
+  const overallValid = markConsistency.isConsistent && 
+    (!multiPartValidation.hasMultipleParts || multiPartValidation.isComplete);
+  
+  return {
+    markConsistency,
+    multiPartValidation,
+    overallValid,
+    issues
+  };
+}

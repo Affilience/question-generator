@@ -5,7 +5,7 @@ import { GeneratedQuestion } from '@/types';
 import { MarkBadge } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
 import { DiagramRenderer } from '@/components/DiagramRenderer';
-import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
+import { getValidatedMarks, formatMarksDisplay, validateQuestionCompleteness } from '@/lib/markValidation';
 
 // Parse mark scheme point to extract mark type and description
 function parseMarkSchemePoint(point: string): { part?: string; markType: string; description: string } {
@@ -264,6 +264,9 @@ export function PaperQuestion({
  */
 function PaperSolutionDisplay({ question }: { question: GeneratedQuestion }) {
   const [isMarkSchemeExpanded, setIsMarkSchemeExpanded] = useState(true);
+  
+  // Validate question completeness
+  const validation = validateQuestionCompleteness(question);
 
   // Group mark scheme by parts if multi-part question
   const markSchemeByPart: Record<string, Array<{ markType: string; description: string }>> = {};
@@ -303,6 +306,27 @@ function PaperSolutionDisplay({ question }: { question: GeneratedQuestion }) {
           <MathRenderer content={question.solution} />
         </div>
       </div>
+
+      {/* Validation Warning */}
+      {!validation.overallValid && (
+        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.517-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-medium text-amber-800 mb-1">
+                Mark Scheme Issues Detected
+              </h4>
+              <ul className="text-xs text-amber-700 space-y-1">
+                {validation.issues.map((issue, index) => (
+                  <li key={index}>• {issue}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mark Scheme */}
       {question.markScheme.length > 0 && (
