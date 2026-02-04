@@ -73,16 +73,6 @@ export function PrintTest() {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: 'Print Test - Full Content',
-    onBeforeGetContent: () => {
-      console.log('🖨️ Preparing print content...');
-      return new Promise<void>((resolve) => {
-        // Small delay to ensure content is ready
-        setTimeout(() => {
-          console.log('🖨️ Content ready for printing');
-          resolve();
-        }, 100);
-      });
-    },
     onAfterPrint: () => {
       console.log('🖨️ Print dialog closed');
     },
