@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -14,19 +14,20 @@ import { GlowOrbs } from "@/components/GlowOrbs";
 import { LayoutStabilizer } from "@/components/LayoutStabilizer";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: 'swap', // Prevent FOIT for better LCP
-  preload: true,
-});
+// Temporarily disabled due to Turbopack font loading issue
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+//   display: 'swap', // Prevent FOIT for better LCP
+//   preload: true,
+// });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: 'swap', // Prevent FOIT for better LCP
-  preload: false, // Only preload primary font
-});
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+//   display: 'swap', // Prevent FOIT for better LCP
+//   preload: false, // Only preload primary font
+// });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.past-papers.co.uk'),
@@ -156,7 +157,7 @@ export default function RootLayout({
         </noscript>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
+        className={`font-sans antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}
       >
         <LayoutStabilizer />
         <SentryProvider>
