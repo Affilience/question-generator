@@ -553,34 +553,68 @@ Mark types:
 - **cao**: Correct answer only (no follow-through)
 
 For multi-part questions, prefix with part: "(a) M1:", "(b) A1:"
+**CRITICAL: If your question has parts (a), (b), (c), etc., your markScheme MUST include marks for EVERY part. NO exceptions.**
 
 EXAMPLE markScheme formats:
 3-mark question: ["M1: Sets up equation correctly", "M1 dep: Solves to find $x$", "A1: cao $x = 5$"]
 4-mark question: ["M1: Uses correct formula", "A1 ft: Substitutes values correctly", "M1 dep: Rearranges for final variable", "A1: cao Final answer with units"]
 Multi-part: ["(a) B1: Correct value", "(b) M1: Identifies relationship", "(b) A1 ft: Calculates result"]
+Multi-part 3 parts: ["(a) M1: Correct setup", "(a) A1: cao answer", "(b) M1: Uses result from (a)", "(b) A1: cao calculation", "(c) B1: Correct interpretation"]
 
-LaTeX/Math Formatting (CRITICAL):
+LaTeX/Math Formatting (CRITICAL - Enhanced Guidelines):
+**FUNDAMENTAL RULES:**
 - ALWAYS wrap ALL math expressions in $...$ delimiters
+- NEVER use Unicode symbols (°, ×, ≤, etc.) - use LaTeX commands instead
+- Add proper spacing: $a + b = c$ not $a+b=c$
+- Use \\, for thin spaces before units: $5\\,\\text{m}$
+
+**VARIABLES AND FUNCTIONS:**
 - Variables: $x$, $y$, $v$, $F$
-- Subscripts: $F_{net}$, $F_{friction}$, $v_{initial}$, $x_1$, $x_2$
-- Superscripts: $x^2$, $m^{-1}$, $s^{-2}$
-- Fractions: $\\frac{1}{2}$, $\\frac{a}{b}$, $\\dfrac{dy}{dx}$
-- Roots: $\\sqrt{3}$, $\\sqrt{x^2 + y^2}$
-- Greek: $\\theta$, $\\alpha$, $\\lambda$, $\\mu$, $\\pi$, $\\omega$
-- Symbols: $\\approx$, $\\times$, $\\div$, $\\pm$, $\\leq$, $\\geq$, $\\neq$
-- Trig: $\\sin\\theta$, $\\cos 30°$, $\\tan^{-1}$
-- Units with exponents: $\\text{m s}^{-1}$, $\\text{kg m}^{-2}$
+- Functions: $\\sin x$, $\\cos 30°$, $\\log_2 x$, $\\ln(x+1)$
+- Subscripts: $F_{\\text{net}}$, $v_{\\text{initial}}$, $x_1$, $x_2$ 
+- Superscripts: $x^2$, $m^{-1}$, $s^{-2}$, $10^{-3}$
 
-Chemistry Notation (for science subjects):
-- Chemical formulas: use subscripts like $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{CaCO}_3$
-- Ions: $\\text{Na}^+$, $\\text{OH}^-$, $\\text{SO}_4^{2-}$
-- Reaction arrows: $\\rightarrow$ for reactions
-- State symbols in text: (s), (l), (g), (aq)
+**MATHEMATICAL EXPRESSIONS:**
+- Fractions: $\\frac{1}{2}$, $\\frac{a+b}{c-d}$, $\\dfrac{dy}{dx}$ (display)
+- Roots: $\\sqrt{3}$, $\\sqrt[3]{x}$, $\\sqrt{x^2 + y^2}$
+- Absolute values: $|x|$, $\\left|\\frac{a}{b}\\right|$
+- Integrals: $\\int_0^1 x^2\\,dx$, $\\oint \\mathbf{F} \\cdot d\\mathbf{r}$
 
-Physics Notation:
-- Vectors can use bold: $\\mathbf{F}$ or with arrows: $\\vec{v}$
-- Dot product: $\\cdot$
-- Standard form: $3.0 \\times 10^8$
+**SYMBOLS (Use LaTeX, NOT Unicode):**
+- Greek: $\\alpha$, $\\beta$, $\\gamma$, $\\delta$, $\\theta$, $\\lambda$, $\\mu$, $\\pi$, $\\sigma$, $\\phi$, $\\omega$
+- Operations: $\\times$ (not ×), $\\div$, $\\cdot$, $\\pm$, $\\mp$ 
+- Relations: $\\leq$, $\\geq$, $\\neq$, $\\approx$, $\\equiv$, $\\propto$
+- Arrows: $\\rightarrow$, $\\leftarrow$, $\\leftrightarrow$, $\\Rightarrow$
+- Sets: $\\in$, $\\notin$, $\\subset$, $\\cup$, $\\cap$, $\\emptyset$
+- Special: $\\infty$, $\\partial$, $\\nabla$, $\\degree$ (not °)
+
+**UNITS AND MEASUREMENTS:**
+- Always use \\text{} for units: $5\\,\\text{m}$, $9.8\\,\\text{m s}^{-2}$
+- Compound units: $\\text{kg m}^{-2}$, $\\text{J mol}^{-1}\\text{K}^{-1}$
+- Temperature: $25\\,\\degree\\text{C}$, $298\\,\\text{K}$
+- Percentages: $75\\%$ or $75\\,\\text{percent}$
+
+**CHEMISTRY NOTATION (for science subjects):**
+- Chemical formulas: $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{CaCO}_3$, $\\text{C}_6\\text{H}_{12}\\text{O}_6$
+- Ions: $\\text{Na}^+$, $\\text{OH}^-$, $\\text{SO}_4^{2-}$, $\\text{Fe}^{3+}$
+- Reaction arrows: $\\rightarrow$, $\\leftrightharpoons$ (equilibrium)
+- State symbols: (s), (l), (g), (aq) - in regular parentheses
+- Isotopes: $\\text{C}^{14}$, $\\text{U}^{235}$
+- Electron configurations: $\\text{1s}^2\\text{2s}^2\\text{2p}^6$
+
+**PHYSICS NOTATION:**
+- Vectors: $\\vec{v}$, $\\mathbf{F}$, $\\hat{i}$ (unit vectors)
+- Magnitudes: $|\\vec{v}|$ or just $v$ (scalar)
+- Dot product: $\\vec{a} \\cdot \\vec{b}$, cross product: $\\vec{a} \\times \\vec{b}$
+- Standard form: $3.0 \\times 10^8$, $6.67 \\times 10^{-11}$
+- Derivatives: $\\frac{dv}{dt}$, $\\frac{\\partial U}{\\partial x}$
+- Integrals: $\\int F\\,dx$, $\\oint \\mathbf{E} \\cdot d\\mathbf{A}$
+
+**COMMON PHYSICS CONSTANTS (use proper formatting):**
+- $c = 3.0 \\times 10^8\\,\\text{m s}^{-1}$
+- $g = 9.8\\,\\text{m s}^{-2}$ 
+- $h = 6.63 \\times 10^{-34}\\,\\text{J s}$
+- $k_B = 1.38 \\times 10^{-23}\\,\\text{J K}^{-1}$
 ${diagramInstructions}
 
 IMPORTANT: The AI will generate JSON responses with properly escaped LaTeX (double backslashes).

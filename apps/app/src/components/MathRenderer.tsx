@@ -2,6 +2,7 @@
 
 import { InlineMath, BlockMath } from 'react-katex';
 import { Component, ReactNode, useEffect, useState, useMemo } from 'react';
+import { enhanceLatexForKatex } from '@/lib/latexEnhancements';
 
 // Track KaTeX CSS loading state globally
 let katexCssLoaded = false;
@@ -106,8 +107,19 @@ class MathErrorBoundary extends Component<{ children: ReactNode; fallback: strin
 function SafeInlineMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
   
-  // Preprocess math to fix common LaTeX issues
-  const processedMath = preprocessMathForKaTeX(math);
+  // Apply comprehensive LaTeX enhancements
+  const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
+  
+  // Log validation issues in development
+  if (process.env.NODE_ENV === 'development' && !validation.isValid) {
+    console.warn('LaTeX validation issues:', validation.errors);
+    if (validation.warnings.length > 0) {
+      console.warn('LaTeX validation warnings:', validation.warnings);
+    }
+  }
+  
+  // Preprocess math to fix common LaTeX issues (legacy preprocessing)
+  const processedMath = preprocessMathForKaTeX(enhancedMath);
   
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
@@ -120,8 +132,19 @@ function SafeInlineMath({ math }: { math: string }) {
 function SafeBlockMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
   
-  // Preprocess math to fix common LaTeX issues
-  const processedMath = preprocessMathForKaTeX(math);
+  // Apply comprehensive LaTeX enhancements
+  const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
+  
+  // Log validation issues in development
+  if (process.env.NODE_ENV === 'development' && !validation.isValid) {
+    console.warn('LaTeX validation issues in block math:', validation.errors);
+    if (validation.warnings.length > 0) {
+      console.warn('LaTeX validation warnings in block math:', validation.warnings);
+    }
+  }
+  
+  // Preprocess math to fix common LaTeX issues (legacy preprocessing)
+  const processedMath = preprocessMathForKaTeX(enhancedMath);
   
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
