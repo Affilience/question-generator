@@ -7,6 +7,7 @@ import { BookmarkButton } from './BookmarkButton';
 import { DiagramRenderer } from './DiagramRenderer';
 import { PrintableQuestion } from './PrintableQuestion';
 import { usePrintQuestion } from '@/hooks/usePrintQuestion';
+import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
 
 // Error boundary to gracefully handle diagram rendering failures
 class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
@@ -33,6 +34,7 @@ interface QuestionCardProps {
 export function QuestionCard({ question, questionNumber, userId, subtopic }: QuestionCardProps) {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const { printRef, handlePrint } = usePrintQuestion();
+  const { marks: validatedMarks } = getValidatedMarks(question);
 
   const onPrintClick = () => {
     setShowPrintPreview(true);
@@ -70,7 +72,7 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
                   difficulty: question.difficulty,
                   content: question.content,
                   solution: question.solution,
-                  marks: question.marks,
+                  marks: validatedMarks,
                   markScheme: question.markScheme,
                 }}
               />
@@ -104,7 +106,7 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
           question={question}
           questionNumber={questionNumber}
           title={`${subtopic || 'Practice'} Questions`}
-          subtitle={`${question.difficulty} - ${question.marks || 1} mark${(question.marks || 1) !== 1 ? 's' : ''}`}
+          subtitle={`${question.difficulty} - ${formatMarksDisplay(validatedMarks)}`}
         />
       </div>
     )}
