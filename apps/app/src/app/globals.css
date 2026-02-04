@@ -524,3 +524,163 @@ body {
     align-items: center;
   }
 }
+
+/* ============================================
+   Blog Content Styling
+   ============================================ */
+
+.blog-math-content {
+  line-height: 1.7;
+}
+
+/* Enhanced visual hierarchy for blog posts */
+.blog-math-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.blog-math-content h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.blog-math-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.blog-math-content h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #d1d5db;
+}
+
+/* Paragraph spacing and styling */
+.blog-math-content p {
+  margin-bottom: 1.5rem;
+  line-height: 1.75;
+  color: #d1d5db;
+}
+
+/* List styling */
+.blog-math-content ul,
+.blog-math-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.blog-math-content li {
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+  line-height: 1.6;
+}
+
+/* Strong and emphasis */
+.blog-math-content strong {
+  color: white;
+  font-weight: 600;
+}
+
+.blog-math-content em {
+  color: #a78bfa;
+  font-style: italic;
+}
+
+/* Code styling */
+.blog-math-content code {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875em;
+}
+
+/* Blockquote styling */
+.blog-math-content blockquote {
+  border-left: 4px solid #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 1rem 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0.5rem;
+  color: #a78bfa;
+  font-style: italic;
+}
+
+/* Custom styled divs for callouts */
+.blog-math-content div[style*="background"] {
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+/* Math equation styling */
+.blog-math-content .katex {
+  font-size: 1.1em;
+}
+
+.blog-math-content .katex-display {
+  margin: 1.5rem 0;
+  background: rgba(17, 24, 39, 0.5);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Grid layouts for better visual structure */
+.blog-math-content div[style*="grid"] {
+  gap: 1.5rem !important;
+}
+
+/* Horizontal rules */
+.blog-math-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.3), transparent);
+  margin: 3rem 0;
+}
+
+/* Better spacing for nested content */
+.blog-math-content div + div {
+  margin-top: 1rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .blog-math-content h1 {
+    font-size: 2rem;
+  }
+  
+  .blog-math-content h2 {
+    font-size: 1.75rem;
+  }
+  
+  .blog-math-content h3 {
+    font-size: 1.5rem;
+  }
+  
+  .blog-math-content div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .blog-math-content .katex-display {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+}
