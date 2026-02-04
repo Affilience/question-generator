@@ -133,7 +133,7 @@ export function PrintableQuestions({ questions, title, subtitle, showSolutions =
                       <ul style={{ fontSize: '12px', paddingLeft: '20px', margin: '0' }}>
                         {question.markScheme.map((mark, markIndex) => (
                           <li key={markIndex} style={{ marginBottom: '0.25rem' }}>
-                            {mark.criterion} ({mark.marks} mark{mark.marks !== 1 ? 's' : ''})
+                            {mark}
                           </li>
                         ))}
                       </ul>

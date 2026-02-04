@@ -4,6 +4,8 @@ import React, { useState, forwardRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Question, Difficulty, Subject, ExamBoard, QualificationLevel } from '@/types';
 import { PrintableQuestion } from './PrintableQuestion';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import Link from 'next/link';
 
 interface PrintNext10QuestionsProps {
   topicId: string;
@@ -137,32 +139,20 @@ export function PrintNext10Questions({
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showWorksheet, setShowWorksheet] = useState(false);
+  const { tier, hasFeature } = useSubscription();
 
   const printRef = React.useRef<HTMLDivElement>(null);
+
+  // Check if user can print worksheets
+  const canPrintWorksheets = hasFeature('print_worksheets');
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `${subtopic} - Practice Questions`,
-    removeAfterPrint: true,
     onAfterPrint: () => {
       setShowWorksheet(false);
       setQuestions([]);
     },
-    pageStyle: `
-      @media print {
-        body {
-          margin: 0;
-          padding: 0;
-          -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-        }
-        
-        @page {
-          size: A4;
-          margin: 2cm;
-        }
-      }
-    `,
   });
 
   const generateAndPrint = async (count: number = 10) => {
@@ -184,6 +174,33 @@ export function PrintNext10Questions({
       setIsGenerating(false);
     }
   };
+
+  // Show upgrade prompt for free users
+  if (!canPrintWorksheets) {
+    return (
+      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="font-medium text-[var(--color-text-primary)] mb-1">
+              🔒 Print Question Worksheets
+            </h4>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Generate and print 5-10 questions as professional worksheets with answer spaces
+            </p>
+          </div>
+          <Link
+            href="/pricing"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            Upgrade to {tier === 'free' ? 'Student Plus' : 'Exam Pro'}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

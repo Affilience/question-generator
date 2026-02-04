@@ -182,7 +182,7 @@ export const PrintableQuestion = forwardRef<HTMLDivElement, PrintableQuestionPro
                   <ul style={{ fontSize: '10pt', paddingLeft: '20pt', margin: '0' }}>
                     {question.markScheme.map((mark, index) => (
                       <li key={index} style={{ marginBottom: '3pt' }}>
-                        {mark.criterion} ({mark.marks} mark{mark.marks !== 1 ? 's' : ''})
+                        {mark}
                       </li>
                     ))}
                   </ul>

@@ -13,6 +13,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
   priorityGeneration: boolean;
   saveHistory: boolean;
   bookmarks: boolean;
+  print_worksheets: boolean;
+  print_papers: boolean;
 }> = {
   free: {
     questionsPerDay: 15,
@@ -25,6 +27,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     priorityGeneration: false,
     saveHistory: false,
     bookmarks: false,
+    print_worksheets: false,
+    print_papers: false,
   },
   student_plus: {
     questionsPerDay: 50,
@@ -37,10 +41,12 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     priorityGeneration: false,
     saveHistory: true,
     bookmarks: true,
+    print_worksheets: true,
+    print_papers: false,
   },
   exam_pro: {
     questionsPerDay: null, // unlimited
-    papersPerWeek: 7,
+    papersPerWeek: null, // unlimited
     difficultyControl: true,
     timedExamMode: true,
     pdfDownloads: false, // Not implemented yet
@@ -49,6 +55,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
     priorityGeneration: false, // Not implemented yet
     saveHistory: true,
     bookmarks: true,
+    print_worksheets: true,
+    print_papers: true,
   },
 };
 

@@ -12,6 +12,7 @@ import {
 import { MarkBadge, InlineMarks } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
 import { DiagramRenderer } from '@/components/DiagramRenderer';
+import { PrintPaperButton } from '@/components/PrintPaperButton';
 
 interface PaperTakePageProps {
   params: Promise<{ paperId: string }>;
@@ -235,34 +236,45 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
             </div>
           </div>
 
-          {/* Submit / Results Button */}
-          {!isSubmitted ? (
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg font-medium hover:bg-[var(--color-accent-hover)]"
-            >
-              Finish & Mark
-            </button>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-lg font-bold text-[var(--color-text-primary)]">
-                  {totalSelfMarks}/{paper.totalMarks}
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            {/* Print Button */}
+            <PrintPaperButton
+              paper={paper}
+              examBoard={paper.examBoard}
+              qualification={paper.qualification}
+              subject={paper.subject}
+            />
+            
+            {/* Submit / Results Button */}
+            {!isSubmitted ? (
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg font-medium hover:bg-[var(--color-accent-hover)]"
+              >
+                Finish & Mark
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">
+                    {totalSelfMarks}/{paper.totalMarks}
+                  </div>
+                  <div className="text-xs text-[var(--color-text-muted)]">
+                    {questionsMarked}/{allQuestions.length} marked
+                  </div>
                 </div>
-                <div className="text-xs text-[var(--color-text-muted)]">
-                  {questionsMarked}/{allQuestions.length} marked
-                </div>
+                {allQuestionsMarked && (
+                  <button
+                    onClick={() => setShowResults(true)}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600"
+                  >
+                    View Results
+                  </button>
+                )}
               </div>
-              {allQuestionsMarked && (
-                <button
-                  onClick={() => setShowResults(true)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600"
-                >
-                  View Results
-                </button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
