@@ -1,10 +1,12 @@
 'use client';
 
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode, useState } from 'react';
 import { Question } from '@/types';
 import { MathRenderer } from './MathRenderer';
 import { BookmarkButton } from './BookmarkButton';
 import { DiagramRenderer } from './DiagramRenderer';
+import { PrintableQuestion } from './PrintableQuestion';
+import { usePrintQuestion } from '@/hooks/usePrintQuestion';
 
 // Error boundary to gracefully handle diagram rendering failures
 class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
@@ -29,29 +31,52 @@ interface QuestionCardProps {
 }
 
 export function QuestionCard({ question, questionNumber, userId, subtopic }: QuestionCardProps) {
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const { printRef, handlePrint } = usePrintQuestion();
+
+  const onPrintClick = () => {
+    setShowPrintPreview(true);
+    // Give React time to render the component
+    setTimeout(() => {
+      handlePrint();
+      setShowPrintPreview(false);
+    }, 100);
+  };
+
   return (
-    <div className="bg-[var(--color-bg-card)] rounded-2xl border border-[var(--color-border)] p-8">
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-sm font-medium text-[var(--color-text-secondary)]">
-          Question {questionNumber}
-        </span>
-        <div className="flex items-center gap-3">
-          {userId && subtopic && (
-            <BookmarkButton
-              userId={userId}
-              question={{
-                topicId: question.topicId,
-                subtopic: subtopic,
-                difficulty: question.difficulty,
-                content: question.content,
-                solution: question.solution,
-                marks: question.marks,
-                markScheme: question.markScheme,
-              }}
-            />
-          )}
+    <>
+      <div className="bg-[var(--color-bg-card)] rounded-2xl border border-[var(--color-border)] p-8">
+        <div className="flex items-center justify-between mb-6">
+          <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+            Question {questionNumber}
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onPrintClick}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors text-sm"
+              title="Print this question"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print
+            </button>
+            {userId && subtopic && (
+              <BookmarkButton
+                userId={userId}
+                question={{
+                  topicId: question.topicId,
+                  subtopic: subtopic,
+                  difficulty: question.difficulty,
+                  content: question.content,
+                  solution: question.solution,
+                  marks: question.marks,
+                  markScheme: question.markScheme,
+                }}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
       <div className="text-lg text-[var(--color-text-primary)] leading-relaxed">
         <MathRenderer content={question.content} />
@@ -70,5 +95,19 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
         </div>
       )}
     </div>
+
+    {/* Hidden printable component */}
+    {showPrintPreview && (
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <PrintableQuestion
+          ref={printRef}
+          question={question}
+          questionNumber={questionNumber}
+          title={`${subtopic || 'Practice'} Questions`}
+          subtitle={`${question.difficulty} - ${question.marks || 1} mark${(question.marks || 1) !== 1 ? 's' : ''}`}
+        />
+      </div>
+    )}
+  </>
   );
 }

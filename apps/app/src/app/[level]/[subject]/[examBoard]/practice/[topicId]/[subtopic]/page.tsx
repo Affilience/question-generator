@@ -16,6 +16,7 @@ import { useStreamingQuestion } from '@/hooks/useStreamingQuestion';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { QuestionFeed } from '@/components/mobile/QuestionFeed';
 import { UpgradePrompt, UsageIndicator } from '@/components/UpgradePrompt';
+import { PrintNext10Questions } from '@/components/PrintNext10Questions';
 
 // Loading states for better UX
 type LoadingState = 'idle' | 'streaming' | 'done';
@@ -155,6 +156,7 @@ export default function SubtopicPracticePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [difficulty]); // Only depend on difficulty
+
 
   const handleMark = async (correct: boolean) => {
     setIsMarked(true);
@@ -407,6 +409,45 @@ export default function SubtopicPracticePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Print Questions Section */}
+        <div className="mb-6 p-4 bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)]">
+          <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
+            📄 Print Study Materials
+          </h3>
+          <PrintNext10Questions
+            topicId={topicId}
+            subtopic={displaySubtopic}
+            difficulty={difficulty}
+            subject={subject as Subject}
+            examBoard={examBoard as ExamBoard}
+            qualification={qualification}
+            onGenerateQuestions={async (count) => {
+              const questions: Question[] = [];
+              const excludeContent: string[] = [];
+              
+              // Generate multiple questions
+              for (let i = 0; i < count; i++) {
+                const result = await generate({
+                  topicId: topic!.id,
+                  difficulty,
+                  subtopic: displaySubtopic,
+                  examBoard: examBoard as ExamBoard,
+                  qualification: qualification,
+                  subject: subject as Subject,
+                  excludeContent,
+                });
+                
+                if (result) {
+                  questions.push(result);
+                  excludeContent.push(result.content.substring(0, 100));
+                }
+              }
+              
+              return questions;
+            }}
+          />
         </div>
 
         {error && !isStreaming && (
