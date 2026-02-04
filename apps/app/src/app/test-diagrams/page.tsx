@@ -1,6 +1,7 @@
 'use client';
 
 import { DiagramRenderer } from '@/components/DiagramRenderer';
+import { PrintTest } from '@/components/PrintTest';
 import type {
   DiagramSpec,
   PolygonElement,
@@ -2088,6 +2089,12 @@ export default function TestDiagramsPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Print Test Section */}
+      <div className="mt-12 border-t pt-8">
+        <h2 className="text-2xl font-bold text-center mb-6">Print Test</h2>
+        <PrintTest />
       </div>
 
       <div className="mt-8 text-center text-gray-500 text-sm">
