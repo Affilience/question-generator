@@ -13,8 +13,6 @@ interface PrintablePaperProps {
 }
 
 const printStyles = `
-@import url('https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css');
-
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
@@ -81,23 +79,6 @@ const printStyles = `
     line-height: 1.5 !important;
     margin-bottom: 15pt !important;
   }
-  /* Question part formatting for (a), (b), (c), etc. */
-  .question-content .flex.gap-3 {
-    display: block !important;
-    margin-top: 12pt !important;
-    margin-bottom: 8pt !important;
-  }
-  .question-content .flex.gap-3 > span.font-semibold {
-    display: block !important;
-    margin-bottom: 5pt !important;
-    font-weight: bold !important;
-    color: black !important;
-  }
-  .question-content .flex.gap-3 > .flex-1 {
-    display: block !important;
-    margin-left: 0 !important;
-    padding-left: 0 !important;
-  }
   .answer-space {
     border: 1px solid #ccc !important;
     min-height: 60pt !important;
@@ -111,12 +92,6 @@ const printStyles = `
     margin-top: 15pt !important;
     page-break-inside: avoid !important;
   }
-  .page-break-before {
-    page-break-before: always !important;
-  }
-  .page-break-inside-avoid {
-    page-break-inside: avoid !important;
-  }
   .marks-box {
     border: 1px solid #000;
     width: 40pt;
@@ -125,25 +100,12 @@ const printStyles = `
     font-size: 9pt;
     display: inline-block;
   }
-  /* KaTeX math rendering - ensure visibility and proper formatting */
   .katex {
     font-size: 1em !important;
-    visibility: visible !important;
-    opacity: 1 !important;
   }
   .katex-display {
     margin: 8pt 0 !important;
     page-break-inside: avoid !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  .math-content {
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  .invisible {
-    visibility: visible !important;
-    opacity: 1 !important;
   }
   .print-footer {
     position: fixed;
@@ -232,7 +194,7 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                       <div style={{ minHeight: `${Math.max(40, question.marks * 15)}pt` }}></div>
                     </div>
 
-                    {/* Solution (if enabled) - without mark scheme */}
+                    {/* Solution (if enabled) */}
                     {showSolutions && question.solution && (
                       <div className="solution-section">
                         <h4 style={{ fontSize: '11pt', fontWeight: 'bold', margin: '0 0 8pt 0' }}>
@@ -248,42 +210,6 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
               })}
             </div>
           ))}
-          
-          {/* Mark Schemes Section - Separate Page */}
-          {showSolutions && allQuestions.some(q => q.markScheme && q.markScheme.length > 0) && (
-            <div style={{ pageBreakBefore: 'always', marginTop: '30pt' }}>
-              <div className="paper-header" style={{ borderBottom: '2px solid #000', paddingBottom: '12pt', marginBottom: '20pt' }}>
-                <h2 style={{ fontSize: '16pt', fontWeight: 'bold', margin: '0', textAlign: 'center' }}>
-                  Mark Schemes
-                </h2>
-              </div>
-              
-              {allQuestions.map((question, qIndex) => {
-                if (!question.markScheme || question.markScheme.length === 0) return null;
-                
-                return (
-                  <div key={qIndex} style={{ marginBottom: '25pt', pageBreakInside: 'avoid' }}>
-                    <div style={{ 
-                      fontSize: '12pt', 
-                      fontWeight: 'bold', 
-                      marginBottom: '8pt',
-                      borderBottom: '1px solid #333',
-                      paddingBottom: '3pt'
-                    }}>
-                      Question {qIndex + 1} ({question.marks} {question.marks === 1 ? 'mark' : 'marks'})
-                    </div>
-                    <ul style={{ fontSize: '10pt', paddingLeft: '20pt', margin: '0', lineHeight: '1.4' }}>
-                      {question.markScheme.map((mark, markIndex) => (
-                        <li key={markIndex} style={{ marginBottom: '3pt' }}>
-                          {mark}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {/* Print Footer */}
           <div className="print-footer">
