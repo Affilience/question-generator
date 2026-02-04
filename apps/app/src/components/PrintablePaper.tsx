@@ -66,13 +66,80 @@ const printStyles = `
   .question {
     margin-bottom: 25pt;
     page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+    min-height: 150pt;
   }
+  
   .question-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8pt;
     font-weight: bold;
+    page-break-after: avoid;
+  }
+  
+  /* Keep question parts together when possible */
+  .question-content .flex.gap-3 {
+    page-break-inside: avoid;
+    orphans: 2;
+    widows: 2;
+  }
+  
+  /* Ensure answer spaces don't split poorly */
+  .answer-space {
+    page-break-inside: avoid;
+    min-height: 60pt;
+    border: 1px solid #ccc !important;
+    margin: 15pt 0 !important;
+    padding: 10pt !important;
+    background: #fafafa !important;
+  }
+  
+  .answer-space.graph-space {
+    background: #f8f8f8 !important;
+    min-height: 200pt !important;
+  }
+  
+  .answer-space.essay-space {
+    background: white !important;
+    padding: 5pt !important;
+  }
+  
+  .answer-space.calculation-space {
+    background: #feffef !important;
+  }
+  
+  /* Smart page breaks for multi-part questions */
+  .question[data-parts="multiple"] {
+    page-break-inside: auto;
+  }
+  
+  .question.long-question {
+    page-break-before: auto;
+    min-height: 250pt;
+  }
+  
+  .question.high-marks {
+    page-break-before: auto;
+    min-height: 200pt;
+  }
+  
+  .question.multi-part {
+    page-break-inside: auto;
+  }
+  
+  .question.single-part.short {
+    page-break-inside: avoid;
+    min-height: 120pt;
+  }
+  
+  /* Force page break before new sections if needed */
+  .section-header {
+    page-break-before: auto;
+    page-break-after: avoid;
+    orphans: 3;
   }
   .question-content {
     font-size: 11pt !important;
@@ -151,6 +218,88 @@ const printStyles = `
     font-size: 8pt;
     color: #666;
   }
+  
+  /* Subject-specific formatting */
+  
+  /* Physics-specific styles */
+  .subject-physics .question-content {
+    line-height: 1.6 !important; /* More space for vectors and equations */
+  }
+  
+  .subject-physics .answer-space {
+    min-height: 80pt !important; /* More space for calculations */
+  }
+  
+  .subject-physics .calculation-space {
+    background: #f8f9ff !important; /* Light blue tint */
+    border-left: 3px solid #2563eb !important;
+  }
+  
+  /* Chemistry-specific styles */
+  .subject-chemistry .question-content {
+    line-height: 1.7 !important; /* Space for chemical formulas */
+  }
+  
+  .subject-chemistry .answer-space.calculation-space {
+    background: #f0fdf4 !important; /* Light green tint */
+    border-left: 3px solid #16a34a !important;
+  }
+  
+  .subject-chemistry .equation-space {
+    min-height: 100pt !important;
+    background: #fefefe !important;
+    border: 1px dashed #16a34a !important;
+  }
+  
+  /* Mathematics-specific styles */
+  .subject-maths .question-content, 
+  .subject-mathematics .question-content {
+    line-height: 1.5 !important;
+  }
+  
+  .subject-maths .answer-space.calculation-space,
+  .subject-mathematics .answer-space.calculation-space {
+    background: #fffbeb !important; /* Light yellow tint */
+    border-left: 3px solid #f59e0b !important;
+  }
+  
+  .subject-maths .graph-space,
+  .subject-mathematics .graph-space {
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgo8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9wYXR0ZXJuPgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiIC8+Cjwvc3ZnPgo=') !important;
+  }
+  
+  /* English/Literature-specific styles */
+  .subject-english .answer-space.essay-space {
+    line-height: 1.8 !important;
+    padding: 15pt !important;
+  }
+  
+  .subject-english .question-content {
+    font-style: italic;
+  }
+  
+  /* Biology-specific styles */
+  .subject-biology .question-content {
+    line-height: 1.6 !important;
+  }
+  
+  .subject-biology .answer-space.essay-space {
+    background: #f7fee7 !important; /* Light green */
+    border-left: 3px solid #65a30d !important;
+  }
+  
+  /* Computer Science-specific styles */
+  .subject-computer-science .answer-space.calculation-space {
+    background: #faf5ff !important; /* Light purple */
+    border-left: 3px solid #9333ea !important;
+    font-family: 'Courier New', monospace !important;
+  }
+  
+  /* History-specific styles */
+  .subject-history .answer-space.essay-space {
+    background: #fef7ed !important; /* Light orange */
+    border-left: 3px solid #ea580c !important;
+  }
 }
 `;
 
@@ -166,7 +315,7 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
     );
 
     return (
-      <div ref={ref} className="print-paper">
+      <div ref={ref} className={`print-paper subject-${subject.toLowerCase().replace(/\s+/g, '-')}`}>
         <style dangerouslySetInnerHTML={{ __html: printStyles }} />
         
         {/* Paper Header */}
@@ -207,8 +356,63 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                   q.sectionIndex === sectionIndex && q.questionNumber === questionNumber
                 ) + 1;
 
+                // Analyze question structure for intelligent page breaks and answer space
+                const hasMultipleParts = /\([a-z]\)/gi.test(question.content);
+                const isLongQuestion = question.content.length > 500;
+                const hasHighMarks = (question.marks || 0) > 6;
+                
+                // Analyze question type for answer space sizing
+                const questionContent = question.content.toLowerCase();
+                const isCalculation = /calculate|find|solve|compute|work out|determine/i.test(questionContent);
+                const isExplanation = /explain|describe|discuss|analyse|evaluate|justify|compare|assess/i.test(questionContent);
+                const isGraph = /graph|plot|draw|sketch|chart|diagram/i.test(questionContent);
+                const isEssay = /essay|write about|discuss in detail|analyse in detail/i.test(questionContent);
+                const isProof = /prove|show that|demonstrate|derive/i.test(questionContent);
+                const hasFormula = /\\frac|\\sqrt|\\sum|\\int|=|\+|-|\*|\/|\^/i.test(questionContent);
+                const isChemicalEquation = /balance|equation|reaction|\\text\{[A-Z][a-z]?\}|H2O|CO2|NaCl/i.test(questionContent);
+                const isPhysicsVector = /vector|force|velocity|acceleration|\\vec\{/i.test(questionContent);
+                
+                // Dynamic answer space calculation
+                const baseSpace = Math.max(40, (question.marks || 1) * 15);
+                let answerSpaceHeight = baseSpace;
+                
+                if (isEssay || isExplanation) {
+                  answerSpaceHeight = Math.max(120, (question.marks || 1) * 25);
+                } else if (isGraph) {
+                  answerSpaceHeight = Math.max(200, (question.marks || 1) * 30);
+                } else if (isChemicalEquation) {
+                  answerSpaceHeight = Math.max(100, (question.marks || 1) * 25);
+                } else if (isPhysicsVector) {
+                  answerSpaceHeight = Math.max(90, (question.marks || 1) * 22);
+                } else if (isCalculation || hasFormula) {
+                  answerSpaceHeight = Math.max(80, (question.marks || 1) * 20);
+                } else if (isProof) {
+                  answerSpaceHeight = Math.max(100, (question.marks || 1) * 22);
+                }
+                
+                // Adjust for multiple parts
+                if (hasMultipleParts) {
+                  const partCount = (questionContent.match(/\([a-z]\)/g) || []).length;
+                  answerSpaceHeight = Math.max(answerSpaceHeight, partCount * 50);
+                }
+                
+                const questionClasses = `question ${hasMultipleParts ? 'multi-part' : 'single-part'} ${isLongQuestion ? 'long-question' : ''} ${hasHighMarks ? 'high-marks' : ''}`;
+
                 return (
-                  <div key={`${sectionIndex}-${questionIndex}`} className="question">
+                  <div 
+                    key={`${sectionIndex}-${questionIndex}`} 
+                    className={questionClasses}
+                    data-parts={hasMultipleParts ? 'multiple' : 'single'}
+                    data-marks={question.marks || 1}
+                    data-question-type={
+                      isEssay ? 'essay' : 
+                      isGraph ? 'graph' : 
+                      isChemicalEquation ? 'chemical-equation' :
+                      isPhysicsVector ? 'physics-vector' :
+                      isCalculation ? 'calculation' : 
+                      'general'
+                    }
+                  >
                     {/* Question Header */}
                     <div className="question-header">
                       <span>
@@ -226,8 +430,56 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                     </div>
 
                     {/* Answer Space */}
-                    <div className="answer-space">
-                      <div style={{ minHeight: `${Math.max(40, question.marks * 15)}pt` }}></div>
+                    <div 
+                      className={`answer-space ${
+                        isGraph ? 'graph-space' : 
+                        isEssay ? 'essay-space' : 
+                        isChemicalEquation ? 'equation-space' :
+                        isCalculation ? 'calculation-space' : 
+                        ''
+                      }`}
+                      data-question-type={
+                        isEssay ? 'essay' : 
+                        isGraph ? 'graph' : 
+                        isChemicalEquation ? 'chemical-equation' :
+                        isPhysicsVector ? 'physics-vector' :
+                        isCalculation ? 'calculation' : 
+                        'general'
+                      }
+                    >
+                      {isGraph ? (
+                        <div style={{ minHeight: `${answerSpaceHeight}pt`, border: '1px dotted #ccc', position: 'relative' }}>
+                          <div style={{ position: 'absolute', top: '5pt', left: '5pt', fontSize: '8pt', color: '#666' }}>
+                            Graph/Diagram space
+                          </div>
+                        </div>
+                      ) : isChemicalEquation ? (
+                        <div style={{ minHeight: `${answerSpaceHeight}pt`, position: 'relative' }}>
+                          <div style={{ 
+                            height: '30pt', 
+                            borderBottom: '2px solid #16a34a', 
+                            marginBottom: '20pt',
+                            position: 'relative'
+                          }}>
+                            <div style={{ position: 'absolute', top: '-15pt', left: '0', fontSize: '8pt', color: '#666' }}>
+                              Chemical equation:
+                            </div>
+                          </div>
+                          <div style={{ minHeight: `${Math.max(50, answerSpaceHeight - 50)}pt` }}></div>
+                        </div>
+                      ) : isEssay || isExplanation ? (
+                        <div style={{ minHeight: `${answerSpaceHeight}pt` }}>
+                          {Array.from({length: Math.floor(answerSpaceHeight / 20)}, (_, i) => (
+                            <div key={i} style={{ 
+                              borderBottom: '1px solid #ddd', 
+                              height: '20pt', 
+                              marginBottom: '2pt' 
+                            }}></div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ minHeight: `${answerSpaceHeight}pt` }}></div>
+                      )}
                     </div>
 
                     {/* Solution (if enabled) - without mark scheme */}

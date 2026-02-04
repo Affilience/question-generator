@@ -281,7 +281,152 @@ export function validateLatexSyntax(text: string): {
 }
 
 /**
- * Apply comprehensive LaTeX enhancements
+ * Enhanced complex fraction detection and formatting
+ */
+export function enhanceComplexFractions(text: string): string {
+  let result = text;
+  
+  // Handle nested fractions like a/b/c → \frac{a/b}{c}
+  result = result.replace(/(\w+|\\frac\{[^}]+\}\{[^}]+\})\/(\w+|\\frac\{[^}]+\}\{[^}]+\})\/(\w+|\\frac\{[^}]+\}\{[^}]+\})/g, 
+    '\\frac{\\frac{$1}{$2}}{$3}');
+  
+  // Handle simple fractions like a/b → \frac{a}{b} (but avoid URLs and dates)
+  result = result.replace(/(?<!http:|https:|\/\/|\d{1,2}\/\d{1,2}\/)(\w+(?:\^\{[^}]+\}|\^[a-zA-Z0-9])?)\/(\w+(?:\^\{[^}]+\}|\^[a-zA-Z0-9])?)/g, 
+    '\\frac{$1}{$2}');
+  
+  // Handle complex expressions in numerator/denominator
+  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{($1)}{($2)}');
+  
+  return result;
+}
+
+/**
+ * Enhanced matrix and vector notation
+ */
+export function enhanceMatrixNotation(text: string): string {
+  let result = text;
+  
+  // Detect matrix patterns like [1,2;3,4] → \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+  result = result.replace(/\[([0-9\s,;+-]+)\]/g, (match, content) => {
+    if (content.includes(';')) {
+      const rows = content.split(';').map((row: string) => 
+        row.trim().split(',').map((cell: string) => cell.trim()).join(' & ')
+      );
+      return `\\begin{pmatrix} ${rows.join(' \\\\ ')} \\end{pmatrix}`;
+    }
+    return match;
+  });
+  
+  // Vector notation improvements
+  result = result.replace(/vector\s+([a-zA-Z])/g, '\\vec{$1}');
+  result = result.replace(/\b([a-zA-Z])\s+vector/g, '\\vec{$1}');
+  
+  return result;
+}
+
+/**
+ * Enhanced logarithm and exponential notation
+ */
+export function enhanceLogarithmNotation(text: string): string {
+  let result = text;
+  
+  // Natural log variations
+  result = result.replace(/\bln\s*\(([^)]+)\)/g, '\\ln($1)');
+  result = result.replace(/\bln\s+(\w+)/g, '\\ln $1');
+  
+  // Log base notation
+  result = result.replace(/\blog_(\w+)\s*\(([^)]+)\)/g, '\\log_{$1}($2)');
+  result = result.replace(/\blog_(\w+)\s+(\w+)/g, '\\log_{$1} $2');
+  
+  // Exponential notation improvements
+  result = result.replace(/\be\^(\w+|\([^)]+\))/g, 'e^{$1}');
+  result = result.replace(/\bexp\s*\(([^)]+)\)/g, 'e^{($1)}');
+  
+  return result;
+}
+
+/**
+ * Enhanced calculus notation (derivatives, integrals)
+ */
+export function enhanceCalculusNotation(text: string): string {
+  let result = text;
+  
+  // Derivative notation
+  result = result.replace(/d\/dx\s*\(([^)]+)\)/g, '\\frac{d}{dx}($1)');
+  result = result.replace(/d\/dx\s+(\w+)/g, '\\frac{d}{dx} $1');
+  result = result.replace(/d(\w+)\/d(\w+)/g, '\\frac{d$1}{d$2}');
+  
+  // Partial derivatives
+  result = result.replace(/∂(\w+)\/∂(\w+)/g, '\\frac{\\partial $1}{\\partial $2}');
+  result = result.replace(/partial\s+(\w+)\s*\/\s*partial\s+(\w+)/g, '\\frac{\\partial $1}{\\partial $2}');
+  
+  // Integral notation
+  result = result.replace(/integral\s+from\s+(\w+|\d+)\s+to\s+(\w+|\d+)\s+of\s+([^\\n]+)/g, 
+    '\\int_{$1}^{$2} $3 \\, dx');
+  result = result.replace(/∫\s*([^\\]+)\s*d(\w+)/g, '\\int $1 \\, d$2');
+  
+  // Limit notation
+  result = result.replace(/limit\s+as\s+(\w+)\s+approaches\s+(\w+|\d+)\s+of\s+([^\\n]+)/g, 
+    '\\lim_{$1 \\to $2} $3');
+  result = result.replace(/lim\s*\(\s*(\w+)\s*->\s*(\w+|\d+)\s*\)\s*([^\\n]+)/g, 
+    '\\lim_{$1 \\to $2} $3');
+  
+  return result;
+}
+
+/**
+ * Enhanced physics notation (vectors, forces, etc.)
+ */
+export function enhancePhysicsNotation(text: string): string {
+  let result = text;
+  
+  // Force vectors
+  result = result.replace(/\bF_([a-zA-Z0-9]+)/g, '\\vec{F}_{$1}');
+  result = result.replace(/\bforce\s+([a-zA-Z])/g, '\\vec{F}_{$1}');
+  
+  // Velocity and acceleration vectors
+  result = result.replace(/\bv_([a-zA-Z0-9]+)/g, '\\vec{v}_{$1}');
+  result = result.replace(/\ba_([a-zA-Z0-9]+)/g, '\\vec{a}_{$1}');
+  
+  // Electric and magnetic field notation
+  result = result.replace(/\bE_([a-zA-Z0-9]+)/g, '\\vec{E}_{$1}');
+  result = result.replace(/\bB_([a-zA-Z0-9]+)/g, '\\vec{B}_{$1}');
+  
+  // Unit vectors
+  result = result.replace(/\bhat\s*([ijk])/g, '\\hat{$1}');
+  result = result.replace(/\b([ijk])\s*hat/g, '\\hat{$1}');
+  
+  return result;
+}
+
+/**
+ * Enhanced statistical notation
+ */
+export function enhanceStatisticalNotation(text: string): string {
+  let result = text;
+  
+  // Mean notation
+  result = result.replace(/\bmean\s+of\s+([a-zA-Z])/g, '\\bar{$1}');
+  result = result.replace(/\baverage\s+of\s+([a-zA-Z])/g, '\\bar{$1}');
+  result = result.replace(/\b([a-zA-Z])\s+bar/g, '\\bar{$1}');
+  
+  // Standard deviation
+  result = result.replace(/\bstd\s*\(([^)]+)\)/g, '\\sigma($1)');
+  result = result.replace(/\bstandard\s+deviation/g, '\\sigma');
+  
+  // Probability notation
+  result = result.replace(/\bP\s*\(([^)]+)\)/g, 'P($1)');
+  result = result.replace(/\bprob\s*\(([^)]+)\)/g, 'P($1)');
+  
+  // Expected value
+  result = result.replace(/\bE\s*\[\s*([^\]]+)\s*\]/g, 'E[$1]');
+  result = result.replace(/\bexpected\s+value\s+of\s+([a-zA-Z])/g, 'E[$1]');
+  
+  return result;
+}
+
+/**
+ * Apply comprehensive LaTeX enhancements including complex expressions
  */
 export function enhanceLatexForKatex(text: string): {
   enhanced: string;
@@ -291,6 +436,12 @@ export function enhanceLatexForKatex(text: string): {
   
   // Apply all enhancements in order
   result = enhanceSymbolRendering(result);
+  result = enhanceComplexFractions(result);
+  result = enhanceMatrixNotation(result);
+  result = enhanceLogarithmNotation(result);
+  result = enhanceCalculusNotation(result);
+  result = enhancePhysicsNotation(result);
+  result = enhanceStatisticalNotation(result);
   result = enhanceUnitFormatting(result);
   result = enhanceChemicalFormulas(result);
   result = fixMathSpacing(result);
