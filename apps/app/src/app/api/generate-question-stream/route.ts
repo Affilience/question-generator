@@ -12,6 +12,7 @@ import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
 import { getSubjectSpecificMarkRange } from '@/lib/prompt-router';
+import { getAQAALevelProofPrompt } from '@/lib/prompts-aqa-alevel';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 // Import real extract/source databases for English Literature and History
 import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
@@ -785,7 +786,8 @@ function buildQuantitativePrompt(
   const markRange = getMarkRange(difficulty, subject, level, board);
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
   const boardUpper = board.toUpperCase();
-  const targetMarks = Math.floor((markRange.min + markRange.max) / 2);
+  // Generate random mark value from the range instead of always using the average
+  const targetMarks = Math.floor(Math.random() * (markRange.max - markRange.min + 1)) + markRange.min;
 
   // Select question type based on subject
   let selectedFormat: QuestionFormat;
@@ -1105,6 +1107,16 @@ function buildPrompt(
   subtopic: string,
   difficulty: Difficulty
 ): string {
+  // SPECIAL HANDLING: Proof topics for A-Level Maths
+  if (subject === 'maths' && level === 'a-level' && board === 'aqa' && topicName === 'Proof') {
+    // Create a mock Topic object for the proof prompt function
+    const mockTopic = { 
+      name: topicName, 
+      subtopics: ['Proof by deduction', 'Proof by exhaustion', 'Proof by contradiction'] 
+    };
+    return getAQAALevelProofPrompt(mockTopic as any, difficulty, subtopic);
+  }
+
   // Check if this is an essay subject and get its configuration (now board-specific)
   const essayConfig = getQuestionConfig(subject, level, difficulty, board);
 

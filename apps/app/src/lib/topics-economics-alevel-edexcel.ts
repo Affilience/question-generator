@@ -15,8 +15,8 @@ export const edexcelALevelEconomicsTopics: Topic[] = [
 
   // 1.1 Nature of economics
   {
-    id: 'nature',
-    examBoard: 'edexcel',
+    id: 'economics-nature',
+    examBoard: 'edexcel', 
     name: 'Nature of Economics',
     description: 'Economics as a social science, positive and normative economics',
     icon: '📚',
