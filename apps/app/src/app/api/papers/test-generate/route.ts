@@ -117,12 +117,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Select questions for paper
-    const questions = await selectQuestionsForPaper(
-      subject,
-      qualification,
-      examBoard,
-      config
-    );
+    const questions = selectQuestionsForPaper(config, subject).sections.flatMap(section => section.questions);
 
     console.log(`[TEST] Selected ${questions.length} questions:`, 
       questions.map(q => `${q.topicId} (${q.subtopic}) - ${q.marks} marks`));
