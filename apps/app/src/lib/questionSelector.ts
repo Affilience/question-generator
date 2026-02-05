@@ -287,11 +287,19 @@ export class QuestionSelector {
       allocation.allocatedMarks = Math.round((allocation.weight / totalWeight) * totalMarks);
     });
 
-    // Adjust for rounding
+    // Adjust for rounding - distribute randomly instead of always to first
     const allocated = allocations.reduce((sum, a) => sum + a.allocatedMarks, 0);
     const diff = totalMarks - allocated;
     if (diff !== 0 && allocations.length > 0) {
-      allocations[0].allocatedMarks += diff;
+      // Randomly distribute the difference to avoid bias toward first topics
+      const randomIndex = Math.floor(this.random() * allocations.length);
+      allocations[randomIndex].allocatedMarks += diff;
+    }
+
+    // Shuffle allocations to prevent order bias in selection
+    for (let i = allocations.length - 1; i > 0; i--) {
+      const j = Math.floor(this.random() * (i + 1));
+      [allocations[i], allocations[j]] = [allocations[j], allocations[i]];
     }
 
     return allocations;
