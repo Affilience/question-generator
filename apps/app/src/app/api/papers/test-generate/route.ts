@@ -95,10 +95,12 @@ export async function POST(request: NextRequest) {
       timeMinutes,
       sections: [
         {
+          id: "section-a",
           name: "Section A",
-          marks: totalMarks,
+          targetMarks: totalMarks,
           questionTypes: ['essay', 'extract-analysis', 'data-response'] as QuestionType[],
-          instructions: `Answer ALL questions. Total marks: ${totalMarks}`
+          instructions: `Answer ALL questions. Total marks: ${totalMarks}`,
+          order: 1
         }
       ]
     };
