@@ -456,6 +456,103 @@ async function generateSingleQuestion(
 }
 
 /**
+ * Get the appropriate prompt for a subject using specialized subject prompts
+ */
+function getSubjectSpecificPrompt(
+  plan: QuestionPlan,
+  subject: Subject,
+  examBoard: ExamBoard,
+  qualification: QualificationLevel,
+  topicName: string
+): string {
+  const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
+                getTopicById(plan.topicId);
+  
+  if (!topic) {
+    // Fallback to generic prompts if no topic found
+    return isEssaySubject(subject)
+      ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
+      : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+  }
+
+  // Use specialized prompts for each subject
+  switch (subject) {
+    case 'economics':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-aqa');
+            return getAQAALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-edexcel');
+            return getEdexcelALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-ocr');
+            return getOCRALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          default:
+            const { getAQAALevelEconomicsQuestionPrompt: defaultEcon } = require('@/lib/prompts-economics-alevel-aqa');
+            return defaultEcon(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      // Add GCSE Economics support when available
+      break;
+
+    case 'maths':
+      // Use the new specialized Mathematics prompts
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAMathsALevelCompactPrompt } = require('@/lib/prompts-maths-alevel-aqa');
+            return getAQAMathsALevelCompactPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelMathsALevelCompactPrompt } = require('@/lib/prompts-maths-alevel-edexcel');
+            return getEdexcelMathsALevelCompactPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRMathsALevelCompactPrompt } = require('@/lib/prompts-maths-alevel-ocr');
+            return getOCRMathsALevelCompactPrompt(topic, plan.difficulty, plan.subtopic);
+          default:
+            const { getAQAMathsALevelCompactPrompt: defaultALevelMaths } = require('@/lib/prompts-maths-alevel-aqa');
+            return defaultALevelMaths(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAMathsGCSECompactPrompt } = require('@/lib/prompts-maths-gcse-aqa');
+            return getAQAMathsGCSECompactPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelMathsGCSECompactPrompt } = require('@/lib/prompts-maths-gcse-edexcel');
+            return getEdexcelMathsGCSECompactPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRMathsGCSECompactPrompt } = require('@/lib/prompts-maths-gcse-ocr');
+            return getOCRMathsGCSECompactPrompt(topic, plan.difficulty, plan.subtopic);
+          default:
+            const { getAQAMathsGCSECompactPrompt: defaultMaths } = require('@/lib/prompts-maths-gcse-aqa');
+            return defaultMaths(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
+    // Add other specialized subjects here as needed
+    case 'physics':
+    case 'chemistry':
+    case 'biology':
+    case 'business':
+    case 'psychology':
+    case 'history':
+    case 'geography':
+    case 'english-literature':
+    case 'computer-science':
+      // For now, fall back to existing logic for these subjects
+      break;
+  }
+
+  // Fallback to existing essay/quantitative prompts for subjects without specialized paper prompts yet
+  return isEssaySubject(subject)
+    ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
+    : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+}
+
+/**
  * Internal question generation logic with optional content exclusion
  */
 async function generateSingleQuestionInternal(
@@ -470,10 +567,8 @@ async function generateSingleQuestionInternal(
                 getTopicById(plan.topicId);
   const topicName = topic?.name || plan.topicId;
 
-  // Build prompt based on subject type
-  const basePrompt = isEssaySubject(subject)
-    ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
-    : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+  // Build prompt based on subject type - use specialized prompts for better quality
+  const basePrompt = getSubjectSpecificPrompt(plan, subject, examBoard, qualification, topicName);
 
   // Add content exclusion constraints if provided
   let exclusionPrompt = '';

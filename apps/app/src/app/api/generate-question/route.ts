@@ -39,6 +39,36 @@ import {
 import { getEdexcelALevelCompactPrompt } from '@/lib/prompts-edexcel-alevel';
 import { getOCRALevelCompactPrompt } from '@/lib/prompts-ocr-alevel';
 import {
+  getAQAMathsGCSECompactPrompt,
+  getAQAMathsGCSEFoundationPrompt,
+  getAQAMathsGCSEHigherPrompt,
+} from '@/lib/prompts-maths-gcse-aqa';
+import {
+  getAQAMathsALevelCompactPrompt,
+  getAQAMathsALevelASPrompt,
+  getAQAMathsALevelA2Prompt,
+} from '@/lib/prompts-maths-alevel-aqa';
+import {
+  getEdexcelMathsGCSECompactPrompt,
+  getEdexcelMathsGCSEFoundationPrompt,
+  getEdexcelMathsGCSEHigherPrompt,
+} from '@/lib/prompts-maths-gcse-edexcel';
+import {
+  getEdexcelMathsALevelCompactPrompt,
+  getEdexcelMathsALevelASPrompt,
+  getEdexcelMathsALevelA2Prompt,
+} from '@/lib/prompts-maths-alevel-edexcel';
+import {
+  getOCRMathsGCSECompactPrompt,
+  getOCRMathsGCSEFoundationPrompt,
+  getOCRMathsGCSEHigherPrompt,
+} from '@/lib/prompts-maths-gcse-ocr';
+import {
+  getOCRMathsALevelCompactPrompt,
+  getOCRMathsALevelASPrompt,
+  getOCRMathsALevelA2Prompt,
+} from '@/lib/prompts-maths-alevel-ocr';
+import {
   getAQAPhysicsCompactPrompt,
   getAQAPhysicsExtendedPrompt,
   getAQAPhysicsMultipleChoicePrompt,
@@ -1412,77 +1442,84 @@ export async function POST(request: NextRequest) {
       }
 
       // Handle Maths with question type support
-      // Determine effective question type - use random for 'auto'
-      const effectiveType = questionType === 'auto' ? getRandomQuestionType('maths') : questionType;
+      // Determine effective question type - use random for 'auto', ensure it's never 'auto'
+      let effectiveType = questionType === 'auto' ? getRandomQuestionType('maths') : questionType;
+      if (effectiveType === 'auto') {
+        effectiveType = 'calculation'; // fallback to calculation if still 'auto'
+      }
 
       const getAQAMathsPromptByType = (type: QuestionType) => {
-        switch (type) {
-          case 'multiple-choice':
-            return getAQAMultipleChoicePrompt(topic, difficulty, subtopic);
-          case 'show-that':
-          case 'proof':
-            return getAQAShowThatPrompt(topic, difficulty, subtopic);
-          case 'graph':
-            return getAQAGraphPrompt(topic, difficulty, subtopic);
-          case 'compare':
-            return getAQAComparePrompt(topic, difficulty, subtopic);
-          case 'extended':
-            return getAQAExtendedPrompt(topic, subtopic);
-          default:
-            return getAQACompactPrompt(topic, difficulty, subtopic);
+        const effectiveSubtopic = subtopic || 'General';
+        // For Foundation tier, use specialized Foundation prompts
+        if (difficulty === 'easy') {
+          return getAQAMathsGCSEFoundationPrompt(topic, difficulty, effectiveSubtopic);
         }
+        // For Higher tier, use specialized Higher prompts  
+        if (difficulty === 'hard') {
+          return getAQAMathsGCSEHigherPrompt(topic, difficulty, effectiveSubtopic);
+        }
+        // For medium difficulty, use the general Mathematics prompts
+        return getAQAMathsGCSECompactPrompt(topic, difficulty, effectiveSubtopic);
       };
 
       const getEdexcelMathsPromptByType = (type: QuestionType) => {
-        switch (type) {
-          case 'multiple-choice':
-            return getEdexcelMultipleChoicePrompt(topic, difficulty, subtopic);
-          case 'show-that':
-          case 'proof':
-            return getEdexcelShowThatPrompt(topic, difficulty, subtopic);
-          case 'graph':
-            return getEdexcelGraphPrompt(topic, difficulty, subtopic);
-          case 'compare':
-            return getEdexcelComparePrompt(topic, difficulty, subtopic);
-          case 'extended':
-            return getEdexcelExtendedPrompt(topic, subtopic);
-          default:
-            return getEdexcelCompactPrompt(topic, difficulty, subtopic);
+        const effectiveSubtopic = subtopic || 'General';
+        const params = {
+          subject: 'maths' as const,
+          examBoard: 'edexcel' as const,
+          qualification: 'gcse' as const,
+          topic,
+          subtopic: effectiveSubtopic,
+          difficulty,
+          questionType: type as Exclude<QuestionType, 'auto'>,
+        };
+        // For Foundation tier, use specialized Foundation prompts
+        if (difficulty === 'easy') {
+          return getEdexcelMathsGCSEFoundationPrompt(params);
         }
+        // For Higher tier, use specialized Higher prompts  
+        if (difficulty === 'hard') {
+          return getEdexcelMathsGCSEHigherPrompt(params);
+        }
+        // For medium difficulty, use the general Mathematics prompts
+        return getEdexcelMathsGCSECompactPrompt(params);
       };
 
       const getOCRMathsPromptByType = (type: QuestionType) => {
-        switch (type) {
-          case 'multiple-choice':
-            return getOCRMultipleChoicePrompt(topic, difficulty, subtopic);
-          case 'show-that':
-          case 'proof':
-            return getOCRShowThatPrompt(topic, difficulty, subtopic);
-          case 'graph':
-            return getOCRGraphPrompt(topic, difficulty, subtopic);
-          case 'compare':
-            return getOCRComparePrompt(topic, difficulty, subtopic);
-          case 'extended':
-            return getOCRExtendedPrompt(topic, subtopic);
-          default:
-            return getOCRCompactPrompt(topic, difficulty, subtopic);
+        const effectiveSubtopic = subtopic || 'General';
+        const params = {
+          subject: 'maths' as const,
+          examBoard: 'ocr' as const,
+          qualification: 'gcse' as const,
+          topic,
+          subtopic: effectiveSubtopic,
+          difficulty,
+          questionType: type as Exclude<QuestionType, 'auto'>,
+        };
+        // For Foundation tier, use specialized Foundation prompts
+        if (difficulty === 'easy') {
+          return getOCRMathsGCSEFoundationPrompt(params);
         }
+        // For Higher tier, use specialized Higher prompts  
+        if (difficulty === 'hard') {
+          return getOCRMathsGCSEHigherPrompt(params);
+        }
+        // For medium difficulty, use the general Mathematics prompts
+        return getOCRMathsGCSECompactPrompt(params);
       };
 
       const getAQAALevelMathsPromptByType = (type: QuestionType) => {
-        switch (type) {
-          case 'multiple-choice':
-            return getAQAALevelMultipleChoicePrompt(topic, difficulty, subtopic);
-          case 'show-that':
-          case 'proof':
-            return getAQAALevelProofPrompt(topic, difficulty, subtopic);
-          case 'graph':
-            return getAQAALevelGraphPrompt(topic, difficulty, subtopic);
-          case 'extended':
-            return getAQAALevelExtendedPrompt(topic, subtopic);
-          default:
-            return getAQAALevelCompactPrompt(topic, difficulty, subtopic);
+        const effectiveSubtopic = subtopic || 'General';
+        // For AS Level, use specialized AS prompts
+        if (difficulty === 'easy') {
+          return getAQAMathsALevelASPrompt(topic, difficulty, effectiveSubtopic);
         }
+        // For A2 Level, use specialized A2 prompts  
+        if (difficulty === 'hard') {
+          return getAQAMathsALevelA2Prompt(topic, difficulty, effectiveSubtopic);
+        }
+        // For medium difficulty, use the general A Level Mathematics prompts
+        return getAQAMathsALevelCompactPrompt(topic, difficulty, effectiveSubtopic);
       };
 
       if (qualification === 'a-level') {
@@ -1490,9 +1527,43 @@ export async function POST(request: NextRequest) {
           case 'aqa':
             return getAQAALevelMathsPromptByType(effectiveType);
           case 'edexcel':
-            return getEdexcelALevelCompactPrompt(topic, difficulty, subtopic);
+            const params = {
+              subject: 'maths' as const,
+              examBoard: 'edexcel' as const,
+              qualification: 'a-level' as const,
+              topic,
+              subtopic: subtopic || 'General',
+              difficulty,
+              questionType: effectiveType,
+            };
+            // For AS Level, use specialized AS prompts
+            if (difficulty === 'easy') {
+              return getEdexcelMathsALevelASPrompt(params);
+            }
+            // For A2 Level, use specialized A2 prompts  
+            if (difficulty === 'hard') {
+              return getEdexcelMathsALevelA2Prompt(params);
+            }
+            return getEdexcelMathsALevelCompactPrompt(params);
           case 'ocr':
-            return getOCRALevelCompactPrompt(topic, difficulty, subtopic);
+            const ocrParams = {
+              subject: 'maths' as const,
+              examBoard: 'ocr' as const,
+              qualification: 'a-level' as const,
+              topic,
+              subtopic: subtopic || 'General',
+              difficulty,
+              questionType: effectiveType,
+            };
+            // For AS Level, use specialized AS prompts
+            if (difficulty === 'easy') {
+              return getOCRMathsALevelASPrompt(ocrParams);
+            }
+            // For A2 Level, use specialized A2 prompts  
+            if (difficulty === 'hard') {
+              return getOCRMathsALevelA2Prompt(ocrParams);
+            }
+            return getOCRMathsALevelCompactPrompt(ocrParams);
           default:
             return getAQAALevelMathsPromptByType(effectiveType);
         }
