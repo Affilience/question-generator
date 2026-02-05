@@ -112,17 +112,23 @@ export function PaperBuilder({
     
     if (isEssaySubject) {
       if (subject === 'economics') {
-        // Economics has mixed structure - difficulty affects question types
-        const hardWeight = difficulty.hard;
-        const easyWeight = difficulty.easy;
+        // Economics A-Level: Mixed structure with sophisticated mark distribution
+        // Easy: 2-5 marks (definitions, calculations) 
+        // Medium: 8-12 marks (analysis with extracts)
+        // Hard: 15-25 marks (evaluation essays)
         
-        // More hard = fewer, longer questions (more essays)
-        // More easy = more, shorter questions (more MC/short answer)
-        const baseQuestionsFor80Marks = 8; // Realistic baseline for 80-mark economics paper
-        const difficultyMultiplier = 1 + (easyWeight - hardWeight) * 0.01; // +/- 40% max
-        const questionsFor80 = Math.round(baseQuestionsFor80Marks * difficultyMultiplier);
+        const easyWeight = difficulty.easy / 100;
+        const mediumWeight = difficulty.medium / 100;
+        const hardWeight = difficulty.hard / 100;
         
-        return Math.max(3, Math.round((totalMarks / 80) * questionsFor80));
+        // Weighted average marks per question based on real Edexcel/AQA patterns
+        const easyAvg = 3.5;    // Short definitions/calculations
+        const mediumAvg = 10;   // Data analysis questions  
+        const hardAvg = 20;     // Essay evaluation questions
+        
+        const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+        
+        return Math.max(2, Math.round(totalMarks / weightedAvg));
       } else {
         // English Lit/History: Pure essay subjects
         // English Lit: ~25 marks/question (75 marks = 3 questions)
