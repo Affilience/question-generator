@@ -1551,43 +1551,83 @@ export async function POST(request: NextRequest) {
           case 'aqa':
             return getAQAALevelMathsPromptByType(effectiveType);
           case 'edexcel':
-            const params = {
-              subject: 'maths' as const,
-              examBoard: 'edexcel' as const,
-              qualification: 'a-level' as const,
-              topic,
-              subtopic: subtopic || 'General',
-              difficulty,
-              questionType: effectiveType,
+            const getEdexcelALevelMathsPromptByType = (type: QuestionType) => {
+              const effectiveSubtopic = subtopic || 'General';
+              const topicName = topic.name.toLowerCase();
+              
+              const baseParams = {
+                subject: 'maths' as const,
+                examBoard: 'edexcel' as const,
+                qualification: 'a-level' as const,
+                topic,
+                subtopic: effectiveSubtopic,
+                difficulty,
+                questionType: type,
+              };
+              
+              // CRITICAL FIX: For proof questions, enhance subtopic to emphasize proof techniques
+              if (topicName.includes('proof') || effectiveSubtopic.toLowerCase().includes('proof') || type === 'proof') {
+                const proofParams = {
+                  ...baseParams,
+                  subtopic: effectiveSubtopic.includes('proof') ? effectiveSubtopic : `${effectiveSubtopic} - Proof techniques`,
+                };
+                // Route proof questions to A2 level by default for proper complexity
+                if (difficulty === 'easy') {
+                  return getEdexcelMathsALevelASPrompt(proofParams);
+                }
+                return getEdexcelMathsALevelA2Prompt(proofParams);
+              }
+              
+              // For AS Level, use specialized AS prompts
+              if (difficulty === 'easy') {
+                return getEdexcelMathsALevelASPrompt(baseParams);
+              }
+              // For A2 Level, use specialized A2 prompts  
+              if (difficulty === 'hard') {
+                return getEdexcelMathsALevelA2Prompt(baseParams);
+              }
+              return getEdexcelMathsALevelCompactPrompt(baseParams);
             };
-            // For AS Level, use specialized AS prompts
-            if (difficulty === 'easy') {
-              return getEdexcelMathsALevelASPrompt(params);
-            }
-            // For A2 Level, use specialized A2 prompts  
-            if (difficulty === 'hard') {
-              return getEdexcelMathsALevelA2Prompt(params);
-            }
-            return getEdexcelMathsALevelCompactPrompt(params);
+            return getEdexcelALevelMathsPromptByType(effectiveType);
           case 'ocr':
-            const ocrParams = {
-              subject: 'maths' as const,
-              examBoard: 'ocr' as const,
-              qualification: 'a-level' as const,
-              topic,
-              subtopic: subtopic || 'General',
-              difficulty,
-              questionType: effectiveType,
+            const getOCRALevelMathsPromptByType = (type: QuestionType) => {
+              const effectiveSubtopic = subtopic || 'General';
+              const topicName = topic.name.toLowerCase();
+              
+              const baseParams = {
+                subject: 'maths' as const,
+                examBoard: 'ocr' as const,
+                qualification: 'a-level' as const,
+                topic,
+                subtopic: effectiveSubtopic,
+                difficulty,
+                questionType: type,
+              };
+              
+              // CRITICAL FIX: For proof questions, enhance subtopic to emphasize proof techniques
+              if (topicName.includes('proof') || effectiveSubtopic.toLowerCase().includes('proof') || type === 'proof') {
+                const proofParams = {
+                  ...baseParams,
+                  subtopic: effectiveSubtopic.includes('proof') ? effectiveSubtopic : `${effectiveSubtopic} - Proof techniques`,
+                };
+                // Route proof questions to A2 level by default for proper complexity
+                if (difficulty === 'easy') {
+                  return getOCRMathsALevelASPrompt(proofParams);
+                }
+                return getOCRMathsALevelA2Prompt(proofParams);
+              }
+              
+              // For AS Level, use specialized AS prompts
+              if (difficulty === 'easy') {
+                return getOCRMathsALevelASPrompt(baseParams);
+              }
+              // For A2 Level, use specialized A2 prompts  
+              if (difficulty === 'hard') {
+                return getOCRMathsALevelA2Prompt(baseParams);
+              }
+              return getOCRMathsALevelCompactPrompt(baseParams);
             };
-            // For AS Level, use specialized AS prompts
-            if (difficulty === 'easy') {
-              return getOCRMathsALevelASPrompt(ocrParams);
-            }
-            // For A2 Level, use specialized A2 prompts  
-            if (difficulty === 'hard') {
-              return getOCRMathsALevelA2Prompt(ocrParams);
-            }
-            return getOCRMathsALevelCompactPrompt(ocrParams);
+            return getOCRALevelMathsPromptByType(effectiveType);
           default:
             return getAQAALevelMathsPromptByType(effectiveType);
         }
