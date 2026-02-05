@@ -1510,6 +1510,30 @@ export async function POST(request: NextRequest) {
 
       const getAQAALevelMathsPromptByType = (type: QuestionType) => {
         const effectiveSubtopic = subtopic || 'General';
+        
+        // Route to specialized prompts based on topic or question type
+        const topicName = topic.name.toLowerCase();
+        
+        // CRITICAL FIX: Route proof questions to specialized proof prompt
+        if (topicName.includes('proof') || effectiveSubtopic.toLowerCase().includes('proof') || type === 'proof') {
+          return getAQAALevelProofPrompt(topic, difficulty, effectiveSubtopic);
+        }
+        
+        // Route graph questions to specialized graph prompt
+        if (type === 'graph' || topicName.includes('graph') || effectiveSubtopic.toLowerCase().includes('graph')) {
+          return getAQAALevelGraphPrompt(topic, difficulty, effectiveSubtopic);
+        }
+        
+        // Route multiple choice questions to specialized MC prompt
+        if (type === 'multiple-choice') {
+          return getAQAALevelMultipleChoicePrompt(topic, difficulty, effectiveSubtopic);
+        }
+        
+        // Route extended questions to specialized extended prompt
+        if (type === 'extended' || (topic.name.toLowerCase().includes('application') && difficulty === 'hard')) {
+          return getAQAALevelExtendedPrompt(topic, difficulty, effectiveSubtopic);
+        }
+        
         // For AS Level, use specialized AS prompts
         if (difficulty === 'easy') {
           return getAQAMathsALevelASPrompt(topic, difficulty, effectiveSubtopic);
