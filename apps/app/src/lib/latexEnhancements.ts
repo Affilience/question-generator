@@ -259,6 +259,16 @@ export function validateLatexSyntax(text: string): {
     warnings.push('Empty \\text{} command found');
   }
   
+  // Check for raw LaTeX commands that might not render properly
+  if (text.match(/[a-zA-Z\s]+\\text\{[^}]*\}[a-zA-Z\s]*/)) {
+    warnings.push('Text commands mixed with plain text - may cause rendering issues');
+  }
+  
+  // Check for variables incorrectly wrapped in text commands
+  if (text.match(/\\text\{[a-zA-Z]\}/)) {
+    warnings.push('Single variables in \\text{} commands should generally be in math mode');
+  }
+  
   if (text.includes('_{_{')) {
     errors.push('Nested subscripts detected - this will cause rendering errors');
   }
@@ -426,6 +436,104 @@ export function enhanceStatisticalNotation(text: string): string {
 }
 
 /**
+ * Enhanced text command normalization for KaTeX compatibility
+ * Fixes issues where \text{} commands appear as raw text
+ */
+export function enhanceTextCommands(text: string): string {
+  let result = text;
+  
+  // Handle malformed text commands that show as raw LaTeX
+  // Pattern: \text{content} appearing as literal text instead of rendered
+  result = result.replace(/\\text\{([^}]*)\}/g, (match, content) => {
+    // If the content is empty or whitespace only, remove it
+    if (!content || content.trim() === '') {
+      return '';
+    }
+    
+    // For KaTeX compatibility, ensure proper text mode
+    // Remove any nested LaTeX commands that don't work in text mode
+    const cleanContent = content
+      .replace(/\\[a-zA-Z]+\s*/g, '') // Remove LaTeX commands
+      .replace(/[{}]/g, '') // Remove braces
+      .trim();
+    
+    // If nothing left after cleaning, remove the command
+    if (!cleanContent) {
+      return '';
+    }
+    
+    // Return properly formatted text command
+    return `\\text{${cleanContent}}`;
+  });
+  
+  // Handle \mathrm{} commands which are similar to \text{} but for Roman text
+  result = result.replace(/\\mathrm\{([^}]*)\}/g, (match, content) => {
+    if (!content || content.trim() === '') {
+      return '';
+    }
+    
+    const cleanContent = content
+      .replace(/\\[a-zA-Z]+\s*/g, '')
+      .replace(/[{}]/g, '')
+      .trim();
+    
+    if (!cleanContent) {
+      return '';
+    }
+    
+    return `\\mathrm{${cleanContent}}`;
+  });
+  
+  // Handle raw backslash commands that appear as text (common KaTeX issue)
+  // Look for patterns like "Why does the derivative of the function \text{f}(x)"
+  // where the \text command isn't being processed
+  result = result.replace(/([a-zA-Z\s]+)(\\text\{[^}]*\})([a-zA-Z\s]*)/g, (match, before, textCmd, after) => {
+    // Split the text around the LaTeX command
+    const beforeText = before.trim();
+    const afterText = after.trim();
+    
+    // Clean up the text command
+    const cleanTextCmd = textCmd.replace(/\\text\{([^}]*)\}/, (m, content) => {
+      const cleaned = content.replace(/\\[a-zA-Z]+\s*/g, '').replace(/[{}]/g, '').trim();
+      return cleaned ? `\\text{${cleaned}}` : '';
+    });
+    
+    // Rebuild the expression
+    if (beforeText && afterText && cleanTextCmd) {
+      return `${beforeText} ${cleanTextCmd} ${afterText}`;
+    } else if (beforeText && cleanTextCmd) {
+      return `${beforeText} ${cleanTextCmd}`;
+    } else if (cleanTextCmd && afterText) {
+      return `${cleanTextCmd} ${afterText}`;
+    } else if (cleanTextCmd) {
+      return cleanTextCmd;
+    }
+    
+    // Fallback: return the original match
+    return match;
+  });
+  
+  // Handle common text-mode math expressions that should be in math mode
+  // Example: "f(x) = x^n" where "f" should be in math mode
+  result = result.replace(/\\text\{([a-zA-Z])\}\s*\(\s*([a-zA-Z])\s*\)/g, '$1($2)');
+  
+  // Fix cases where variables are incorrectly wrapped in \text{}
+  result = result.replace(/\\text\{([a-zA-Z])\}/g, (match, variable) => {
+    // Single letters should generally be in math mode, not text mode
+    if (variable.length === 1 && /[a-zA-Z]/.test(variable)) {
+      return variable;
+    }
+    return match;
+  });
+  
+  // Remove any remaining empty text commands
+  result = result.replace(/\\text\{\s*\}/g, '');
+  result = result.replace(/\\mathrm\{\s*\}/g, '');
+  
+  return result;
+}
+
+/**
  * Apply comprehensive LaTeX enhancements including complex expressions
  */
 export function enhanceLatexForKatex(text: string): {
@@ -435,6 +543,8 @@ export function enhanceLatexForKatex(text: string): {
   let result = text;
   
   // Apply all enhancements in order
+  // Text command normalization should be done early to fix raw LaTeX issues
+  result = enhanceTextCommands(result);
   result = enhanceSymbolRendering(result);
   result = enhanceComplexFractions(result);
   result = enhanceMatrixNotation(result);

@@ -1,8 +1,41 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, Component, ReactNode, ErrorInfo } from 'react';
 import { GeneratedPaper, GeneratedQuestion } from '@/types';
 import { MathRenderer } from './MathRenderer';
+import { DiagramRenderer } from './DiagramRenderer';
+
+// Error boundary for graceful diagram rendering failures in print
+class DiagramErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Diagram rendering error in print:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="diagram-error">
+          <p>[Diagram could not be rendered for printing]</p>
+          <p>Please refer to the digital version</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 interface PrintablePaperProps {
   paper: GeneratedPaper;
@@ -300,6 +333,98 @@ const printStyles = `
     background: #fef7ed !important; /* Light orange */
     border-left: 3px solid #ea580c !important;
   }
+  
+  /* Diagram-specific print styles */
+  .question-diagram {
+    margin: 15pt 0 !important;
+    text-align: center !important;
+    page-break-inside: avoid !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    padding: 10pt !important;
+    border-radius: 5pt !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .question-diagram svg {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+    /* Ensure SVGs scale properly for print */
+    width: 100% !important;
+    max-height: 250pt !important;
+  }
+  
+  /* Enhanced print compatibility for diagrams */
+  .question-diagram .print-diagram {
+    max-width: 400pt !important;
+    margin: 0 auto !important;
+  }
+  
+  /* Diagram text and labels print styling */
+  .question-diagram text {
+    font-family: 'Arial', sans-serif !important;
+    font-size: 10pt !important;
+    fill: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  /* Ensure diagram elements are print-friendly */
+  .question-diagram path,
+  .question-diagram line,
+  .question-diagram circle,
+  .question-diagram rect,
+  .question-diagram polygon {
+    stroke: #000 !important;
+    stroke-width: 1.5pt !important;
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Grid lines should be lighter for print */
+  .question-diagram .grid-line {
+    stroke: #ccc !important;
+    stroke-width: 0.5pt !important;
+  }
+  
+  /* Axes should be prominent */
+  .question-diagram .axis-line {
+    stroke: #000 !important;
+    stroke-width: 2pt !important;
+  }
+  
+  /* Angle markers and special elements */
+  .question-diagram .angle-marker {
+    fill: rgba(0, 0, 0, 0.1) !important;
+    stroke: #000 !important;
+  }
+  
+  /* Physics/Chemistry diagram specific styles */
+  .subject-physics .question-diagram path,
+  .subject-chemistry .question-diagram path {
+    stroke-width: 2pt !important;
+  }
+  
+  /* Mathematics diagram specific styles */
+  .subject-maths .question-diagram .grid-line,
+  .subject-mathematics .question-diagram .grid-line {
+    stroke: #e5e5e5 !important;
+    stroke-width: 0.3pt !important;
+  }
+  
+  /* Diagram error fallback */
+  .diagram-error {
+    border: 2px dashed #ccc !important;
+    padding: 20pt !important;
+    text-align: center !important;
+    color: #666 !important;
+    font-style: italic !important;
+    margin: 15pt 0 !important;
+    min-height: 60pt !important;
+    background: #fafafa !important;
+  }
 }
 `;
 
@@ -429,6 +554,20 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                       <MathRenderer content={question.content} />
                     </div>
 
+                    {/* Question Diagram */}
+                    {question.diagram && (
+                      <div className="question-diagram">
+                        <DiagramErrorBoundary>
+                          <DiagramRenderer
+                            spec={question.diagram}
+                            maxWidth={400}
+                            maxHeight={250}
+                            className="print-diagram"
+                          />
+                        </DiagramErrorBoundary>
+                      </div>
+                    )}
+
                     {/* Answer Space */}
                     <div 
                       className={`answer-space ${
@@ -491,6 +630,22 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                         <div style={{ fontSize: '10pt', lineHeight: '1.4' }}>
                           <MathRenderer content={question.solution} />
                         </div>
+                        {/* Solution Diagram (for "draw a diagram" questions) */}
+                        {question.solutionDiagram && (
+                          <div className="question-diagram" style={{ marginTop: '10pt' }}>
+                            <p style={{ fontSize: '9pt', color: '#666', marginBottom: '5pt' }}>
+                              Expected diagram:
+                            </p>
+                            <DiagramErrorBoundary>
+                              <DiagramRenderer
+                                spec={question.solutionDiagram}
+                                maxWidth={350}
+                                maxHeight={200}
+                                className="print-diagram solution-diagram"
+                              />
+                            </DiagramErrorBoundary>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
