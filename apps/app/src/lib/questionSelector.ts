@@ -440,7 +440,7 @@ export class QuestionSelector {
   ): QuestionType | null {
     // Filter types that can fit in remaining marks
     const viableTypes = availableTypes.filter((type) => {
-      const typeMarks = getQuestionTypeMarks(type, this.subject);
+      const typeMarks = getQuestionTypeMarks(type, this.subject, this.qualification);
       if (!typeMarks || typeMarks.length === 0) return false;
       const minMarks = Math.min(...typeMarks);
       return minMarks <= remainingMarks;
@@ -456,7 +456,7 @@ export class QuestionSelector {
    * Choose marks for a question type
    */
   private chooseMarks(questionType: QuestionType, remainingMarks: number): number {
-    const typeMarks = getQuestionTypeMarks(questionType, this.subject);
+    const typeMarks = getQuestionTypeMarks(questionType, this.subject, this.qualification);
     if (!typeMarks) return 0;
     const possibleMarks = typeMarks.filter((m) => m <= remainingMarks);
     if (possibleMarks.length === 0) return 0;
@@ -601,7 +601,7 @@ export class QuestionSelector {
 /**
  * Convenience function to create a selection result
  */
-export function selectQuestionsForPaper(config: PaperConfig, subject: string, seed?: number): SelectionResult {
+export function selectQuestionsForPaper(config: PaperConfig, subject: string, qualification: string = 'alevel', seed?: number): SelectionResult {
   // Transform sections to match PaperSection interface (marks -> targetMarks)
   const transformedSections = config.sections.map(section => ({
     ...section,
@@ -618,7 +618,7 @@ export function selectQuestionsForPaper(config: PaperConfig, subject: string, se
 
   console.log(`🔧 SECTION TRANSFORMATION DEBUG:`, transformedSections.map(s => `${s.id}: marks=${(s as any).marks} -> targetMarks=${s.targetMarks}`));
 
-  const selector = new QuestionSelector(configForSelector, subject, seed);
+  const selector = new QuestionSelector(configForSelector, subject, qualification, seed);
   return selector.selectQuestions();
 }
 

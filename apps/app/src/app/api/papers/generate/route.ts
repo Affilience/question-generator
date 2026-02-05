@@ -17,7 +17,7 @@ import { DiagramSpec } from '@/types/diagram';
 import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
 import { getOpenAIClient } from '@/lib/openai';
 import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE } from '@/lib/prompts-common';
-import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
+import { getTopicByIdSubjectBoardAndLevel, getTopicById, getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import {
@@ -34,6 +34,7 @@ import {
 // Import extract databases for essay subjects
 import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
+
 
 // Use Edge runtime for 30s streaming timeout (vs 10s serverless on Hobby plan)
 export const runtime = 'edge';
@@ -473,33 +474,63 @@ function getSubjectSpecificPrompt(
   qualification: QualificationLevel,
   topicName: string
 ): string {
+  console.log(`🔍 TOPIC LOOKUP: Searching for topicId="${plan.topicId}" subject="${subject}" examBoard="${examBoard}" qualification="${qualification}"`);
+  
   const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
                 getTopicById(plan.topicId);
   
   if (!topic) {
-    // Fallback to generic prompts if no topic found
+    // Debug: Let's see what topics are actually available
+    const availableTopics = getTopicsBySubjectBoardAndLevel(subject, examBoard, qualification);
+    const availableTopicIds = availableTopics.map(t => t.id);
+    
+    console.warn(`⚠️ TOPIC LOOKUP FAILED: topicId="${plan.topicId}" subject="${subject}" examBoard="${examBoard}" qualification="${qualification}"`);
+    console.warn(`Available topic IDs: [${availableTopicIds.join(', ')}]`);
+    console.warn(`Subtopic: "${plan.subtopic}"`);
+    console.warn(`Using generic prompts instead of specialized prompts.`);
+    
     return isEssaySubject(subject)
       ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
       : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
+  }
+
+  console.log(`✅ TOPIC FOUND: "${topic.name}" (${topic.subtopics.length} subtopics)`);
+  console.log(`📚 Using specialized ${subject} prompts for subtopic: "${plan.subtopic}"`);
+  
+  if (subject === 'economics') {
+    console.log(`🧮 Economics subject detected - isEssaySubject: ${isEssaySubject(subject)}`);
+    console.log(`📋 Available subtopics: ${topic.subtopics.slice(0, 5).join(', ')}...`);
+    console.log(`🎯 Selected subtopic: "${plan.subtopic}"`);
+    console.log(`⚡ Will use SPECIALIZED economics prompts with diversity controls`);
   }
 
   // Use specialized prompts for each subject
   switch (subject) {
     case 'economics':
       if (qualification === 'a-level') {
-        switch (examBoard) {
-          case 'aqa':
-            const { getAQAALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-aqa');
-            return getAQAALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
-          case 'edexcel':
-            const { getEdexcelALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-edexcel');
-            return getEdexcelALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
-          case 'ocr':
-            const { getOCRALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-ocr');
-            return getOCRALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
-          default:
-            const { getAQAALevelEconomicsQuestionPrompt: defaultEcon } = require('@/lib/prompts-economics-alevel-aqa');
-            return defaultEcon(topic, plan.difficulty, plan.subtopic);
+        try {
+          switch (examBoard) {
+            case 'aqa':
+              console.log(`🎯 Loading AQA A-Level Economics prompts...`);
+              const { getAQAALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-aqa');
+              return getAQAALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+            case 'edexcel':
+              console.log(`🎯 Loading Edexcel A-Level Economics prompts...`);
+              const { getEdexcelALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-edexcel');
+              return getEdexcelALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+            case 'ocr':
+              console.log(`🎯 Loading OCR A-Level Economics prompts...`);
+              const { getOCRALevelEconomicsQuestionPrompt } = require('@/lib/prompts-economics-alevel-ocr');
+              return getOCRALevelEconomicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+            default:
+              console.log(`🎯 Loading default (AQA) A-Level Economics prompts...`);
+              const { getAQAALevelEconomicsQuestionPrompt: defaultEcon } = require('@/lib/prompts-economics-alevel-aqa');
+              return defaultEcon(topic, plan.difficulty, plan.subtopic);
+          }
+        } catch (error) {
+          console.error(`❌ ERROR loading specialized economics prompts:`, error);
+          console.warn(`💔 Falling back to generic essay prompts due to error`);
+          return buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName);
         }
       }
       // Add GCSE Economics support when available
@@ -930,19 +961,66 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (Object.keys(config.selectedSubtopics).length === 0) {
+  if (!config.selectedSubtopics || Object.keys(config.selectedSubtopics).length === 0) {
     return NextResponse.json(
       { error: 'Must select at least one subtopic' },
       { status: 400 }
     );
   }
 
+  // Ensure config has required defaults
+  const totalMarksCalculated = config.totalMarks || config.sections.reduce((sum, section) => sum + (section.marks || 0), 0);
+  console.log(`🔢 MARKS DEBUG - totalMarks: ${config.totalMarks}, calculated: ${totalMarksCalculated}, sections:`, config.sections.map(s => `${s.id}:${s.marks}`));
+  
+  const configWithDefaults = {
+    ...config,
+    difficultyDistribution: config.difficultyDistribution || {
+      easy: 40,
+      medium: 40, 
+      hard: 20
+    },
+    questionTypeDistribution: config.questionTypeDistribution || {
+      'multiple-choice': 0,
+      'short-answer': 60,
+      'extended-response': 40
+    },
+    settings: config.settings || {
+      allowRepeatQuestions: false,
+      prioritizeWeakTopics: false
+    },
+    topicWeights: config.topicWeights || {},
+    totalMarks: totalMarksCalculated
+  };
+
   // Plan the questions
-  const selectionResult = selectQuestionsForPaper(config, subject);
+  const selectionResult = selectQuestionsForPaper(configWithDefaults, subject, qualification);
   const allPlans: QuestionPlan[] = [];
   selectionResult.sections.forEach((section) => {
     allPlans.push(...section.questions);
   });
+
+  // Log economics-specific paper generation details
+  if (subject === 'economics') {
+    console.log(`\n🎓 ECONOMICS PAPER GENERATION DEBUG:`);
+    console.log(`📊 Total questions planned: ${allPlans.length}`);
+    console.log(`🏷️ Topic distribution:`);
+    const topicCount: Record<string, number> = {};
+    allPlans.forEach(plan => {
+      topicCount[plan.topicId] = (topicCount[plan.topicId] || 0) + 1;
+    });
+    Object.entries(topicCount).forEach(([topicId, count]) => {
+      console.log(`   ${topicId}: ${count} question(s)`);
+    });
+    console.log(`🎯 Subtopic distribution:`);
+    const subtopicCount: Record<string, number> = {};
+    allPlans.forEach(plan => {
+      subtopicCount[plan.subtopic] = (subtopicCount[plan.subtopic] || 0) + 1;
+    });
+    Object.entries(subtopicCount).forEach(([subtopic, count]) => {
+      console.log(`   "${subtopic}": ${count} question(s)`);
+    });
+    console.log(`\n`);
+  }
 
   if (allPlans.length === 0) {
     return NextResponse.json(
