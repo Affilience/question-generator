@@ -1531,7 +1531,7 @@ export async function POST(request: NextRequest) {
         
         // Route extended questions to specialized extended prompt
         if (type === 'extended' || (topic.name.toLowerCase().includes('application') && difficulty === 'hard')) {
-          return getAQAALevelExtendedPrompt(topic, difficulty, effectiveSubtopic);
+          return getAQAALevelExtendedPrompt(topic, effectiveSubtopic);
         }
         
         // For AS Level, use specialized AS prompts
@@ -1555,6 +1555,9 @@ export async function POST(request: NextRequest) {
               const effectiveSubtopic = subtopic || 'General';
               const topicName = topic.name.toLowerCase();
               
+              // Convert 'auto' to a valid question type for the prompt parameters
+              const validQuestionType = type === 'auto' ? 'calculation' : type;
+              
               const baseParams = {
                 subject: 'maths' as const,
                 examBoard: 'edexcel' as const,
@@ -1562,7 +1565,7 @@ export async function POST(request: NextRequest) {
                 topic,
                 subtopic: effectiveSubtopic,
                 difficulty,
-                questionType: type,
+                questionType: validQuestionType,
               };
               
               // CRITICAL FIX: For proof questions, enhance subtopic to emphasize proof techniques
@@ -1594,6 +1597,9 @@ export async function POST(request: NextRequest) {
               const effectiveSubtopic = subtopic || 'General';
               const topicName = topic.name.toLowerCase();
               
+              // Convert 'auto' to a valid question type for the prompt parameters
+              const validQuestionType = type === 'auto' ? 'calculation' : type;
+              
               const baseParams = {
                 subject: 'maths' as const,
                 examBoard: 'ocr' as const,
@@ -1601,7 +1607,7 @@ export async function POST(request: NextRequest) {
                 topic,
                 subtopic: effectiveSubtopic,
                 difficulty,
-                questionType: type,
+                questionType: validQuestionType,
               };
               
               // CRITICAL FIX: For proof questions, enhance subtopic to emphasize proof techniques
