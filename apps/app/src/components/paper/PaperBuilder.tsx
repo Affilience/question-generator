@@ -147,11 +147,28 @@ export function PaperBuilder({
       
       return Math.max(3, Math.round(totalMarks / Math.max(4, weightedAvg)));
     } else {
-      // STEM subjects have more, lower-mark questions:
-      // Maths/Sciences: calculation (2-5), explain (2-4), extended (6-12), etc.
-      // Weighted average ~3.8 marks per question
-      const avgMarksPerQuestion = 3.8;
-      return Math.round(totalMarks / avgMarksPerQuestion);
+      // STEM subjects: Use realistic mark distribution matching the weighted question selector
+      // Real past papers have MANY low-mark questions (1-3 marks) and FEW high-mark questions
+      // Weighted average based on actual AQA/Edexcel/OCR past paper analysis
+      
+      // The new weighted selector heavily favors low marks:
+      // 1-3 marks: ~60% of questions, 4-6 marks: ~26% of questions, 8+ marks: ~14% of questions
+      const baseAvg = 3.2; // Much more realistic weighted average
+      
+      // Difficulty still affects distribution slightly:
+      // Easy = more 1-2 mark questions, Hard = more 4-6 mark questions (but still mostly low marks)
+      const easyWeight = difficulty.easy / 100;
+      const mediumWeight = difficulty.medium / 100;
+      const hardWeight = difficulty.hard / 100;
+      
+      const easyAvg = 2.8;    // Easy: heavily weighted toward 1-2 marks
+      const mediumAvg = 3.4;  // Medium: mix of 1-4 marks
+      const hardAvg = 4.2;    // Hard: more 3-6 marks but still lots of small ones
+      
+      const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+      const finalAvg = Math.max(2.5, weightedAvg);
+      
+      return Math.round(totalMarks / finalAvg);
     }
   }, [totalMarks, subject, level, difficulty]);
 

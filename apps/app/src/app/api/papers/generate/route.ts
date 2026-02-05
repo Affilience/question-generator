@@ -288,6 +288,11 @@ ${formatGuidance}
 
 Command word: "${commandWord}"
 ${markSchemeGuidance}
+
+LaTeX Math Formatting:
+- Variables: $x$, $f(x)$, $y$ (NO \\text{} around variables!)
+- Functions: $f(x)$, $g(x)$, $\\sin x$ (NO \\text{} around function names!)  
+- CRITICAL: NEVER use \\text{} for mathematical variables or functions!
 ${diagramInstructions}
 
 Return JSON:
@@ -403,11 +408,13 @@ ${markSchemeFormat}
 
 LaTeX Math Formatting:
 - Wrap ALL math in $...$ delimiters
-- Variables: $x$, $F_{net}$, $v^2$
-- Fractions: $\\\\frac{a}{b}$
-- Greek: $\\\\theta$, $\\\\alpha$
-- Chemistry: $\\text{H}_2\\text{O}$, $\\text{Na}^+$
-- Units: $\\text{m s}^{-1}$
+- Variables: $x$, $f(x)$, $y$, $F_{net}$, $v^2$ (NO \\text{} around variables!)
+- Functions: $f(x)$, $g(x)$, $\\sin x$, $\\cos x$ (NO \\text{} around function names!)
+- Fractions: $\\\\frac{a}{b}$, $\\\\frac{dy}{dx}$
+- Greek: $\\\\theta$, $\\\\alpha$, $\\\\lambda$
+- Chemistry: $\\text{H}_2\\text{O}$, $\\text{Na}^+$ (\\text{} only for chemical formulas)
+- Units: $5\\,\\text{m s}^{-1}$, $9.8\\,\\text{kg}$ (\\text{} only for units)
+- CRITICAL: NEVER use \\text{} for mathematical variables or functions!
 ${diagramInstructions}
 
 Return JSON:
@@ -606,7 +613,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Plan the questions
-  const selectionResult = selectQuestionsForPaper(config);
+  const selectionResult = selectQuestionsForPaper(config, subject);
   const allPlans: QuestionPlan[] = [];
   selectionResult.sections.forEach((section) => {
     allPlans.push(...section.questions);

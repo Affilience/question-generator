@@ -1313,7 +1313,10 @@ export function getAQAALevelProofPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
-  const markRange = difficulty === 'easy' ? '3-4' : difficulty === 'medium' ? '4-6' : '6-8';
+  
+  // Use dynamic mark selection from the range (not hardcoded!)
+  const markRangeObj = getMarkRangeForDifficulty(difficulty);
+  const selectedMarks = Math.floor(Math.random() * (markRangeObj.max - markRangeObj.min + 1)) + markRangeObj.min;
 
   return `${AQA_ALEVEL_QUESTION_PRINCIPLES}
 
@@ -1327,25 +1330,32 @@ Generate an AQA A-Level style PROOF question.
 
 **Topic:** ${topic.name}
 **Subtopic:** ${selectedSubtopic}
-**Mark Range:** ${markRange} marks
+**Marks:** ${selectedMarks} marks
 
 ## A-Level Proof Question Types
 
-**Proof by deduction:**
-- Algebraic manipulation to establish result
-- Using known results to derive new ones
+**CRITICAL: For "proof-by-deduction" subtopic, ONLY generate proof by deduction questions!**
+
+**Proof by deduction (direct proof):**
+MUST ask student to PROVE a mathematical statement using logical steps.
+Example statements to prove:
+- "Prove that the sum of two consecutive odd numbers is always even"
+- "Prove that if n is even, then n² is even"  
+- "Prove that (a + b)² = a² + 2ab + b²"
+- "Prove that the sum of the first n odd numbers is n²"
+- "Prove that if x > 0 and y > 0, then x + y > 0"
 
 **Proof by exhaustion:**
-- Testing all possible cases
-- Often for integer problems
+- Testing all possible cases systematically
+- Often for modular arithmetic or small integer ranges
 
 **Proof by contradiction:**
-- Assume opposite, derive contradiction
-- Classic examples: √2 irrational, infinite primes
+- Assume the statement is false, derive a logical contradiction
+- Classic examples: √2 irrational, infinitely many primes
 
-**Counter-example:**
-- Find ONE example that disproves a statement
-- Must be specific and verifiable
+**Counter-example/Disproof:**
+- Find ONE specific example that shows a statement is false
+- Must provide the exact counterexample with verification
 
 **Show that questions:**
 - Result given, must demonstrate validity
@@ -1353,11 +1363,13 @@ Generate an AQA A-Level style PROOF question.
 
 ## Response Format (JSON)
 
+CRITICAL: The question MUST start with "Prove that..." or "Show that..." - NOT calculation problems!
+
 {
-  "content": "Context...\\n\\n[Prove/Show that statement] [X marks]",
-  "marks": <total marks>,
-  "solution": "Complete proof with every step justified",
-  "markScheme": ["M1: Key step 1", "M1: Key step 2", "A1: Correct conclusion with full justification"]
+  "content": "Prove that [mathematical statement]. [${selectedMarks} marks]",
+  "marks": ${selectedMarks},
+  "solution": "Complete proof with every step justified and explained",
+  "markScheme": ["M1: Correct initial setup", "M1: Key algebraic step", "A1: Correct conclusion with full justification"]
 }
 
 Generate an original AQA A-Level proof question now:`;
@@ -1373,7 +1385,10 @@ export function getAQAALevelGraphPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
-  const markRange = difficulty === 'easy' ? '3-5' : difficulty === 'medium' ? '5-8' : '8-12';
+  
+  // Use dynamic mark selection from the range (not hardcoded!)
+  const markRangeObj = getMarkRangeForDifficulty(difficulty);
+  const selectedMarks = Math.floor(Math.random() * (markRangeObj.max - markRangeObj.min + 1)) + markRangeObj.min;
 
   return `${AQA_ALEVEL_QUESTION_PRINCIPLES}
 
@@ -1389,7 +1404,7 @@ Generate an AQA A-Level style GRAPH/CURVE question.
 
 **Topic:** ${topic.name}
 **Subtopic:** ${selectedSubtopic}
-**Mark Range:** ${markRange} marks
+**Marks:** ${selectedMarks} marks
 
 ## A-Level Graph Question Types
 
@@ -1488,7 +1503,10 @@ export function getAQAALevelAppliedPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = AQA_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
-  const markRange = difficulty === 'easy' ? '4-6' : difficulty === 'medium' ? '6-10' : '10-14';
+  
+  // Use dynamic mark selection from the range (not hardcoded!)
+  const markRangeObj = getMarkRangeForDifficulty(difficulty);
+  const selectedMarks = Math.floor(Math.random() * (markRangeObj.max - markRangeObj.min + 1)) + markRangeObj.min;
 
   const paperGuidance = paperType === 'mechanics'
     ? `## Mechanics (Paper 2) Characteristics
@@ -1522,7 +1540,7 @@ Generate an AQA A-Level ${paperType === 'mechanics' ? 'MECHANICS' : 'STATISTICS'
 
 **Topic:** ${topic.name}
 **Subtopic:** ${selectedSubtopic}
-**Mark Range:** ${markRange} marks
+**Marks:** ${selectedMarks} marks
 
 ## Response Format (JSON)
 

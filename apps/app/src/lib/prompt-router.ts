@@ -493,7 +493,8 @@ function buildQuantitativePrompt(
   const markRange = getMarkRange(difficulty, subject, level, board);
   const levelDisplay = level === 'a-level' ? 'A-Level' : 'GCSE';
   const boardUpper = board.toUpperCase();
-  const targetMarks = Math.floor((markRange.min + markRange.max) / 2);
+  // Generate random mark value from the range instead of always using the average
+  const targetMarks = Math.floor(Math.random() * (markRange.max - markRange.min + 1)) + markRange.min;
 
   // Select question type based on subject
   let selectedFormat: QuestionFormat;

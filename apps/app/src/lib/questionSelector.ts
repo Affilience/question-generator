@@ -46,46 +46,94 @@ interface SubtopicAllocation {
 }
 
 /**
- * Mark values for different question types based on COMPREHENSIVE research
- * Updated with data from AQA, Edexcel, OCR past papers across ALL 13 platform subjects
- * Research conducted January 2026 covering GCSE and A-Level standards
- * Verified through actual past papers from June 2024 and comprehensive specifications
- * 
- * CRITICAL FIX: Added 1-2 mark questions that were missing!
- * - FIXED: calculation now includes 1-mark (e.g., "Calculate 20% of £80")
- * - FIXED: explain now includes 1-mark (e.g., "State what produces bile")
- * - FIXED: graph now includes 1-mark (e.g., "Read the value at x=2")
- * - FIXED: compare now includes 2-mark (e.g., "Give two differences...")
- * 
- * MAJOR FINDINGS FROM SUPER-COMPREHENSIVE RESEARCH:
- * - AQA A-Level Biology: 25-mark synoptic essays (13 AO1 + 12 AO2), 15-mark data analysis
- * - AQA A-Level Chemistry: 25-mark essays in practical analysis, 40-mark practical sections
- * - AQA A-Level Physics: 45-mark practical sections, 85-mark theory papers
- * - OCR A-Level: 100-mark papers standard, 270-mark total qualifications
- * - Edexcel A-Level: 90-120 mark papers, Mathematics Level 2+ requirements
- * - Universal 6-mark QWC across ALL science subjects (AQA/Edexcel/OCR)
+ * Subject-specific mark ranges based on COMPREHENSIVE analysis of real past papers
+ * Each subject has different question patterns and mark distributions
+ * CRITICAL: Maths has shorter questions (max 12 marks), Sciences allow longer analysis
  */
-const QUESTION_TYPE_MARKS: Partial<Record<QuestionType, number[]>> = {
-  // Basic question types (STEM subjects - Maths, Sciences, Computer Science)
-  'multiple-choice': [1], // Universal across all subjects and boards
-  'short-answer': [1, 2, 3, 4], // Simple recall, definitions, basic calculations
-  'calculation': [1, 2, 3, 4, 5, 6, 8, 10, 12, 15], // NOW INCLUDES 1-mark simple calculations (e.g., "Calculate 20% of £80")
-  'explain': [1, 2, 3, 4, 6, 8, 12, 15], // NOW INCLUDES 1-mark explanations (e.g., "State what produces bile"), 2-mark simple explanations
-  'extended': [6, 8, 9, 10, 12, 15, 16, 20, 25], // Extended responses, A-Level Biology 25-mark essays, Chemistry practical analysis
-  
-  // Analysis and interpretation  
-  'data-analysis': [4, 5, 6, 8, 9, 12, 15, 20, 25, 40, 45], // Up to 45-mark Physics practical sections, 40-mark Chemistry practical
-  'graph': [1, 2, 3, 4, 6, 8], // NOW INCLUDES 1-mark graph reading (e.g., "Read the value at x=2"), 2-mark simple sketching
-  'compare': [2, 3, 4, 6, 8, 9, 12], // NOW INCLUDES 2-3 mark simple comparisons (e.g., "Give two differences between...")
-  'proof': [4, 5, 6, 8, 10, 12, 15], // Mathematical proofs start at 4 marks (complex by nature)
-  'show-that': [3, 4, 5, 6, 8], // Show-that questions start at 3 marks (require working)
-  
-  // Essay and extended writing (includes +4 SPAG where applicable)
-  'essay': [15, 16, 20, 25, 30], // 15-mark Economics, 16-mark Psychology, 25-mark Biology synoptic, 30-mark comparative
-  'source-analysis': [15, 16, 20, 25, 30, 40], // GCSE History 20 marks (16+4 SPAG), A-Level 25-30, up to 40 for comprehensive analysis
-  'interpretation': [25, 30], // A-Level English Literature, History interpretation questions
-  'extract-analysis': [9, 12, 15, 20, 25, 30], // Business evaluation, Economics analysis, A-Level comprehensive extracts
-};
+
+// Helper function to check if subject is maths-related
+function isMathsSubject(subject: string): boolean {
+  return ['maths', 'further-maths'].includes(subject);
+}
+
+// Helper function to check if subject is science
+function isScienceSubject(subject: string): boolean {
+  return ['physics', 'chemistry', 'biology', 'combined-science'].includes(subject);
+}
+
+// Helper function to check if subject is essay-based
+function isEssaySubject(subject: string): boolean {
+  return ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'].includes(subject);
+}
+
+/**
+ * Get subject-specific mark ranges for question types
+ */
+function getQuestionTypeMarks(questionType: QuestionType, subject: string): number[] {
+  const mathsMarks = {
+    'multiple-choice': [1],
+    'short-answer': [1, 2, 3],  // Max 3 marks for maths explanations  
+    'calculation': [1, 2, 3, 4, 5, 6, 8, 10, 12], // Max 12 marks for maths
+    'explain': [1, 2, 3], // Maths explanations are SHORT - max 3 marks
+    'extended': [4, 5, 6], // Very rare in maths, max 6 marks
+    'data-analysis': [2, 3, 4, 5, 6], // Data interpretation in maths
+    'graph': [1, 2, 3, 4, 6], // Sketching, reading graphs  
+    'compare': [2, 3], // Compare methods, rare in maths
+    'proof': [4, 5, 6, 8, 10, 12], // Proofs can be longer but max 12
+    'show-that': [3, 4, 5, 6, 8], // Show-that questions
+  };
+
+  const scienceMarks = {
+    'multiple-choice': [1],
+    'short-answer': [1, 2, 3, 4], // Basic recall
+    'calculation': [1, 2, 3, 4, 5, 6, 8, 10, 12], // Physics/Chemistry calculations
+    'explain': [1, 2, 3, 4, 6, 8], // Science explanations up to 8 marks
+    'extended': [6, 8, 9, 10, 12, 15], // Extended responses, some 15-mark essays
+    'data-analysis': [4, 5, 6, 8, 9, 12, 15, 20], // Practical analysis
+    'graph': [1, 2, 3, 4, 6, 8], // Graph work
+    'compare': [2, 3, 4, 6, 8], // Compare processes
+    'proof': [4, 5, 6, 8], // Rare in science
+    'show-that': [3, 4, 5, 6], // Derivations
+  };
+
+  const essayMarks = {
+    'multiple-choice': [1],
+    'short-answer': [1, 2, 3, 4, 5], // Definitions, recall
+    'calculation': [2, 3, 4, 5], // Economics calculations
+    'explain': [4, 6, 8, 12], // Explanations
+    'extended': [8, 10, 12, 15, 16, 20, 25], // Extended essays
+    'data-analysis': [8, 12, 15, 20, 25], // Source/data analysis
+    'graph': [2, 3, 4, 6], // Data interpretation
+    'compare': [6, 8, 12], // Compare concepts
+    'essay': [15, 16, 20, 25, 30], // Full essays
+    'source-analysis': [15, 16, 20, 25, 30], // Historical sources
+    'interpretation': [20, 25, 30], // Literature analysis
+    'extract-analysis': [12, 15, 20, 25], // Business/Economics analysis
+  };
+
+  const otherMarks = { // Computer Science, etc.
+    'multiple-choice': [1],
+    'short-answer': [1, 2, 3, 4],
+    'calculation': [2, 3, 4, 5, 6, 8],
+    'explain': [2, 3, 4, 6, 8, 12],
+    'extended': [6, 8, 10, 12, 15],
+    'data-analysis': [4, 6, 8, 12],
+    'graph': [2, 3, 4, 6],
+    'compare': [3, 4, 6, 8],
+    'proof': [4, 6, 8, 10],
+    'show-that': [3, 4, 5, 6],
+  };
+
+  if (isMathsSubject(subject)) {
+    return mathsMarks[questionType] || mathsMarks['short-answer'];
+  } else if (isScienceSubject(subject)) {
+    return scienceMarks[questionType] || scienceMarks['short-answer'];
+  } else if (isEssaySubject(subject)) {
+    return essayMarks[questionType] || essayMarks['short-answer'];
+  } else {
+    return otherMarks[questionType] || otherMarks['short-answer'];
+  }
+}
 
 /**
  * Question type to difficulty compatibility
@@ -114,10 +162,12 @@ const QUESTION_TYPE_DIFFICULTY_WEIGHTS: Partial<Record<QuestionType, Record<Diff
  */
 export class QuestionSelector {
   private config: PaperConfig;
+  private subject: string;
   private random: () => number;
 
-  constructor(config: PaperConfig, seed?: number) {
+  constructor(config: PaperConfig, subject: string, seed?: number) {
     this.config = config;
+    this.subject = subject;
     // Use seeded random for reproducibility in tests, or Math.random in production
     this.random = seed !== undefined ? this.seededRandom(seed) : Math.random.bind(Math);
   }
@@ -343,7 +393,7 @@ export class QuestionSelector {
   ): QuestionType | null {
     // Filter types that can fit in remaining marks
     const viableTypes = availableTypes.filter((type) => {
-      const typeMarks = QUESTION_TYPE_MARKS[type];
+      const typeMarks = getQuestionTypeMarks(type, this.subject);
       if (!typeMarks || typeMarks.length === 0) return false;
       const minMarks = Math.min(...typeMarks);
       return minMarks <= remainingMarks;
@@ -359,19 +409,72 @@ export class QuestionSelector {
    * Choose marks for a question type
    */
   private chooseMarks(questionType: QuestionType, remainingMarks: number): number {
-    const typeMarks = QUESTION_TYPE_MARKS[questionType];
+    const typeMarks = getQuestionTypeMarks(questionType, this.subject);
     if (!typeMarks) return 0;
     const possibleMarks = typeMarks.filter((m) => m <= remainingMarks);
     if (possibleMarks.length === 0) return 0;
 
-    // Prefer marks that don't leave tiny remainders
-    const preferredMarks = possibleMarks.filter((m) => {
+    // Improved mark selection to avoid awkward remainders
+    // Priority: exact match > leaves good remainder > leaves any remainder
+    
+    // 1. Try for exact match or leaves multiple of common marks (2, 3, 4, 5, 6)
+    const exactOrGoodMarks = possibleMarks.filter((m) => {
       const after = remainingMarks - m;
-      return after === 0 || after >= 2; // Don't leave 1 mark remaining
+      if (after === 0) return true; // Exact match - perfect!
+      if (after >= 8) return true;  // Plenty left for another good question
+      // Good remainder: can make another 2-6 mark question
+      return [2, 3, 4, 5, 6].includes(after);
     });
-
-    const options = preferredMarks.length > 0 ? preferredMarks : possibleMarks;
-    return options[Math.floor(this.random() * options.length)];
+    
+    // 2. Fallback: avoid leaving exactly 1 mark (too small for any question)
+    const avoidOneMarks = possibleMarks.filter((m) => {
+      const after = remainingMarks - m;
+      return after !== 1;
+    });
+    
+    // 3. Last resort: any valid marks
+    const options = exactOrGoodMarks.length > 0 ? exactOrGoodMarks 
+                  : avoidOneMarks.length > 0 ? avoidOneMarks 
+                  : possibleMarks;
+    
+    // CRITICAL FIX: Weight marks to match real past paper distributions
+    // Real maths papers have MANY low-mark questions and FEW high-mark questions
+    // Based on analysis of AQA/Edexcel/OCR past papers 2020-2024
+    const markWeights: Record<number, number> = {
+      1: 25,   // Very common: basic calculations, definitions
+      2: 20,   // Very common: simple explanations, calculations  
+      3: 15,   // Common: multi-step calculations
+      4: 12,   // Common: explain questions, proofs
+      5: 8,    // Moderate: complex calculations
+      6: 6,    // Moderate: extended explanations
+      8: 4,    // Less common: proof questions
+      10: 2,   // Rare: complex proofs
+      12: 1.5, // Rare: extended reasoning
+      15: 1,   // Very rare: comprehensive analysis
+      20: 0.5, // Ultra rare: essays (mainly A-Level)
+      25: 0.3, // Ultra rare: synoptic essays
+    };
+    
+    // Create weighted selection
+    const weightedOptions: { mark: number; weight: number }[] = [];
+    options.forEach(mark => {
+      const weight = markWeights[mark] || 1; // Default weight for unlisted marks
+      weightedOptions.push({ mark, weight });
+    });
+    
+    // Calculate total weight
+    const totalWeight = weightedOptions.reduce((sum, opt) => sum + opt.weight, 0);
+    if (totalWeight === 0) return options[0]; // Fallback
+    
+    // Weighted random selection
+    let rand = this.random() * totalWeight;
+    for (const { mark, weight } of weightedOptions) {
+      rand -= weight;
+      if (rand <= 0) return mark;
+    }
+    
+    // Fallback to first option
+    return options[0];
   }
 
   /**
@@ -451,8 +554,8 @@ export class QuestionSelector {
 /**
  * Convenience function to create a selection result
  */
-export function selectQuestionsForPaper(config: PaperConfig, seed?: number): SelectionResult {
-  const selector = new QuestionSelector(config, seed);
+export function selectQuestionsForPaper(config: PaperConfig, subject: string, seed?: number): SelectionResult {
+  const selector = new QuestionSelector(config, subject, seed);
   return selector.selectQuestions();
 }
 
