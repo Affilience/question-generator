@@ -287,6 +287,13 @@ DIFFICULTY: ${plan.difficulty.toUpperCase()}
 ${formatGuidance}
 
 Command word: "${commandWord}"
+${subject === 'economics' ? `
+CRITICAL CONSTRAINT FOR ECONOMICS: 
+- The question MUST be specifically about "${plan.subtopic}" 
+- Do NOT generalize to broader economic concepts unless directly relevant
+- Do NOT mention "economics as a social science" unless that is the exact subtopic
+- Focus exclusively on the specified subtopic: "${plan.subtopic}"
+- If subtopic is "Demand curves", ask about demand curves specifically, NOT general economic principles` : ''}
 ${markSchemeGuidance}
 
 LaTeX Math Formatting:
