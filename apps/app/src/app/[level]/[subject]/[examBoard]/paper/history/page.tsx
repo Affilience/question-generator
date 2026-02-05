@@ -71,7 +71,11 @@ export default function PaperHistoryPage() {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error fetching papers:', error);
+        // Still show empty state, don't throw error to user
+        setPapers([]);
+      } else if (data) {
         setPapers(data);
       }
       setLoading(false);

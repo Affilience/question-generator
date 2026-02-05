@@ -33,6 +33,7 @@ export function PrintPaperButton({
     contentRef: printRef,
     documentTitle: `${examBoard.toUpperCase()}-${qualification.toUpperCase()}-${subject}-${paper.paperName || 'Practice-Paper'}`,
     onAfterPrint: () => {
+      console.log('Paper print completed');
       setShowPrintPreview(false);
     },
   });
@@ -40,9 +41,10 @@ export function PrintPaperButton({
   const onPrintClick = (withSolutions = false) => {
     setPrintWithSolutions(withSolutions);
     setShowPrintPreview(true);
+    // Give time for content to render, especially important for math/diagrams
     setTimeout(() => {
       handlePrint();
-    }, 100);
+    }, 500);
   };
 
   // Show upgrade prompt for users without print_papers feature

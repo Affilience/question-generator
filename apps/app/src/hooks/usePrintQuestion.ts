@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Question } from '@/types';
 
@@ -18,6 +18,9 @@ export function usePrintQuestion() {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: 'Practice Question',
+    onAfterPrint: () => {
+      console.log('Print completed');
+    },
   });
 
   return {

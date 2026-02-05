@@ -73,8 +73,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
     try {
       const today = new Date().toISOString().split('T')[0];
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      // Calculate start of current week (Monday)
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday should be 6 days from Monday
+      startOfWeek.setDate(now.getDate() - daysFromMonday);
+      startOfWeek.setHours(0, 0, 0, 0);
 
       // Query subscription and usage data directly - same pattern as getUserStats
       const [subResult, usageResult, weeklyPaperResult] = await Promise.all([
@@ -96,7 +102,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
           .from('generated_papers')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .gte('created_at', oneWeekAgo.toISOString()),
+          .gte('created_at', startOfWeek.toISOString()),
       ]);
 
       // Handle subscription data
@@ -153,11 +159,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     dailyUsage.questionsGenerated < limits.questionsPerDay;
 
   // Check if user can generate a paper this week (using actual weekly count)
-  const canGeneratePaper = limits.papersPerWeek !== null && limits.papersPerWeek > 0 &&
+  const canGeneratePaper = (limits.papersPerWeek !== null && limits.papersPerWeek > 0) && 
     weeklyPaperUsage.papersGenerated < limits.papersPerWeek;
 
   // Calculate papers remaining this week
-  const papersRemaining = limits.papersPerWeek !== null && limits.papersPerWeek > 0
+  const papersRemaining = (limits.papersPerWeek !== null && limits.papersPerWeek > 0)
     ? Math.max(0, limits.papersPerWeek - weeklyPaperUsage.papersGenerated)
     : 0;
 

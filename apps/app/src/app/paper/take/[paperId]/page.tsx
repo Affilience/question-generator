@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   GeneratedPaper,
   GeneratedSection,
@@ -24,6 +25,7 @@ type SelfMarkState = Record<string, number>; // questionId -> marks awarded
 export default function PaperTakePage({ params }: PaperTakePageProps) {
   const { paperId } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
 
   const [paper, setPaper] = useState<GeneratedPaper | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,19 +57,17 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
           return;
         }
 
-        // Otherwise fetch from database
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-        if (!supabaseUrl || !supabaseKey) {
-          throw new Error('Paper not found');
+        // Otherwise fetch from database - with user authentication
+        if (!user) {
+          throw new Error('Please sign in to access papers');
         }
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabase = createClient();
         const { data, error: fetchError } = await supabase
           .from('generated_papers')
           .select('*')
           .eq('id', paperId)
+          .eq('user_id', user.id) // Ensure user owns this paper
           .single();
 
         if (fetchError || !data) {
@@ -144,11 +144,8 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
     // Save attempt to database
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (supabaseUrl && supabaseKey && paper) {
-        const supabase = createClient(supabaseUrl, supabaseKey);
+      if (paper) {
+        const supabase = createClient();
 
         const attemptAnswers: Omit<PaperAttemptAnswer, 'id' | 'attemptId'>[] =
           allQuestions.map((q) => ({

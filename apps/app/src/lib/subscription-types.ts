@@ -46,7 +46,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, {
   },
   exam_pro: {
     questionsPerDay: null, // unlimited
-    papersPerWeek: null, // unlimited
+    papersPerWeek: 7, // 7 papers per week
     difficultyControl: true,
     timedExamMode: true,
     pdfDownloads: false, // Not implemented yet
