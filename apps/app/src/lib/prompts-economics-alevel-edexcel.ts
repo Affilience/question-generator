@@ -577,7 +577,8 @@ You MUST ONLY test content that is in the Edexcel A-Level Economics A (9EC0) spe
 
 **In Economics, "depreciation" ONLY refers to CURRENCY depreciation (exchange rate falls), NOT accounting depreciation of assets.**
 
-**For the topic "${topic.name}", test ONLY these subtopics:** ${topic.subtopics.join(', ')}
+**Topic**: ${topic.name}${subtopic ? `, Subtopic: ${subtopic}` : ''}
+**Difficulty**: ${difficulty}
 
 ${difficultyGuidance[difficulty]}
 
@@ -597,6 +598,11 @@ ${enhancedMarkSchemeGuidance}
 - Questions requiring evaluation/judgement: 15+ marks  
 - Simple data interpretation (like wealth effects table) = 2-4 marks MAX
 - Extended essay responses with evaluation = 15-25 marks ONLY
+
+**DATA AND FIGURE REQUIREMENTS:**
+- If your question refers to "Figure 1", "Table 1", "Extract A", or any data, you MUST include the actual data in the question content
+- Do NOT reference figures, tables, or extracts that don't exist in the question
+- If including data, provide realistic numerical values (e.g., "GBP/USD exchange rate: Jan 2022: 1.35, Jun 2024: 1.28")
 
 Return valid JSON:
 {
