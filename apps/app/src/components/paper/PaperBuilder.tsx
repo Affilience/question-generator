@@ -130,11 +130,36 @@ export function PaperBuilder({
         
         return Math.max(2, Math.round(totalMarks / weightedAvg));
       } else {
-        // English Lit/History: Pure essay subjects
-        // English Lit: ~25 marks/question (75 marks = 3 questions)
-        // History: ~27 marks/question (80 marks = 3 questions)  
-        const avgMarksPerQuestion = 25;
-        return Math.max(1, Math.round(totalMarks / avgMarksPerQuestion));
+        // English Lit/History: Mixed question types, not pure essays
+        // Real pattern includes smaller component questions + major essays
+        const easyWeight = difficulty.easy / 100;
+        const mediumWeight = difficulty.medium / 100;
+        const hardWeight = difficulty.hard / 100;
+        
+        if (subject === 'english-literature') {
+          // English Lit: Mix of focused analysis (15-20) + conceptual essays (25-30)
+          const easyAvg = 18;     // Focused analysis questions
+          const mediumAvg = 25;   // Standard essay questions  
+          const hardAvg = 30;     // Complex comparative essays
+          
+          const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+          return Math.max(1, Math.round(totalMarks / weightedAvg));
+          
+        } else if (subject === 'history') {
+          // History: More frequent smaller questions + occasional large essays
+          // Real pattern: 4-8 marks (recall/explanation), 8-12 marks (analysis), 20-25 marks (essays)
+          const easyAvg = 6;      // Direct recall/explanation
+          const mediumAvg = 10;   // Source analysis questions  
+          const hardAvg = 22;     // Historiographical synthesis
+          
+          const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+          return Math.max(2, Math.round(totalMarks / weightedAvg));
+          
+        } else {
+          // Other essay subjects: Use previous logic as fallback
+          const avgMarksPerQuestion = 25;
+          return Math.max(1, Math.round(totalMarks / avgMarksPerQuestion));
+        }
       }
     } else if (isBiologyALevel) {
       // Biology A-Level has mixed structure: calculations + 6-mark extended + 15-25 mark essays
@@ -153,28 +178,43 @@ export function PaperBuilder({
       
       return Math.max(3, Math.round(totalMarks / Math.max(4, weightedAvg)));
     } else {
-      // STEM subjects: Use realistic mark distribution matching the weighted question selector
-      // Real past papers have MANY low-mark questions (1-3 marks) and FEW high-mark questions
-      // Weighted average based on actual AQA/Edexcel/OCR past paper analysis
+      // STEM subjects (Maths, Physics, Chemistry, Computer Science): 
+      // Based on actual AQA/Edexcel/OCR past paper analysis
       
-      // The new weighted selector heavily favors low marks:
-      // 1-3 marks: ~60% of questions, 4-6 marks: ~26% of questions, 8+ marks: ~14% of questions
-      const baseAvg = 3.2; // Much more realistic weighted average
-      
-      // Difficulty still affects distribution slightly:
-      // Easy = more 1-2 mark questions, Hard = more 4-6 mark questions (but still mostly low marks)
       const easyWeight = difficulty.easy / 100;
       const mediumWeight = difficulty.medium / 100;
       const hardWeight = difficulty.hard / 100;
       
-      const easyAvg = 2.8;    // Easy: heavily weighted toward 1-2 marks
-      const mediumAvg = 3.4;  // Medium: mix of 1-4 marks
-      const hardAvg = 4.2;    // Hard: more 3-6 marks but still lots of small ones
-      
-      const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
-      const finalAvg = Math.max(2.5, weightedAvg);
-      
-      return Math.round(totalMarks / finalAvg);
+      if (subject === 'maths' || subject === 'further-maths') {
+        // Maths: More granular, lots of 1-3 mark questions with some longer proof/reasoning
+        // Real pattern: 1-2 marks (60%), 3-4 marks (25%), 5-8 marks (15%)
+        const easyAvg = 2.2;    // Short calculations, definitions
+        const mediumAvg = 3.8;  // Multi-step problems
+        const hardAvg = 6;      // Proof questions, complex reasoning
+        
+        const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+        return Math.round(totalMarks / Math.max(2.5, weightedAvg));
+        
+      } else if (['physics', 'chemistry'].includes(subject)) {
+        // Physics/Chemistry: More structured, consistent with extended response questions
+        // Real pattern: 2-3 marks (40%), 4-6 marks (40%), 6-8 marks (20%)
+        const easyAvg = 3;      // Simple recall, basic calculations
+        const mediumAvg = 5;    // Multi-step calculations, applications
+        const hardAvg = 7;      // Extended response, synoptic questions
+        
+        const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+        return Math.round(totalMarks / Math.max(3.5, weightedAvg));
+        
+      } else {
+        // Other STEM (Computer Science, etc): Mixed pattern
+        // Real pattern: 2-4 marks (50%), 4-6 marks (30%), 6-10 marks (20%)
+        const easyAvg = 3;      // Short explanations, definitions
+        const mediumAvg = 5;    // Application, analysis
+        const hardAvg = 8;      // Extended response, evaluation
+        
+        const weightedAvg = (easyWeight * easyAvg) + (mediumWeight * mediumAvg) + (hardWeight * hardAvg);
+        return Math.round(totalMarks / Math.max(3.5, weightedAvg));
+      }
     }
   }, [totalMarks, subject, level, difficulty]);
 
