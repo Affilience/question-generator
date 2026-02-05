@@ -532,17 +532,232 @@ function getSubjectSpecificPrompt(
       }
       break;
 
-    // Add other specialized subjects here as needed
-    case 'physics':
-    case 'chemistry':
-    case 'biology':
     case 'business':
-    case 'psychology':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelBusinessQuestionPrompt } = require('@/lib/prompts-business-alevel-aqa');
+            return getAQAALevelBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelBusinessQuestionPrompt } = require('@/lib/prompts-business-alevel-edexcel');
+            return getEdexcelALevelBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelBusinessQuestionPrompt } = require('@/lib/prompts-business-alevel-ocr');
+            return getOCRALevelBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEBusinessQuestionPrompt } = require('@/lib/prompts-business-gcse-aqa');
+            return getAQAGCSEBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEBusinessQuestionPrompt } = require('@/lib/prompts-business-gcse-edexcel');
+            return getEdexcelGCSEBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEBusinessQuestionPrompt } = require('@/lib/prompts-business-gcse-ocr');
+            return getOCRGCSEBusinessQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
     case 'history':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelHistoryQuestionPrompt } = require('@/lib/prompts-history-alevel-aqa');
+            return getAQAALevelHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelHistoryQuestionPrompt } = require('@/lib/prompts-history-alevel-edexcel');
+            return getEdexcelALevelHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelHistoryQuestionPrompt } = require('@/lib/prompts-history-alevel-ocr');
+            return getOCRALevelHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEHistoryQuestionPrompt } = require('@/lib/prompts-history-gcse-aqa');
+            return getAQAGCSEHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEHistoryQuestionPrompt } = require('@/lib/prompts-history-gcse-edexcel');
+            return getEdexcelGCSEHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEHistoryQuestionPrompt } = require('@/lib/prompts-history-gcse-ocr');
+            return getOCRGCSEHistoryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
+    case 'psychology':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-alevel-aqa');
+            return getAQAALevelPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-alevel-edexcel');
+            return getEdexcelALevelPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-alevel-ocr');
+            return getOCRALevelPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-gcse-aqa');
+            return getAQAGCSEPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-gcse-edexcel');
+            return getEdexcelGCSEPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEPsychologyQuestionPrompt } = require('@/lib/prompts-psychology-gcse-ocr');
+            return getOCRGCSEPsychologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
     case 'geography':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelGeographyQuestionPrompt } = require('@/lib/prompts-geography-alevel-aqa');
+            return getAQAALevelGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelGeographyQuestionPrompt } = require('@/lib/prompts-geography-alevel-edexcel');
+            return getEdexcelALevelGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelGeographyQuestionPrompt } = require('@/lib/prompts-geography-alevel-ocr');
+            return getOCRALevelGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEGeographyQuestionPrompt } = require('@/lib/prompts-geography-gcse-aqa');
+            return getAQAGCSEGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEGeographyQuestionPrompt } = require('@/lib/prompts-geography-gcse-edexcel');
+            return getEdexcelGCSEGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEGeographyQuestionPrompt } = require('@/lib/prompts-geography-gcse-ocr');
+            return getOCRGCSEGeographyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
     case 'english-literature':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-alevel-aqa');
+            return getAQAALevelEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-alevel-edexcel');
+            return getEdexcelALevelEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-alevel-ocr');
+            return getOCRALevelEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-gcse-aqa');
+            return getAQAGCSEEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-gcse-edexcel');
+            return getEdexcelGCSEEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEEnglishLiteratureQuestionPrompt } = require('@/lib/prompts-english-literature-gcse-ocr');
+            return getOCRGCSEEnglishLiteratureQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
     case 'computer-science':
-      // For now, fall back to existing logic for these subjects
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelComputerScienceQuestionPrompt } = require('@/lib/prompts-computerscience-alevel-aqa');
+            return getAQAALevelComputerScienceQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelComputerScienceQuestionPrompt } = require('@/lib/prompts-computerscience-alevel-ocr');
+            return getOCRALevelComputerScienceQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEComputerScienceQuestionPrompt } = require('@/lib/prompts-computerscience-gcse-aqa');
+            return getAQAGCSEComputerScienceQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEComputerScienceQuestionPrompt } = require('@/lib/prompts-computerscience-gcse-edexcel');
+            return getEdexcelGCSEComputerScienceQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEComputerScienceQuestionPrompt } = require('@/lib/prompts-computerscience-gcse-ocr');
+            return getOCRGCSEComputerScienceQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
+    case 'biology':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelBiologyQuestionPrompt } = require('@/lib/prompts-biology-alevel-aqa');
+            return getAQAALevelBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelBiologyQuestionPrompt } = require('@/lib/prompts-biology-alevel-edexcel');
+            return getEdexcelALevelBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelBiologyQuestionPrompt } = require('@/lib/prompts-biology-alevel-ocr');
+            return getOCRALevelBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      } else {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAGCSEBiologyQuestionPrompt } = require('@/lib/prompts-biology-gcse-aqa');
+            return getAQAGCSEBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelGCSEBiologyQuestionPrompt } = require('@/lib/prompts-biology-gcse-edexcel');
+            return getEdexcelGCSEBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRGCSEBiologyQuestionPrompt } = require('@/lib/prompts-biology-gcse-ocr');
+            return getOCRGCSEBiologyQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      break;
+
+    // Science subjects that have specialized prompts but are primarily quantitative
+    case 'physics':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelPhysicsQuestionPrompt } = require('@/lib/prompts-physics-alevel-aqa');
+            return getAQAALevelPhysicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelPhysicsQuestionPrompt } = require('@/lib/prompts-physics-alevel-edexcel');
+            return getEdexcelALevelPhysicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelPhysicsQuestionPrompt } = require('@/lib/prompts-physics-alevel-ocr');
+            return getOCRALevelPhysicsQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      // GCSE Physics prompts are available too but fall through to quantitative for now
+      break;
+
+    case 'chemistry':
+      if (qualification === 'a-level') {
+        switch (examBoard) {
+          case 'aqa':
+            const { getAQAALevelChemistryQuestionPrompt } = require('@/lib/prompts-chemistry-alevel-aqa');
+            return getAQAALevelChemistryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'edexcel':
+            const { getEdexcelALevelChemistryQuestionPrompt } = require('@/lib/prompts-chemistry-alevel-edexcel');
+            return getEdexcelALevelChemistryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+          case 'ocr':
+            const { getOCRALevelChemistryQuestionPrompt } = require('@/lib/prompts-chemistry-alevel-ocr');
+            return getOCRALevelChemistryQuestionPrompt(topic, plan.difficulty, plan.subtopic);
+        }
+      }
+      // GCSE Chemistry prompts are available too but fall through to quantitative for now
       break;
   }
 

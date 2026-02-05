@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     // Create paper config
     const config: PaperConfig = {
       totalMarks,
-      timeMinutes,
+      timeLimit: timeMinutes,
       sections: [
         {
           id: "section-a",
@@ -102,7 +102,18 @@ export async function POST(request: NextRequest) {
           instructions: `Answer ALL questions. Total marks: ${totalMarks}`,
           order: 1
         }
-      ]
+      ],
+      selectedTopics: [],
+      selectedSubtopics: {},
+      difficultyDistribution: { easy: 30, medium: 40, hard: 30 },
+      questionTypeDistribution: { essay: 60, extractAnalysis: 30, dataResponse: 10 },
+      settings: {
+        includeFormulaSheet: false,
+        includeDataBooklet: false,
+        showMarks: true,
+        calculatorAllowed: false,
+        examConditions: true
+      }
     };
 
     // Select questions for paper
