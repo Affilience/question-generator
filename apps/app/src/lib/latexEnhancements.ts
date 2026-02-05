@@ -493,7 +493,7 @@ export function enhanceTextCommands(text: string): string {
     const afterText = after.trim();
     
     // Clean up the text command
-    const cleanTextCmd = textCmd.replace(/\\text\{([^}]*)\}/, (m, content) => {
+    const cleanTextCmd = textCmd.replace(/\\text\{([^}]*)\}/, (_m: string, content: string) => {
       const cleaned = content.replace(/\\[a-zA-Z]+\s*/g, '').replace(/[{}]/g, '').trim();
       return cleaned ? `\\text{${cleaned}}` : '';
     });

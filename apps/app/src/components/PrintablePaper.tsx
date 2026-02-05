@@ -630,22 +630,6 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                         <div style={{ fontSize: '10pt', lineHeight: '1.4' }}>
                           <MathRenderer content={question.solution} />
                         </div>
-                        {/* Solution Diagram (for "draw a diagram" questions) */}
-                        {question.solutionDiagram && (
-                          <div className="question-diagram" style={{ marginTop: '10pt' }}>
-                            <p style={{ fontSize: '9pt', color: '#666', marginBottom: '5pt' }}>
-                              Expected diagram:
-                            </p>
-                            <DiagramErrorBoundary>
-                              <DiagramRenderer
-                                spec={question.solutionDiagram}
-                                maxWidth={350}
-                                maxHeight={200}
-                                className="print-diagram solution-diagram"
-                              />
-                            </DiagramErrorBoundary>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
