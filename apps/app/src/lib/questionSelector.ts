@@ -99,17 +99,17 @@ function getQuestionTypeMarks(questionType: QuestionType, subject: string): numb
 
   const essayMarks: Partial<Record<QuestionType, number[]>> = {
     'multiple-choice': [1],
-    'short-answer': [1, 2, 3, 4, 5], // Definitions, recall
-    'calculation': [2, 3, 4, 5], // Economics calculations
-    'explain': [4, 6, 8, 12], // Explanations
-    'extended': [8, 10, 12, 15, 16, 20, 25], // Extended essays
-    'data-analysis': [8, 12, 15, 20, 25], // Source/data analysis
+    'short-answer': [1, 2, 3], // ONLY definitions and basic recall (State = 1-2 marks, Define = 2-3 marks)
+    'calculation': [3, 4, 5, 6], // Economics calculations
+    'explain': [6, 8, 10], // Proper explanations and analytical questions
+    'extended': [10, 12, 15, 16, 20, 25], // Extended essays - INCLUDES 10 and 12 mark questions for proper economics papers
+    'data-analysis': [8, 10, 12, 15, 20, 25], // Source/data analysis - INCLUDES 10 and 12 mark questions
     'graph': [2, 3, 4, 6], // Data interpretation
-    'compare': [6, 8, 12], // Compare concepts
+    'compare': [6, 8, 10, 12], // Compare concepts - INCLUDES 10 and 12 mark questions
     'essay': [15, 16, 20, 25, 30], // Full essays
     'source-analysis': [15, 16, 20, 25, 30], // Historical sources
     'interpretation': [20, 25, 30], // Literature analysis
-    'extract-analysis': [12, 15, 20, 25], // Business/Economics analysis
+    'extract-analysis': [10, 12, 15, 20, 25], // Business/Economics analysis - INCLUDES 10 and 12 mark questions
   };
 
   const otherMarks: Partial<Record<QuestionType, number[]>> = { // Computer Science, etc.
@@ -229,6 +229,20 @@ export class QuestionSelector {
    */
   private calculateSectionMarks(sections: PaperSection[], totalMarks: number): Record<string, number> {
     const result: Record<string, number> = {};
+    
+    // Safety check: if sections is undefined or empty, create a default section
+    if (!sections || sections.length === 0) {
+      console.warn('No sections provided, creating default section');
+      sections = [{
+        id: 'default',
+        name: 'Questions',
+        instructions: 'Answer ALL questions.',
+        questionTypes: ['short-answer', 'explain', 'calculation'],
+        targetMarks: totalMarks,
+        order: 0,
+      }];
+    }
+    
     const totalTargetMarks = sections.reduce((sum, s) => sum + s.targetMarks, 0);
 
     if (totalTargetMarks === 0) {
@@ -278,6 +292,11 @@ export class QuestionSelector {
     });
 
     if (allocations.length === 0) return [];
+    
+    // DIVERSITY FIX: If we only have 1 subtopic but need multiple questions, warn the user
+    if (allocations.length === 1 && totalMarks > 20) {
+      console.warn(`⚠️ DIVERSITY ISSUE: Only 1 subtopic selected (${allocations[0].subtopic}) for ${totalMarks} marks. This will result in repetitive questions. Consider selecting more subtopics for better variety.`);
+    }
 
     // Calculate total weight
     const totalWeight = allocations.reduce((sum, a) => sum + a.weight, 0);
@@ -334,16 +353,30 @@ export class QuestionSelector {
     const maxIterations = 100; // Safety limit
     let iterations = 0;
 
+    console.log(`🔧 QUESTION PLANNING DEBUG - Section: ${section.id}, Target marks: ${targetMarks}, Available allocations: ${availableAllocations.length}`);
+    if (availableAllocations.length > 0) {
+      console.log(`📝 First few allocations:`, availableAllocations.slice(0, 3).map(a => `${a.topicId}/${a.subtopic} (${a.allocatedMarks} marks)`));
+    }
+
     while (remainingMarks > 0 && iterations < maxIterations) {
       iterations++;
+      console.log(`🔄 Planning iteration ${iterations}, remaining marks: ${remainingMarks}`);
 
       // Choose question type from section's allowed types
       const questionType = this.chooseQuestionType(section.questionTypes, remainingMarks);
-      if (!questionType) break;
+      if (!questionType) {
+        console.log(`❌ No question type available for ${remainingMarks} marks`);
+        break;
+      }
+      console.log(`📋 Chose question type: ${questionType}`);
 
       // Choose marks for this question
       const marks = this.chooseMarks(questionType, remainingMarks);
-      if (marks === 0) break;
+      if (marks === 0) {
+        console.log(`❌ No marks allocation available`);
+        break;
+      }
+      console.log(`🔢 Chose marks: ${marks}`);
 
       // Choose difficulty based on targets and what's been used
       const difficulty = this.chooseDifficulty(
@@ -352,10 +385,15 @@ export class QuestionSelector {
         difficultyUsed,
         remainingMarks
       );
+      console.log(`📊 Chose difficulty: ${difficulty}`);
 
       // Choose subtopic based on allocations
       const subtopicChoice = this.chooseSubtopic(availableAllocations, marks);
-      if (!subtopicChoice) break;
+      if (!subtopicChoice) {
+        console.log(`❌ No subtopic available for ${marks} marks`);
+        break;
+      }
+      console.log(`🎯 Chose subtopic: ${subtopicChoice.topicId}/${subtopicChoice.subtopic}`);
 
       // Create the question plan
       const plan: QuestionPlan = {
@@ -564,7 +602,23 @@ export class QuestionSelector {
  * Convenience function to create a selection result
  */
 export function selectQuestionsForPaper(config: PaperConfig, subject: string, seed?: number): SelectionResult {
-  const selector = new QuestionSelector(config, subject, seed);
+  // Transform sections to match PaperSection interface (marks -> targetMarks)
+  const transformedSections = config.sections.map(section => ({
+    ...section,
+    targetMarks: (section as any).marks || section.targetMarks || 0,
+    instructions: section.instructions || 'Answer all questions.',
+    questionTypes: section.questionTypes || ['short-answer', 'explain', 'calculation'],
+    order: section.order || 0,
+  }));
+
+  const configForSelector = {
+    ...config,
+    sections: transformedSections,
+  };
+
+  console.log(`🔧 SECTION TRANSFORMATION DEBUG:`, transformedSections.map(s => `${s.id}: marks=${(s as any).marks} -> targetMarks=${s.targetMarks}`));
+
+  const selector = new QuestionSelector(configForSelector, subject, seed);
   return selector.selectQuestions();
 }
 
