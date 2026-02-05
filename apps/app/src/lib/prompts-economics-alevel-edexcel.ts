@@ -604,6 +604,15 @@ ${enhancedMarkSchemeGuidance}
 - Do NOT reference figures, tables, or extracts that don't exist in the question
 - If including data, provide realistic numerical values (e.g., "GBP/USD exchange rate: Jan 2022: 1.35, Jun 2024: 1.28")
 
+**CRITICAL: QUESTION DIVERSITY REQUIREMENTS:**
+- You MUST NOT create questions about the same economic principle twice
+- You MUST NOT ask the exact same question with different wording
+- Each question must test a DIFFERENT aspect or application of the topic
+- If the topic is "Monetary Policy", do NOT focus solely on interest rates - vary between: interest rates, quantitative easing, money supply control, Bank of England operations, transmission mechanisms, etc.
+- If the topic is "Market Failure", vary between: externalities, public goods, merit/demerit goods, information asymmetries, monopoly power, etc.
+- ALWAYS choose the LEAST commonly tested aspect of the topic for maximum diversity
+- Avoid repetitive question stems like "Explain how..." for every question
+
 Return valid JSON:
 {
   "content": "question text here",

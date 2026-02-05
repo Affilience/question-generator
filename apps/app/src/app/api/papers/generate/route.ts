@@ -293,7 +293,15 @@ CRITICAL CONSTRAINT FOR ECONOMICS:
 - Do NOT generalize to broader economic concepts unless directly relevant
 - Do NOT mention "economics as a social science" unless that is the exact subtopic
 - Focus exclusively on the specified subtopic: "${plan.subtopic}"
-- If subtopic is "Demand curves", ask about demand curves specifically, NOT general economic principles` : ''}
+- If subtopic is "Demand curves", ask about demand curves specifically, NOT general economic principles
+
+CRITICAL: AVOID REPETITION ACROSS THE ENTIRE PRACTICE PAPER:
+- You MUST NOT create questions about the same economic principle twice in this paper
+- You MUST NOT ask the exact same question with different wording
+- Each question must test a DIFFERENT aspect or application of the topic
+- If generating multiple questions about "Monetary Policy", vary between: interest rates, quantitative easing, money supply, Bank of England operations, transmission mechanisms
+- ALWAYS choose the LEAST commonly tested aspect of each subtopic for maximum diversity
+- Avoid repetitive question stems like "Explain how..." for every question` : ''}
 ${markSchemeGuidance}
 
 LaTeX Math Formatting:
