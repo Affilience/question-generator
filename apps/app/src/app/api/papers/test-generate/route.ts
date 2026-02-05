@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
 
       const systemPrompt = `${getEnhancedSystemPrompt(subject, examBoard, qualification)}
 
-${getAllConstraints()}
+${getAllConstraints(subject)}
 
 ${prompt}`;
 
