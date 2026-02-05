@@ -1186,7 +1186,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Plan the questions to get total count
-  const selectionResult = selectQuestionsForPaper(config);
+  const selectionResult = selectQuestionsForPaper(config, subject);
   let totalQuestions = 0;
   selectionResult.sections.forEach((section) => {
     totalQuestions += section.questions.length;

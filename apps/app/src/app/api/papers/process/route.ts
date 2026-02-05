@@ -689,7 +689,7 @@ export async function POST(request: NextRequest) {
     const openai = getOpenAIClient();
 
     // Plan the questions
-    const selectionResult = selectQuestionsForPaper(config);
+    const selectionResult = selectQuestionsForPaper(config, subject);
     const allPlans: QuestionPlan[] = [];
     selectionResult.sections.forEach((section) => {
       allPlans.push(...section.questions);

@@ -70,7 +70,7 @@ function isEssaySubject(subject: string): boolean {
  * Get subject-specific mark ranges for question types
  */
 function getQuestionTypeMarks(questionType: QuestionType, subject: string): number[] {
-  const mathsMarks = {
+  const mathsMarks: Partial<Record<QuestionType, number[]>> = {
     'multiple-choice': [1],
     'short-answer': [1, 2, 3],  // Max 3 marks for maths explanations  
     'calculation': [1, 2, 3, 4, 5, 6, 8, 10, 12], // Max 12 marks for maths
@@ -83,7 +83,7 @@ function getQuestionTypeMarks(questionType: QuestionType, subject: string): numb
     'show-that': [3, 4, 5, 6, 8], // Show-that questions
   };
 
-  const scienceMarks = {
+  const scienceMarks: Partial<Record<QuestionType, number[]>> = {
     'multiple-choice': [1],
     'short-answer': [1, 2, 3, 4], // Basic recall
     'calculation': [1, 2, 3, 4, 5, 6, 8, 10, 12], // Physics/Chemistry calculations
@@ -94,9 +94,10 @@ function getQuestionTypeMarks(questionType: QuestionType, subject: string): numb
     'compare': [2, 3, 4, 6, 8], // Compare processes
     'proof': [4, 5, 6, 8], // Rare in science
     'show-that': [3, 4, 5, 6], // Derivations
+    'essay': [6, 8, 10, 12, 15], // Some biology essays
   };
 
-  const essayMarks = {
+  const essayMarks: Partial<Record<QuestionType, number[]>> = {
     'multiple-choice': [1],
     'short-answer': [1, 2, 3, 4, 5], // Definitions, recall
     'calculation': [2, 3, 4, 5], // Economics calculations
@@ -111,7 +112,7 @@ function getQuestionTypeMarks(questionType: QuestionType, subject: string): numb
     'extract-analysis': [12, 15, 20, 25], // Business/Economics analysis
   };
 
-  const otherMarks = { // Computer Science, etc.
+  const otherMarks: Partial<Record<QuestionType, number[]>> = { // Computer Science, etc.
     'multiple-choice': [1],
     'short-answer': [1, 2, 3, 4],
     'calculation': [2, 3, 4, 5, 6, 8],
@@ -125,13 +126,13 @@ function getQuestionTypeMarks(questionType: QuestionType, subject: string): numb
   };
 
   if (isMathsSubject(subject)) {
-    return mathsMarks[questionType] || mathsMarks['short-answer'];
+    return mathsMarks[questionType] || mathsMarks['short-answer'] || [1, 2, 3];
   } else if (isScienceSubject(subject)) {
-    return scienceMarks[questionType] || scienceMarks['short-answer'];
+    return scienceMarks[questionType] || scienceMarks['short-answer'] || [1, 2, 3, 4];
   } else if (isEssaySubject(subject)) {
-    return essayMarks[questionType] || essayMarks['short-answer'];
+    return essayMarks[questionType] || essayMarks['short-answer'] || [1, 2, 3, 4, 5];
   } else {
-    return otherMarks[questionType] || otherMarks['short-answer'];
+    return otherMarks[questionType] || otherMarks['short-answer'] || [1, 2, 3, 4];
   }
 }
 
