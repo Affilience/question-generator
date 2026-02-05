@@ -397,12 +397,16 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
 
   // Fix common issues where "text" appears literally (from broken \text commands)
   
+  // CRITICAL: Remove "text" prefix from mathematical variables (textA -> A, textθ -> θ, etc.)
+  // This fixes AI-generated content where variables are incorrectly prefixed with "text"
+  result = result.replace(/\btext([A-Za-z]|[αβγδεζηθικλμνξοπρστυφχψω])\b/g, '$1');
+  
   // Fix broken patterns like "text{stuff}" (missing backslash)
   result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
   
-  // Fix patterns where backslash was stripped: "textword" -> "\text{word}"
-  // This handles cases like "textnumberofatoms", "textmass", etc.
-  result = result.replace(/\btext([a-zA-Z][a-zA-Z\s]*[a-zA-Z])\b/g, '\\text{$1}');
+  // Fix patterns where backslash was stripped: Only for specific known text commands to avoid breaking variables
+  // This handles cases like "textnumberofatoms", "textmass", etc. - but NOT mathematical variables like "textA"
+  result = result.replace(/\btext(mass|volume|density|concentration|temperature|pressure|atoms|molecules|formula|units?)\b/gi, '\\text{$1}');
   
   // Fix patterns where text command got mangled with units: "3.545extcm^3" -> "3.545 \text{cm}^3"
   result = result.replace(/(\d+(?:\.\d+)?)\s*ext([a-zA-Z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
@@ -537,7 +541,8 @@ function preprocessMathForKaTeX(math: string): string {
   result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6|cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b/g, '\\text{$1}');
   
   // Fix literal "text" appearing directly before units without space: "1textHz" -> "1 \text{Hz}"
-  result = result.replace(/(\d+(?:\.\d+)?)\s*text([A-Za-z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
+  // Only apply to known units, not mathematical variables
+  result = result.replace(/(\d+(?:\.\d+)?)\s*text(Hz|kHz|MHz|GHz|cm|mm|km|m|g|kg|mol|Pa|kPa|atm|J|kJ|N|V|A|rad|s|min|hr|°C|K)(\^?\d*)/g, '$1 \\text{$2}$3');
   
   // 4. Only fix standalone "text" if it's clearly in a mathematical context (removed broad replacement)
   

@@ -32,6 +32,19 @@ export async function checkQuestionGenerationAllowed(
       remaining: null,
     };
   }
+
+  // Special access for Taylor Elliott - unlimited question generation
+  if (userId) {
+    const supabase = getSupabaseAdmin();
+    const { data: user } = await supabase.auth.admin.getUserById(userId);
+    if (user?.user?.email === 'taylorelliott17243@gmail.com') {
+      return {
+        allowed: true,
+        tier: 'exam_pro',
+        remaining: null,
+      };
+    }
+  }
   const supabase = getSupabaseAdmin();
 
   // Get current date for usage tracking
@@ -213,6 +226,16 @@ export async function checkPaperGenerationAllowed(
   }
 
   const supabase = getSupabaseAdmin();
+
+  // Special access for Taylor Elliott - unlimited paper generation
+  const { data: user } = await supabase.auth.admin.getUserById(userId);
+  if (user?.user?.email === 'taylorelliott17243@gmail.com') {
+    return {
+      allowed: true,
+      tier: 'exam_pro',
+      remaining: null,
+    };
+  }
 
   // Get subscription
   const { data: subscription } = await supabase
