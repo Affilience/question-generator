@@ -456,6 +456,12 @@ export function enhanceTextCommands(text: string): string {
       return content;
     }
     
+    // Fix: Chemical formulas should not be in \text{} mode
+    // Convert \text{H2O}, \text{CO2}, \text{NaCl} etc. to regular text
+    if (content.match(/^[A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*$/)) {
+      return content;
+    }
+    
     // For KaTeX compatibility, ensure proper text mode
     // Remove any nested LaTeX commands that don't work in text mode
     const cleanContent = content
@@ -545,6 +551,31 @@ export function enhanceTextCommands(text: string): string {
   // Handle "text" followed by single mathematical variables
   result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[,.\s]|$)/g, '$1');
   result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[\d])/g, '$1');
+  
+  // Fix "text" appearing before chemical formulas
+  // Pattern: "text H2O" → "H2O", "text CO2" → "CO2", "text NaCl" → "NaCl"
+  result = result.replace(/\btext\s+([A-Z][a-z]?(?:\d+)?(?:[A-Z][a-z]?(?:\d+)?)*)\b/g, '$1');
+  result = result.replace(/\btext\s*([A-Z][a-z]?)(\d+)/g, '$1$2');
+  result = result.replace(/\btext\s*([A-Z][a-z]?)([A-Z][a-z]?)/g, '$1$2');
+  
+  // More comprehensive chemical formula patterns
+  result = result.replace(/\btext\s+([A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*)\s*(?=[\s,.]|$)/g, '$1');
+  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*\+/g, '$1 + ');
+  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*→/g, '$1 → ');
+  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*=/g, '$1 = ');
+  
+  // Fix cases where "text" is concatenated directly with variables (no space)
+  // Pattern: "textt", "textk", "textn", etc.
+  result = result.replace(/\btext([a-zA-Z])\b/g, '$1');
+  result = result.replace(/\btext([a-zA-Z]\d*)\b/g, '$1');
+  
+  // Fix cases where "text" appears with multiple characters
+  // Pattern: "textV", "textABC", etc.
+  result = result.replace(/\btext([a-zA-Z]{1,3})\b/g, '$1');
+  
+  // Additional fix for edge cases with word boundaries and punctuation
+  result = result.replace(/\btext([a-zA-Z]\d*)\s*(?=[,.\s]|$)/g, '$1');
+  result = result.replace(/\btext([a-zA-Z])\s*(?=[A-Z])/g, '$1');  // textK followed by uppercase
   
   // Fix cases where variables are incorrectly wrapped in \text{}
   result = result.replace(/\\text\{([a-zA-Z])\}/g, (match, variable) => {
