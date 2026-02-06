@@ -1,9 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { migrateLocalProgressToSupabase } from '@/hooks/useSyncedProgress';
-import { MobileSessionMonitor } from '@/lib/auth/mobile-session-monitor';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -29,38 +28,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   // Memoize supabase client to ensure stable reference across renders
   const supabase = useMemo(() => createClient(), []);
-  // Mobile session monitor for iOS Safari
-  const sessionMonitorRef = useRef<MobileSessionMonitor | null>(null);
 
-  const refreshSession = useCallback(async (): Promise<void> => {
-    // Prevent concurrent session refreshes
-    if ((refreshSession as any)._pending) {
-      return (refreshSession as any)._pending;
-    }
-
-    (refreshSession as any)._pending = (async (): Promise<void> => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.warn('[AuthContext] Session refresh error:', error);
-          // Don't clear session on network errors - keep existing session
-          if (error.message?.includes('network') || error.message?.includes('fetch')) {
-            return;
-          }
+  const refreshSession = useCallback(async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.warn('[AuthContext] Session refresh error:', error);
+        // Don't clear session on network errors - mobile Safari can be flaky
+        if (error.message?.includes('network') || error.message?.includes('fetch')) {
+          return;
         }
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-      } catch (error) {
-        console.error('[AuthContext] Session refresh failed:', error);
-        // Don't clear session on errors - mobile Safari may have temporary issues
-      } finally {
-        (refreshSession as any)._pending = null;
       }
-    })();
-
-    return (refreshSession as any)._pending;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+    } catch (error) {
+      console.error('[AuthContext] Session refresh failed:', error);
+      // Don't clear session on errors - mobile Safari may have temporary issues
+    }
   }, [supabase]);
 
   useEffect(() => {
@@ -84,66 +70,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Mobile Safari specific session recovery
-    const handleMobileSessionRecovery = useCallback(() => {
-      if (typeof window === 'undefined') return;
-
-      // Detect if we're on mobile Safari
-      const isMobileSafari = /iPhone|iPad|iPod/.test(navigator.userAgent) && 
-                             /Safari/.test(navigator.userAgent) && 
-                             !/CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent);
-
-      if (isMobileSafari) {
+    // Handle session recovery on page visibility change (mobile app switching, browser tab switching)
+    const handleVisibilityChange = () => {
+      if (typeof window !== 'undefined' && !document.hidden) {
+        // Detect mobile Safari for longer delays
+        const isMobileSafari = typeof navigator !== 'undefined' && 
+                               /iPhone|iPad|iPod/.test(navigator.userAgent) && 
+                               /Safari/.test(navigator.userAgent) && 
+                               !/CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent);
+        
         // Mobile Safari needs longer stabilization time
-        setTimeout(() => {
-          // Check if session appears invalid but tokens might exist in storage
-          if (!session || !session.access_token) {
-            console.log('[AuthContext] Mobile Safari session recovery triggered');
-            refreshSession().catch(err => {
-              console.warn('Mobile Safari session recovery failed:', err);
-            });
-          }
-        }, 1000); // Longer delay for mobile Safari
-      } else {
-        // Standard recovery for other browsers
+        const delay = isMobileSafari ? 1000 : 500;
         setTimeout(() => {
           refreshSession().catch(err => {
-            console.warn('Session recovery failed:', err);
+            console.error('Failed to refresh session on visibility change:', err);
           });
-        }, 300);
+        }, delay);
       }
-    }, [session, refreshSession]);
+    };
 
-    // Handle session recovery on page visibility change
-    const handleVisibilityChange = useCallback(() => {
-      if (typeof window !== 'undefined' && !document.hidden) {
-        handleMobileSessionRecovery();
-      }
-    }, [handleMobileSessionRecovery]);
-
-    // Handle session recovery on window focus
-    const handleWindowFocus = useCallback(() => {
-      handleMobileSessionRecovery();
-    }, [handleMobileSessionRecovery]);
-
-    // Initialize mobile session monitor for enhanced iOS Safari support
-    if (typeof window !== 'undefined') {
-      sessionMonitorRef.current = new MobileSessionMonitor({
-        onSessionLost: () => {
-          console.log('[AuthContext] Mobile session monitor detected session loss');
-          // Don't immediately clear session - let user try to continue
-          // The session may recover on next interaction
-        },
-        onSessionRecovered: (recoveredSession) => {
-          console.log('[AuthContext] Mobile session monitor recovered session');
-          if (recoveredSession && recoveredSession.access_token) {
-            setSession(recoveredSession);
-            setUser(recoveredSession.user || null);
-          }
-        },
-        debugMode: process.env.NODE_ENV === 'development',
-      });
-    }
+    // Handle session recovery on window focus (browser/app regaining focus)
+    const handleWindowFocus = () => {
+      // Detect mobile Safari for longer delays
+      const isMobileSafari = typeof navigator !== 'undefined' && 
+                             /iPhone|iPad|iPod/.test(navigator.userAgent) && 
+                             /Safari/.test(navigator.userAgent) && 
+                             !/CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent);
+      
+      // Mobile Safari needs longer delay
+      const delay = isMobileSafari ? 800 : 300;
+      setTimeout(() => {
+        refreshSession().catch(err => {
+          console.error('Failed to refresh session on window focus:', err);
+        });
+      }, delay);
+    };
 
     // Add event listeners for better mobile/desktop session persistence
     if (typeof window !== 'undefined') {
@@ -156,13 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
-      
-      // Cleanup mobile session monitor
-      if (sessionMonitorRef.current) {
-        sessionMonitorRef.current.destroy();
-        sessionMonitorRef.current = null;
-      }
-      
       if (typeof window !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleWindowFocus);

@@ -111,7 +111,7 @@ function SafeInlineMath({ math }: { math: string }) {
   const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
   
   // Log validation issues in development
-  if (process.env.NODE_ENV === 'development' && !validation.isValid) {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && !validation.isValid) {
     console.warn('LaTeX validation issues:', validation.errors);
     if (validation.warnings.length > 0) {
       console.warn('LaTeX validation warnings:', validation.warnings);
@@ -136,7 +136,7 @@ function SafeBlockMath({ math }: { math: string }) {
   const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
   
   // Log validation issues in development
-  if (process.env.NODE_ENV === 'development' && !validation.isValid) {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && !validation.isValid) {
     console.warn('LaTeX validation issues in block math:', validation.errors);
     if (validation.warnings.length > 0) {
       console.warn('LaTeX validation warnings in block math:', validation.warnings);

@@ -154,7 +154,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
         
         {/* Additional resource hints for Core Web Vitals */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
         <link rel="dns-prefetch" href="https://api.anthropic.com" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
         
