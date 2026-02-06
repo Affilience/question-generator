@@ -969,8 +969,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Ensure config has required defaults
-  const totalMarksCalculated = config.totalMarks || config.sections.reduce((sum, section) => sum + (section.marks || 0), 0);
-  console.log(`🔢 MARKS DEBUG - totalMarks: ${config.totalMarks}, calculated: ${totalMarksCalculated}, sections:`, config.sections.map(s => `${s.id}:${s.marks}`));
+  const totalMarksCalculated = config.totalMarks || config.sections.reduce((sum, section) => sum + ((section as any).marks || (section as any).targetMarks || 0), 0);
+  console.log(`🔢 MARKS DEBUG - totalMarks: ${config.totalMarks}, calculated: ${totalMarksCalculated}, sections:`, config.sections.map(s => `${s.id}:${(s as any).marks || (s as any).targetMarks}`));
   
   const configWithDefaults = {
     ...config,

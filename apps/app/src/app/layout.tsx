@@ -36,6 +36,55 @@ export const metadata: Metadata = {
     template: '%s | Past Papers',
   },
   description: "AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.",
+  keywords: [
+    'GCSE practice questions',
+    'A-Level practice questions', 
+    'AQA past papers',
+    'Edexcel past papers',
+    'OCR past papers',
+    'AI generated questions',
+    'exam preparation',
+    'revision materials',
+    'step-by-step solutions'
+  ],
+  authors: [{ name: 'Past Papers Team' }],
+  creator: 'Past Papers',
+  publisher: 'Past Papers',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_GB',
+    url: 'https://www.past-papers.co.uk',
+    siteName: 'Past Papers',
+    title: 'Past Papers - AI Practice Questions for GCSE & A-Level',
+    description: 'AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Past Papers - AI Practice Questions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@pastpapers',
+    creator: '@pastpapers',
+    title: 'Past Papers - AI Practice Questions for GCSE & A-Level',
+    description: 'AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions with step-by-step solutions.',
+    images: ['/og-image.png'],
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
@@ -44,6 +93,8 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-touch-icon.png',
   },
+  manifest: '/manifest.json',
+  category: 'education',
 };
 
 export default function RootLayout({

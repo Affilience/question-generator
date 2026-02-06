@@ -7,6 +7,7 @@ import {
   getAllSubtopicParams,
 } from '@/lib/seo/utils';
 import { INDEXED_BOARDLESS_SUBTOPICS } from '@/lib/seo/indexed-pages';
+import { getAllBlogPosts } from '@/lib/blog';
 
 const BASE_URL = 'https://www.past-papers.co.uk';
 
@@ -35,7 +36,7 @@ const BASE_URL = 'https://www.past-papers.co.uk';
  * - All /api/* routes
  */
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Static marketing pages
@@ -160,6 +161,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  // Blog pages - Important for SEO and content marketing
+  const blogPosts = await getAllBlogPosts();
+  const blogPages: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    ...blogPosts.map(post => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+  ];
+
   // Combine all pages
   const allPages = [
     ...staticPages,
@@ -169,6 +187,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...topicPages,
     ...subtopicPages,
     ...practicalPages,
+    ...blogPages,
   ];
 
   // Validate URLs to prevent 404s - only include URLs with valid combinations

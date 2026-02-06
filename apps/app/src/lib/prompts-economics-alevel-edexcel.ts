@@ -10,7 +10,7 @@ import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
     case 'easy':
-      return { min: 2, max: 5 };    // Basic knowledge, definitions, simple calculations
+      return { min: 2, max: 3 };    // Basic knowledge, definitions (State, Define questions ONLY)
     case 'medium':
       return { min: 8, max: 12 };   // Substantial analysis with chains of reasoning
     case 'hard':
@@ -471,12 +471,14 @@ export function getEdexcelALevelEconomicsQuestionPrompt(topic: Topic, difficulty
   const difficultyGuidance = {
     easy: `Create a question testing knowledge and understanding (AO1/AO2).
 
-**Question Types for Easy:**
+**Question Types for Easy (2-3 marks ONLY):**
 - "Define the term '[concept]'" (2 marks)
-- "Explain one [factor/reason/example]" (2-3 marks)
+- "State what is meant by '[term]'" (2 marks) 
 - "State two [characteristics/features]" (2 marks)
-- "Calculate [measure] from the data" (2-4 marks)
-- "With the help of a diagram, explain [concept]" (4-5 marks)
+- "Explain one [factor/reason]" (3 marks)
+- Brief calculations (2-3 marks)
+
+**CRITICAL: If you are asked to create questions worth 4+ marks, you MUST NOT use simple State/Define questions. Use medium difficulty instead.**
 
 **Mark Scheme Format:**
 - Clear mark points
@@ -495,7 +497,9 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
 - "With reference to Extract X, analyse the causes of [specific economic issue shown in data] and examine the likely consequences for the economy" (10 marks)
 - "Analyse the extent to which [economic theory] explains [specific real-world phenomenon]" (9 marks)
 
-**FORBIDDEN Question Types (Too vague/unrealistic):**
+**FORBIDDEN Question Types for 8-12 Mark Questions:**
+- "State what is meant by..." (Use easy difficulty instead)
+- "Define the term..." (Use easy difficulty instead)
 - "Analyse the data" (without specific economic focus)
 - "Interpret the results" 
 - "What does the data show?" 

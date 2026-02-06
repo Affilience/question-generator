@@ -148,6 +148,22 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net vitals.vercel-analytics.com",
+              "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com",
+              "img-src 'self' data: blob: images.unsplash.com cdn.sanity.io",
+              "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net",
+              "connect-src 'self' *.supabase.co api.anthropic.com api.openai.com vitals.vercel-analytics.com",
+              "frame-src 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "upgrade-insecure-requests"
+            ].join('; '),
+          },
         ],
       },
     ];
