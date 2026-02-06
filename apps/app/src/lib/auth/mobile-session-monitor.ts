@@ -197,13 +197,33 @@ export class MobileSessionMonitor {
     if (typeof window === 'undefined') return null;
     
     try {
-      // Try localStorage first
-      const keys = ['sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1] + '-auth-token'];
+      // Try localStorage first - use safe fallback for Supabase key construction
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const keys = [];
+      
+      if (supabaseUrl) {
+        try {
+          const urlParts = supabaseUrl.split('//');
+          if (urlParts[1]) {
+            keys.push(`sb-${urlParts[1]}-auth-token`);
+          }
+        } catch (error) {
+          console.warn('[MobileSessionMonitor] Failed to parse Supabase URL:', error);
+        }
+      }
+      
+      // Also try common localStorage keys as fallback
+      keys.push('sb-auth-token', 'supabase.auth.token');
       
       for (const key of keys) {
-        const data = localStorage.getItem(key);
-        if (data) {
-          return JSON.parse(data);
+        try {
+          const data = localStorage.getItem(key);
+          if (data) {
+            return JSON.parse(data);
+          }
+        } catch (error) {
+          // Continue to next key if this one fails to parse
+          continue;
         }
       }
       
@@ -211,7 +231,7 @@ export class MobileSessionMonitor {
       const cookies = document.cookie.split(';');
       for (const cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
-        if (name.includes('auth-token')) {
+        if (name.includes('auth-token') || name.includes('sb-')) {
           try {
             return JSON.parse(decodeURIComponent(value));
           } catch {
