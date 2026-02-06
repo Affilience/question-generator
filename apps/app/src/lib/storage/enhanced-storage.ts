@@ -277,7 +277,12 @@ class EnhancedStorage {
         const date = new Date();
         date.setFullYear(date.getFullYear() + 1);
         
-        document.cookie = `${key}=${encodeURIComponent(JSON.stringify(data))}; expires=${date.toUTCString()}; path=/; SameSite=Lax; Secure`;
+        // Mobile Safari optimized cookie settings
+        const isSecure = window.location.protocol === 'https:';
+        const sameSite = this.isIOSSafari() ? 'None' : 'Lax'; // iOS Safari needs SameSite=None for cross-context
+        const secureFlag = isSecure ? '; Secure' : '';
+        
+        document.cookie = `${key}=${encodeURIComponent(JSON.stringify(data))}; expires=${date.toUTCString()}; path=/; SameSite=${sameSite}${secureFlag}`;
         resolve();
       } catch (error) {
         console.warn('[EnhancedStorage] Cookie set failed:', error);

@@ -199,6 +199,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Skip static pages (already validated)
     if (segments.length <= 1) return true;
 
+    // Skip blog pages - they have different validation rules
+    if (segments[0] === 'blog') return true;
+
     // Extract route parts
     const level = segments[0];
     const subject = segments[1];
@@ -206,7 +209,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const topic = segments[3];
     const subtopic = segments[4];
 
-    // Validate level
+    // Validate level (only for educational content, not blog)
     if (level && !['gcse', 'a-level'].includes(level)) {
       console.warn(`Invalid level in sitemap: ${level} - ${url}`);
       return false;

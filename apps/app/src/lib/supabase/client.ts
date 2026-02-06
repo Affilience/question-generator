@@ -6,28 +6,58 @@ class SupabaseStorageAdapter {
   private storage = getEnhancedStorage();
 
   getItem(key: string): string | null {
-    // For synchronous compatibility with Supabase, we try localStorage first
-    // then fall back to cookies for immediate access
-    try {
-      const result = localStorage.getItem(key);
-      if (result) return result;
-    } catch {}
+    // Detect mobile Safari for optimized storage strategy
+    const isMobileSafari = typeof window !== 'undefined' && 
+                           /iPhone|iPad|iPod/.test(navigator.userAgent) && 
+                           /Safari/.test(navigator.userAgent) && 
+                           !/CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent);
 
-    // Fallback to cookies for immediate access
-    try {
-      const cookies = document.cookie.split(';');
-      for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === key) {
-          try {
-            const data = JSON.parse(decodeURIComponent(value));
-            return data.value || decodeURIComponent(value);
-          } catch {
-            return decodeURIComponent(value);
+    // For mobile Safari, prioritize cookies since localStorage is unreliable
+    if (isMobileSafari) {
+      // Try cookies first on mobile Safari
+      try {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === key) {
+            try {
+              const data = JSON.parse(decodeURIComponent(value));
+              return data.value || decodeURIComponent(value);
+            } catch {
+              return decodeURIComponent(value);
+            }
           }
         }
-      }
-    } catch {}
+      } catch {}
+
+      // Then try localStorage as backup
+      try {
+        const result = localStorage.getItem(key);
+        if (result) return result;
+      } catch {}
+    } else {
+      // For desktop/other mobile browsers, try localStorage first
+      try {
+        const result = localStorage.getItem(key);
+        if (result) return result;
+      } catch {}
+
+      // Fallback to cookies
+      try {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === key) {
+            try {
+              const data = JSON.parse(decodeURIComponent(value));
+              return data.value || decodeURIComponent(value);
+            } catch {
+              return decodeURIComponent(value);
+            }
+          }
+        }
+      } catch {}
+    }
 
     // Async fallback - trigger background sync for next time
     this.storage.getItem(key).then((value) => {
@@ -107,10 +137,20 @@ export function createClient() {
           storage: typeof window !== 'undefined' ? new SupabaseStorageAdapter() : undefined,
           // Automatically refresh sessions when the tab/app becomes active
           autoRefreshToken: true,
+          // Mobile Safari specific configuration
+          ...(typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent) && {
+            // More aggressive token refresh for mobile Safari
+            flowType: 'pkce',
+            // Longer timeout for mobile Safari's slower network
+            asyncTimeout: 10000,
+          }),
         },
         global: {
           headers: {
             'X-Client-Info': 'question-generator-web',
+            ...(typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent) && {
+              'X-Mobile-Safari': 'true',
+            }),
           },
         },
       }

@@ -14,6 +14,7 @@ import { MarkBadge, InlineMarks } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
 import { DiagramRenderer } from '@/components/DiagramRenderer';
 import { PrintPaperButton } from '@/components/PrintPaperButton';
+import { getValidatedMarks } from '@/lib/markValidation';
 
 interface PaperTakePageProps {
   params: Promise<{ paperId: string }>;
@@ -204,6 +205,9 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
   const answeredCount = Object.keys(answers).filter((id) => answers[id]?.trim()).length;
   const progress = (answeredCount / allQuestions.length) * 100;
+  
+  // Calculate validated marks for current question to ensure consistency between display and mark scheme
+  const currentQuestionValidatedMarks = currentQuestion ? getValidatedMarks(currentQuestion).marks : 0;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
@@ -382,7 +386,7 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                         Question {currentQuestion.questionNumber}
                       </span>
                       {paper.settings.showMarks && (
-                        <MarkBadge marks={currentQuestion.marks} size="md" />
+                        <MarkBadge marks={currentQuestionValidatedMarks} size="md" />
                       )}
                     </div>
                     <div className="text-[var(--color-text-primary)]">
@@ -482,23 +486,23 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                           <input
                             type="number"
                             min={0}
-                            max={currentQuestion.marks}
+                            max={currentQuestionValidatedMarks}
                             value={selfMarks[currentQuestion.id] ?? ''}
-                            onChange={(e) => handleSelfMark(currentQuestion.id, parseInt(e.target.value) || 0, currentQuestion.marks)}
+                            onChange={(e) => handleSelfMark(currentQuestion.id, parseInt(e.target.value) || 0, currentQuestionValidatedMarks)}
                             className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"
                             placeholder="0"
                           />
                           <span className="text-[var(--color-text-secondary)] font-medium">
-                            / {currentQuestion.marks}
+                            / {currentQuestionValidatedMarks}
                           </span>
                         </div>
 
                         {/* Quick mark buttons */}
                         <div className="flex gap-2">
-                          {[0, Math.floor(currentQuestion.marks / 2), currentQuestion.marks].map((mark) => (
+                          {[0, Math.floor(currentQuestionValidatedMarks / 2), currentQuestionValidatedMarks].map((mark) => (
                             <button
                               key={mark}
-                              onClick={() => handleSelfMark(currentQuestion.id, mark, currentQuestion.marks)}
+                              onClick={() => handleSelfMark(currentQuestion.id, mark, currentQuestionValidatedMarks)}
                               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                                 selfMarks[currentQuestion.id] === mark
                                   ? 'bg-[var(--color-accent)] text-white'
@@ -513,7 +517,7 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
                       {selfMarks[currentQuestion.id] !== undefined && (
                         <div className="mt-3 text-sm text-green-400">
-                          Marked: {selfMarks[currentQuestion.id]}/{currentQuestion.marks}
+                          Marked: {selfMarks[currentQuestion.id]}/{currentQuestionValidatedMarks}
                         </div>
                       )}
                     </div>

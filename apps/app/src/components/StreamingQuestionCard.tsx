@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Question } from '@/types';
 import { MathRenderer } from './MathRenderer';
 import { BookmarkButton } from './BookmarkButton';
+import { getValidatedMarks } from '@/lib/markValidation';
 
 interface StreamingQuestionCardProps {
   question: Question | null;
@@ -159,20 +160,23 @@ export function StreamingQuestionCard({
               <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rounded-full animate-pulse [animation-delay:300ms]" />
             </div>
           )}
-          {showBookmark && (
-            <BookmarkButton
-              userId={userId}
-              question={{
-                topicId: question.topicId,
-                subtopic: subtopic,
-                difficulty: question.difficulty,
-                content: question.content,
-                solution: question.solution,
-                marks: question.marks,
-                markScheme: question.markScheme,
-              }}
-            />
-          )}
+          {showBookmark && (() => {
+            const { marks: validatedMarks } = getValidatedMarks(question);
+            return (
+              <BookmarkButton
+                userId={userId}
+                question={{
+                  topicId: question.topicId,
+                  subtopic: subtopic,
+                  difficulty: question.difficulty,
+                  content: question.content,
+                  solution: question.solution,
+                  marks: validatedMarks,
+                  markScheme: question.markScheme,
+                }}
+              />
+            );
+          })()}
         </div>
       </div>
 

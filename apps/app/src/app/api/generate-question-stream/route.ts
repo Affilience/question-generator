@@ -14,6 +14,7 @@ import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
 import { getSubjectSpecificMarkRange } from '@/lib/prompt-router';
 import { getAQAALevelProofPrompt } from '@/lib/prompts-aqa-alevel';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
+import { calculateMarksFromScheme } from '@/lib/markValidation';
 // Import real extract/source databases for English Literature and History
 import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme, HistoricalSource } from '@/lib/extracts/history-sources';
@@ -1561,6 +1562,11 @@ export async function POST(request: NextRequest) {
                 );
               }
 
+              // Calculate authoritative marks from mark scheme (more accurate than AI's parsed.marks)
+              const markScheme = parsed.markScheme || [];
+              const calculatedMarks = calculateMarksFromScheme(markScheme);
+              const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
+
               const question: {
                 id: string;
                 topicId: string;
@@ -1576,8 +1582,8 @@ export async function POST(request: NextRequest) {
                 difficulty: effectiveDifficulty,
                 content: parsed.content || '',
                 solution: parsed.solution || '',
-                marks: parsed.marks || 3,
-                markScheme: parsed.markScheme || [],
+                marks: finalMarks,
+                markScheme: markScheme,
               };
 
               // Include diagram if present
@@ -1682,6 +1688,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Calculate authoritative marks from mark scheme (more accurate than AI's parsed.marks)
+    const markScheme = parsed.markScheme || [];
+    const calculatedMarks = calculateMarksFromScheme(markScheme);
+    const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
+
     const question: {
       id: string;
       topicId: string;
@@ -1697,8 +1708,8 @@ export async function POST(request: NextRequest) {
       difficulty: effectiveDifficulty,
       content: parsed.content || '',
       solution: parsed.solution || '',
-      marks: parsed.marks || 3,
-      markScheme: parsed.markScheme || [],
+      marks: finalMarks,
+      markScheme: markScheme,
     };
 
     // Include diagram if present
