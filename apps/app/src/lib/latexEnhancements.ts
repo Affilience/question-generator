@@ -450,6 +450,12 @@ export function enhanceTextCommands(text: string): string {
       return '';
     }
     
+    // Fix: Single mathematical variables should not be in \text{} mode
+    // Convert \text{f}, \text{n}, etc. to just the variable (math mode)
+    if (content.match(/^[a-zA-Z]$/)) {
+      return content;
+    }
+    
     // For KaTeX compatibility, ensure proper text mode
     // Remove any nested LaTeX commands that don't work in text mode
     const cleanContent = content
@@ -460,6 +466,11 @@ export function enhanceTextCommands(text: string): string {
     // If nothing left after cleaning, remove the command
     if (!cleanContent) {
       return '';
+    }
+    
+    // If it's still a single variable after cleaning, don't use text mode
+    if (cleanContent.match(/^[a-zA-Z]$/)) {
+      return cleanContent;
     }
     
     // Return properly formatted text command
@@ -516,6 +527,24 @@ export function enhanceTextCommands(text: string): string {
   // Handle common text-mode math expressions that should be in math mode
   // Example: "f(x) = x^n" where "f" should be in math mode
   result = result.replace(/\\text\{([a-zA-Z])\}\s*\(\s*([a-zA-Z])\s*\)/g, '$1($2)');
+  
+  // Fix cases where literal 'text' appears before mathematical notation
+  // Pattern: "text f(x)" or "text n" or "text a" etc.
+  result = result.replace(/\btext\s+([a-zA-Z])\(/g, '$1(');
+  result = result.replace(/\btext\s+([a-zA-Z])\b(?!\w)/g, '$1');
+  
+  // More comprehensive patterns for "text" before mathematical variables
+  result = result.replace(/\btext\s*([a-zA-Z])\s*\(/g, '$1(');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*=\s*/g, '$1 = ');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*\+\s*/g, '$1 + ');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*-\s*/g, '$1 - ');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*\*\s*/g, '$1 \\cdot ');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*\^\s*/g, '$1^');
+  result = result.replace(/\btext\s*([a-zA-Z])\s*_\s*/g, '$1_');
+  
+  // Handle "text" followed by single mathematical variables
+  result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[,.\s]|$)/g, '$1');
+  result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[\d])/g, '$1');
   
   // Fix cases where variables are incorrectly wrapped in \text{}
   result = result.replace(/\\text\{([a-zA-Z])\}/g, (match, variable) => {
