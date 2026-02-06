@@ -24,7 +24,7 @@ import {
 import type { Subject, QualificationLevel, ExamBoard } from '@/types';
 import { SampleQuestions } from './SampleQuestions';
 import { shouldIndexSubtopic } from '@/lib/seo/indexed-pages';
-import { getSampleQuestionsForSubtopic, getSEOContent } from '@/lib/supabase';
+import { getSampleQuestionsForSubtopic, getSEOContent, type SampleQuestion } from '@/lib/supabase';
 
 interface PageProps {
   params: Promise<{
@@ -288,7 +288,7 @@ export default async function SubtopicPage({ params }: PageProps) {
               examBoard={examBoard as ExamBoard}
               topicId={topic}
               subtopic={subtopicName}
-              dbQuestions={dbSampleQuestions}
+              dbQuestions={(dbSampleQuestions as SampleQuestion[]) || undefined}
             />
 
             {/* Inline CTA after sample questions */}
@@ -312,8 +312,8 @@ export default async function SubtopicPage({ params }: PageProps) {
               About {subtopicName} in {boardInfo.name} {qualInfo.name}
             </h2>
             <div className="prose prose-invert max-w-none text-[var(--color-text-secondary)] space-y-4">
-              {seoContent?.introduction ? (
-                <div className="whitespace-pre-wrap">{seoContent.introduction}</div>
+              {(seoContent as any)?.introduction ? (
+                <div className="whitespace-pre-wrap">{(seoContent as any).introduction}</div>
               ) : (
                 <>
                   <p>

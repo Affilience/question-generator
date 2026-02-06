@@ -20,7 +20,8 @@
     "test:seo": "npm run build && npm run lighthouse",
     "test:seo-basic": "tsx scripts/test-seo.ts",
     "audit:seo": "tsx scripts/comprehensive-seo-audit.ts",
-    "audit:seo:complete": "tsx scripts/complete-seo-audit.ts"
+    "audit:seo:complete": "tsx scripts/complete-seo-audit.ts",
+    "audit:seo:enhanced": "tsx scripts/enhanced-seo-audit.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
