@@ -85,21 +85,28 @@ export async function getSEOContent(
   topicSlug: string,
   subtopicSlug: string
 ): Promise<SEOContent | null> {
-  const { data, error } = await supabase
-    .from('seo_content')
-    .select('*')
-    .eq('level', level)
-    .eq('subject', subject)
-    .eq('exam_board', examBoard)
-    .eq('topic_slug', topicSlug)
-    .eq('subtopic_slug', subtopicSlug)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('seo_content')
+      .select('*')
+      .eq('level', level)
+      .eq('subject', subject)
+      .eq('exam_board', examBoard)
+      .eq('topic_slug', topicSlug)
+      .eq('subtopic_slug', subtopicSlug)
+      .single();
 
-  if (error || !data) {
+    if (error) {
+      // Log error for debugging but don't throw - graceful degradation
+      console.error('Error fetching SEO content:', error);
+      return null;
+    }
+
+    return data as SEOContent;
+  } catch (error) {
+    console.error('Unexpected error in getSEOContent:', error);
     return null;
   }
-
-  return data as SEOContent;
 }
 
 // Fetch sample questions for a subtopic
@@ -110,33 +117,39 @@ export async function getSampleQuestionsForSubtopic(
   topicSlug: string,
   subtopicSlug: string
 ): Promise<SampleQuestion[]> {
-  // First get the seo_content ID
-  const { data: seoContent, error: seoError } = await supabase
-    .from('seo_content')
-    .select('id')
-    .eq('level', level)
-    .eq('subject', subject)
-    .eq('exam_board', examBoard)
-    .eq('topic_slug', topicSlug)
-    .eq('subtopic_slug', subtopicSlug)
-    .single();
+  try {
+    // Use a single optimized query with JOIN instead of two sequential queries
+    // This reduces database round trips from 2 to 1, significantly improving performance
+    const { data: questions, error } = await supabase
+      .from('sample_questions')
+      .select(`
+        *,
+        seo_content!inner(
+          id,
+          level,
+          subject,
+          exam_board,
+          topic_slug,
+          subtopic_slug
+        )
+      `)
+      .eq('seo_content.level', level)
+      .eq('seo_content.subject', subject)
+      .eq('seo_content.exam_board', examBoard)
+      .eq('seo_content.topic_slug', topicSlug)
+      .eq('seo_content.subtopic_slug', subtopicSlug)
+      .order('display_order', { ascending: true });
 
-  if (seoError || !seoContent) {
+    if (error) {
+      console.error('Error fetching sample questions:', error);
+      return [];
+    }
+
+    return (questions || []) as SampleQuestion[];
+  } catch (error) {
+    console.error('Unexpected error in getSampleQuestionsForSubtopic:', error);
     return [];
   }
-
-  // Then fetch the sample questions
-  const { data: questions, error: questionsError } = await supabase
-    .from('sample_questions')
-    .select('*')
-    .eq('subtopic_id', seoContent.id)
-    .order('display_order', { ascending: true });
-
-  if (questionsError || !questions) {
-    return [];
-  }
-
-  return questions as SampleQuestion[];
 }
 
 // Get or create user from localStorage ID

@@ -66,7 +66,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Keep title under 60 chars total (including "| Past Papers" template suffix)
   // Format: "Subtopic - Board Level Subject" puts main keyword first for SEO
   const title = `${subtopicName} - ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}`;
-  const description = `Practice unlimited ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} questions on ${subtopicName}. AI-generated exam-style questions with step-by-step solutions.`;
+  
+  // Optimized description to stay under 160 characters while maintaining SEO value
+  const description = `${subtopicName} practice for ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}. Unlimited AI questions with detailed solutions.`;
 
   // Only index subtopics with verified search demand
   const shouldIndex = shouldIndexSubtopic(level, subject, examBoard, topic, subtopic);
@@ -156,10 +158,19 @@ export default async function SubtopicPage({ params }: PageProps) {
     permanentRedirect(`/${level}/${subject}/${examBoard}/practice/${topic}/${subtopic}`);
   }
 
-  // Fetch SEO content and sample questions from database
-  const [seoContent, dbSampleQuestions] = await Promise.all([
-    getSEOContent(level, subject, examBoard, topic, subtopic),
-    getSampleQuestionsForSubtopic(level, subject, examBoard, topic, subtopic),
+  // Fetch SEO content and sample questions from database with timeout protection
+  const [seoContent, dbSampleQuestions] = await Promise.allSettled([
+    Promise.race([
+      getSEOContent(level, subject, examBoard, topic, subtopic),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error('SEO content timeout')), 5000))
+    ]),
+    Promise.race([
+      getSampleQuestionsForSubtopic(level, subject, examBoard, topic, subtopic),
+      new Promise<[]>((_, reject) => setTimeout(() => reject(new Error('Sample questions timeout')), 5000))
+    ])
+  ]).then(results => [
+    results[0].status === 'fulfilled' ? results[0].value : null,
+    results[1].status === 'fulfilled' ? results[1].value : []
   ]);
 
   const breadcrumbs = getBreadcrumbs({ level, subject, examBoard, topic, subtopic });
