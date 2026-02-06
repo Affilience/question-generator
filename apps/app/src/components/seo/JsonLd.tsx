@@ -179,3 +179,131 @@ export function OrganizationJsonLd({ baseUrl = 'https://past-papers.co.uk' }: Or
     />
   );
 }
+
+interface CourseJsonLdProps {
+  name: string;
+  description: string;
+  url: string;
+  provider: string;
+  educationalLevel: string;
+  subject: string;
+  examBoard: string;
+  topics: string[];
+  baseUrl?: string;
+}
+
+export function CourseJsonLd({
+  name,
+  description,
+  url,
+  provider,
+  educationalLevel,
+  subject,
+  examBoard,
+  topics,
+  baseUrl = 'https://past-papers.co.uk',
+}: CourseJsonLdProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name,
+    description,
+    url: `${baseUrl}${url}`,
+    provider: {
+      '@type': 'EducationalOrganization',
+      name: provider,
+      url: baseUrl,
+    },
+    educationalLevel,
+    teaches: subject,
+    courseCode: `${examBoard.toUpperCase()}-${educationalLevel}-${subject.toUpperCase()}`,
+    numberOfCredits: 0,
+    timeRequired: 'PT0H',
+    isAccessibleForFree: true,
+    inLanguage: 'en-GB',
+    availableLanguage: 'en-GB',
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      courseWorkload: 'self-paced',
+      instructor: {
+        '@type': 'Organization',
+        name: provider,
+      },
+    },
+    syllabusSections: topics.map(topic => ({
+      '@type': 'Syllabus',
+      name: topic,
+      about: `${topic} practice questions and solutions`,
+    })),
+    occupationalCredentialAwarded: `${educationalLevel} ${subject} Practice`,
+    educationalCredentialAwarded: `${educationalLevel} ${subject} Practice Questions Completion`,
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+
+interface CollectionPageJsonLdProps {
+  name: string;
+  description: string;
+  url: string;
+  numberOfItems: number;
+  itemType: string;
+  items: Array<{
+    name: string;
+    description: string;
+    url: string;
+  }>;
+  baseUrl?: string;
+}
+
+export function CollectionPageJsonLd({
+  name,
+  description,
+  url,
+  numberOfItems,
+  itemType,
+  items,
+  baseUrl = 'https://past-papers.co.uk',
+}: CollectionPageJsonLdProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    description,
+    url: `${baseUrl}${url}`,
+    mainEntity: {
+      '@type': 'ItemList',
+      name: `${name} Topics`,
+      description,
+      numberOfItems,
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': itemType,
+          name: item.name,
+          description: item.description,
+          url: `${baseUrl}${item.url}`,
+        },
+      })),
+    },
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Past Papers',
+      url: baseUrl,
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}

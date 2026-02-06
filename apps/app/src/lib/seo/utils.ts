@@ -333,9 +333,9 @@ export function generateSEOTitle(params: {
     return title.slice(0, 60);
   }
 
-  // Subject page: "GCSE Maths Past Papers | AQA, Edexcel, OCR"
+  // Subject page: "GCSE Maths Past Papers | All Exam Boards" (under 50 chars)
   if (params.subject && params.level) {
-    return `${qual?.name} ${subj?.name} Past Papers | AQA, Edexcel, OCR`.slice(0, 60);
+    return `${qual?.name} ${subj?.name} Past Papers | All Boards`.slice(0, 60);
   }
 
   return 'Past Papers | Free Exam Questions';
@@ -380,14 +380,14 @@ export function generateSEODescription(params: {
     return `${context} ${topicName} questions. Past paper style practice with mark schemes and step-by-step solutions.`.slice(0, 160);
   }
 
-  // Exam board page: "Free AQA GCSE Maths past papers with mark schemes. Exam-style questions and worked solutions." (~95 chars)
+  // Exam board page: "Free AQA GCSE Maths past papers with mark schemes. Unlimited exam-style questions and step-by-step worked solutions for comprehensive revision." (~150 chars)
   if (params.examBoard && params.subject && params.level) {
-    return `Free ${context} past papers with mark schemes. Unlimited exam-style questions and step-by-step worked solutions.`.slice(0, 160);
+    return `Free ${context} past papers with mark schemes. Unlimited exam-style questions and step-by-step worked solutions for comprehensive exam revision practice.`.slice(0, 160);
   }
 
-  // Subject page: "Free GCSE Maths past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and solutions." (~105 chars)
+  // Subject page: "Free GCSE Maths past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and detailed step-by-step solutions. Exam-style practice." (~150 chars)
   if (params.subject && params.level) {
-    return `Free ${qual?.name} ${subj?.name} past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and solutions.`.slice(0, 160);
+    return `Free ${qual?.name} ${subj?.name} past papers for AQA, Edexcel, OCR. Practice questions with mark schemes and detailed step-by-step solutions for exam revision.`.slice(0, 160);
   }
 
   return 'Free GCSE and A-Level past papers. Exam-style questions for AQA, Edexcel, OCR with mark schemes and solutions.';

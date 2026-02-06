@@ -7,8 +7,8 @@ import { subjects, examBoards, getTopicsBySubjectBoardAndLevel } from '@/lib/top
 import type { Subject } from '@/types';
 
 export const metadata: Metadata = {
-  // Title: 54 chars
-  title: 'Past Paper Generator | Create Custom Mock Exams Free',
+  // Title: 49 chars
+  title: 'Past Paper Generator | Create Mock Exams Free',
   // Description: 155 chars
   description: 'Generate custom GCSE and A-Level past papers for any subject. AQA, Edexcel, OCR mock exams with mark schemes. Choose topics and difficulty level.',
   keywords: ['past paper generator', 'mock exam generator', 'GCSE past papers', 'A-Level past papers', 'create practice papers', 'custom mock exams'],

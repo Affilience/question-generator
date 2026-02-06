@@ -1,0 +1,119 @@
+name: Lighthouse SEO Testing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  lighthouse-seo:
+    name: Lighthouse SEO & Performance Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'apps/app/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          cd apps/app
+          npm ci
+          
+      - name: Build Next.js app
+        run: |
+          cd apps/app
+          npm run build
+        env:
+          # Set required environment variables for build
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-key' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'test-key' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_fake' }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_fake' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'test-key' }}
+          
+      - name: Run Lighthouse CI
+        run: |
+          cd apps/app
+          npm install -g @lhci/cli@0.15.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: apps/app/.lighthouseci/
+          retention-days: 7
+          
+      - name: Comment PR with Lighthouse results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Read lighthouse results and comment on PR
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              // Read the lighthouse results
+              const resultsDir = path.join(process.cwd(), 'apps/app/.lighthouseci');
+              const files = fs.readdirSync(resultsDir);
+              const manifestFile = files.find(f => f.includes('manifest.json'));
+              
+              if (manifestFile) {
+                const manifest = JSON.parse(fs.readFileSync(path.join(resultsDir, manifestFile), 'utf8'));
+                const urls = Object.keys(manifest);
+                
+                let comment = '## 🔍 Lighthouse SEO & Performance Results\n\n';
+                
+                for (const url of urls.slice(0, 5)) { // Limit to first 5 URLs
+                  const reports = manifest[url];
+                  if (reports && reports.length > 0) {
+                    const report = reports[0];
+                    const scores = {
+                      performance: Math.round(report.summary?.performance * 100) || 'N/A',
+                      accessibility: Math.round(report.summary?.accessibility * 100) || 'N/A',
+                      'best-practices': Math.round(report.summary?.['best-practices'] * 100) || 'N/A',
+                      seo: Math.round(report.summary?.seo * 100) || 'N/A'
+                    };
+                    
+                    comment += `### ${url.replace('http://localhost:3000', '')}\n`;
+                    comment += `| Category | Score |\n`;
+                    comment += `|----------|-------|\n`;
+                    comment += `| 🚀 Performance | ${scores.performance} |\n`;
+                    comment += `| ♿ Accessibility | ${scores.accessibility} |\n`;
+                    comment += `| ✅ Best Practices | ${scores['best-practices']} |\n`;
+                    comment += `| 🔍 SEO | ${scores.seo} |\n\n`;
+                  }
+                }
+                
+                comment += '> 📊 Full reports available in the [GitHub Actions artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})';
+                
+                // Post comment
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            } catch (error) {
+              console.log('Could not read lighthouse results:', error);
+            }

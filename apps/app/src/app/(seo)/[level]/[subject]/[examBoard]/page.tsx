@@ -1,14 +1,11 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { BreadcrumbJsonLd, EducationalResourceJsonLd } from '@/components/seo/JsonLd';
-import { SubjectTabs, TabType } from '@/components/SubjectTabs';
-import { PracticalGrid } from '@/components/PracticalGrid';
+import { BreadcrumbJsonLd, EducationalResourceJsonLd, CourseJsonLd, CollectionPageJsonLd } from '@/components/seo/JsonLd';
+import { ExamBoardContent } from './ExamBoardContent';
 import {
   getBreadcrumbs,
   generateSEOTitle,
@@ -22,39 +19,41 @@ import {
   getExamBoardInfo,
   getTopicsBySubjectBoardAndLevel,
 } from '@/lib/topics';
-import { getPracticals, subjectHasPracticals } from '@/lib/practicals';
+import { getPracticals } from '@/lib/practicals';
 import type { Subject, QualificationLevel, ExamBoard } from '@/types';
 
 interface PageProps {
   params: Promise<{ level: string; subject: string; examBoard: string }>;
 }
 
-// Note: This is now a client component for interactive tabs
-// Static generation and metadata are handled at build time via other means
+// Generate metadata for SEO
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { level, subject, examBoard } = await params;
+  const title = generateSEOTitle({ level, subject, examBoard });
+  const description = generateSEODescription({ level, subject, examBoard });
+  
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${level}/${subject}/${examBoard}`,
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `/${level}/${subject}/${examBoard}`,
+    },
+  };
+}
 
-export default function ExamBoardPage({ params }: PageProps) {
-  const [resolvedParams, setResolvedParams] = useState<{ level: string; subject: string; examBoard: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('topics');
+// Generate static params for all valid combinations
+export async function generateStaticParams() {
+  return getAllExamBoardParams();
+}
 
-  // Resolve params on client side
-  React.useEffect(() => {
-    params.then(setResolvedParams);
-  }, [params]);
-
-  if (!resolvedParams) {
-    return (
-      <div className="min-h-screen bg-[var(--color-bg-deepest)]">
-        <Header />
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  const { level, subject, examBoard } = resolvedParams;
+export default async function ExamBoardPage({ params }: PageProps) {
+  const { level, subject, examBoard } = await params;
 
   const subjectInfo = getSubjectInfo(subject as Subject);
   const qualInfo = getQualificationInfo(level as QualificationLevel);
@@ -93,6 +92,28 @@ export default function ExamBoardPage({ params }: PageProps) {
         url={`/${level}/${subject}/${examBoard}`}
         educationalLevel={qualInfo.name}
         subject={subjectInfo.name}
+      />
+      <CourseJsonLd
+        name={`${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} Practice Course`}
+        description={`Comprehensive ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} practice questions covering all topics in the specification. AI-generated questions with detailed solutions.`}
+        url={`/${level}/${subject}/${examBoard}`}
+        provider="Past Papers"
+        educationalLevel={qualInfo.name}
+        subject={subjectInfo.name}
+        examBoard={boardInfo.name}
+        topics={topics.map(t => t.name)}
+      />
+      <CollectionPageJsonLd
+        name={`${boardInfo.name} ${qualInfo.name} ${subjectInfo.name} Topics`}
+        description={`Browse all ${topics.length} topics for ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}`}
+        url={`/${level}/${subject}/${examBoard}`}
+        numberOfItems={topics.length}
+        itemType="LearningResource"
+        items={topics.map(topic => ({
+          name: topic.name,
+          description: topic.description,
+          url: `/${level}/${subject}/${examBoard}/${topic.id}`
+        }))}
       />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -154,120 +175,17 @@ export default function ExamBoardPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* Subject Navigation Tabs */}
-        <SubjectTabs 
+        {/* Client-side Interactive Content */}
+        <ExamBoardContent 
+          level={level}
           subject={subject as Subject}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+          examBoard={examBoard as ExamBoard}
+          topics={topics}
+          practicals={practicals}
+          subjectInfo={subjectInfo}
+          qualInfo={qualInfo}
+          boardInfo={boardInfo}
         />
-
-        {/* Topics Grid - shown when topics tab is active */}
-        {activeTab === 'topics' && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-              All Topics
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {topics.map((topic) => (
-                <Link
-                  key={topic.id}
-                  href={`/${level}/${subject}/${examBoard}/${topic.id}`}
-                  className="group bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)] p-6 transition-all duration-200 hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-bg-elevated)]"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={`text-2xl p-2 rounded-lg ${topic.color} bg-opacity-20`}>
-                      {topic.icon}
-                    </span>
-                    <svg
-                      className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">
-                    {topic.name}
-                  </h3>
-                  <p className="text-sm text-[var(--color-text-muted)] mb-3 line-clamp-2">
-                    {topic.description}
-                  </p>
-                  <div className="text-sm text-[var(--color-text-secondary)]">
-                    {topic.subtopics.length} subtopics
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Required Practicals Grid - shown when practicals tab is active */}
-        {activeTab === 'practicals' && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-              Required Practicals
-            </h2>
-            <PracticalGrid 
-              practicals={practicals}
-              examBoard={examBoard as ExamBoard}
-              level={level as QualificationLevel}
-            />
-          </section>
-        )}
-
-        {/* Popular Subtopics - only shown for topics tab */}
-        {activeTab === 'topics' && (
-          <section className="mb-12">
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
-              Popular Subtopics
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {topics.slice(0, 3).flatMap(topic =>
-                topic.subtopics.slice(0, 3).map(subtopic => {
-                  const slug = slugify(subtopic);
-                  return (
-                    <Link
-                      key={`${topic.id}-${slug}`}
-                      href={`/${level}/${subject}/${examBoard}/${topic.id}/${slug}`}
-                      className="px-3 py-1.5 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-full text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/50 transition-colors"
-                    >
-                      {subtopic}
-                    </Link>
-                  );
-                })
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* Other Exam Boards */}
-        <section>
-          <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
-            Other Exam Boards for {qualInfo.name} {subjectInfo.name}
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            {['aqa', 'edexcel', 'ocr'].filter(b => b !== examBoard).map((b) => {
-              const board = getExamBoardInfo(b as ExamBoard);
-              const boardTopics = getTopicsBySubjectBoardAndLevel(
-                subject as Subject,
-                b as ExamBoard,
-                level as QualificationLevel
-              );
-              if (!board || boardTopics.length === 0) return null;
-              return (
-                <Link
-                  key={b}
-                  href={`/${level}/${subject}/${b}`}
-                  className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/50 transition-colors"
-                >
-                  <span className="font-semibold">{board.name}</span>
-                  <span className="text-[var(--color-text-muted)]">{boardTopics.length} topics</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
       </main>
     </div>
   );

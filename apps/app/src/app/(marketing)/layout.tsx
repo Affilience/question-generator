@@ -3,10 +3,10 @@ import { WebsiteJsonLd } from '@/components/seo';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Past Papers - AI Exam Questions for GCSE & A-Level',
+    default: 'Past Papers - Unlimited AI Exam Questions',
     template: '%s | Past Papers',
   },
-  description: 'Never run out of past paper questions. AI generates unlimited GCSE & A-Level exam questions for every subtopic, matching AQA, Edexcel & OCR specifications exactly.',
+  description: 'AI generates unlimited GCSE & A-Level exam questions for every subtopic, matching AQA, Edexcel & OCR specifications with full solutions.',
   keywords: ['past papers', 'GCSE past papers', 'A-Level past papers', 'exam questions', 'GCSE revision', 'A-Level revision', 'AQA', 'Edexcel', 'OCR', 'practice papers', 'exam practice'],
   openGraph: {
     title: 'Past Papers - Infinite AI-Generated Exam Questions',

@@ -162,7 +162,7 @@ export default function HomePageContent() {
                 },
                 {
                   title: 'Exam-Board Accurate',
-                  desc: 'Questions match your exam board\'s style exactly. AQA, Edexcel, and OCR formats supported.',
+                  desc: 'Questions match your exam board\'s style exactly. AQA, Edexcel, and OCR formats supported for all subjects.',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -212,7 +212,7 @@ export default function HomePageContent() {
                 GCSE & A-Level covered
               </h2>
               <p className="text-neutral-500 text-lg">
-                12 subjects across 3 exam boards
+                12 subjects across 3 exam boards - explore <Link href="/gcse" className="text-blue-600 hover:text-blue-700 underline">GCSE</Link> and <Link href="/a-level" className="text-blue-600 hover:text-blue-700 underline">A-Level</Link> practice questions
               </p>
             </motion.div>
             <AnimatedSubjectsGrid />
@@ -263,7 +263,7 @@ export default function HomePageContent() {
                 variants={fadeInUp}
                 className="text-lg text-white/50 mb-10 max-w-xl mx-auto"
               >
-                Free to use. No account required. Generate your first question now.
+                Free to use. No account required. Generate your first question now or try our <Link href="/paper-generator" className="text-blue-400 hover:text-blue-300 underline">paper generator</Link> for full mock exams.
               </motion.p>
               <motion.div variants={fadeInUp}>
                 <Link
