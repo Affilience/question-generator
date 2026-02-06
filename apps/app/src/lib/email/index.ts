@@ -1,10 +1,16 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('Missing RESEND_API_KEY environment variable');
-}
+let resend: Resend | null = null;
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY environment variable');
+    }
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 // Template ID from Resend dashboard
 const WELCOME_EMAIL_TEMPLATE_ID = 'c2cf0ad8-a435-4476-9b7e-8bcb84a7769c';
@@ -16,7 +22,8 @@ export interface WelcomeEmailData {
 
 export async function sendWelcomeEmail({ email, firstName }: WelcomeEmailData) {
   try {
-    const { data, error } = await resend.emails.send({
+    const resendClient = getResendClient();
+    const { data, error } = await resendClient.emails.send({
       from: 'Past Papers <welcome@past-papers.co.uk>',
       to: [email],
       template: {
@@ -48,7 +55,8 @@ export async function sendWelcomeEmail({ email, firstName }: WelcomeEmailData) {
 
 export async function sendTestEmail(email: string) {
   try {
-    const { data, error } = await resend.emails.send({
+    const resendClient = getResendClient();
+    const { data, error } = await resendClient.emails.send({
       from: 'Past Papers <test@past-papers.co.uk>',
       to: [email],
       subject: 'Test Email - Resend Integration Working',
