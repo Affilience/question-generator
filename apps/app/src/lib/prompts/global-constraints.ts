@@ -31,6 +31,7 @@ Examples of what IS allowed:
 - Following the pattern: "[Context]. Calculate the [quantity]." with original values
 - Using official command words like "Calculate", "Explain", "Evaluate"
 - Matching mark allocation conventions (e.g., 1 mark for recall, 3-4 for explanation)
+- Creating multi-part questions with parts labeled a), b), c), d) as per exam conventions
 
 Examples of what is NOT allowed:
 - Copying specific scenarios from past papers (e.g., "A train travels from London to Manchester...")
@@ -1498,6 +1499,67 @@ export const SAFETY_CONSTRAINTS = `
 `;
 
 // ============================================================================
+// MULTI-PART QUESTION CONSTRAINTS
+// ============================================================================
+
+export const MULTI_PART_QUESTION_CONSTRAINTS = `
+## CRITICAL: MULTI-PART QUESTION REQUIREMENTS
+
+When generating multi-part questions, you must follow these STRICT formatting and marking rules:
+
+### Content Structure Requirements
+1. **Part Labeling**: Use standard exam notation: (a), (b), (c), (d)
+   - Place each part on a separate line
+   - Include mark allocation after each part: [X marks]
+   - Example: 
+     "(a) Calculate the velocity. [2 marks]
+      (b) Find the acceleration. [3 marks]"
+
+2. **Logical Progression**: Each part should:
+   - Build logically on previous parts where appropriate
+   - Have clear, distinct requirements
+   - Progress in difficulty (a = easiest, d = hardest typically)
+
+3. **Clear Separation**: Use proper formatting:
+   - Line breaks between parts
+   - Clear mark allocations for each part
+   - Distinct instructions for each part
+
+### Mark Scheme Requirements (CRITICAL)
+For multi-part questions, the mark scheme MUST label each part:
+
+**CORRECT Format:**
+- "(a) M1: Uses correct formula for velocity"
+- "(a) A1: Substitutes values correctly"
+- "(b) M1: Uses a = (v-u)/t"
+- "(b) A1: Calculates acceleration = 2.5 m/s²"
+
+**INCORRECT Format (DO NOT USE):**
+- "M1: Uses correct formula" (missing part label)
+- "Uses correct formula for velocity" (missing mark type and part)
+
+### Mark Distribution Guidelines
+- 2-3 parts maximum for short questions (≤8 marks)
+- Up to 4 parts for extended questions (≥10 marks) 
+- Each part should have 1-4 marks typically
+- Total marks = sum of all part marks
+
+### Solution Format for Multi-Part
+Organize solution by parts:
+"(a) Step 1: [method]
+     Answer: [result]
+ (b) Step 1: [method building on part a]
+     Answer: [result]"
+
+### Common Multi-Part Patterns
+- **Calculation progression**: Calculate → Use result → Evaluate
+- **Analysis sequence**: State → Explain → Evaluate
+- **Data interpretation**: Read → Calculate → Compare → Conclude
+
+NEVER create multi-part questions where the mark scheme lacks proper part labeling!
+`;
+
+// ============================================================================
 // OUTPUT FORMAT CONSTRAINTS
 // ============================================================================
 
@@ -1566,6 +1628,8 @@ export function getGlobalConstraints(): string {
   return `${COPYRIGHT_CONSTRAINTS}
 
 ${FACT_ACCURACY_CONSTRAINTS}
+
+${MULTI_PART_QUESTION_CONSTRAINTS}
 
 ${SAFETY_CONSTRAINTS}
 

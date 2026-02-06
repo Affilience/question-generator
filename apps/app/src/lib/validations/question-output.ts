@@ -559,6 +559,117 @@ function validateContentQuality(
 // ============================================================================
 
 /**
+ * Validates multi-part question structure consistency
+ *
+ * @param content - Question content text
+ * @param markScheme - Mark scheme array
+ * @param solution - Solution text
+ * @param context - Validation context
+ * @returns Array of validation issues
+ */
+function validateMultiPartConsistency(
+  content: string,
+  markScheme: string[],
+  solution: string,
+  context: ValidationContext
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  // Detect multi-part indicators in content
+  const multiPartPatterns = [
+    /\([a-d]\)/gi,  // (a), (b), (c), (d)
+    /\b[a-d]\)/gi,  // a), b), c), d)
+  ];
+
+  const foundParts = new Set<string>();
+  multiPartPatterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    if (matches) {
+      matches.forEach(match => foundParts.add(match.toLowerCase().replace(/[^a-d]/g, '')));
+    }
+  });
+
+  const contentParts = Array.from(foundParts).sort();
+  
+  // If multi-part content is detected
+  if (contentParts.length > 1) {
+    // Check mark scheme has proper part labels
+    const markSchemeText = markScheme.join(' ');
+    const markSchemeParts = new Set<string>();
+    
+    // Look for part labels in mark scheme
+    const partLabelPatterns = [
+      /\([a-d]\)/gi,  // (a), (b), (c), (d)
+      /\b[a-d]\)/gi,  // a), b), c), d)
+    ];
+    
+    partLabelPatterns.forEach(pattern => {
+      const matches = markSchemeText.match(pattern);
+      if (matches) {
+        matches.forEach(match => markSchemeParts.add(match.toLowerCase().replace(/[^a-d]/g, '')));
+      }
+    });
+
+    const schemeParts = Array.from(markSchemeParts).sort();
+
+    // Check if all content parts have corresponding mark scheme entries
+    const missingInScheme = contentParts.filter(part => !schemeParts.includes(part));
+    if (missingInScheme.length > 0) {
+      issues.push({
+        code: 'MULTI_PART_MARK_SCHEME_MISSING',
+        message: `Multi-part question parts (${missingInScheme.join(', ')}) found in content but missing proper labeling in mark scheme`,
+        field: 'markScheme',
+        severity: 'error'
+      });
+    }
+
+    // Check for orphaned mark scheme parts
+    const orphanedInScheme = schemeParts.filter(part => !contentParts.includes(part));
+    if (orphanedInScheme.length > 0) {
+      issues.push({
+        code: 'MULTI_PART_ORPHANED_MARKS',
+        message: `Mark scheme contains parts (${orphanedInScheme.join(', ')}) not found in question content`,
+        field: 'markScheme',
+        severity: 'warning'
+      });
+    }
+
+    // Check if mark scheme has at least some part labels
+    if (schemeParts.length === 0 && contentParts.length > 1) {
+      issues.push({
+        code: 'MULTI_PART_NO_LABELS',
+        message: `Multi-part question detected (parts: ${contentParts.join(', ')}) but mark scheme lacks part labels`,
+        field: 'markScheme',
+        severity: 'error'
+      });
+    }
+
+    // Check solution format for multi-part consistency
+    const solutionParts = new Set<string>();
+    partLabelPatterns.forEach(pattern => {
+      const matches = solution.match(pattern);
+      if (matches) {
+        matches.forEach(match => solutionParts.add(match.toLowerCase().replace(/[^a-d]/g, '')));
+      }
+    });
+
+    const solutionPartsArray = Array.from(solutionParts).sort();
+    const missingSolutionParts = contentParts.filter(part => !solutionPartsArray.includes(part));
+    
+    if (missingSolutionParts.length > 0) {
+      issues.push({
+        code: 'MULTI_PART_SOLUTION_INCOMPLETE',
+        message: `Solution missing organized structure for parts: ${missingSolutionParts.join(', ')}`,
+        field: 'solution',
+        severity: 'warning'
+      });
+    }
+  }
+
+  return issues;
+}
+
+/**
  * Validates AI-generated question output
  *
  * @param raw - Raw AI output (should be parsed JSON object)
@@ -612,7 +723,22 @@ export function validateQuestionOutput(
   const markSchemeIssues = validateMarkScheme(data.markScheme, data.marks, context);
   warnings.push(...markSchemeIssues);
 
-  // 6. Validate content quality
+  // 6. Validate multi-part structure consistency
+  const multiPartIssues = validateMultiPartConsistency(
+    data.content,
+    data.markScheme,
+    data.solution,
+    context
+  );
+  for (const issue of multiPartIssues) {
+    if (issue.severity === 'error') {
+      errors.push(issue);
+    } else {
+      warnings.push(issue);
+    }
+  }
+
+  // 7. Validate content quality
   const qualityIssues = validateContentQuality(
     data.content,
     data.solution,

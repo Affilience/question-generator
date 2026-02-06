@@ -242,11 +242,26 @@ Generate a calculation question with these characteristics:
 3. State whether formula is given or must be recalled
 4. Specify units expected in the answer
 
+### Multi-Part Question Structure (When Applicable)
+If generating a multi-part question:
+- Label parts clearly as a), b), c), d) etc.
+- Each part should build logically on previous parts
+- Ensure progressive difficulty through the parts
+- Each part must have a distinct mark allocation
+
 ### Mark Scheme Pattern (Mathematics-specific)
 - M1: States correct formula/equation (e.g., "Uses v = u + at" or equivalent)
 - A1: Correct substitution with given values (award even with arithmetic errors)
 - M1: Correct rearrangement/manipulation (if required)
 - A1: Correct final numerical answer with appropriate units (cao)
+
+### Multi-Part Mark Scheme Requirements
+For multi-part questions, ensure each part is clearly labeled in the mark scheme:
+- **a) M1**: [First part method mark]
+- **a) A1**: [First part accuracy mark]
+- **b) M1**: [Second part method mark]
+- **b) A1**: [Second part accuracy mark]
+- Continue this pattern for all parts
 
 ### Mark Scheme Notation Guide:
 - M1, M2: Method marks (correct approach, award even if arithmetic wrong)
@@ -260,10 +275,17 @@ Generate a calculation question with these characteristics:
 - isw: Ignore subsequent working
 
 ### Working Example Format
+Single-part:
 "Step 1: Write the equation: [formula]
 Step 2: Substitute values: [substitution]
 Step 3: Calculate: [calculation]
 Answer = [value] [unit]"
+
+Multi-part:
+"a) Step 1: [method for part a]
+   Answer: [result for part a]
+b) Step 1: [method for part b]
+   Answer: [result for part b]"
 `;
 
 /**
@@ -283,10 +305,23 @@ Generate an explain/describe question with these characteristics:
 - "Explain" (2-4 marks) = Why it happens, with reasoning
 - "Suggest" (2-3 marks) = Apply to unfamiliar context
 
+### Multi-Part Question Structure (When Applicable)
+If generating a multi-part question:
+- Label parts clearly as a), b), c), d) etc.
+- Each part can test different aspects (state, describe, explain)
+- Progressive complexity: start with stating facts, progress to explaining reasoning
+- Ensure each part has clear mark allocation
+
 ### Mark Scheme Pattern
 - Each distinct point = 1 mark
 - "Because" statements linking cause to effect
 - Correct use of scientific/subject-specific terminology
+
+### Multi-Part Mark Scheme Requirements
+For multi-part questions, label each part in the mark scheme:
+- **a) B1**: [Mark for first part]
+- **b) B1**: [Mark for second part] 
+- **c) B2**: [Two marks for explanation part] (e.g., "One mark for [concept], one mark for [reasoning]")
 
 ### Response Quality Indicators
 Low: Just states facts without connection
