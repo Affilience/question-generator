@@ -32,7 +32,8 @@ export function SignupForm() {
       setError(error);
       setLoading(false);
     } else {
-      setSuccess(true);
+      // Redirect immediately to welcome page instead of showing success screen
+      router.push('/welcome');
     }
   };
 

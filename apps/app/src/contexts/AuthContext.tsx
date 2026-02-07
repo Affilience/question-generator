@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -164,11 +164,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           display_name: displayName || email.split('@')[0],
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/welcome`,
+        // Skip email confirmation - users can practice immediately
+        emailConfirmation: false,
       },
     });
 
     if (error) {
       return { error: error.message };
+    }
+
+    // Send welcome email after successful signup (fire-and-forget)
+    if (data.user) {
+      const firstName = displayName || email.split('@')[0];
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          firstName: firstName,
+        }),
+      }).catch(err => {
+        console.error('Failed to send welcome email:', err);
+        // Don't fail signup if email fails - just log it
+      });
     }
 
     return { error: null };
