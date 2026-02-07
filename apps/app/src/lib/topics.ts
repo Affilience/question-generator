@@ -230,6 +230,25 @@ export function getAvailableSubjects(): SubjectInfo[] {
   });
 }
 
+export function getSubjectsByLevel(level: QualificationLevel): SubjectInfo[] {
+  // Return subjects available for the specified level
+  return getAvailableSubjects().filter((subject) => {
+    // For GCSE, all subjects are available except A-Level specific ones
+    if (level === 'gcse') {
+      return true; // All available subjects support GCSE
+    }
+    
+    // For A-Level, check if subject has A-Level support
+    if (level === 'a-level') {
+      // Combined Science is GCSE only
+      if (subject.id === 'combined-science') return false;
+      return true; // All other subjects support A-Level
+    }
+    
+    return true;
+  });
+}
+
 /**
  * Qualification Level Definitions
  */

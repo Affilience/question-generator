@@ -26,7 +26,13 @@
     "generate-blogs": "tsx scripts/openai-blog-generator.ts",
     "generate-blogs:100": "tsx scripts/openai-blog-generator.ts 100",
     "generate-blogs:500": "tsx scripts/openai-blog-generator.ts 500",
-    "generate-blogs:1000": "tsx scripts/openai-blog-generator.ts 1000"
+    "generate-blogs:1000": "tsx scripts/openai-blog-generator.ts 1000",
+    "generate-theory": "tsx scripts/generate-theory-notes.ts",
+    "generate-theory:gcse-maths": "tsx scripts/generate-theory-notes.ts maths gcse aqa 25",
+    "generate-theory:gcse-physics": "tsx scripts/generate-theory-notes.ts physics gcse aqa 20",
+    "generate-theory:gcse-chemistry": "tsx scripts/generate-theory-notes.ts chemistry gcse aqa 20",
+    "generate-theory:a-level-maths": "tsx scripts/generate-theory-notes.ts maths a-level aqa 30",
+    "generate-theory:a-level-physics": "tsx scripts/generate-theory-notes.ts physics a-level aqa 25"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
