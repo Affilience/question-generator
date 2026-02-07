@@ -21,7 +21,12 @@
     "test:seo-basic": "tsx scripts/test-seo.ts",
     "audit:seo": "tsx scripts/comprehensive-seo-audit.ts",
     "audit:seo:complete": "tsx scripts/complete-seo-audit.ts",
-    "audit:seo:enhanced": "tsx scripts/enhanced-seo-audit.ts"
+    "audit:seo:enhanced": "tsx scripts/enhanced-seo-audit.ts",
+    "research-keywords": "tsx scripts/research-keywords.ts",
+    "generate-blogs": "tsx scripts/openai-blog-generator.ts",
+    "generate-blogs:100": "tsx scripts/openai-blog-generator.ts 100",
+    "generate-blogs:500": "tsx scripts/openai-blog-generator.ts 500",
+    "generate-blogs:1000": "tsx scripts/openai-blog-generator.ts 1000"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -43,7 +48,7 @@
     "groq-sdk": "^0.37.0",
     "katex": "^0.16.27",
     "next": "16.1.1",
-    "openai": "^6.16.0",
+    "openai": "^6.18.0",
     "pdf-parse": "^2.4.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
