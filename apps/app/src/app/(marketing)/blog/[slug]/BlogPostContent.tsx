@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Navigation } from '@/components/marketing/Navigation';
 import { Footer } from '@/components/marketing/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { MathRenderer } from '@/components/MathRenderer';
+import { BlogContentRenderer } from '@/components/BlogContentRenderer';
 import type { BlogPost } from '@/lib/blog';
 
 interface BlogPostContentProps {
@@ -106,7 +106,7 @@ export default function BlogPostContent({ post }: BlogPostContentProps) {
                           prose-ul:text-gray-300 prose-ol:text-gray-300 prose-li:mb-2
                           prose-strong:text-white prose-code:text-blue-400 prose-code:bg-blue-950/30 prose-code:px-1 prose-code:rounded
                           prose-blockquote:border-blue-500 prose-blockquote:text-blue-200 prose-blockquote:bg-blue-950/20">
-            {post.content && <MathRenderer content={post.content} className="blog-math-content" />}
+            {post.content && <BlogContentRenderer content={post.content} className="blog-content" />}
           </div>
         </motion.div>
 
