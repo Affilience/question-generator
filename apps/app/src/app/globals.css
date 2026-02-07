@@ -14,10 +14,10 @@
   --color-surface: #1a1a1a;
   --color-surface-hover: #2a2a2a;
 
-  /* Text colors */
+  /* Text colors - Enhanced contrast for accessibility */
   --color-text-primary: #ffffff;
-  --color-text-secondary: #a1a1a1;
-  --color-text-muted: #666666;
+  --color-text-secondary: #d1d5db; /* Improved from #a1a1a1 for better contrast */
+  --color-text-muted: #9ca3af; /* Improved from #666666 for better contrast */
 
   /* Blue accent */
   --color-accent: #3b82f6;
@@ -77,10 +77,10 @@
   --color-surface: #ffffff;
   --color-surface-hover: #f5f5f5;
 
-  /* Text colors */
-  --color-text-primary: #171717;
-  --color-text-secondary: #525252;
-  --color-text-muted: #a3a3a3;
+  /* Text colors - Enhanced contrast for accessibility */
+  --color-text-primary: #0f0f0f; /* Slightly darker for better contrast */
+  --color-text-secondary: #404040; /* Improved from #525252 for better contrast */
+  --color-text-muted: #737373; /* Improved from #a3a3a3 for better contrast */
 
   /* Blue accent - slightly adjusted for light mode */
   --color-accent: #2563eb;

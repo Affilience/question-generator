@@ -1,0 +1,27 @@
+# Browsers that we support - targeting modern browsers to reduce polyfills
+# Based on Chrome 88+ (2021), Safari 14+ (2020), Firefox 85+ (2021)
+# This excludes legacy browsers and reduces bundle size significantly
+
+# Last 2 years of browser versions
+last 2 years
+
+# Chrome 88+ (includes ES2020 support)
+Chrome >= 88
+
+# Safari 14+ (includes ES2020 support)  
+Safari >= 14
+
+# Firefox 85+ (includes ES2020 support)
+Firefox >= 85
+
+# Edge 88+ (Chromium-based)
+Edge >= 88
+
+# Exclude IE completely
+not IE 11
+not IE_Mob 11
+
+# Exclude very old mobile browsers
+not Android < 88
+not ChromeAndroid < 88
+not Samsung < 15

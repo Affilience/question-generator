@@ -16,14 +16,27 @@ const nextConfig: NextConfig = {
   // Disable Cache Components to fix navigation caching issues in Next.js 16
   cacheComponents: false,
   
-  // Optimize bundle splitting
+  // Optimize bundle splitting and modern JS target
   experimental: {
     optimizePackageImports: [
       'framer-motion',
       '@supabase/supabase-js',
       'react-katex',
+      'katex',
+      'animejs',
+      'canvas-confetti',
     ],
+    // Enable modern JS compilation for smaller bundles
+    useNextjsBundle: false,
   },
+  
+  // Target modern browsers to reduce polyfills (ES2020+)
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // SWC compiler options for modern JavaScript
+  swcMinify: true,
   
   // External packages for server components
   serverExternalPackages: ['katex'],

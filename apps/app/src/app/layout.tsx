@@ -154,6 +154,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
         
         {/* Additional resource hints for Core Web Vitals */}
+        <link rel="preconnect" href="https://fmnzyvdgewlrggnxvgec.supabase.co" />
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         )}
@@ -167,16 +168,62 @@ export default function RootLayout({
         {/* Critical CSS for preventing layout shifts and mobile optimization */}
         <style dangerouslySetInnerHTML={{
           __html: `
-            body { margin: 0; padding: 0; }
+            /* Base layout and CLS prevention */
+            body { margin: 0; padding: 0; overflow-x: hidden; }
             .container { max-width: 100%; overflow-x: hidden; }
             [data-layout-stable] { min-height: 1px; }
+            
             /* Mobile-first performance optimizations */
-            * { -webkit-tap-highlight-color: transparent; }
-            img { content-visibility: auto; contain: layout style paint; }
-            .math-display { contain: layout style; }
+            * { 
+              -webkit-tap-highlight-color: transparent;
+              box-sizing: border-box;
+            }
+            
+            /* Image and content optimization */
+            img { 
+              content-visibility: auto; 
+              contain: layout style paint;
+              max-width: 100%;
+              height: auto;
+              loading: lazy;
+            }
+            
+            /* Math content optimization */
+            .math-display { 
+              contain: layout style;
+              will-change: transform;
+            }
+            
+            /* Enhanced mobile optimizations */
             @media (max-width: 768px) {
-              body { font-size: 16px; } /* Prevent iOS zoom on form focus */
-              .question-container { transform: translateZ(0); } /* Hardware acceleration */
+              body { 
+                font-size: 16px; /* Prevent iOS zoom on form focus */
+                -webkit-font-smoothing: antialiased;
+              }
+              .question-container { 
+                transform: translateZ(0); /* Hardware acceleration */
+                backface-visibility: hidden;
+              }
+              /* Improve mobile scrolling performance */
+              .page-content {
+                -webkit-overflow-scrolling: touch;
+                overflow-anchor: none;
+              }
+            }
+            
+            /* Above-the-fold critical styles */
+            .hero-section {
+              min-height: 60vh;
+              display: flex;
+              align-items: center;
+            }
+            
+            /* Button critical styles */
+            .btn-primary {
+              display: inline-block;
+              padding: 0.75rem 1.5rem;
+              border-radius: 0.5rem;
+              transition: all 0.2s ease;
             }
           `
         }} />
