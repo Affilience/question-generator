@@ -594,6 +594,33 @@ MANDATORY: Use different numbers in every question to ensure variety:
 - For measurements: use different scales, units, and values
 - EVERY mathematical value must be fresh and different from typical examples
 
+## CRITICAL: LaTeX FUNCTION AND VARIABLE NOTATION REQUIREMENTS
+MANDATORY: Always use proper LaTeX formatting for mathematical functions and variables:
+
+### Function Notation Standards:
+- Correct: f(x) = 3x^2 (properly formatted)
+- Correct: g(x) = 3x^2 + 5 (properly formatted)
+- FORBIDDEN: textf(x) = 3x^2 (text prefix error)
+- FORBIDDEN: textg(x) = 3x^2 + 5 (text prefix error)
+- FORBIDDEN: text f(x) = 3x^2 (text prefix with space)
+
+### Variable Notation Standards:
+- Correct: h = 5 cm (height variable properly formatted)
+- Correct: v = 25 m/s (velocity variable properly formatted)
+- Correct: t = 3.5 seconds (time variable properly formatted)
+- FORBIDDEN: texth = 5 cm (text prefix error)
+- FORBIDDEN: textv = 25 m/s (text prefix error)
+- FORBIDDEN: textt = 3.5 seconds (text prefix error)
+- FORBIDDEN: text h = 5 cm (text prefix with space)
+
+### Mathematical Notation Rules:
+- Always write functions as: f(x), g(x), h(x), F(x), G(x)
+- Always write variables as single letters: x, y, z, a, b, c, h, v, t, m, etc.
+- Never prefix with "text": textf(x), texth, textv, textx are ALL WRONG
+- Use proper LaTeX: $f(x) = 3x^2$ or f(x) = 3x^2
+- For variables in equations: $h = 5$ or h = 5, NOT texth = 5
+- For complex functions: $f(x) = \\frac{3x^2 + 5}{2x - 1}$
+
 ## MATHEMATICS QUESTION REQUIREMENTS
 
 ### CRITICAL: Question Style
