@@ -419,27 +419,15 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   // Fix chemistry terms that should be in text mode
   result = result.replace(/\b(number\s+of\s+atoms|mass|volume|density|concentration|temperature|pressure|molar\s+mass|relative\s+atomic\s+mass|relative\s+molecular\s+mass)\b/gi, '\\text{$1}');
 
-  // Final cleanup: Remove any remaining "text" that appears before single variables
-  // This catches cases where LaTeX processing went wrong and left "text" as literal text
-  // Use iterative approach to handle multiple "text" prefixes like "texttextt"
-  let previousResult = '';
-  let iterations = 0;
-  const maxIterations = 10; // Safety valve to prevent infinite loops
+  // CONSERVATIVE text cleanup: Only remove "text" if it's clearly not part of LaTeX
+  // Don't remove "text" that might be legitimate content or part of \text{} commands
   
-  while (result !== previousResult && iterations < maxIterations) {
-    previousResult = result;
-    iterations++;
-    
-    // First handle space-separated patterns: "text h", "text c", etc.
-    result = result.replace(/\btext\s+([a-zA-Z])\b(?!\s*\()/g, '$1');
-    
-    // Then handle adjacent patterns: "texth", "textc", etc.
-    result = result.replace(/\btext([a-zA-Z])\b(?!\w)/g, '$1');
-    
-    // Additional pattern for sequences like "texttextt" - be more aggressive
-    // Look for "text" followed by any combination that ends with a single letter
-    result = result.replace(/\b(?:text)+([a-zA-Z])\b(?!\w)/g, '$1');
-  }
+  // Only fix obvious cases where "text" got separated from a single variable in math mode
+  // and only if we're certain it's not destroying legitimate text content
+  result = result.replace(/\b(?:text){2,}([a-zA-Z])\b/g, '$1'); // Fix multiple "text" like "texttextt" -> "t"
+  
+  // Very conservative: only fix "text" + single letter if surrounded by math delimiters
+  result = result.replace(/\$([^$]*)\btext\s*([a-zA-Z])\b([^$]*)\$/g, '$$$1$2$3$$');
 
   return result;
 }
