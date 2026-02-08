@@ -421,12 +421,25 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
 
   // Final cleanup: Remove any remaining "text" that appears before single variables
   // This catches cases where LaTeX processing went wrong and left "text" as literal text
-  // Match patterns like "text h", "text c", "text f" where single variables are affected
-  result = result.replace(/\btext\s+([a-zA-Z])\b(?!\s*\()/g, '$1');
+  // Use iterative approach to handle multiple "text" prefixes like "texttextt"
+  let previousResult = '';
+  let iterations = 0;
+  const maxIterations = 10; // Safety valve to prevent infinite loops
   
-  // Also clean up "text" that appears directly adjacent to variables without space
-  // But be very conservative - only match single letters that are clearly mathematical variables
-  result = result.replace(/\btext([a-zA-Z])\b(?!\w)/g, '$1');
+  while (result !== previousResult && iterations < maxIterations) {
+    previousResult = result;
+    iterations++;
+    
+    // First handle space-separated patterns: "text h", "text c", etc.
+    result = result.replace(/\btext\s+([a-zA-Z])\b(?!\s*\()/g, '$1');
+    
+    // Then handle adjacent patterns: "texth", "textc", etc.
+    result = result.replace(/\btext([a-zA-Z])\b(?!\w)/g, '$1');
+    
+    // Additional pattern for sequences like "texttextt" - be more aggressive
+    // Look for "text" followed by any combination that ends with a single letter
+    result = result.replace(/\b(?:text)+([a-zA-Z])\b(?!\w)/g, '$1');
+  }
 
   return result;
 }
