@@ -41,6 +41,17 @@ const testCases: TestQuestion[] = [
       "A1: cao x = 4"
     ],
     marks: 2
+  },
+  // Multi-part with step numbering (should pass)
+  {
+    content: "Calculate the volume of a cylinder:\n(a) Find the radius from circumference 12π\n(b) Calculate the volume with height 8",
+    markScheme: [
+      "Step 1: M1: Uses C = 2πr correctly",
+      "Step 1: A1: cao r = 6", 
+      "Step 2: M1: Uses V = πr²h",
+      "Step 2: A1: cao V = 288π"
+    ],
+    marks: 4
   }
 ];
 
@@ -118,6 +129,7 @@ export function MarkSchemeValidator() {
               <option value={0}>Complete Multi-part (Should Pass)</option>
               <option value={1}>Incomplete Multi-part (Missing part b)</option>
               <option value={2}>Single Part (Should Pass)</option>
+              <option value={3}>Multi-part with Step Numbering (Should Pass)</option>
             </select>
           </div>
         )}
@@ -223,6 +235,11 @@ export function MarkSchemeValidator() {
                   <span className="text-gray-500 text-sm">No parts in mark scheme</span>
                 )}
               </div>
+              {validation.multiPartValidation.usesAlternativeNumbering && (
+                <p className="text-xs text-amber-700 mt-1">
+                  ⚡ Alternative numbering detected (steps/numbers)
+                </p>
+              )}
             </div>
           </div>
 

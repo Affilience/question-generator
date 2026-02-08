@@ -93,12 +93,38 @@ export function extractMarkSchemeParts(markScheme: string[]): string[] {
   const parts: string[] = [];
   for (const point of markScheme) {
     // Match patterns like "(a) M1:", "(b) A1:", etc.
-    const match = point.match(/^\(([a-z]|[ivxlcdm]+|\d+)\)/i);
-    if (match) {
-      parts.push(match[0].toLowerCase());
+    const partMatch = point.match(/^\(([a-z]|[ivxlcdm]+|\d+)\)/i);
+    if (partMatch) {
+      parts.push(partMatch[0].toLowerCase());
+    }
+    
+    // Also match step patterns like "Step 1:", "Step 2:", etc.
+    const stepMatch = point.match(/^step\s+(\d+)/i);
+    if (stepMatch) {
+      // Convert step numbers to part letters (Step 1 -> (a), Step 2 -> (b), etc.)
+      const stepNum = parseInt(stepMatch[1], 10);
+      const partLetter = String.fromCharCode(96 + stepNum); // 97 = 'a', 98 = 'b', etc.
+      parts.push(`(${partLetter})`);
+    }
+    
+    // Match numbered patterns like "1.", "2.", etc. at start of line
+    const numberMatch = point.match(/^(\d+)\./);
+    if (numberMatch) {
+      const stepNum = parseInt(numberMatch[1], 10);
+      const partLetter = String.fromCharCode(96 + stepNum); // 97 = 'a', 98 = 'b', etc.
+      parts.push(`(${partLetter})`);
     }
   }
   return [...new Set(parts)].sort();
+}
+
+// Check if mark scheme uses alternative numbering (steps, numbers) instead of parts
+export function hasAlternativeNumbering(markScheme: string[]): boolean {
+  const hasSteps = markScheme.some(point => /^step\s+\d+/i.test(point));
+  const hasNumbers = markScheme.some(point => /^\d+\./.test(point));
+  const hasParts = markScheme.some(point => /^\([a-z]\)/i.test(point));
+  
+  return (hasSteps || hasNumbers) && !hasParts;
 }
 
 // Validate multi-part question completeness
@@ -112,11 +138,13 @@ export function validateMultiPartMarkScheme(question: {
   markSchemeParts: string[];
   missingParts: string[];
   hasMultipleParts: boolean;
+  usesAlternativeNumbering: boolean;
   validationMessage?: string;
 } {
   const questionParts = extractQuestionParts(question.content);
   const markSchemeParts = extractMarkSchemeParts(question.markScheme);
   const hasMultipleParts = questionParts.length > 1;
+  const usesAlternativeNumbering = hasAlternativeNumbering(question.markScheme);
   
   if (!hasMultipleParts) {
     return {
@@ -124,16 +152,37 @@ export function validateMultiPartMarkScheme(question: {
       questionParts,
       markSchemeParts,
       missingParts: [],
-      hasMultipleParts: false
+      hasMultipleParts: false,
+      usesAlternativeNumbering: false
     };
   }
   
-  const missingParts = questionParts.filter(part => !markSchemeParts.includes(part));
-  const isComplete = missingParts.length === 0;
-  
+  // If mark scheme uses alternative numbering (steps/numbers), be more lenient
+  let isComplete: boolean;
+  let missingParts: string[];
   let validationMessage: string | undefined;
-  if (!isComplete) {
-    validationMessage = `Mark scheme missing for parts: ${missingParts.join(', ')}. Question has parts: ${questionParts.join(', ')}, but mark scheme only covers: ${markSchemeParts.join(', ') || 'none'}`;
+  
+  if (usesAlternativeNumbering) {
+    // For alternative numbering, check if we have roughly the same number of parts/steps
+    const markSchemeStepsOrNumbers = question.markScheme.filter(point => 
+      /^(step\s+\d+|\d+\.)/i.test(point)
+    ).length;
+    
+    // Consider complete if we have at least as many steps/numbers as question parts
+    isComplete = markSchemeStepsOrNumbers >= questionParts.length;
+    missingParts = isComplete ? [] : [`Alternative numbering detected: ${markSchemeStepsOrNumbers} steps/numbers for ${questionParts.length} parts`];
+    
+    if (!isComplete) {
+      validationMessage = `Mark scheme uses alternative numbering (steps/numbers) but has fewer items (${markSchemeStepsOrNumbers}) than question parts (${questionParts.length}): ${questionParts.join(', ')}`;
+    }
+  } else {
+    // Standard validation for part-based mark schemes
+    missingParts = questionParts.filter(part => !markSchemeParts.includes(part));
+    isComplete = missingParts.length === 0;
+    
+    if (!isComplete) {
+      validationMessage = `Mark scheme missing for parts: ${missingParts.join(', ')}. Question has parts: ${questionParts.join(', ')}, but mark scheme only covers: ${markSchemeParts.join(', ') || 'none'}`;
+    }
   }
   
   return {
@@ -142,6 +191,7 @@ export function validateMultiPartMarkScheme(question: {
     markSchemeParts,
     missingParts,
     hasMultipleParts,
+    usesAlternativeNumbering,
     validationMessage
   };
 }
