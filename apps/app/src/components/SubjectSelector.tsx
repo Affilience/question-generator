@@ -1,6 +1,7 @@
 'use client';
 
 import { Subject } from '@/types';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface SubjectSelectorProps {
   selected: Subject;
@@ -41,6 +42,8 @@ export function SubjectSelector({
   onChange,
   availableSubjects = ['maths', 'physics', 'chemistry', 'biology'],
 }: SubjectSelectorProps) {
+  const { trackClick } = useAnalytics();
+  
   return (
     <div className="flex gap-2 mb-6">
       {availableSubjects.map((subject) => {
@@ -50,7 +53,10 @@ export function SubjectSelector({
         return (
           <button
             key={subject}
-            onClick={() => onChange(subject)}
+            onClick={() => {
+              trackClick('subject_card', { subject });
+              onChange(subject);
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
               isSelected
                 ? `${info?.color} text-white shadow-lg`

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Topic, TopicProgress, ExamBoard, QualificationLevel, Subject } from '@/types';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface TopicCardProps {
   topic: Topic;
@@ -14,6 +15,8 @@ interface TopicCardProps {
 }
 
 export function TopicCard({ topic, progress, examBoard = 'aqa', level = 'gcse', subject = 'maths', index = 0 }: TopicCardProps) {
+  const { trackClick } = useAnalytics();
+  
   const accuracy = progress && progress.attempted > 0
     ? Math.round((progress.correct / progress.attempted) * 100)
     : null;
@@ -24,7 +27,16 @@ export function TopicCard({ topic, progress, examBoard = 'aqa', level = 'gcse', 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.03 }}
     >
-      <Link href={`/${level}/${subject}/${examBoard}/practice/${topic.id}`} className="block h-full">
+      <Link 
+        href={`/${level}/${subject}/${examBoard}/practice/${topic.id}`} 
+        className="block h-full"
+        onClick={() => trackClick('topic_link', { 
+          topic: topic.id, 
+          subject, 
+          examBoard, 
+          level 
+        })}
+      >
         <div className="group relative rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] p-5 h-full flex flex-col transition-all duration-300 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-elevated)] card-glow">
           <div className="flex items-start justify-between mb-3">
             <span className="text-2xl">{topic.icon}</span>

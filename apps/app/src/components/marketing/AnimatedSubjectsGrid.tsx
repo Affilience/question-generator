@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { animate, stagger } from 'animejs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const subjects = [
   { name: 'Mathematics', subtopics: '45+', icon: '📐', href: '/gcse/maths' },
@@ -20,6 +21,7 @@ export function AnimatedSubjectsGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
   const { user } = useAuth();
+  const { trackClick } = useAnalytics();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -74,6 +76,11 @@ export function AnimatedSubjectsGrid() {
           key={subject.name}
           href={user ? subject.href : '/signup'}
           className="subject-card block bg-neutral-50 hover:bg-neutral-100 rounded-xl p-5 sm:p-6 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+          onClick={() => trackClick('subject_card', { 
+            subject: subject.name.toLowerCase().replace(/\s+/g, '-'),
+            href: subject.href,
+            authenticated: !!user
+          })}
         >
           <div
             className="subject-icon text-3xl sm:text-4xl mb-3 transition-transform duration-300 group-hover:scale-110"

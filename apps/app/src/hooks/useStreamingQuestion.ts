@@ -5,6 +5,7 @@ import { Question, Difficulty, ExamBoard, QualificationLevel, Subject } from '@/
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+import { analytics } from '@/lib/analytics';
 
 interface StreamingState {
   isStreaming: boolean;
@@ -84,6 +85,12 @@ export function useStreamingQuestion() {
   const accumulatedContentRef = useRef('');
 
   const generate = useCallback(async (options: GenerateOptions) => {
+    // Track question generation event
+    analytics.question.generate({
+      ...options,
+      userId: user?.id,
+    });
+    
     // Abort any existing request and clean up buffer
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -158,6 +165,13 @@ export function useStreamingQuestion() {
           upgradeNeeded: false,
         });
         
+        // Track question completion
+        analytics.question.complete(true, {
+          questionId: question.id,
+          ...options,
+          userId: user?.id,
+        });
+        
         // Track usage via API endpoint
         if (user) {
           try {
@@ -228,6 +242,13 @@ export function useStreamingQuestion() {
                   question: data.question,
                   error: null,
                   upgradeNeeded: false,
+                });
+                
+                // Track question completion
+                analytics.question.complete(true, {
+                  questionId: data.question.id,
+                  ...options,
+                  userId: user?.id,
                 });
                 
                 // Track usage via API endpoint

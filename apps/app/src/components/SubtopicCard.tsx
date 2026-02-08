@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ExamBoard, QualificationLevel, Subject } from '@/types';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface SubtopicCardProps {
   topicId: string;
@@ -14,6 +15,8 @@ interface SubtopicCardProps {
 }
 
 export function SubtopicCard({ topicId, subtopic, index, isRandom = false, examBoard = 'aqa', level = 'gcse', subject = 'maths' }: SubtopicCardProps) {
+  const { trackClick } = useAnalytics();
+  
   // Add cache busting timestamp to prevent navigation caching issues
   const cacheBust = Date.now();
   const href = isRandom
@@ -25,7 +28,17 @@ export function SubtopicCard({ topicId, subtopic, index, isRandom = false, examB
   const displayName = subtopic.replace(' (H)', '');
 
   return (
-    <Link href={href}>
+    <Link 
+      href={href}
+      onClick={() => trackClick('subtopic_link', {
+        topicId,
+        subtopic,
+        isRandom,
+        subject,
+        examBoard,
+        level
+      })}
+    >
       <div className={`group relative overflow-hidden rounded-xl border p-4 transition-all duration-300 cursor-pointer ${
         isRandom
           ? 'bg-gradient-to-br from-[#1a2a3a] to-[#0f1a24] border-[#3b82f6]/30 hover:border-[#3b82f6] hover:shadow-[0_0_30px_rgba(59,130,246,0.4),0_0_60px_rgba(59,130,246,0.15)] hover:scale-[1.02]'
