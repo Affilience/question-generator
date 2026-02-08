@@ -1563,15 +1563,21 @@ const AQA_FM_GCSE_TOPIC_GUIDANCE: Record<string, string> = {
 A surd is an irrational number that is expressed as a root that cannot be simplified to a rational number. Common surds include $\\sqrt{2}$, $\\sqrt{3}$, $\\sqrt{5}$, $\\sqrt{7}$.
 
 **Simplifying Surds:**
-- Find the largest square factor
-- $\\sqrt{12} = \\sqrt{4 \\times 3} = 2\\sqrt{3}$
-- $\\sqrt{50} = \\sqrt{25 \\times 2} = 5\\sqrt{2}$
-- $\\sqrt{72} = \\sqrt{36 \\times 2} = 6\\sqrt{2}$
+- Find the largest square factor and extract it
+- Use a wide variety of numbers: choose from different ranges (8-15, 18-50, 52-99, 98-200)
+- Mix perfect square factors of different sizes (4, 9, 16, 25, 36, 49, 64, 81, 100)
+- Vary the remaining non-square part (2, 3, 5, 6, 7, 10, 11, 13, 14, 15, etc.)
 
 **Operations with Surds:**
 - Addition/Subtraction: Combine like surds only
   - $3\\sqrt{2} + 5\\sqrt{2} = 8\\sqrt{2}$
   - $\\sqrt{8} + \\sqrt{18} = 2\\sqrt{2} + 3\\sqrt{2} = 5\\sqrt{2}$
+
+**CRITICAL FOR SIMPLIFYING SURDS QUESTIONS:**
+- ALWAYS vary the numbers used - NEVER reuse √72, √18, √50, √8 repeatedly
+- Use different combinations like: √20, √27, √45, √75, √80, √98, √108, √125, √147, √162, √180
+- Mix single surds and surd expressions: √X, √A + √B, √P - √Q, mixed surd arithmetic
+- Vary contexts: pure simplification, mixed operations, comparison problems, error-spotting
 - Multiplication: $\\sqrt{a} \\times \\sqrt{b} = \\sqrt{ab}$
 - Division: $\\frac{\\sqrt{a}}{\\sqrt{b}} = \\sqrt{\\frac{a}{b}}$
 

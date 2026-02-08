@@ -208,6 +208,17 @@ export function getAQAMathsGCSECompactPrompt(topic: Topic, difficulty: Difficult
                difficulty === 'medium' ? 'Foundation/Higher' : 'Higher';
                
   const markAllocation = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
+  
+  // Add specific variety instructions for surds to prevent repetitive questions
+  const surdVarietyInstructions = subtopic && subtopic.toLowerCase().includes('surd') ? `
+
+CRITICAL SURD QUESTION VARIETY REQUIREMENTS:
+- NEVER repeat the same numbers (avoid √72, √18, √50, √8 repeatedly)
+- Use diverse surd values: √20, √27, √28, √45, √63, √75, √80, √98, √108, √125, √147, √162, √180
+- Mix question types: single simplification, multiple surds, surd arithmetic, comparison problems
+- Vary perfect square factors: use 4, 9, 16, 25, 36, 49, 64, 81, 100 in different combinations
+- Ensure each question feels distinctly different from previous ones
+` : '';
 
   return `Generate an AQA GCSE Mathematics ${tier} tier question.
 
@@ -215,7 +226,7 @@ QUESTION REQUIREMENTS:
 - Topic: ${topic.name}${subtopic ? `, Subtopic: ${subtopic}` : ''}
 - Marks: ${markAllocation}
 - Tier: ${tier}
-- Style: Authentic AQA GCSE Mathematics format
+- Style: Authentic AQA GCSE Mathematics format${surdVarietyInstructions}
 
 ASSESSMENT OBJECTIVES (use appropriate weighting):
 ${Object.entries(AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES).map(([ao, desc]) => `${ao}: ${desc}`).join('\n')}

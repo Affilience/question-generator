@@ -62,6 +62,14 @@ export const VARIETY_DIMENSIONS = {
     'describe',
     'compare',
   ],
+  numericalVariety: [
+    'small_numbers',  // 8-20
+    'medium_numbers', // 18-75
+    'large_numbers',  // 72-200
+    'mixed_range',    // combination
+    'prime_factors',  // emphasize different prime factors
+    'perfect_squares', // emphasize different perfect square factors
+  ],
 };
 
 /**
@@ -73,6 +81,7 @@ export function getVarietyParameters(): {
   direction: string;
   infoFormat: string;
   commandWord: string;
+  numericalRange: string;
 } {
   const randomChoice = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
@@ -82,6 +91,7 @@ export function getVarietyParameters(): {
     direction: randomChoice(VARIETY_DIMENSIONS.reasoningDirection),
     infoFormat: randomChoice(VARIETY_DIMENSIONS.informationFormat),
     commandWord: randomChoice(VARIETY_DIMENSIONS.commandWords),
+    numericalRange: randomChoice(VARIETY_DIMENSIONS.numericalVariety),
   };
 }
 
@@ -131,6 +141,15 @@ export function getVarietyInstructions(variety: ReturnType<typeof getVarietyPara
     mixed_representation: 'Use a combination of text, tables, or diagrams',
   };
 
+  const numericalDescriptions: Record<string, string> = {
+    small_numbers: 'Use smaller values (8-20 range) to focus on method',
+    medium_numbers: 'Use medium values (18-75 range) for standard practice',
+    large_numbers: 'Use larger values (72-200 range) for computational challenge',
+    mixed_range: 'Mix different number sizes within the question',
+    prime_factors: 'Emphasize different prime factor combinations (2,3,5,7,11,13)',
+    perfect_squares: 'Emphasize different perfect square factors (4,9,16,25,36,49,64,81,100)',
+  };
+
   return `## VARIETY REQUIREMENTS FOR THIS QUESTION
 
 You MUST follow these specific variety parameters to ensure this question is structurally different from others:
@@ -144,6 +163,8 @@ You MUST follow these specific variety parameters to ensure this question is str
 **Information Presentation:** ${infoDescriptions[variety.infoFormat] || variety.infoFormat}
 
 **Suggested Command Word:** Consider using "${variety.commandWord.replace('_', ' ')}" (but use what's most appropriate)
+
+**Numerical Range:** ${numericalDescriptions[variety.numericalRange] || variety.numericalRange}
 
 IMPORTANT: Do NOT generate a generic or commonly-seen question structure. Create something that feels fresh while still being mathematically valid and appropriate for GCSE level.`;
 }
