@@ -616,14 +616,26 @@ export async function POST(request: NextRequest) {
         examBoard,
         qualification
       );
+      // Add content exclusion constraints for practicals if provided
+      let practicalExclusionPrompt = '';
+      if (excludeContent && excludeContent.length > 0) {
+        const exclusions = Array.isArray(excludeContent) ? excludeContent : [excludeContent];
+        practicalExclusionPrompt = `\n\nCONTENT EXCLUSION REQUIREMENTS:
+Avoid generating questions that start with or are similar to these previously generated questions:
+${exclusions.map((content, i) => `${i + 1}. "${content}..."`).join('\n')}
+
+IMPORTANT: Create a completely different practical scenario, equipment, and procedure to ensure variety.`;
+      }
+
       // Get subject-specific accuracy constraints
       const subjectConstraints = getAllConstraints(practical.subject);
+      const finalPrompt = `${prompt}${practicalExclusionPrompt}`;
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${subjectConstraints}\n\n${prompt}` },
+          { role: 'user', content: `${subjectConstraints}\n\n${finalPrompt}` },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.8,
@@ -1650,13 +1662,29 @@ export async function POST(request: NextRequest) {
           return getAQAMathsPromptByType(effectiveType);
       }
     };
-    const prompt = getPromptForSubjectBoardAndLevel();
+    const basePrompt = getPromptForSubjectBoardAndLevel();
+
+    // Add content exclusion constraints if provided
+    let exclusionPrompt = '';
+    if (excludeContent && excludeContent.length > 0) {
+      const exclusions = Array.isArray(excludeContent) ? excludeContent : [excludeContent];
+      console.log(`[EXCLUSION] Excluding ${exclusions.length} questions:`, exclusions);
+      exclusionPrompt = `\n\nCRITICAL EXCLUSION REQUIREMENTS - MUST AVOID:
+Do NOT generate questions that start with or are similar to these previously generated questions:
+${exclusions.map((content, i) => `${i + 1}. FORBIDDEN: "${content}..."`).join('\n')}
+
+MANDATORY: Use completely different scenarios (NOT shopping centres), different contexts, different numbers, different wording.
+Required: Generate something entirely different from the excluded content above.`;
+    }
 
     const openai = getOpenAIClient();
     // Use exam board-specific system prompt with enhanced constraints
     const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);
     // Get subject-specific accuracy constraints to prepend to user prompt
     const subjectConstraints = getAllConstraints(subject);
+    
+    // Combine all prompt components
+    const prompt = `${basePrompt}${exclusionPrompt}`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
