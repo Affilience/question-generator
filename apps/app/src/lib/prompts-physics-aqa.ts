@@ -2,6 +2,8 @@ import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
 import {
   getDiagramDocsForSubject,
   getVisualInstructions,
+  getVarietyParameters,
+  getVarietyInstructions,
 } from './prompts-common';
 
 /**
@@ -1052,6 +1054,10 @@ export function getAQAPhysicsCompactPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
   const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const variety = getVarietyParameters();
+  const varietyInstructions = getVarietyInstructions(variety);
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Early paper (Grades 1-3): 1-2 marks. State/name questions, simple recall, basic calculations with one step.'
@@ -1100,6 +1106,8 @@ Physics-specific rules:
 - Units required for numerical answers (lose mark without)
 - Equations: some given (state if needed), some must be recalled
 - Significant figures should match data given
+
+${varietyInstructions}
 
 Return this exact JSON structure:
 {"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution with units","markScheme":["M1: Selects correct equation","A1: Correct substitution","A1: Correct answer with unit"],"diagram":<optional, include for circuits, forces, waves, or any visual concept>}
