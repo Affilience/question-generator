@@ -25,17 +25,13 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: 'apps/app/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
           
       - name: Install dependencies
-        run: |
-          cd apps/app
-          npm ci
+        run: npm ci
           
       - name: Build Next.js app
-        run: |
-          cd apps/app
-          npm run build
+        run: npm run build:app
         env:
           # Set required environment variables for build
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-key' }}
@@ -46,10 +42,12 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_fake' }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'test-key' }}
           
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.15.x
+          
       - name: Run Lighthouse CI
         run: |
           cd apps/app
-          npm install -g @lhci/cli@0.15.x
           lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

@@ -1,8 +1,8 @@
 module.exports = {
   ci: {
     collect: {
-      // Start the Next.js server for testing
-      startServerCommand: 'npm run build && npm start',
+      // Start the Next.js server for testing (build already done in CI)
+      startServerCommand: 'npm start',
       startServerReadyPattern: 'ready on',
       startServerReadyTimeout: 30000,
       // Test multiple key pages for comprehensive SEO analysis

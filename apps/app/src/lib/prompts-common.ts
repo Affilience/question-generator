@@ -9,6 +9,59 @@ import { assessDiagramQuality, validateAndSanitizeDiagram } from '@/lib/diagram-
  */
 
 /**
+ * Removes problematic "text" prefixes from mathematical notation
+ * Addresses persistent issue where AI generates textf(x) instead of f(x)
+ */
+function cleanTextPrefixes(content: string): string {
+  if (!content) return content;
+  
+  let cleaned = content;
+  
+  // Handle specific text prefix patterns before mathematical functions
+  cleaned = cleaned
+    // Handle textf(x) patterns specifically
+    .replace(/textf\(/g, 'f(')
+    .replace(/textg\(/g, 'g(')
+    .replace(/texth\(/g, 'h(')
+    .replace(/textF\(/g, 'F(')
+    .replace(/textG\(/g, 'G(')
+    .replace(/textH\(/g, 'H(')
+    
+    // Handle text with space before function
+    .replace(/text\s+f\(/g, 'f(')
+    .replace(/text\s+g\(/g, 'g(')
+    .replace(/text\s+h\(/g, 'h(')
+    .replace(/text\s+F\(/g, 'F(')
+    .replace(/text\s+G\(/g, 'G(')
+    .replace(/text\s+H\(/g, 'H(')
+    
+    // Handle LaTeX command style
+    .replace(/\\textf\(/g, 'f(')
+    .replace(/\\textg\(/g, 'g(')
+    .replace(/\\texth\(/g, 'h(')
+    
+    // Clean up any remaining "text" before mathematical notation
+    .replace(/text([a-zA-Z])\s*=/g, '$1 =')
+    .replace(/text\s*([a-zA-Z])\s*=/g, '$1 =')
+    
+    // Remove text prefix from common mathematical terms
+    .replace(/textfunction/gi, 'function')
+    .replace(/textequation/gi, 'equation')
+    .replace(/textexpression/gi, 'expression')
+    .replace(/textintegral/gi, 'integral')
+    .replace(/textderivative/gi, 'derivative')
+    
+    // Handle function names with subscripts
+    .replace(/text([fghijklmnpqrstuvwxyzFGHIJKLMNPQRSTUVWXYZ])_(\d+)\(/g, '$1_$2(')
+    
+    // Remove standalone "text" that appears before mathematical expressions
+    .replace(/\btext\s+(?=\$)/g, '')
+    .replace(/\btext\s+(?=[A-Za-z]\s*[=<>])/g, '');
+  
+  return cleaned;
+}
+
+/**
  * Question variety dimensions to ensure diverse question generation.
  */
 export const VARIETY_DIMENSIONS = {
@@ -1844,10 +1897,14 @@ export function parseQuestionResponse(
       solutionDiagram = sanitizedSpec;
     }
 
+    // Clean up any text prefix issues as a final safeguard
+    const cleanedContent = cleanTextPrefixes(parsed.content);
+    const cleanedSolution = cleanTextPrefixes(parsed.solution || '');
+
     return {
-      content: parsed.content,
+      content: cleanedContent,
       marks: typeof parsed.marks === 'number' ? parsed.marks : 3,
-      solution: parsed.solution || '',
+      solution: cleanedSolution,
       markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
       diagram,
       solutionDiagram,

@@ -621,6 +621,17 @@ MANDATORY: Always use proper LaTeX formatting for mathematical functions and var
 - For variables in equations: $h = 5$ or h = 5, NOT texth = 5
 - For complex functions: $f(x) = \\frac{3x^2 + 5}{2x - 1}$
 
+### ABSOLUTE PROHIBITIONS - NEVER USE THESE PATTERNS:
+❌ NEVER WRITE: textf(x), textg(x), texth(x), textF(x), textG(x)
+❌ NEVER WRITE: text f(x), text g(x), text h(x), text F(x), text G(x)  
+❌ NEVER WRITE: \\textf(x), \\textg(x), \\texth(x)
+❌ NEVER WRITE: textfunction, textequation, textexpression
+❌ NEVER WRITE: text before any mathematical symbol or function name
+
+✅ ALWAYS WRITE: f(x), g(x), h(x), F(x), G(x) (clean, no prefixes)
+✅ ALWAYS WRITE: The function f(x) = 3x^2 (proper English + math)
+✅ ALWAYS WRITE: $f(x) = 3x^2$ (proper LaTeX formatting)
+
 ## MATHEMATICS QUESTION REQUIREMENTS
 
 ### CRITICAL: Question Style
