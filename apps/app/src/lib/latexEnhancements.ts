@@ -534,41 +534,16 @@ export function enhanceTextCommands(text: string): string {
   // Example: "f(x) = x^n" where "f" should be in math mode
   result = result.replace(/\\text\{([a-zA-Z])\}\s*\(\s*([a-zA-Z])\s*\)/g, '$1($2)');
   
-  // Fix cases where literal 'text' appears before mathematical notation
-  // Only replace when it's clearly mathematical context (followed by math operators)
-  result = result.replace(/\btext\s+([a-zA-Z])\s*\(/g, '$1(');
-  result = result.replace(/\btext\s+([a-zA-Z])\s*[=+\-*/^]/g, '$1 ');
+  // REMOVED: All aggressive patterns that replace "text" followed by letters
+  // These were corrupting normal English words and causing "textual" -> "ual", etc.
   
-  // More specific patterns for mathematical context only
-  result = result.replace(/\btext\s*([a-zA-Z])\s*\(\s*[a-zA-Z]\s*\)/g, '$1($2)');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*=\s*/g, '$1 = ');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*\+\s*/g, '$1 + ');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*-\s*/g, '$1 - ');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*\*\s*/g, '$1 \\cdot ');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*\^\s*/g, '$1^');
-  result = result.replace(/\btext\s*([a-zA-Z])\s*_\s*/g, '$1_');
+  // Only keep very specific chemical formula patterns that are unlikely to match normal English
+  // Be extremely conservative to avoid corrupting words like "textual", "context", etc.
   
-  // Handle "text" followed by single mathematical variables
-  result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[,.\s]|$)/g, '$1');
-  result = result.replace(/\btext\s+([a-zA-Z])\s*(?=[\d])/g, '$1');
+  // Only fix very specific chemical formulas when preceded by "text " (with space)
+  result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|H2SO4|NH3|CH4|O2|N2|Cl2)\b/g, '$1');
   
-  // Fix "text" appearing before chemical formulas
-  // Pattern: "text H2O" → "H2O", "text CO2" → "CO2", "text NaCl" → "NaCl"
-  result = result.replace(/\btext\s+([A-Z][a-z]?(?:\d+)?(?:[A-Z][a-z]?(?:\d+)?)*)\b/g, '$1');
-  result = result.replace(/\btext\s*([A-Z][a-z]?)(\d+)/g, '$1$2');
-  result = result.replace(/\btext\s*([A-Z][a-z]?)([A-Z][a-z]?)/g, '$1$2');
-  
-  // More comprehensive chemical formula patterns
-  result = result.replace(/\btext\s+([A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*)\s*(?=[\s,.]|$)/g, '$1');
-  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*\+/g, '$1 + ');
-  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*→/g, '$1 → ');
-  result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*=/g, '$1 = ');
-  
-  // Fix cases where "text" is concatenated directly with variables (no space)
-  // Only replace if it looks like a mathematical variable (followed by operators or end of math context)
-  // MUCH more conservative to avoid replacing normal English words
-  result = result.replace(/\btext([a-zA-Z])(?=\s*[=+\-*/^()[\]])/g, '$1');
-  result = result.replace(/\btext([a-zA-Z]\d+)(?=\s*[=+\-*/^()[\]])/g, '$1');
+  // REMOVED: All other aggressive text replacement patterns that were corrupting normal English words
   
   // Remove the aggressive pattern that replaces any "text" + letters
   // This was causing normal words to be corrupted

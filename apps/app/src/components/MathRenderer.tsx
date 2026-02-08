@@ -396,10 +396,7 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   });
 
   // Fix common issues where "text" appears literally (from broken \text commands)
-  
-  // CRITICAL: Remove "text" prefix from mathematical variables (textA -> A, textθ -> θ, etc.)
-  // This fixes AI-generated content where variables are incorrectly prefixed with "text"
-  result = result.replace(/\btext([A-Za-z]|[αβγδεζηθικλμνξοπρστυφχψω])\b/g, '$1');
+  // REMOVED: The aggressive pattern that was replacing "text" + letters as it corrupts normal English text
   
   // Fix broken patterns like "text{stuff}" (missing backslash)
   result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
