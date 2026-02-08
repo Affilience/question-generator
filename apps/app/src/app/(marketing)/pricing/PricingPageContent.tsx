@@ -144,7 +144,7 @@ function PricingContent() {
             className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
               billingInterval === 'monthly'
                 ? 'bg-white text-[#0a0a0a]'
-                : 'text-white/60 hover:text-white'
+                : 'text-white/80 hover:text-white'
             }`}
           >
             Monthly
@@ -154,7 +154,7 @@ function PricingContent() {
             className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
               billingInterval === 'annual'
                 ? 'bg-white text-[#0a0a0a]'
-                : 'text-white/60 hover:text-white'
+                : 'text-white/80 hover:text-white'
             }`}
           >
             Annual
@@ -195,8 +195,8 @@ function PricingContent() {
 
               {/* Plan header */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
-                <p className="text-sm text-white/40">{plan.tagline}</p>
+                <h2 className="text-lg font-semibold text-white">{plan.name}</h2>
+                <p className="text-sm text-white/70">{plan.tagline}</p>
               </div>
 
               {/* Price */}
@@ -206,7 +206,7 @@ function PricingContent() {
                     {price === 0 ? 'Free' : `£${price}`}
                   </span>
                   {price > 0 && (
-                    <span className="text-white/40">
+                    <span className="text-white/70">
                       /{billingInterval === 'annual' ? 'year' : 'month'}
                     </span>
                   )}
@@ -219,13 +219,13 @@ function PricingContent() {
               </div>
 
               {/* Description */}
-              <p className="text-white/60 text-sm mb-6">{plan.description}</p>
+              <p className="text-white/80 text-sm mb-6">{plan.description}</p>
 
               {/* CTA */}
               {isCurrentPlan ? (
                 <button
                   disabled
-                  className="w-full py-3 rounded-lg font-medium bg-white/10 text-white/60 cursor-not-allowed"
+                  className="w-full py-3 rounded-lg font-medium bg-white/10 text-white/80 cursor-not-allowed"
                 >
                   Current Plan
                 </button>
@@ -258,7 +258,7 @@ function PricingContent() {
                     {feature.included ? (
                       <svg
                         className={`w-5 h-5 ${
-                          feature.highlight ? 'text-green-400' : 'text-white/40'
+                          feature.highlight ? 'text-green-400' : 'text-white/70'
                         } flex-shrink-0 mt-0.5`}
                         fill="none"
                         stroke="currentColor"
@@ -342,14 +342,14 @@ export default function PricingPageContent() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="text-white/60 hover:text-white transition-colors"
+                    className="text-white/80 hover:text-white transition-colors"
                   >
                     Dashboard
                   </Link>
                   {subscription && (
                     <button
                       onClick={() => openPortal()}
-                      className="text-white/60 hover:text-white transition-colors"
+                      className="text-white/80 hover:text-white transition-colors"
                     >
                       Manage Subscription
                     </button>
@@ -359,7 +359,7 @@ export default function PricingPageContent() {
                 <>
                   <Link
                     href="/login"
-                    className="text-white/60 hover:text-white transition-colors"
+                    className="text-white/80 hover:text-white transition-colors"
                   >
                     Sign in
                   </Link>
@@ -387,7 +387,7 @@ export default function PricingPageContent() {
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Simple, transparent pricing
           </h1>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
             Choose the plan that fits your revision needs. All plans include full access to every subject and exam board.
           </p>
         </div>
@@ -398,7 +398,7 @@ export default function PricingPageContent() {
 
       {/* Footer - always rendered */}
       <footer className="border-t border-white/[0.06] py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white/40 text-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white/70 text-sm">
           <p>&copy; {new Date().getFullYear()} Past Papers. All rights reserved.</p>
         </div>
       </footer>

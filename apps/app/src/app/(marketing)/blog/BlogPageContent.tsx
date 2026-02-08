@@ -114,8 +114,8 @@ function BlogPageContentInner({
             </p>
             
             {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              {categories.map((category) => (
+            <div className="flex flex-wrap justify-center gap-3 mb-12 min-h-[48px]">
+              {categories.length > 1 ? categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => onCategoryChange(category)}
@@ -127,16 +127,22 @@ function BlogPageContentInner({
                 >
                   {category}
                 </button>
-              ))}
+              )) : (
+                // Skeleton loading for category buttons
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="px-6 py-3 rounded-full bg-white/5 animate-pulse">
+                    <div className="h-4 bg-gray-700 rounded w-16"></div>
+                  </div>
+                ))
+              )}
             </div>
           </motion.div>
 
           {/* Featured Posts */}
-          {featuredPosts.length > 0 && (
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold text-white mb-8 text-center">Featured Articles</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {featuredPosts.slice(0, 4).map((post, index) => (
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold text-white mb-8 text-center">Featured Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {featuredPosts.length > 0 ? featuredPosts.slice(0, 4).map((post, index) => (
                   <motion.article
                     key={post.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -160,7 +166,7 @@ function BlogPageContentInner({
                     </div>
                     
                     <div className="p-6">
-                      <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                      <div className="flex items-center gap-4 text-sm text-gray-300 mb-3">
                         <time dateTime={post.date}>
                           {new Date(post.date).toLocaleDateString('en-GB', { 
                             day: 'numeric', 
@@ -189,10 +195,22 @@ function BlogPageContentInner({
                       </Link>
                     </div>
                   </motion.article>
-                ))}
+                )) : (
+                  // Skeleton loading for featured posts
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="bg-gradient-to-br from-white/5 to-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden animate-pulse">
+                      <div className="aspect-video bg-gray-700"></div>
+                      <div className="p-6">
+                        <div className="h-4 bg-gray-700 rounded mb-3 w-24"></div>
+                        <div className="h-6 bg-gray-700 rounded mb-3"></div>
+                        <div className="h-4 bg-gray-700 rounded mb-4 w-3/4"></div>
+                        <div className="h-4 bg-gray-700 rounded w-20"></div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-          )}
 
           {/* All Posts Grid */}
           <motion.div
@@ -205,8 +223,19 @@ function BlogPageContentInner({
             </h2>
             
             {filteredPosts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-lg">Loading articles...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="bg-gradient-to-br from-white/5 to-white/10 border border-white/15 rounded-xl overflow-hidden animate-pulse">
+                    <div className="aspect-video bg-gray-700"></div>
+                    <div className="p-6">
+                      <div className="h-4 bg-gray-700 rounded mb-2 w-16"></div>
+                      <div className="h-5 bg-gray-700 rounded mb-3"></div>
+                      <div className="h-4 bg-gray-700 rounded mb-2 w-3/4"></div>
+                      <div className="h-4 bg-gray-700 rounded mb-4 w-1/2"></div>
+                      <div className="h-4 bg-gray-700 rounded w-20"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -234,7 +263,7 @@ function BlogPageContentInner({
                     </div>
                     
                     <div className="p-5 flex flex-col flex-grow">
-                      <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+                      <div className="flex items-center gap-3 text-xs text-gray-300 mb-3">
                         <time dateTime={post.date}>
                           {new Date(post.date).toLocaleDateString('en-GB', { 
                             day: 'numeric', 

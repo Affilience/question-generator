@@ -91,7 +91,7 @@ export function AnimatedSubjectsGrid() {
           <h3 className="font-semibold text-neutral-900 text-sm sm:text-base mb-1">
             {subject.name}
           </h3>
-          <p className="text-neutral-500 text-xs sm:text-sm">{subject.subtopics} subtopics</p>
+          <p className="text-neutral-700 text-xs sm:text-sm">{subject.subtopics} subtopics</p>
         </Link>
       ))}
     </div>

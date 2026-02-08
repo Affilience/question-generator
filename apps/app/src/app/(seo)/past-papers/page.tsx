@@ -146,7 +146,7 @@ export default function PastPapersPage() {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-2xl">{subject.icon}</span>
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">{subject.name}</h3>
+                    <h4 className="font-semibold text-[var(--color-text-primary)]">{subject.name}</h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {examBoards.map((board) => {
@@ -191,7 +191,7 @@ export default function PastPapersPage() {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-2xl">{subject.icon}</span>
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">{subject.name}</h3>
+                    <h4 className="font-semibold text-[var(--color-text-primary)]">{subject.name}</h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {examBoards.map((board) => {
