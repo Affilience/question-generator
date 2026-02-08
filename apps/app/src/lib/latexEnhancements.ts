@@ -564,6 +564,16 @@ export function enhanceTextCommands(text: string): string {
   // Remove any remaining empty text commands
   result = result.replace(/\\text\{\s*\}/g, '');
   result = result.replace(/\\mathrm\{\s*\}/g, '');
+
+  // Final cleanup: Remove literal "text" that appears before mathematical variables
+  // This can happen when LaTeX commands are malformed and leave "text" as raw text
+  // Be very conservative - only clean up clear cases of single mathematical variables
+  result = result.replace(/\btext\s+([a-zA-Z])\b(?!\s*[\(\{])/g, '$1');
+  result = result.replace(/\btext([a-zA-Z])\b(?![a-zA-Z])/g, '$1');
+  
+  // Clean up any remaining malformed text patterns that could cause rendering issues
+  // Remove "text" when it appears to be a broken LaTeX command prefix
+  result = result.replace(/\btext\{([a-zA-Z])\}/g, '$1'); // \text{} around single variables
   
   return result;
 }

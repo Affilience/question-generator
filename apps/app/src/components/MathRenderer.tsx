@@ -409,13 +409,24 @@ function processEscapeSequences(text: string, isStreaming: boolean = false): str
   result = result.replace(/(\d+(?:\.\d+)?)\s*ext([a-zA-Z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
   
   // Fix literal "text" appearing before units: "1textHz" -> "1 \text{Hz}"
-  result = result.replace(/(\d+(?:\.\d+)?)\s*text([A-Za-z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
+  // Be more specific about which patterns to match to avoid corrupting normal text
+  const knownUnits = /(Hz|kHz|MHz|GHz|cm|mm|km|m|g|kg|mol|Pa|kPa|atm|J|kJ|N|V|A|rad|s|min|hr|°C|K)/;
+  result = result.replace(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*text(${knownUnits.source})(\\^?\\d*)`, 'g'), '$1 \\text{$2}$3');
   
   // Fix common chemistry/physics units that appear without proper LaTeX formatting
   result = result.replace(/\b(cm|mm|km|m|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:\)])/g, '\\text{$1}');
   
   // Fix chemistry terms that should be in text mode
   result = result.replace(/\b(number\s+of\s+atoms|mass|volume|density|concentration|temperature|pressure|molar\s+mass|relative\s+atomic\s+mass|relative\s+molecular\s+mass)\b/gi, '\\text{$1}');
+
+  // Final cleanup: Remove any remaining "text" that appears before single variables
+  // This catches cases where LaTeX processing went wrong and left "text" as literal text
+  // Match patterns like "text h", "text c", "text f" where single variables are affected
+  result = result.replace(/\btext\s+([a-zA-Z])\b(?!\s*\()/g, '$1');
+  
+  // Also clean up "text" that appears directly adjacent to variables without space
+  // But be very conservative - only match single letters that are clearly mathematical variables
+  result = result.replace(/\btext([a-zA-Z])\b(?!\w)/g, '$1');
 
   return result;
 }
