@@ -1281,11 +1281,7 @@ n = pV/RT         moles from ideal gas equation
 2. Use molar ratio from equation
 3. Calculate concentration of unknown: c = n/(V/1000)
 \`\`\`
-Example:
-25.0 cm³ of NaOH required 23.50 cm³ of 0.100 mol dm⁻³ HCl
-- n(HCl) = 0.100 × 23.50/1000 = 2.35 × 10⁻³ mol
-- n(NaOH) = 2.35 × 10⁻³ mol (1:1 ratio)
-- c(NaOH) = 2.35 × 10⁻³ / (25.0/1000) = 0.0940 mol dm⁻³
+[VARIETY EXAMPLE: Use different volumes (20.0-30.0 cm³), different concentrations (0.080-0.150 mol dm⁻³), different acid-base pairs]
 
 **Enthalpy Calculations:**
 \`\`\`

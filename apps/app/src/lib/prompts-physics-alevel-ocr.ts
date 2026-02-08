@@ -1571,9 +1571,8 @@ After the collision, they move off together.
 ---
 
 ### Example 5: Young Modulus
-**Question:**
-A copper wire of length 2.50 m and diameter 0.80 mm is stretched by a tensile force.
-The wire extends by 1.8 mm when the force is 35 N.
+**Question Template:**
+A metal wire is stretched by a tensile force. [VARIETY: Use different materials (steel, aluminium, brass), vary length (1.8-3.2m), diameter (0.65-1.2mm), force (25-65N), extension (1.2-3.5mm)]
 
 (a) Calculate the stress in the wire. [3 marks]
 (b) Calculate the strain in the wire. [1 mark]
@@ -1601,9 +1600,8 @@ The wire extends by 1.8 mm when the force is 35 N.
 ---
 
 ### Example 6: Work and Power
-**Question:**
-A car of mass 1400 kg accelerates from rest to 25 m s⁻¹ in 8.0 s on a horizontal road.
-The resistive forces on the car average 600 N during this time.
+**Question Template:**
+A vehicle accelerates from rest on a horizontal road. [VARIETY: Different vehicles (car, truck, motorcycle), masses (900-2200kg), final velocities (15-35 m/s), times (6.0-12.0s), resistive forces (400-900N)]
 
 (a) Calculate the kinetic energy gained by the car. [2 marks]
 (b) Calculate the work done against resistive forces. [2 marks]

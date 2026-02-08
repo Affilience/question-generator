@@ -1779,9 +1779,8 @@ of resistance 4.0 Ω and 6.0 Ω in series.
 ### EXAMPLE 3: Materials - Young Modulus (5 marks)
 **Topic**: 4 - Materials | **Difficulty**: Medium | **Paper**: 1/2
 
-**Question**:
-A copper wire of length 2.50 m and diameter 0.80 mm is stretched by a force of 150 N.
-The Young modulus of copper is 1.3 × 10¹¹ Pa.
+**Question Template**:
+A metal wire is stretched by a force. [VARIETY: Different materials (steel, aluminium, titanium), lengths (1.8-3.5m), diameters (0.6-1.3mm), forces (80-180N), Young moduli appropriate to material]
 
 (a) Calculate the cross-sectional area of the wire. (1)
 (b) Calculate the stress in the wire. (2)

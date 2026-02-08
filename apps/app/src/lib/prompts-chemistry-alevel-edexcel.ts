@@ -455,7 +455,7 @@ can appear in any paper but are particularly prominent in Paper 3 (40% practical
 **Aim:** Determine the unknown concentration of HCl using a standard solution
 
 **Method:**
-1. Use pipette filler to transfer exactly 25.00 cm³ of standard Na₂CO₃ to conical flask
+1. Use pipette filler to transfer an exact volume of standard solution to conical flask [VARIETY: Use different pipette sizes: 20.00, 25.00, or 30.00 cm³]
 2. Add 2-3 drops of methyl orange indicator
 3. Fill burette with HCl (reading to ±0.05 cm³)
 4. Titrate HCl into flask, swirling continuously
@@ -721,7 +721,7 @@ Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)
 **Aim:** Determine concentration of Fe²⁺ using potassium manganate(VII)
 
 **Method:**
-1. Pipette 25.00 cm³ of Fe²⁺(aq) into conical flask
+1. Pipette a measured volume of Fe²⁺(aq) into conical flask [VARIETY: Use different volumes: 20.00, 25.00, or 30.00 cm³]
 2. Add 20 cm³ of dilute H₂SO₄ (to provide H⁺ ions)
 3. Fill burette with standardised KMnO₄(aq)
 4. Titrate KMnO₄ into flask, swirling continuously
@@ -1365,9 +1365,7 @@ Calculate the number of moles of nitrogen. (R = 8.314 J K⁻¹ mol⁻¹)
 
 **Example 5.2: Titration Calculation [4 marks]**
 
-**Question:** 25.0 cm³ of 0.100 mol dm⁻³ sodium carbonate solution required 23.5 cm³
-of hydrochloric acid for complete neutralisation.
-Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂
+**Question Template:** [VARIETY: Different volumes (20.0-30.0 cm³), concentrations (0.080-0.150 mol dm⁻³), titrant volumes (18.5-28.5 cm³), different acid-base combinations (HCl/NaOH, H₂SO₄/Na₂CO₃, CH₃COOH/NH₃, etc.)]
 Calculate the concentration of the hydrochloric acid.
 
 **Mark Scheme:**

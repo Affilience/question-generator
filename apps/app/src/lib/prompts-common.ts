@@ -166,7 +166,15 @@ You MUST follow these specific variety parameters to ensure this question is str
 
 **Numerical Range:** ${numericalDescriptions[variety.numericalRange] || variety.numericalRange}
 
-IMPORTANT: Do NOT generate a generic or commonly-seen question structure. Create something that feels fresh while still being mathematically valid and appropriate for GCSE level.`;
+## ANTI-DUPLICATION REQUIREMENTS
+
+**CRITICAL**: Avoid these commonly overused examples that lead to repetitive questions:
+- **Mathematics**: Don't default to √72, √18, √8, √50 for surds
+- **Physics**: Avoid copper wire 2.50m + 0.80mm, car 1400kg + 25 m/s, resistive force 600N
+- **Chemistry**: Don't always use 25.0 cm³ + 23.5 cm³ titrations, avoid Na₂CO₃ + HCl repeatedly
+- **General**: Vary numerical values, contexts, units, materials, and scenarios significantly
+
+IMPORTANT: Do NOT generate a generic or commonly-seen question structure. Create something that feels fresh while still being mathematically valid and appropriate for the level.`;
 }
 
 export function getDifficultyGuidance(difficulty: Difficulty): string {
