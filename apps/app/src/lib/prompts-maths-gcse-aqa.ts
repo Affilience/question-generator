@@ -3,6 +3,13 @@ type Topic = { id: string; name: string; subtopics: string[] };
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Subtopic = string;
 
+// Import global variety system
+import {
+  getVarietyParameters,
+  getVarietyInstructions,
+  getDifficultyGuidance,
+} from './prompts-common';
+
 export const AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",
   AO2: "Reason, interpret and communicate mathematically", 
@@ -209,6 +216,10 @@ export function getAQAMathsGCSECompactPrompt(topic: Topic, difficulty: Difficult
                
   const markAllocation = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
   
+  // Use global variety system for systematic question variation
+  const variety = getVarietyParameters();
+  const varietyInstructions = getVarietyInstructions(variety);
+  
   // Add specific variety instructions for surds to prevent repetitive questions
   const surdVarietyInstructions = subtopic && subtopic.toLowerCase().includes('surd') ? `
 
@@ -227,6 +238,8 @@ QUESTION REQUIREMENTS:
 - Marks: ${markAllocation}
 - Tier: ${tier}
 - Style: Authentic AQA GCSE Mathematics format${surdVarietyInstructions}
+
+${varietyInstructions}
 
 ASSESSMENT OBJECTIVES (use appropriate weighting):
 ${Object.entries(AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES).map(([ao, desc]) => `${ao}: ${desc}`).join('\n')}
