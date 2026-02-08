@@ -573,9 +573,9 @@ export function enhanceTextCommands(text: string): string {
   // Remove the aggressive pattern that replaces any "text" + letters
   // This was causing normal words to be corrupted
   
-  // Additional fix for edge cases with word boundaries and punctuation
-  result = result.replace(/\btext([a-zA-Z]\d*)\s*(?=[,.\s]|$)/g, '$1');
-  result = result.replace(/\btext([a-zA-Z])\s*(?=[A-Z])/g, '$1');  // textK followed by uppercase
+  // Additional fix for edge cases - MUCH more conservative
+  // Only replace if clearly in mathematical context (completely remove aggressive patterns)
+  // These were causing normal English words to be corrupted
   
   // Fix cases where variables are incorrectly wrapped in \text{}
   result = result.replace(/\\text\{([a-zA-Z])\}/g, (match, variable) => {
