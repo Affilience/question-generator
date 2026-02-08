@@ -3,7 +3,10 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/history-b-schools-history-project-j411-from-2016/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // OCR GCSE HISTORY B SPECIFICATION DETAILS (J411)

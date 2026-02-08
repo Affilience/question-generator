@@ -3,7 +3,6 @@
 // Reference: https://www.ocr.org.uk/qualifications/as-and-a-level/business-h031-h431-from-2015/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // ============================================================================
 // OCR A-LEVEL BUSINESS SPECIFICATION DETAILS (H431)
@@ -370,6 +369,10 @@ Each paragraph:
 5. Vague conclusions
 6. Not using case study data
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // QUESTION GENERATION FUNCTIONS

@@ -3,11 +3,11 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/geography-b-geography-for-enquiring-minds-j384-from-2016/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // OCR GCSE GEOGRAPHY B SPECIFICATION DETAILS (J384)
@@ -1075,6 +1075,10 @@ export function getOCRGCSEGeographySystemPrompt(topic: Topic, difficulty: Diffic
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = OCR_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Geography examiner creating exam-style questions.
 
 ## OCR GEOGRAPHY STYLE
@@ -1097,6 +1101,9 @@ ${OCR_GCSE_GEOG_MARK_SCHEME_CONVENTIONS}
 ${OCR_GCSE_GEOG_WORKED_EXAMPLES}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -1141,8 +1148,7 @@ ${getDiagramDocsForSubject('geography')}`;
 
 export function getOCRGCSEGeographyQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const topicKnowledge = OCR_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {

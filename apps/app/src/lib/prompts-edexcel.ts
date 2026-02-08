@@ -1,10 +1,10 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
-  getDifficultyGuidance,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
+  getDifficultyGuidance,
 } from './prompts-common';
+
 
 /**
  * GCSE Maths mark ranges.
@@ -692,7 +692,14 @@ export function getEdexcelCompactPrompt(
     ? 'Middle paper (Grades 4-5): 2-3 steps, 3-4 marks, like Q9-16. Standard methods.'
     : 'Final paper (Grades 6-9): Complex multi-step, 5-8 marks, like Q17-25. Extended reasoning, proofs.';
 
-  return `Generate an Edexcel GCSE Maths question (1MA1 specification). Return ONLY valid JSON.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an Edexcel GCSE Maths question (1MA1 specification). Return ONLY valid JSON.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -734,8 +741,7 @@ export function getEdexcelEnhancedPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicGuidance = EDEXCEL_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyGuidance = difficulty === 'easy'
     ? `**Early Paper Questions (Grades 1-3) - Like Q1-8:**
@@ -840,8 +846,7 @@ export function getEdexcelMultiPartPrompt(
 ): string {
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const topicGuidance = EDEXCEL_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${EDEXCEL_QUESTION_PRINCIPLES}
 

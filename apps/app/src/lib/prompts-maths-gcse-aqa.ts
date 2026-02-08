@@ -3,11 +3,9 @@ type Topic = { id: string; name: string; subtopics: string[] };
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Subtopic = string;
 
-// Import global variety system
+// Import truly random variety system
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
-  getDifficultyGuidance,
+  getRandomVarietyInstructions,
 } from './prompts-common';
 
 export const AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES = {
@@ -216,30 +214,38 @@ export function getAQAMathsGCSECompactPrompt(topic: Topic, difficulty: Difficult
                
   const markAllocation = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
   
-  // Use global variety system for systematic question variation
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  // Use truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+  
+  // Add timestamp-based randomization to ensure prompt uniqueness
+  const timestampVariation = `\n\nUNIQUENESS SEED: ${Date.now()}-${Math.floor(Math.random() * 999999)}`;
+  
+  // Add explicit randomization instruction for numbers
+  const forceNumberVariation = `\n\nFORCE DIFFERENT NUMBERS: Use a completely different mathematical value than ${Math.floor(Math.random() * 500) + 100}. Pick ANY other number for surds/money/measurements.`;
   
   // Add specific variety instructions for surds to prevent repetitive questions
   const surdVarietyInstructions = subtopic && subtopic.toLowerCase().includes('surd') ? `
 
-CRITICAL SURD QUESTION VARIETY REQUIREMENTS:
-- NEVER repeat the same numbers (avoid √72, √18, √50, √8 repeatedly)
-- Use diverse surd values: √20, √27, √28, √45, √63, √75, √80, √98, √108, √125, √147, √162, √180
-- Mix question types: single simplification, multiple surds, surd arithmetic, comparison problems
-- Vary perfect square factors: use 4, 9, 16, 25, 36, 49, 64, 81, 100 in different combinations
-- Ensure each question feels distinctly different from previous ones
+CRITICAL NUMBER VARIETY REQUIREMENTS (MANDATORY):
+- NEVER use these numbers: √72, √18, √50, √8, √12, √32, √2, √3 (BANNED)
+- PICK DIFFERENT NUMBERS each time from: √20, √24, √27, √28, √44, √45, √52, √63, √68, √75, √80, √98, √108, √125, √147, √162, √175, √180, √200, √242, √288, √338, √392, √450, √507, √578, √648, √722, √800
+- For arithmetic: use different coefficient combinations like 3√45 + 2√80, 5√27 - √75, 4√63 + 3√28
+- For money/measurements: vary amounts like £24, £45, £63, £80, £125 instead of always £18
+- SAME question format is OK but NUMBERS MUST BE COMPLETELY DIFFERENT
+- Pick random numbers from the list above - never repeat the same numerical values
 ` : '';
 
-  return `Generate an AQA GCSE Mathematics ${tier} tier question.
+  return `${surdVarietyInstructions}
+
+Generate an AQA GCSE Mathematics ${tier} tier question.
 
 QUESTION REQUIREMENTS:
 - Topic: ${topic.name}${subtopic ? `, Subtopic: ${subtopic}` : ''}
 - Marks: ${markAllocation}
 - Tier: ${tier}
-- Style: Authentic AQA GCSE Mathematics format${surdVarietyInstructions}
+- Style: Authentic AQA GCSE Mathematics format
 
-${varietyInstructions}
+${varietyInstructions}${timestampVariation}${forceNumberVariation}
 
 ASSESSMENT OBJECTIVES (use appropriate weighting):
 ${Object.entries(AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES).map(([ao, desc]) => `${ao}: ${desc}`).join('\n')}

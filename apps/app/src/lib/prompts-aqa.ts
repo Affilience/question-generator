@@ -1,10 +1,10 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
-  getDifficultyGuidance,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
+  getDifficultyGuidance,
 } from './prompts-common';
+
 
 /**
  * Subtopics that REQUIRE a diagram - the question doesn't make sense without one.
@@ -934,7 +934,14 @@ export function getAQACompactPrompt(
     ? `{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First mark","A1: Second mark"],"diagram":{"width":12,"height":10,"showNotAccurate":true,"elements":[...]}}`
     : `{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution","markScheme":["M1: First mark","A1: Second mark"]}`;
 
-  return `Generate an AQA GCSE Maths question. Return ONLY valid JSON, no other text.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an AQA GCSE Maths question. Return ONLY valid JSON, no other text.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -964,8 +971,7 @@ export function getAQAEnhancedPrompt(
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
   return `${AQA_QUESTION_PRINCIPLES}
@@ -1038,8 +1044,7 @@ export function getAQAMultiPartPrompt(
 ): string {
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${AQA_QUESTION_PRINCIPLES}
 
@@ -1292,6 +1297,10 @@ export function getAQAExtendedPrompt(
   const topicGuidance = AQA_TOPIC_GUIDANCE[topic.id] || '';
   const diagramInstructions = getDiagramInstructions(selectedSubtopic);
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `${AQA_QUESTION_PRINCIPLES}
 
 ${topicGuidance}
@@ -1299,6 +1308,9 @@ ${topicGuidance}
 ---
 
 ## Your Task
+
+
+${varietyInstructions}
 
 Generate an AQA-style EXTENDED RESPONSE / PROBLEM SOLVING question (5-6 marks).
 

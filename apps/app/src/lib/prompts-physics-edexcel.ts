@@ -1,5 +1,10 @@
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
+
 
 // GCSE Physics mark ranges based on Edexcel specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -1094,6 +1099,10 @@ export function getEdexcelPhysicsCompactPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Foundation (Grades 1-3): 1-2 marks. State/name, simple recall, basic calculations.'
@@ -1149,8 +1158,13 @@ Edexcel-specific:
 - Units required for numerical answers
 - Topic 1 (Key Concepts) underpins all questions
 
+${varietyInstructions}
+
 Return this exact JSON structure (markScheme MUST use M1/A1/B1 format):
-{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution with units","markScheme":["M1: Selects correct equation","A1: Correct substitution","A1: Correct answer with unit"]}`;
+{"content":"Question text here","marks":${Math.floor((markRange.min + markRange.max) / 2)},"solution":"Step by step solution with units","markScheme":["M1: Selects correct equation","A1: Correct substitution","A1: Correct answer with unit"]}
+
+${getDiagramDocsForSubject('physics')}
+${visualInstructions}`;
 }
 
 /**
@@ -1164,6 +1178,10 @@ export function getEdexcelPhysicsEnhancedPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = EDEXCEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyGuidance = difficulty === 'easy'
     ? `**Foundation (Grades 1-4):**
@@ -1235,6 +1253,9 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
 **IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
 ${getDiagramDocsForSubject('physics')}
+${visualInstructions}
+
+${varietyInstructions}
 
 Generate a genuinely original Edexcel Physics question now:`;
 }
@@ -1248,6 +1269,10 @@ export function getEdexcelPhysicsExtendedPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const topicGuidance = EDEXCEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${EDEXCEL_PHYSICS_PRINCIPLES}
 
@@ -1291,6 +1316,9 @@ Generate a 6-MARK EXTENDED RESPONSE question for Edexcel GCSE Physics.
   "markScheme": ["Level 3 (5-6 marks): description", "Level 2 (3-4 marks): description", "Level 1 (1-2 marks): description", "Indicative content:", "- Point 1", "- Point 2", "- Point 3", "- Point 4", "- Point 5", "- Point 6"]
 }
 
+${varietyInstructions}
+${visualInstructions}
+
 Generate an original 6-mark Edexcel Physics extended response question now:`;
 }
 
@@ -1303,6 +1331,10 @@ export function getEdexcelPhysicsMultipleChoicePrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyGuidance = difficulty === 'easy'
     ? 'Foundation level: Test basic recall'
@@ -1330,6 +1362,8 @@ Return this JSON structure:
   "markScheme": ["B1: [Correct letter] only"]
 }
 
+${varietyInstructions}
+
 Generate an original multiple choice physics question now:`;
 }
 
@@ -1343,6 +1377,10 @@ export function getEdexcelPhysicsCalculationPrompt(
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel GCSE Physics CALCULATION question. Return ONLY valid JSON.
 
@@ -1382,6 +1420,9 @@ YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this d
   "markScheme": ["M1: Selects equation", "A1: Substitutes correctly", "A1: Answer with unit"]
 }
 
+${varietyInstructions}
+${visualInstructions}
+
 Generate an original physics calculation question now:`;
 }
 
@@ -1394,6 +1435,10 @@ export function getEdexcelPhysicsExplainPrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel GCSE Physics EXPLAIN question. Return ONLY valid JSON.
 
@@ -1424,6 +1469,9 @@ Link cause and effect, not just description.
   "markScheme": ["B1: Key point 1", "B1: Key point 2", "B1: Key point 3"]
 }
 
+${varietyInstructions}
+${visualInstructions}
+
 Generate an original physics explain question now:`;
 }
 
@@ -1436,6 +1484,10 @@ export function getEdexcelPhysicsGraphPrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
   const markRange = difficulty === 'easy' ? '2-3' : difficulty === 'medium' ? '3-4' : '4-6';
 
   return `Generate an Edexcel GCSE Physics GRAPH INTERPRETATION question. Return ONLY valid JSON.
@@ -1468,6 +1520,8 @@ Describe the graph data in the question (axes, key points, shape).
   "markScheme": ["(a) M1: method", "(a) A1: answer", "(b) M1: method"]
 }
 
+${varietyInstructions}
+
 Generate an original graph interpretation question now:`;
 }
 
@@ -1480,6 +1534,10 @@ export function getEdexcelPhysicsComparePrompt(
   subtopic?: string
 ): string {
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel GCSE Physics COMPARE question. Return ONLY valid JSON.
 
@@ -1501,6 +1559,8 @@ Comparative statements needed:
   "solution": "Comparison covering similarities and differences",
   "markScheme": ["B1: Similarity", "B1: Difference 1", "B1: Difference 2"]
 }
+
+${varietyInstructions}
 
 Generate an original physics compare question now:`;
 }
@@ -1766,6 +1826,10 @@ export function getEdexcelPhysicsPracticalMethodPrompt(
   subtopic?: PracticalSubtopic
 ): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', practical.name);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel GCSE Physics Core Practical METHOD question. Return ONLY valid JSON.
 
@@ -1809,7 +1873,14 @@ export function getEdexcelPhysicsPracticalVariablesPrompt(
 ): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
 
-  return `Generate an Edexcel GCSE Physics Core Practical VARIABLES question. Return ONLY valid JSON.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an Edexcel GCSE Physics Core Practical VARIABLES question. Return ONLY valid JSON.
 
 ${EDEXCEL_CORE_PRACTICALS_DATA}
 

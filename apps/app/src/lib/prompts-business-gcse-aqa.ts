@@ -3,11 +3,11 @@
 // Reference: https://www.aqa.org.uk/subjects/business/gcse/business-8132
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // AQA GCSE BUSINESS SPECIFICATION DETAILS (8132)
@@ -1912,6 +1912,10 @@ export function getAQAGCSEBusinessSystemPrompt(topic: Topic, difficulty: Difficu
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = AQA_GCSE_BUS_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA GCSE Business examiner creating exam-style questions.
 
 ## AQA BUSINESS STYLE
@@ -1940,6 +1944,9 @@ ${AQA_GCSE_BUS_REAL_EXAMPLES}
 ${AQA_GCSE_BUS_ESSAY_GUIDANCE}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -1987,8 +1994,8 @@ ${getDiagramDocsForSubject('business')}`;
 
 export function getAQAGCSEBusinessQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getBusinessVarietyInstructions(variety);
+  const variety = getRandomVarietyInstructions();
+  const varietyInstructions = getBusinessVarietyInstructions();
   const topicKnowledge = AQA_GCSE_BUS_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {
@@ -2147,7 +2154,7 @@ Return valid JSON:
 }
 
 // Helper function for business-specific variety
-function getBusinessVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
+function getBusinessVarietyInstructions(): string {
   const businessContexts = [
     'retail (shop/supermarket)',
     'hospitality (restaurant/hotel)',

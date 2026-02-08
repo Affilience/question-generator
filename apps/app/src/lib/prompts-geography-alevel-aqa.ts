@@ -3,11 +3,11 @@
 // Reference: https://www.aqa.org.uk/subjects/geography/a-level/geography-7037
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 
 // ============================================================================
@@ -2667,6 +2667,10 @@ export function getAQAALevelGeographySystemPrompt(topic: Topic, difficulty: Diff
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = AQA_ALEVEL_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA A-Level Geography examiner creating exam-style questions.
 
 ## AQA GEOGRAPHY STYLE
@@ -2695,6 +2699,9 @@ ${AQA_ALEVEL_GEOG_WORKED_EXAMPLES}
 ${AQA_ALEVEL_GEOG_KEY_STATISTICS}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -2741,8 +2748,7 @@ ${getDiagramDocsForSubject('geography')}`;
 
 export function getAQAALevelGeographyQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const topicKnowledge = AQA_ALEVEL_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {

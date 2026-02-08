@@ -10,7 +10,12 @@
 // objectives, and mark scheme conventions.
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
+
 
 /**
  * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
@@ -3505,6 +3510,10 @@ export function getEdexcelALevelPhysicsCompactPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
   const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
@@ -3559,7 +3568,8 @@ Respond with JSON:
 
 **IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
-${getDiagramDocsForSubject('physics')}`;
+${getDiagramDocsForSubject('physics')}
+${visualInstructions}`;
 }
 
 // Extended response questions
@@ -3569,6 +3579,10 @@ export function getEdexcelALevelPhysicsExtendedPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate a 6-mark extended response Edexcel A-Level Physics question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3605,6 +3619,10 @@ export function getEdexcelALevelPhysicsMultipleChoicePrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel A-Level Physics multiple choice question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3637,6 +3655,10 @@ export function getEdexcelALevelPhysicsCalculationPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const equationsForTopic: Record<string, string[]> = {
     'edexcel-alevel-physics-mechanics': ['SUVAT equations', 'F = ma', 'p = mv', 'Ek = ½mv²', 'Ep = mgh', 'W = Fs cos θ'],
@@ -3688,6 +3710,10 @@ export function getEdexcelALevelPhysicsExplainPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel A-Level Physics explanation question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3726,6 +3752,10 @@ export function getEdexcelALevelPhysicsGraphPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel A-Level Physics graph question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3759,6 +3789,10 @@ export function getEdexcelALevelPhysicsComparePrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel A-Level Physics comparison question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3792,6 +3826,10 @@ export function getEdexcelALevelPhysicsPracticalPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel A-Level Physics practical question.
 ${EDEXCEL_ALEVEL_PHYSICS_PRINCIPLES}

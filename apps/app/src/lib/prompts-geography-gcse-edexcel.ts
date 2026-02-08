@@ -3,11 +3,11 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/geography-a-2016.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // EDEXCEL GCSE GEOGRAPHY A SPECIFICATION DETAILS (1GA0)
@@ -1020,6 +1020,10 @@ export function getEdexcelGCSEGeographySystemPrompt(topic: Topic, difficulty: Di
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = EDEXCEL_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Geography examiner creating exam-style questions.
 
 ## EDEXCEL GEOGRAPHY STYLE
@@ -1042,6 +1046,9 @@ ${EDEXCEL_GCSE_GEOG_MARK_SCHEME_CONVENTIONS}
 ${EDEXCEL_GCSE_GEOG_WORKED_EXAMPLES}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -1086,8 +1093,7 @@ ${getDiagramDocsForSubject('geography')}`;
 
 export function getEdexcelGCSEGeographyQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const topicKnowledge = EDEXCEL_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {

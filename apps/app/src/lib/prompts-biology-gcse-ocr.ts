@@ -2,7 +2,10 @@
 // Tailored to OCR Gateway specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // GCSE Biology mark ranges based on OCR Gateway specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {

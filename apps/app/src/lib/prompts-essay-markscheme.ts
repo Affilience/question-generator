@@ -3,6 +3,9 @@
 // Provides comprehensive guidance for generating thorough, explanatory essay solutions
 
 import { Difficulty } from '@/types';
+import {
+  getRandomVarietyInstructions,
+} from './prompts-common';
 
 /**
  * Enhanced mark scheme generation guidance for essay subjects.

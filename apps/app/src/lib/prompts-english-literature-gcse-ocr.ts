@@ -3,7 +3,10 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/english-literature-j352-from-2015/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // OCR GCSE ENGLISH LITERATURE SPECIFICATION DETAILS (J352)

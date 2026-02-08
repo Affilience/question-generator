@@ -2,7 +2,6 @@
 // Tailored to OCR specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // A-Level Biology mark ranges based on OCR specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -2882,6 +2881,10 @@ Write extended responses that explicitly link multiple modules:
    - State how concepts are related
    - Use linking phrases ("This is important because...", "This relates to...")
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 const OCR_ALEVEL_BIOLOGY_PRINCIPLES = `
 OCR A-Level Biology A Assessment Objectives:

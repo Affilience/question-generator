@@ -3,10 +3,11 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/business-j204-from-2017/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // OCR GCSE BUSINESS SPECIFICATION DETAILS (J204)
@@ -2100,6 +2101,10 @@ export function getOCRGCSEBusinessSystemPrompt(topic: Topic, difficulty: Difficu
   const markRange = getOCRMarkRangeForDifficulty(difficulty);
   const topicKnowledge = OCR_GCSE_BUS_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Business examiner creating exam-style questions.
 
 ## OCR BUSINESS STYLE
@@ -2130,6 +2135,9 @@ ${OCR_GCSE_BUS_ESSAY_GUIDANCE}
 ${OCR_GCSE_BUS_CALCULATION_FORMULAS}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -2177,8 +2185,8 @@ ${getDiagramDocsForSubject('business')}`;
 
 export function getOCRGCSEBusinessQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getOCRMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getOCRBusinessVarietyInstructions(variety);
+  const variety = getRandomVarietyInstructions();
+  const varietyInstructions = getOCRBusinessVarietyInstructions();
   const topicKnowledge = OCR_GCSE_BUS_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {
@@ -2374,7 +2382,7 @@ Return valid JSON:
 // ============================================================================
 
 // Helper function for business-specific variety
-function getOCRBusinessVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
+function getOCRBusinessVarietyInstructions(): string {
   const businessContexts = [
     'retail (shop, boutique, supermarket)',
     'hospitality (restaurant, hotel, cafe)',

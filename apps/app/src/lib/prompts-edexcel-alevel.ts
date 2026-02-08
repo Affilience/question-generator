@@ -1,9 +1,9 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * Edexcel (Pearson) A-Level Mathematics (9MA0) Question Generation Prompts.
@@ -755,7 +755,14 @@ export function getEdexcelALevelCompactPrompt(
     ? `This topic appears on ${topic.paperRestriction}.`
     : 'This is a Pure Mathematics topic appearing on Papers 1 & 2.';
 
-  return `Generate an Edexcel A-Level Maths question. Return ONLY valid JSON, no other text.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an Edexcel A-Level Maths question. Return ONLY valid JSON, no other text.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -786,8 +793,7 @@ export function getEdexcelALevelEnhancedPrompt(
   const topicGuidance = EDEXCEL_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getEdexcelALevelDifficultyGuidance(difficulty);
   const markRange = getEdexcelALevelMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   // Include paper context
   const paperContext = topic.paperRestriction
@@ -870,8 +876,7 @@ export function getEdexcelALevelMultiPartPrompt(
 ): string {
   const topicGuidance = EDEXCEL_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getEdexcelALevelDifficultyGuidance(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${EDEXCEL_ALEVEL_QUESTION_PRINCIPLES}
 

@@ -3,6 +3,10 @@ type Topic = { id: string; name: string; subtopics: string[] };
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Subtopic = string;
 
+import {
+  getRandomVarietyInstructions,
+} from './prompts-common';
+
 export const AQA_MATHS_ALEVEL_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",
   AO2: "Reason, interpret and communicate mathematically",
@@ -183,7 +187,14 @@ export function getAQAMathsALevelCompactPrompt(topic: Topic, difficulty: Difficu
                
   const markAllocation = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
 
-  return `Generate an AQA A Level Mathematics question.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+return `Generate an AQA A Level Mathematics question.
+
+
+${varietyInstructions}
 
 QUESTION REQUIREMENTS:
 - Topic: ${topic.name}${subtopic ? `, Subtopic: ${subtopic}` : ''}

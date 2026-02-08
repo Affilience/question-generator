@@ -3,7 +3,11 @@
 // and official mark schemes
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject, getVisualInstructions } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
 
 // A-Level Economics mark ranges based on AQA specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {

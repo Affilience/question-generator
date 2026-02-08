@@ -4,7 +4,10 @@
 // Specification: J277 (First teaching September 2020)
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // GCSE Computer Science mark ranges based on OCR specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {

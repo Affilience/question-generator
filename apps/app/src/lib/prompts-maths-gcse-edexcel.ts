@@ -1,9 +1,9 @@
 import type { QuestionGenerationParams } from './prompts/prompt-builder';
-import type { QuestionType } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
 } from './prompts-common';
+import type { QuestionType } from '@/types';
+
 
 export const EDEXCEL_MATHS_GCSE_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",
@@ -219,8 +219,7 @@ export function getEdexcelMathsGCSECompactPrompt(params: QuestionGenerationParam
   const markAllocation = marks || (difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4);
   
   // Use global variety system for systematic question variation
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an Edexcel GCSE Mathematics ${tier} tier question.
 

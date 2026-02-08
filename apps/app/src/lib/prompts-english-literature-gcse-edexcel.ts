@@ -3,7 +3,10 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/english-literature-2015.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // EDEXCEL GCSE ENGLISH LITERATURE SPECIFICATION DETAILS (1ET0)

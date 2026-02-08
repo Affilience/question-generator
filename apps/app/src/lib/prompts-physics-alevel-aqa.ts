@@ -20,7 +20,12 @@
 // 11. Synoptic questions guidance
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
+
 
 /**
  * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
@@ -3238,6 +3243,10 @@ export function getAQAALevelPhysicsCompactPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
   const markRange = getMarkRangeForDifficulty(difficulty);
 
   const difficultyGuide = {
@@ -3298,7 +3307,11 @@ Respond with JSON:
 
 **IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
-${getDiagramDocsForSubject('physics')}`;
+${varietyInstructions}
+
+${getDiagramDocsForSubject('physics')}
+${visualInstructions}
+${visualInstructions}`;
 }
 
 // Enhanced prompt for detailed questions
@@ -3309,6 +3322,10 @@ export function getAQAALevelPhysicsEnhancedPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate a detailed AQA A-Level Physics question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3354,6 +3371,10 @@ export function getAQAALevelPhysicsExtendedPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate a 6-mark extended response AQA A-Level Physics question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3396,6 +3417,10 @@ export function getAQAALevelPhysicsMultipleChoicePrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an AQA A-Level Physics multiple choice question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3429,6 +3454,10 @@ export function getAQAALevelPhysicsCalculationPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const equationsForTopic: Record<string, string[]> = {
     'alevel-physics-measurements': [
@@ -3529,6 +3558,10 @@ export function getAQAALevelPhysicsExplainPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an AQA A-Level Physics explanation question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}
@@ -3569,6 +3602,10 @@ export function getAQAALevelPhysicsGraphPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const graphTypes: Record<string, string[]> = {
     'alevel-physics-mechanics': ['s-t graphs', 'v-t graphs', 'Force-extension', 'Stress-strain'],
@@ -3622,6 +3659,10 @@ export function getAQAALevelPhysicsComparePrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const compareTopics: Record<string, string[]> = {
     'alevel-physics-particles': ['Hadrons vs leptons', 'Strong vs weak force', 'Particle vs antiparticle'],
@@ -3670,6 +3711,10 @@ export function getAQAALevelPhysicsPracticalPrompt(
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
+  const visualInstructions = getVisualInstructions('physics', 'alevel', focusArea);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an AQA A-Level Physics practical/experimental question.
 ${AQA_ALEVEL_PHYSICS_PRINCIPLES}

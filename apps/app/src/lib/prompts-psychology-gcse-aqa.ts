@@ -3,7 +3,10 @@
 // Reference: https://www.aqa.org.uk/subjects/psychology/gcse/psychology-8182
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // AQA GCSE PSYCHOLOGY SPECIFICATION DETAILS (8182)

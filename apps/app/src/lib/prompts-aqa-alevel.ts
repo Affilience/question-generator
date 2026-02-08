@@ -1,9 +1,9 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * A-Level Maths mark ranges.
@@ -1083,7 +1083,14 @@ export function getAQAALevelCompactPrompt(
     ? `This topic appears on ${topic.paperRestriction}.`
     : 'This is a Pure Mathematics topic appearing on all papers.';
 
-  return `Generate an AQA A-Level Maths question. Return ONLY valid JSON, no other text.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an AQA A-Level Maths question. Return ONLY valid JSON, no other text.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -1116,8 +1123,7 @@ export function getAQAALevelEnhancedPrompt(
   const topicGuidance = AQA_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getALevelDifficultyGuidance(difficulty);
   const markRange = getALevelMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   // Include paper context if available
   const paperContext = topic.paperRestriction
@@ -1208,8 +1214,7 @@ export function getAQAALevelMultiPartPrompt(
 ): string {
   const topicGuidance = AQA_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getALevelDifficultyGuidance(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${AQA_ALEVEL_QUESTION_PRINCIPLES}
 

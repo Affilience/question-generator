@@ -4,7 +4,6 @@
 // Comprehensive version with detailed topic knowledge and worked examples
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // A-Level Computer Science mark ranges based on AQA specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -2847,6 +2846,10 @@ Level 3 (7-9 marks): Comprehensive discussion of both advantages and disadvantag
 Level 2 (4-6 marks): Good coverage of main points with some technical detail, reasonable balance.
 Level 1 (1-3 marks): Basic points made, limited depth or one-sided argument.
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // TOPIC-SPECIFIC GUIDANCE

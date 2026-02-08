@@ -3,10 +3,11 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/business-2017.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // EDEXCEL GCSE BUSINESS SPECIFICATION DETAILS (1BS0)
@@ -2550,6 +2551,10 @@ export function getEdexcelGCSEBusinessSystemPrompt(topic: Topic, difficulty: Dif
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = getTopicKnowledge(topic.id);
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Business examiner creating exam-style questions.
 
 ## EDEXCEL BUSINESS STYLE
@@ -2578,6 +2583,9 @@ ${EDEXCEL_GCSE_BUS_REAL_EXAMPLES}
 ${EDEXCEL_GCSE_BUS_CALCULATIONS}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -2625,8 +2633,8 @@ ${getDiagramDocsForSubject('business')}`;
 
 export function getEdexcelGCSEBusinessQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getEdexcelBusinessVarietyInstructions(variety);
+  const variety = getRandomVarietyInstructions();
+  const varietyInstructions = getEdexcelBusinessVarietyInstructions();
   const topicKnowledge = getTopicKnowledge(topic.id);
 
   const difficultyGuidance = {
@@ -2842,7 +2850,7 @@ ${Object.values(EDEXCEL_GCSE_BUS_THEME2_KNOWLEDGE).join('\n\n')}`;
 }
 
 // Helper function for business-specific variety
-function getEdexcelBusinessVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
+function getEdexcelBusinessVarietyInstructions(): string {
   const businessContexts = [
     'retail (independent shop or small chain)',
     'hospitality (restaurant, cafe, or hotel)',

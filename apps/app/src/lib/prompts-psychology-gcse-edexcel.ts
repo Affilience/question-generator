@@ -3,7 +3,10 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/psychology-2017.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // EDEXCEL GCSE PSYCHOLOGY SPECIFICATION DETAILS (1PS0)

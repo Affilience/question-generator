@@ -4,7 +4,10 @@
 // Specification: H446 (First teaching September 2015)
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // A-Level Computer Science mark ranges based on OCR specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {

@@ -3,7 +3,10 @@
 // Reference: https://www.aqa.org.uk/subjects/history/gcse/history-8145
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // AQA GCSE HISTORY SPECIFICATION DETAILS (8145)

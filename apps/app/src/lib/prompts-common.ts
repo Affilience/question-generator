@@ -98,83 +98,62 @@ export function getVarietyParameters(): {
 /**
  * Generates variety instruction text based on selected parameters.
  */
-export function getVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
-  const formatDescriptions: Record<string, string> = {
-    pure_calculation: 'a direct calculation without real-world context',
-    word_problem: 'a word problem with realistic context that requires interpretation',
-    show_that: 'a "show that" question where the answer is provided and must be proven',
-    explain_reasoning: 'a question requiring written mathematical explanation/justification',
-    multi_step: 'a multi-step problem requiring several connected calculations',
-    comparison: 'a comparison question (which is better/more/greater)',
-    error_identification: 'a question where students identify and correct an error',
-    reverse_problem: 'a reverse problem (given the result, find the original value)',
-  };
+/**
+ * Generate truly random variety instructions to ensure every question is completely different
+ */
+export function getRandomVarietyInstructions(): string {
+  // Generate multiple random elements to ensure uniqueness
+  const randomSeed = Math.random();
+  const timeStamp = Date.now();
+  const randomNumber = Math.floor(Math.random() * 1000000);
+  
+  // Pick random variety elements without structured combinations
+  const formats = ['pure calculation', 'word problem', 'multi-step approach', 'explain reasoning', 'show method', 'reverse problem', 'comparison', 'error correction'];
+  const contexts = ['shopping/money', 'sports/fitness', 'construction/building', 'travel/transport', 'cooking/recipes', 'science experiments', 'art/design', 'technology', 'nature/environment', 'business/finance', 'pure mathematics'];
+  const approaches = ['forward reasoning', 'working backwards', 'trial and improvement', 'systematic approach', 'estimation first', 'multiple methods'];
+  const presentations = ['text only', 'include table', 'use diagram', 'step-by-step', 'bullet points', 'real-world scenario'];
+  
+  // Randomly select elements (not structured combinations)
+  const randomFormat = formats[Math.floor(Math.random() * formats.length)];
+  const randomContext = contexts[Math.floor(Math.random() * contexts.length)];
+  const randomApproach = approaches[Math.floor(Math.random() * approaches.length)];
+  const randomPresentation = presentations[Math.floor(Math.random() * presentations.length)];
+  
+  // Generate truly random numerical variations
+  const numberVariations = [
+    'Use unusual number combinations that students haven\'t seen before',
+    'Vary the scale - mix small and large numbers unpredictably', 
+    'Use different decimal places and fractions randomly',
+    'Include unexpected but realistic values',
+    'Avoid round numbers - use authentic messy data'
+  ];
+  const randomNumbers = numberVariations[Math.floor(Math.random() * numberVariations.length)];
+  
+  return `## CRITICAL: ENSURE NUMERICAL UNIQUENESS
 
-  const contextDescriptions: Record<string, string> = {
-    shopping_money: 'shopping, prices, or money management',
-    measurement_practical: 'practical measurements (building, crafting, etc.)',
-    data_statistics: 'surveys or data collection',
-    time_scheduling: 'time, schedules, or planning',
-    sports_games: 'sports, games, or competitions',
-    travel_distance: 'travel, maps, or journeys',
-    cooking_recipes: 'cooking, recipes, or food',
-    construction_diy: 'construction or DIY projects',
-    science_experiment: 'science or experiments',
-    business_finance: 'business, wages, or finance',
-    nature_environment: 'nature or environmental topics',
-    technology_digital: 'technology or digital contexts',
-    none_pure_maths: 'no context (pure mathematics)',
-  };
+**Uniqueness ID: ${randomNumber}-${timeStamp}**
 
-  const directionDescriptions: Record<string, string> = {
-    forward: 'Given the inputs, students find the result',
-    reverse: 'Given the result, students find the original values',
-    bidirectional: 'Mix of forward and reverse reasoning across parts',
-  };
+**MANDATORY: Numbers MUST be different from previous questions:**
+- ${randomNumbers}
+- Pick different numerical values each time - NEVER repeat the same numbers
+- Use varied coefficients, different scales, alternative measurements
+- Question format can be similar but numerical content must be unique
+- Vary all mathematical values: roots, fractions, coefficients, measurements, money amounts
 
-  const infoDescriptions: Record<string, string> = {
-    text_only: 'Present all information in text form (no diagram needed)',
-    includes_table: 'Include a table of data that students must interpret',
-    includes_diagram: 'Include a diagram (provide diagram spec in JSON)',
-    includes_graph: 'Include a graph or chart (provide diagram spec in JSON)',
-    includes_formula: 'Provide a formula that students must use',
-    mixed_representation: 'Use a combination of text, tables, or diagrams',
-  };
+**NUMERICAL DIVERSITY REQUIREMENTS:**
+- Choose fresh number combinations that haven't been used before
+- Vary ALL numerical values significantly
+- Change contexts, methods, and presentations dramatically
+- Ensure no two questions feel similar in any way
+- Think creatively about alternative approaches to the same topic
 
-  const numericalDescriptions: Record<string, string> = {
-    small_numbers: 'Use smaller values (8-20 range) to focus on method',
-    medium_numbers: 'Use medium values (18-75 range) for standard practice',
-    large_numbers: 'Use larger values (72-200 range) for computational challenge',
-    mixed_range: 'Mix different number sizes within the question',
-    prime_factors: 'Emphasize different prime factor combinations (2,3,5,7,11,13)',
-    perfect_squares: 'Emphasize different perfect square factors (4,9,16,25,36,49,64,81,100)',
-  };
+**ANTI-REPETITION GUARDRAILS:**
+- Avoid any "standard" examples commonly used in textbooks
+- Don't reuse number patterns, contexts, or phrasings
+- Generate authentic, original scenarios
+- Make every aspect of the question feel fresh and unexpected
 
-  return `## VARIETY REQUIREMENTS FOR THIS QUESTION
-
-You MUST follow these specific variety parameters to ensure this question is structurally different from others:
-
-**Question Format:** Generate ${formatDescriptions[variety.format] || variety.format}
-
-**Context Theme:** ${variety.context !== 'none_pure_maths' ? `Use a context involving ${contextDescriptions[variety.context] || variety.context}` : 'Use pure mathematics without real-world context'}
-
-**Reasoning Direction:** ${directionDescriptions[variety.direction] || variety.direction}
-
-**Information Presentation:** ${infoDescriptions[variety.infoFormat] || variety.infoFormat}
-
-**Suggested Command Word:** Consider using "${variety.commandWord.replace('_', ' ')}" (but use what's most appropriate)
-
-**Numerical Range:** ${numericalDescriptions[variety.numericalRange] || variety.numericalRange}
-
-## ANTI-DUPLICATION REQUIREMENTS
-
-**CRITICAL**: Avoid these commonly overused examples that lead to repetitive questions:
-- **Mathematics**: Don't default to √72, √18, √8, √50 for surds
-- **Physics**: Avoid copper wire 2.50m + 0.80mm, car 1400kg + 25 m/s, resistive force 600N
-- **Chemistry**: Don't always use 25.0 cm³ + 23.5 cm³ titrations, avoid Na₂CO₃ + HCl repeatedly
-- **General**: Vary numerical values, contexts, units, materials, and scenarios significantly
-
-IMPORTANT: Do NOT generate a generic or commonly-seen question structure. Create something that feels fresh while still being mathematically valid and appropriate for the level.`;
+**Numbers must be varied:** Use different ranges, avoid common values like 10, 20, 50, 100, etc.`;
 }
 
 export function getDifficultyGuidance(difficulty: Difficulty): string {

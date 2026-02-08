@@ -11,7 +11,11 @@
 // Last updated: 2024
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
+
 
 // Ranges are non-overlapping to ensure consistent difficulty progression
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -2982,6 +2986,9 @@ export function getOCRALevelChemistryCompactPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   const difficultyGuide = {
     easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
     medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
@@ -3021,6 +3028,8 @@ You MUST ONLY test content that is in the OCR A-Level Chemistry A specification.
 
 **For the topic "${topic.name}", test ONLY the chemistry content in the specification.**
 
+${varietyInstructions}
+
 Requirements:
 - Match OCR exam style
 - Use appropriate command words
@@ -3049,12 +3058,17 @@ export function getOCRALevelChemistryExtendedPrompt(
   const topicGuidance = OCR_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate a 6-mark extended response OCR A-Level Chemistry A question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
 
 Topic: ${topic.name}
 Focus: ${focusArea}
+
+${varietyInstructions}
 
 Level Descriptors:
 - Level 3 (5-6): Detailed, coherent, accurate chemistry
@@ -3079,6 +3093,9 @@ export function getOCRALevelChemistryCalculationPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A calculation question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3089,6 +3106,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Requirements:
 - Provide all necessary data
@@ -3113,6 +3132,9 @@ export function getOCRALevelChemistryExplainPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A explanation question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3121,6 +3143,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Respond with JSON:
 {
@@ -3140,6 +3164,9 @@ export function getOCRALevelChemistryGraphPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A graph/data question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3148,6 +3175,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Include graph or data table with analysis questions.
 
@@ -3169,6 +3198,9 @@ export function getOCRALevelChemistryComparePrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A comparison question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3177,6 +3209,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Require both similarities AND differences.
 
@@ -3198,6 +3232,9 @@ export function getOCRALevelChemistryMechanismPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A mechanism question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3206,6 +3243,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Requirements:
 - Correct curly arrows
@@ -3230,6 +3269,9 @@ export function getOCRALevelChemistryPracticalPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate an OCR A-Level Chemistry A practical question.
 ${OCR_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
@@ -3240,6 +3282,8 @@ Topic: ${topic.name}
 Focus: ${focusArea}
 Difficulty: ${difficulty}
 YOU MUST allocate marks between ${markRange.min} and ${markRange.max} for this difficulty level.
+
+${varietyInstructions}
 
 Assess practical skills from relevant PAG.
 

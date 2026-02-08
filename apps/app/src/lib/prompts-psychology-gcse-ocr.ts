@@ -3,7 +3,6 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/psychology-j203-from-2017/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // ============================================================================
 // OCR GCSE PSYCHOLOGY SPECIFICATION DETAILS (J203)
@@ -1285,6 +1284,10 @@ PEEL Example (Strength):
 - Lacks ecological validity - line judgement not meaningful
 - All male sample from specific cultural context
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // QUESTION GENERATION FUNCTIONS

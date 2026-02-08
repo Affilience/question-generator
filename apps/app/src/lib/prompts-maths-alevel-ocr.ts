@@ -1,4 +1,7 @@
 import type { QuestionGenerationParams } from './prompts/prompt-builder';
+import {
+  getRandomVarietyInstructions,
+} from './prompts-common';
 
 export const OCR_MATHS_ALEVEL_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",

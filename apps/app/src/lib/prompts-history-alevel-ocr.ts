@@ -3,7 +3,10 @@
 // Reference: https://www.ocr.org.uk/qualifications/as-and-a-level/history-a-h105-h505-from-2015/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // OCR A-LEVEL HISTORY A SPECIFICATION DETAILS (H505)

@@ -3,7 +3,10 @@
 // Reference: https://www.ocr.org.uk/qualifications/as-and-a-level/psychology-h167-h567-from-2015/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // OCR A-LEVEL PSYCHOLOGY SPECIFICATION DETAILS (H567)

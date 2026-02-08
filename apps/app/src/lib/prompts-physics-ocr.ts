@@ -6,7 +6,12 @@
 // - https://www.ocr.org.uk/Images/234600-specification-accredited-gcse-gateway-science-suite-physics-a-j249.pdf
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
+
 
 // GCSE Physics mark ranges based on OCR Gateway specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -668,7 +673,14 @@ export function getOCRPhysicsCompactPrompt(
     hard: 'Higher tier style, 4-6 marks, multi-step reasoning or calculation, unfamiliar context'
   };
 
-  return `Generate an OCR Gateway GCSE Physics question.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an OCR Gateway GCSE Physics question.
 ${OCR_PHYSICS_PRINCIPLES}
 ${topicGuidance}
 
@@ -701,6 +713,7 @@ export function getOCRPhysicsEnhancedPrompt(
   const topicGuidance = OCR_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
+  const visualInstructions = getVisualInstructions('physics', 'gcse', subtopic || 'general');
 
   const difficultyGuidance = difficulty === 'easy'
     ? `**Foundation (Grades 1-4):**
@@ -780,6 +793,7 @@ You MUST ONLY test content that is in the OCR Gateway GCSE Physics specification
 **IMPORTANT**: For questions that ask students to draw or use a diagram in their answer, you MUST include "solutionDiagram" with the expected diagram. This allows students to compare their drawn diagram against the correct answer.
 
 ${getDiagramDocsForSubject('physics')}
+${visualInstructions}
 
 Generate a genuinely original OCR Gateway Physics question now:`;
 }
@@ -1331,7 +1345,14 @@ export function getOCRPhysicsPracticalMethodPrompt(
 ): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
 
-  return `Generate an OCR Gateway GCSE Physics PAG METHOD question. Return ONLY valid JSON.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an OCR Gateway GCSE Physics PAG METHOD question. Return ONLY valid JSON.
 
 ${OCR_PHYSICS_PAGS_DATA}
 

@@ -3,7 +3,6 @@
 // Reference: https://www.aqa.org.uk/subjects/history/a-level/history-7042
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 
 // ============================================================================
@@ -1758,6 +1757,10 @@ const ALEVEL_MODEL_ANSWER_GUIDANCE = `
 
 **Timing:** 40-45 minutes
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // TOPIC KNOWLEDGE SELECTOR

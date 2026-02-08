@@ -1,10 +1,10 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   getDifficultyGuidance,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * GCSE Maths mark ranges.
@@ -763,7 +763,14 @@ export function getOCRCompactPrompt(
     ? 'Middle paper (Grades 4-5): 2-3 steps, 3-4 marks, like Q9-16. Standard methods.'
     : 'Final paper (Grades 6-9): Complex multi-step, 5-8 marks, like Q17-25. Extended reasoning, proofs.';
 
-  return `Generate an OCR GCSE Maths question (J560 specification). Return ONLY valid JSON.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an OCR GCSE Maths question (J560 specification). Return ONLY valid JSON.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -806,8 +813,7 @@ export function getOCREnhancedPrompt(
   const selectedSubtopic = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicGuidance = OCR_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyGuidance = difficulty === 'easy'
     ? `**Early Paper Questions (Grades 1-3) - Like Q1-8:**
@@ -914,8 +920,7 @@ export function getOCRMultiPartPrompt(
 ): string {
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const topicGuidance = OCR_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${OCR_QUESTION_PRINCIPLES}
 

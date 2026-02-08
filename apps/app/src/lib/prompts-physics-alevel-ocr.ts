@@ -2,7 +2,12 @@
 // Tailored to OCR A-Level specification style and assessment objectives
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+  getVisualInstructions,
+} from './prompts-common';
+
 
 /**
  * A-Level Physics mark ranges (calculation-based, shorter than essay subjects).
@@ -307,6 +312,10 @@ export function getOCRALevelPhysicsCompactPrompt(
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR A-Level Physics examiner creating an exam-style question.
 
 ${OCR_ALEVEL_PHYSICS_PRINCIPLES}
@@ -340,6 +349,9 @@ You MUST ONLY test content that is in the OCR A-Level Physics A specification.
 - Chemistry content (bonding, reactions) unless directly relevant to physics context
 
 **For the topic "${topic.name}", test ONLY the physics content in the specification.**
+
+
+${varietyInstructions}
 
 Create ONE exam-style question that:
 1. Uses authentic OCR A-Level Physics language and command words
@@ -445,6 +457,7 @@ export function getOCRALevelPhysicsCalculationPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = ALEVEL_PHYSICS_TOPIC_GUIDANCE[topic.id] || '';
+  const visualInstructions = getVisualInstructions('physics', 'a-level', subtopic || 'general');
 
   return `You are an expert OCR A-Level Physics examiner creating a calculation question.
 
@@ -480,7 +493,8 @@ OUTPUT FORMAT (use exact headers):
 **Diagram (optional):**
 [Include a diagram JSON if the question benefits from a visual representation]
 
-${getDiagramDocsForSubject('physics')}`;
+${getDiagramDocsForSubject('physics')}
+${visualInstructions}`;
 }
 
 // Generate explain question prompt

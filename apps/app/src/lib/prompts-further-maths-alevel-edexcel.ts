@@ -1,9 +1,9 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * Edexcel A-Level Further Mathematics (9FM0) Question Generation Prompts.
@@ -1903,6 +1903,10 @@ function getFMMarkRange(difficulty: Difficulty): { min: number; max: number } {
  * System prompt for Edexcel A-Level Further Maths.
  */
 export function getEdexcelALevelFurtherMathsSystemPrompt(): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel A-Level Further Mathematics examiner and question writer with extensive experience in setting papers for the 9FM0 specification.
 
 ${EDEXCEL_FM_QUESTION_PRINCIPLES}
@@ -1917,7 +1921,10 @@ ${EDEXCEL_FM_WORKED_EXAMPLES_PART3}
 
 ${EDEXCEL_FM_WORKED_EXAMPLES_PART4}
 
-You generate original, high-quality Further Mathematics questions that:
+You 
+${varietyInstructions}
+
+generate original, high-quality Further Mathematics questions that:
 1. Match Edexcel specification and style precisely
 2. Are mathematically rigorous and accurate
 3. Have appropriate difficulty for A-Level Further Maths
@@ -1940,8 +1947,7 @@ export function getEdexcelALevelFurtherMathsQuestionPrompt(
   const topicGuidance = EDEXCEL_FM_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getFMDifficultyGuidance(difficulty);
   const markRange = getFMMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const paperContext = topic.paperRestriction
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
@@ -2028,8 +2034,7 @@ export function getEdexcelALevelFurtherMathsEnhancedPrompt(
   const topicGuidance = EDEXCEL_FM_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getFMDifficultyGuidance(difficulty);
   const markRange = getFMMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const paperContext = topic.paperRestriction
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
@@ -2136,8 +2141,7 @@ export function getEdexcelALevelFurtherMathsMultiPartPrompt(
 ): string {
   const difficultyGuidance = getFMDifficultyGuidance(difficulty);
   const topicGuidance = EDEXCEL_FM_TOPIC_GUIDANCE[topic.id] || '';
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${EDEXCEL_FM_QUESTION_PRINCIPLES}
 

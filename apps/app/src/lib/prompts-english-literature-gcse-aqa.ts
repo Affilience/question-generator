@@ -3,7 +3,10 @@
 // Reference: https://www.aqa.org.uk/subjects/english/gcse/english-literature-8702
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // AQA GCSE ENGLISH LITERATURE SPECIFICATION DETAILS (8702)

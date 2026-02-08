@@ -3,11 +3,11 @@
 // Reference: https://www.aqa.org.uk/subjects/geography/gcse/geography-8035
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 // ============================================================================
 // AQA GCSE GEOGRAPHY SPECIFICATION DETAILS (8035)
@@ -907,6 +907,10 @@ export function getAQAGCSEGeographySystemPrompt(topic: Topic, difficulty: Diffic
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = AQA_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA GCSE Geography examiner creating exam-style questions.
 
 ## AQA GEOGRAPHY STYLE
@@ -929,6 +933,9 @@ ${AQA_GCSE_GEOG_MARK_SCHEME_CONVENTIONS}
 ${AQA_GCSE_GEOG_WORKED_EXAMPLES}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -973,8 +980,7 @@ ${getDiagramDocsForSubject('geography')}`;
 
 export function getAQAGCSEGeographyQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const topicKnowledge = AQA_GCSE_GEOG_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {

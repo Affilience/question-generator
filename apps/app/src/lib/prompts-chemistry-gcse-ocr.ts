@@ -2,7 +2,10 @@
 // Tailored to OCR specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+} from './prompts-common';
+
 
 // GCSE Chemistry mark ranges based on OCR Gateway specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -687,6 +690,9 @@ export function getOCRChemistryCompactPrompt(
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating an exam-style question.
 
 ## OCR QUESTION STYLE
@@ -742,6 +748,8 @@ Create ONE exam-style question that:
 5. Uses ONLY the Ar and Mr values from the reference data above
 6. For calculations, follows the exact working pattern shown in worked examples
 
+${varietyInstructions}
+
 Return a JSON object with this exact structure:
 {
   "content": "The full question text including mark allocation [X marks]",
@@ -758,6 +766,9 @@ export function getOCRChemistryExtendedPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a 6-mark extended response question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -772,6 +783,8 @@ Create ONE 6-mark extended response question that:
 2. Tests understanding across multiple aspects of the topic
 3. Uses appropriate command words (Explain, Evaluate, Compare, Describe)
 4. May include practical contexts or applications
+
+${varietyInstructions}
 
 Assessed using levels of response:
 Level 3 (5-6 marks): Comprehensive answer with clear logic and terminology
@@ -797,6 +810,9 @@ export function getOCRChemistryMultipleChoicePrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a multiple choice question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -812,6 +828,8 @@ Create ONE multiple choice question that:
 2. Has ONE correct answer
 3. Includes plausible distractors based on common misconceptions
 4. Tests understanding at GCSE level
+
+${varietyInstructions}
 
 OUTPUT FORMAT (use exact headers):
 **Question:**
@@ -837,6 +855,9 @@ export function getOCRChemistryCalculationPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert OCR GCSE Chemistry examiner creating a calculation question.
 
@@ -876,6 +897,8 @@ Create ONE calculation question that:
 4. Uses appropriate significant figures (usually 2-3)
 5. Follows OCR mark scheme conventions exactly
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Calculation question with data and mark allocation in [n] format]
@@ -895,6 +918,9 @@ export function getOCRChemistryExplainPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert OCR GCSE Chemistry examiner creating an explanation question.
 
@@ -924,6 +950,8 @@ DIFFICULTY GUIDE:
 
 CRITICAL: OCR emphasises LOGICAL STRUCTURE. Follow the explanation patterns - marks are awarded for each linked point in the chain of reasoning.
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Explanation question with mark allocation in [n] format]
@@ -943,6 +971,9 @@ export function getOCRChemistryGraphPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a graph or data analysis question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -958,6 +989,8 @@ Create ONE graph or data analysis question that:
 2. May require plotting, reading values, or calculating from data
 3. Tests understanding of relationships
 4. Uses realistic chemistry data
+
+${varietyInstructions}
 
 Common graph types in OCR GCSE Chemistry:
 - Rate of reaction curves
@@ -985,6 +1018,9 @@ export function getOCRChemistryComparePrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a comparison question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -1000,6 +1036,8 @@ Create ONE comparison question that:
 2. Requires identifying similarities AND differences
 3. Tests deeper understanding of principles
 4. Uses the command word 'Compare' appropriately
+
+${varietyInstructions}
 
 Possible comparisons in OCR GCSE Chemistry:
 - Ionic vs covalent bonding
@@ -1070,6 +1108,9 @@ export function getOCRChemistryPracticalMethodPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG (Practical Activity Group) question.
 
 ## OCR PAG PRACTICAL STYLE  
@@ -1089,6 +1130,8 @@ Create ONE exam-style question about the METHOD of this PAG that:
 2. May ask students to describe, explain, or evaluate the method
 3. Uses authentic OCR language
 4. Could ask about: equipment choices, step-by-step procedure, safety precautions
+
+${varietyInstructions}
 
 Question types to consider:
 - "Describe how you would..." (method recall)
@@ -1113,6 +1156,9 @@ export function getOCRChemistryPracticalVariablesPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -1139,6 +1185,8 @@ Question types:
 - "Explain why it is important to control..."
 - "Suggest one variable that should be kept constant and explain why"
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Variables question with mark allocation in [n] format]
@@ -1156,6 +1204,9 @@ export function getOCRChemistryPracticalResultsPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -1185,6 +1236,8 @@ Question types:
 
 CRITICAL: Use realistic numerical values that match typical experimental results.
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Results/analysis question with data table or graph description and mark allocation]
@@ -1202,6 +1255,9 @@ export function getOCRChemistryPracticalErrorsPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -1231,6 +1287,8 @@ Question types:
 - "The student's results were lower than expected. Suggest a reason"
 - "Why is it important to repeat the experiment and calculate a mean?"
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Error/improvement question with mark allocation in [n] format]
@@ -1248,6 +1306,9 @@ export function getOCRChemistryPracticalSafetyPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Chemistry examiner creating a PAG question.
 
 ${OCR_CHEMISTRY_PRINCIPLES}
@@ -1280,6 +1341,8 @@ Question types:
 - "Identify one hazard and describe a precaution to reduce the risk"
 - "Explain why the student should wear safety goggles"
 - "Give a risk assessment for this practical"
+
+${varietyInstructions}
 
 OUTPUT FORMAT (use exact headers):
 **Question:**

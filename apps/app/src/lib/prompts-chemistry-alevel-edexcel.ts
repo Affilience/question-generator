@@ -6,7 +6,11 @@
 // - Official specification and past papers 2019-2024
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
+
 
 // Local mark range function for A-Level Chemistry
 // Ranges are non-overlapping to ensure consistent difficulty progression
@@ -3013,6 +3017,9 @@ export function getEdexcelALevelChemistryCompactPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   const difficultyGuide = {
     easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
     medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
@@ -3058,6 +3065,8 @@ Requirements:
 - Include realistic chemistry context
 - Provide clear mark allocation
 
+${varietyInstructions}
+
 Respond with JSON:
 {
   "content": "Question text",
@@ -3080,7 +3089,14 @@ export function getEdexcelALevelChemistryExtendedPrompt(
   const topicGuidance = EDEXCEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
 
-  return `Generate a 6-mark extended response Edexcel A-Level Chemistry question.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate a 6-mark extended response Edexcel A-Level Chemistry question.
 ${EDEXCEL_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
 

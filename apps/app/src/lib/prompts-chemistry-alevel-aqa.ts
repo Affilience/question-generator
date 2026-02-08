@@ -7,7 +7,12 @@
 // - Past papers 2019-2024
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  DIAGRAM_SCHEMA_DOCS,
+  getDiagramDocsForSubject,
+} from './prompts-common';
+
 
 // Local mark range function for A-Level Chemistry
 // Ranges are non-overlapping to ensure consistent difficulty progression
@@ -3079,6 +3084,9 @@ export function getAQAALevelChemistryCompactPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   const difficultyGuide = {
     easy: 'AS standard, 2-3 marks, single concept, direct recall or straightforward application',
     medium: 'Full A-Level, 4-5 marks, combines multiple concepts, multi-step reasoning required',
@@ -3126,6 +3134,8 @@ Requirements:
 - Show all working in solution
 - Include units where appropriate
 
+${varietyInstructions}
+
 Respond with JSON:
 {
   "content": "Question text with parts labelled (a), (b), (c) etc if needed",
@@ -3151,7 +3161,14 @@ export function getAQAALevelChemistryEnhancedPrompt(
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
   const markRange = getMarkRangeForDifficulty(difficulty);
 
-  return `Generate a detailed AQA A-Level Chemistry question.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate a detailed AQA A-Level Chemistry question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${AQA_ALEVEL_CHEMISTRY_COGNITIVE_CHALLENGE}
 ${topicGuidance}
@@ -3195,12 +3212,17 @@ export function getAQAALevelChemistryExtendedPrompt(
   const topicGuidance = ALEVEL_CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const focusArea = subtopic || topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)];
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `Generate a 6-mark extended response AQA A-Level Chemistry question.
 ${AQA_ALEVEL_CHEMISTRY_PRINCIPLES}
 ${topicGuidance}
 
 Topic: ${topic.name}
 Focus: ${focusArea}
+
+${varietyInstructions}
 
 AQA 6-mark extended response questions:
 - Require detailed, structured answers

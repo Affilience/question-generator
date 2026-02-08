@@ -4,10 +4,11 @@
 
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDifficultyGuidance,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 // ============================================================================
 // OCR FSMQ ADDITIONAL MATHEMATICS SPECIFICATION DETAILS (6993)
@@ -2071,59 +2072,8 @@ OCR Additional Mathematics is designed as a transition qualification:
 `;
 
 // ============================================================================
-// DIFFICULTY GUIDANCE
+// DIFFICULTY GUIDANCE - using imported function from prompts-common.ts
 // ============================================================================
-
-function getDifficultyGuidance(difficulty: Difficulty): string {
-  switch (difficulty) {
-    case 'easy':
-      return `**Standard Level (Grades D-C equivalent):**
-- Direct application of single technique
-- "Find", "Calculate", "Simplify" questions
-- Familiar contexts with clear method
-- Numbers work out to exact values
-- 2-4 marks typical
-
-**Examples:**
-- Differentiate a polynomial
-- Solve a quadratic equation
-- Find gradient between two points
-- Basic binomial coefficient calculation
-- Simple trigonometric equation (single solution)`;
-
-    case 'medium':
-      return `**Intermediate Level (Grades C-B equivalent):**
-- Two or three stage problems
-- Requires some method selection
-- May need to form equation from context
-- Interpretation of results expected
-- 4-6 marks typical
-
-**Examples:**
-- Find equation of tangent to curve
-- Solve trigonometric equation (multiple solutions)
-- Use factor theorem to factorise cubic
-- Find area under curve
-- Circle and line intersection`;
-
-    case 'hard':
-      return `**Advanced Level (Grades B-A equivalent):**
-- Multi-step reasoning required
-- "Show that" and proof questions
-- Synthesis of multiple techniques
-- Real-world modelling/optimisation
-- Unfamiliar contexts
-- Full justification expected
-- 6-10+ marks typical
-
-**Examples:**
-- Optimisation with proof of maximum/minimum
-- Complex trigonometric proof using identities
-- Area between curves
-- Problems combining calculus with coordinate geometry
-- Exponential growth/decay with logarithmic solution`;
-  }
-}
 
 function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
@@ -2140,7 +2090,7 @@ function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
 // VARIETY HELPERS
 // ============================================================================
 
-function getFurtherMathsVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
+function getFurtherMathsVarietyInstructions(): string {
   const mathContexts = [
     'pure algebraic manipulation',
     'geometric measurement problem',
@@ -2185,6 +2135,10 @@ IMPORTANT: Create an original question that could realistically appear on an OCR
  * System prompt for OCR FSMQ Additional Mathematics.
  */
 export function getOCRGCSEFurtherMathsSystemPrompt(): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR FSMQ Additional Mathematics (6993) examiner and question writer with extensive experience in:
 - Writing questions that bridge GCSE and A-Level mathematics
 - Creating problems that test calculus, advanced algebra, and trigonometry
@@ -2201,7 +2155,10 @@ ${OCR_FSMQ_MARK_SCHEME}
 
 ## Your Core Responsibilities
 
-1. **Generate original, high-quality questions** that:
+1. **
+${varietyInstructions}
+
+Generate original, high-quality questions** that:
    - Match OCR FSMQ specification precisely
    - Test appropriate assessment objectives
    - Use correct mathematical notation
@@ -2232,8 +2189,8 @@ export function getOCRGCSEFurtherMathsQuestionPrompt(
   const topicGuidance = OCR_FSMQ_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const markRange = getMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getFurtherMathsVarietyInstructions(variety);
+  const variety = getRandomVarietyInstructions();
+  const varietyInstructions = getFurtherMathsVarietyInstructions();
 
   return `## OCR FSMQ ADDITIONAL MATHEMATICS STYLE
 **OCR's Advanced Level 3 Approach:** More advanced than Level 2 certificates, equivalent to AS-level half course.

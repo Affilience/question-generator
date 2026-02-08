@@ -3,7 +3,6 @@
 // and official mark schemes
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 
 // A-Level Economics mark ranges based on Edexcel specification
@@ -404,6 +403,10 @@ For Edexcel 25-markers:
 5. Diagram not integrated into written explanation
 6. No real-world examples to demonstrate application
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // QUESTION GENERATION FUNCTIONS

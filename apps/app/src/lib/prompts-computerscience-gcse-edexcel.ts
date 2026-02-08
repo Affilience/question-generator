@@ -4,7 +4,6 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-gcses/computer-science-2020.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // GCSE Computer Science mark ranges based on Edexcel specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -846,6 +845,10 @@ def insertion_sort(myList):
 | Stable | Yes | Yes | Yes |
 | Best for | Small/nearly sorted | Large lists | Small/nearly sorted |
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 const EDEXCEL_CS_DATA_REPRESENTATION = `
 ## Edexcel GCSE Computer Science - Data Representation

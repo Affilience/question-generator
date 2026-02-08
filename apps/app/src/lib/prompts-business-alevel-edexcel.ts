@@ -3,7 +3,10 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/business-2015.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // EDEXCEL A-LEVEL BUSINESS SPECIFICATION DETAILS (9BS0)
@@ -60,7 +63,11 @@ const EDEXCEL_ALEVEL_BUS_ASSESSMENT_OBJECTIVES = `
 - **Explain**: Set out purposes, reasons, mechanisms; make relationships clear (AO1/AO2)
 - **Analyse**: Break down to bring out the essential elements; examine methodically and in detail (AO3)
 - **Assess**: Give careful consideration to all factors and identify which are most important (AO4)
-- **Evaluate**: Judge from available evidence; weigh up and reach conclusions (AO4)
+- **Evaluate**: Judge from available evidence;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common'; weigh up and reach conclusions (AO4)
 - **Discuss**: Present key points about different ideas or strengths and weaknesses (AO3/AO4)
 - **To what extent**: Consider the merits and drawbacks, reach a substantiated judgement (AO4)
 `;

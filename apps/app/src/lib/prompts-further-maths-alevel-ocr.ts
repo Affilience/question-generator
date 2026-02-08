@@ -1,9 +1,9 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * OCR A-Level Further Mathematics A (H245) Question Generation Prompts.
@@ -2053,6 +2053,10 @@ function getFMMarkRange(difficulty: Difficulty): { min: number; max: number } {
  * System prompt for OCR A-Level Further Maths.
  */
 export function getOCRALevelFurtherMathsSystemPrompt(): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR A-Level Further Mathematics examiner and question writer with extensive experience setting papers for the H245 specification.
 
 ${OCR_FM_QUESTION_PRINCIPLES}
@@ -2073,7 +2077,10 @@ ${OCR_FM_HYPERBOLIC_POLAR_EXAMPLES}
 
 ${OCR_FM_MECHANICS_STATS_EXAMPLES}
 
-You generate original, high-quality Further Mathematics questions that:
+You 
+${varietyInstructions}
+
+generate original, high-quality Further Mathematics questions that:
 1. Match OCR specification and style precisely
 2. Are mathematically rigorous and accurate
 3. Have appropriate difficulty for A-Level Further Maths
@@ -2096,8 +2103,7 @@ export function getOCRALevelFurtherMathsQuestionPrompt(
   const topicGuidance = OCR_FM_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getFMDifficultyGuidance(difficulty);
   const markRange = getFMMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const paperContext = topic.paperRestriction
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`

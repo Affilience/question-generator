@@ -3,7 +3,6 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/psychology-2015.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // ============================================================================
 // EDEXCEL A-LEVEL PSYCHOLOGY SPECIFICATION DETAILS (9PS0)
@@ -1956,6 +1955,10 @@ In conclusion, biological explanations provide valuable insights into the neurol
 - Perhaps a unique discipline between natural and social sciences
 - Value of multiple methods and perspectives
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // EVALUATION FRAMEWORKS

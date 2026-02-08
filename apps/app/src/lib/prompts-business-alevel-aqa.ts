@@ -3,8 +3,11 @@
 // Reference: https://www.aqa.org.uk/subjects/business/as-and-a-level/business-7131-7132
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // AQA A-LEVEL BUSINESS SPECIFICATION DETAILS (7132)

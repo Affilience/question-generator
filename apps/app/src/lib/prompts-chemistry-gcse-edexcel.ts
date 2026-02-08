@@ -2,7 +2,10 @@
 // Tailored to Edexcel specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+} from './prompts-common';
+
 
 // GCSE Chemistry mark ranges based on Edexcel specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -718,6 +721,9 @@ export function getEdexcelChemistryCompactPrompt(
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating an exam-style question.
 
 ## EDEXCEL QUESTION STYLE
@@ -773,6 +779,8 @@ Create ONE exam-style question that:
 5. Uses ONLY the Ar and Mr values from the reference data above
 6. For calculations, follows the exact working pattern shown in worked examples
 
+${varietyInstructions}
+
 Return a JSON object with this exact structure:
 {
   "content": "The full question text including mark allocation [X marks]",
@@ -789,6 +797,9 @@ export function getEdexcelChemistryExtendedPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a 6-mark extended response question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -803,6 +814,8 @@ Create ONE 6-mark extended response question that:
 2. Tests understanding across multiple aspects of the topic
 3. Uses appropriate command words (Explain, Evaluate, Compare, Describe)
 4. May include practical applications or real-world contexts
+
+${varietyInstructions}
 
 Assessed using levels of response:
 Level 3 (5-6 marks): Comprehensive answer with clear logic and scientific terminology
@@ -828,6 +841,9 @@ export function getEdexcelChemistryMultipleChoicePrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a multiple choice question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -843,6 +859,8 @@ Create ONE multiple choice question that:
 2. Has ONE correct answer
 3. Includes plausible distractors based on common misconceptions
 4. Tests understanding at GCSE level
+
+${varietyInstructions}
 
 OUTPUT FORMAT (use exact headers):
 **Question:**
@@ -868,6 +886,9 @@ export function getEdexcelChemistryCalculationPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert Edexcel GCSE Chemistry examiner creating a calculation question.
 
@@ -908,6 +929,8 @@ Create ONE calculation question that:
 4. Uses appropriate significant figures (usually 2-3)
 5. Follows Edexcel mark scheme conventions exactly
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Calculation question with data and mark allocation]
@@ -927,6 +950,9 @@ export function getEdexcelChemistryExplainPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert Edexcel GCSE Chemistry examiner creating an explanation question.
 
@@ -956,6 +982,8 @@ DIFFICULTY GUIDE:
 
 CRITICAL: Follow the explanation patterns shown above - marks are awarded for each linked point in the chain of reasoning.
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Explanation question with mark allocation]
@@ -975,6 +1003,9 @@ export function getEdexcelChemistryGraphPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a graph or data analysis question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -990,6 +1021,8 @@ Create ONE graph or data analysis question that:
 2. May require plotting, reading values, or calculating from graphs
 3. Tests understanding of relationships between variables
 4. Uses realistic chemistry data
+
+${varietyInstructions}
 
 Common graph types in Edexcel GCSE Chemistry:
 - Rate of reaction graphs (volume/mass vs time)
@@ -1017,6 +1050,9 @@ export function getEdexcelChemistryComparePrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a comparison question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -1032,6 +1068,8 @@ Create ONE comparison question that:
 2. Requires identifying similarities AND differences
 3. Tests deeper understanding of underlying principles
 4. Uses the command word 'Compare' appropriately
+
+${varietyInstructions}
 
 Possible comparisons in Edexcel GCSE Chemistry:
 - Ionic vs covalent bonding
@@ -1105,6 +1143,9 @@ export function getEdexcelChemistryPracticalMethodPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
 
 ## EDEXCEL CORE PRACTICAL STYLE
@@ -1124,6 +1165,8 @@ Create ONE exam-style question about the METHOD of this core practical that:
 2. May ask students to describe, explain, or evaluate the method
 3. Uses authentic Edexcel language
 4. Could ask about: equipment choices, step-by-step procedure, safety precautions
+
+${varietyInstructions}
 
 Question types to consider:
 - "Describe how you would..." (method recall)
@@ -1148,6 +1191,9 @@ export function getEdexcelChemistryPracticalVariablesPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -1174,6 +1220,8 @@ Question types:
 - "Explain why it is important to control..."
 - "Suggest one variable that should be kept constant and explain why"
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Variables question with mark allocation]
@@ -1191,6 +1239,9 @@ export function getEdexcelChemistryPracticalResultsPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -1220,6 +1271,8 @@ Question types:
 
 CRITICAL: Use realistic numerical values that match typical experimental results.
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Results/analysis question with data table or graph description and mark allocation]
@@ -1237,6 +1290,9 @@ export function getEdexcelChemistryPracticalErrorsPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -1266,6 +1322,8 @@ Question types:
 - "The student's results were not accurate. Suggest a reason for this"
 - "Why is it important to repeat the experiment?"
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Error/improvement question with mark allocation]
@@ -1283,6 +1341,9 @@ export function getEdexcelChemistryPracticalSafetyPrompt(
   difficulty: Difficulty,
   subtopic?: PracticalSubtopic
 ): string {
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert Edexcel GCSE Chemistry examiner creating a Core Practical question.
 
 ${EDEXCEL_CHEMISTRY_PRINCIPLES}
@@ -1315,6 +1376,8 @@ Question types:
 - "Give one hazard and one precaution for this experiment"
 - "Explain why the student should wear safety goggles"
 - "Describe the safety precautions needed when..."
+
+${varietyInstructions}
 
 OUTPUT FORMAT (use exact headers):
 **Question:**

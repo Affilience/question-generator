@@ -584,6 +584,16 @@ Example GCSE HARD question - Biology (6 marks):
 // ============================================================================
 
 export const MATHS_ACCURACY_CONSTRAINTS = `
+## CRITICAL: NUMBER VARIETY REQUIREMENTS
+MANDATORY: Use different numbers in every question to ensure variety:
+- For surds: AVOID √72, √18, √50, √8, √12, √32, √324 (these are overused)
+- For surds: USE varied values like √20, √27, √28, √45, √63, √75, √80, √98, √108, √125, √147, √180, √200
+- For money: AVOID £18 - use different amounts like £24, £45, £63, £80, £125
+- For fractions: vary denominators and numerators
+- For coordinates: avoid (0,0), (1,1), (2,3) - use varied coordinate pairs
+- For measurements: use different scales, units, and values
+- EVERY mathematical value must be fresh and different from typical examples
+
 ## MATHEMATICS QUESTION REQUIREMENTS
 
 ### CRITICAL: Question Style

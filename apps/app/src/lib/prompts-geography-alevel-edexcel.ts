@@ -3,7 +3,10 @@
 // Reference: https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/geography-2016.html
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // EDEXCEL A-LEVEL GEOGRAPHY SPECIFICATION DETAILS (9GE0)
@@ -1557,7 +1560,11 @@ Governance quality interconnects with economic development. Japan's democratic i
 **In conclusion**, economic development is the most significant factor, as it enables implementation of mitigation measures, funds preparedness, and provides recovery resources. However, social factors including governance quality, education, and community resilience mediate how effectively economic resources translate into reduced impacts. The most resilient societies combine economic capacity with social cohesion and institutional effectiveness.
 
 **Mark Scheme:**
-Level 3 (9-12): Thorough knowledge demonstrated; balanced assessment of both factors; clear evaluation with substantiated judgement; detailed case study evidence; accurate terminology
+Level 3 (9-12): Thorough knowledge demonstrated;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common'; balanced assessment of both factors; clear evaluation with substantiated judgement; detailed case study evidence; accurate terminology
 Level 2 (5-8): Some knowledge of factors; partial assessment; limited evaluation; some evidence
 Level 1 (1-4): Basic knowledge; descriptive; little or no assessment
 

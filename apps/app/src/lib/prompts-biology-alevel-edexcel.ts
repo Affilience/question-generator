@@ -3,7 +3,6 @@
 // Comprehensive coverage of all 8 topics with detailed mark schemes
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // A-Level Biology mark ranges based on Edexcel specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -2385,6 +2384,10 @@ rs = 1 - (6 × 2)/(6 × 35) = 1 - 0.057 = **0.943** (1 mark)
 **Mark Scheme:**
 rs > critical value so significant positive correlation between light intensity and daisy numbers (1 mark)
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // REFERENCE DATA AND FORMULAS (Edexcel A-Level Biology)

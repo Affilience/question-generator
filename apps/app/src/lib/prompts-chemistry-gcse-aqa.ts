@@ -2,7 +2,11 @@
 // Tailored to AQA specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
+
 
 // GCSE Chemistry mark ranges based on AQA specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -642,6 +646,9 @@ export function getAQAChemistryCompactPrompt(
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
 
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA GCSE Chemistry examiner creating an exam-style question.
 
 ## AQA QUESTION STYLE
@@ -689,6 +696,8 @@ Create ONE exam-style question that:
 3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
 4. Matches the ${difficulty} difficulty level
 
+${varietyInstructions}
+
 Return a JSON object with this exact structure:
 {
   "content": "The full question text including mark allocation [X marks]",
@@ -705,6 +714,10 @@ export function getAQAChemistryExtendedPrompt(
 ): string {
   const topicGuidance = CHEMISTRY_TOPIC_GUIDANCE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA GCSE Chemistry examiner creating a 6-mark extended response question.
 
 ${AQA_CHEMISTRY_PRINCIPLES}
@@ -713,6 +726,9 @@ Topic: ${topic.name}
 ${subtopic ? `Subtopic: ${subtopic}` : ''}
 
 ${topicGuidance}
+
+
+${varietyInstructions}
 
 Create ONE 6-mark extended response question that:
 1. Requires a structured, detailed response
@@ -968,6 +984,10 @@ export function getAQAChemistryRequiredPracticalPrompt(
   // Get subtopic-specific guidance
   const subtopicGuidance = getChemistryPracticalSubtopicGuidance(subtopic, practical);
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `${AQA_CHEMISTRY_PRINCIPLES}
 
 ---
@@ -987,6 +1007,9 @@ ${subtopicGuidance}
 ---
 
 ## Your Task
+
+
+${varietyInstructions}
 
 Generate a ${subtopic.toUpperCase()} question for this AQA GCSE Chemistry Required Practical.
 

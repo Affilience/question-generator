@@ -4,10 +4,11 @@
 // Reference: https://www.ocr.org.uk/qualifications/gcse/economics-j205-from-2017/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import {
-  getVarietyParameters,
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
 } from './prompts-common';
+
 
 /**
  * GCSE Economics mark ranges.
@@ -2259,6 +2260,10 @@ export function getOCRGCSEEconomicsSystemPrompt(topic: Topic, difficulty: Diffic
   const markRange = getMarkRangeForDifficulty(difficulty);
   const topicKnowledge = OCR_GCSE_ECON_TOPIC_KNOWLEDGE[topic.id] || '';
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert OCR GCSE Economics examiner creating exam-style questions.
 
 ## OCR ECONOMICS STYLE
@@ -2289,6 +2294,9 @@ ${OCR_GCSE_ECON_REAL_EXAMPLES}
 ${OCR_GCSE_ECON_ESSAY_GUIDANCE}
 
 ## Your Task
+
+${varietyInstructions}
+
 Create a ${difficulty} difficulty question about "${subtopic}" from the topic "${topic.name}".
 The question should be worth ${markRange.min}-${markRange.max} marks.
 
@@ -2321,8 +2329,8 @@ ${getDiagramDocsForSubject('economics')}`;
 
 export function getOCRGCSEEconomicsQuestionPrompt(topic: Topic, difficulty: Difficulty, subtopic: string): string {
   const markRange = getMarkRangeForDifficulty(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getEconomicsVarietyInstructions(variety);
+  const variety = getRandomVarietyInstructions();
+  const varietyInstructions = getEconomicsVarietyInstructions();
   const topicKnowledge = OCR_GCSE_ECON_TOPIC_KNOWLEDGE[topic.id] || '';
 
   const difficultyGuidance = {
@@ -2531,7 +2539,7 @@ Return valid JSON:
 }
 
 // Helper function for economics-specific variety
-function getEconomicsVarietyInstructions(variety: ReturnType<typeof getVarietyParameters>): string {
+function getEconomicsVarietyInstructions(): string {
   const economicsContexts = [
     'consumer market (retail goods)',
     'labour market',

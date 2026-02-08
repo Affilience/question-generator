@@ -1,9 +1,10 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
+  getDifficultyGuidance,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * AQA Level 2 Certificate in Further Mathematics (8365) Question Generation Prompts.
@@ -2459,43 +2460,8 @@ This qualification bridges GCSE and A-Level:
 `;
 
 // ============================================================================
-// DIFFICULTY GUIDANCE
+// DIFFICULTY GUIDANCE - using imported function from prompts-common.ts
 // ============================================================================
-
-function getDifficultyGuidance(difficulty: Difficulty): string {
-  switch (difficulty) {
-    case 'easy':
-      return `**Foundation Level (Grades 1-3 on Level 2 scale):**
-- Direct application of single technique
-- Clear, familiar problem setup
-- 1-3 marks typically
-- Numbers work out neatly
-- Minimal interpretation required
-- One-step or two-step maximum
-- Examples: Simplify single surd, find one derivative, evaluate matrix product`;
-
-    case 'medium':
-      return `**Intermediate Level (Grades 3-4 on Level 2 scale):**
-- Two or three connected steps
-- Some method selection required
-- 3-5 marks typically
-- May require extracting information from context
-- Standard application of taught techniques
-- May combine two related skills
-- Examples: Complete factorisation of cubic, find tangent equation, solve quadratic inequality`;
-
-    case 'hard':
-      return `**Advanced Level (Grades 4-5 on Level 2 scale):**
-- Multi-step reasoning with minimal guidance
-- Synthesis of multiple topics
-- 5-8+ marks typically
-- May include proof or "show that" elements
-- Complex optimization or analysis
-- Strategic planning required
-- Unfamiliar or novel contexts
-- Examples: Optimization problems, identity proofs, finding conditions for tangency`;
-  }
-}
 
 function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
   switch (difficulty) {
@@ -2516,6 +2482,10 @@ function getMarkRange(difficulty: Difficulty): { min: number; max: number } {
  * System prompt for AQA Level 2 Further Maths.
  */
 export function getAQAGCSEFurtherMathsSystemPrompt(): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA Level 2 Certificate in Further Mathematics examiner and question writer with extensive experience in:
 - Setting questions for this bridging qualification between GCSE and A-Level
 - Creating mark schemes that reward mathematical understanding
@@ -2530,7 +2500,10 @@ ${AQA_FM_GCSE_WORKED_EXAMPLES}
 
 ## Your Role
 
-You generate original, high-quality questions that:
+You 
+${varietyInstructions}
+
+generate original, high-quality questions that:
 1. **Match AQA Level 2 Further Maths specification and style exactly**
 2. **Are mathematically accurate with complete, verified solutions**
 3. **Bridge GCSE and A-Level appropriately** - beyond GCSE but accessible
@@ -2560,8 +2533,7 @@ export function getAQAGCSEFurtherMathsQuestionPrompt(
   const topicGuidance = AQA_FM_GCSE_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getDifficultyGuidance(difficulty);
   const markRange = getMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `## AQA FURTHER MATHEMATICS STYLE
 **AQA's Traditional Approach:** Structured, comprehensive methodology with emphasis on algebraic reasoning and mathematical rigor.

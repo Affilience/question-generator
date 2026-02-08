@@ -3,7 +3,6 @@
 // Reference: https://www.aqa.org.uk/subjects/psychology/a-level/psychology-7182
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
 
 // ============================================================================
@@ -1523,6 +1522,10 @@ const APPROACHES_KNOWLEDGE = `
 | **Scientific** | Yes | Yes | Yes | No | No |
 | **Idiographic/Nomothetic** | Nomothetic | Nomothetic | Nomothetic | Idiographic | Idiographic |
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // PAPER 2: BIOPSYCHOLOGY

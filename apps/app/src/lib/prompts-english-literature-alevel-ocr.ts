@@ -3,7 +3,10 @@
 // Reference: https://www.ocr.org.uk/qualifications/as-and-a-level/english-literature-h072-h472-from-2015/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // OCR A-LEVEL ENGLISH LITERATURE SPECIFICATION DETAILS (H472)

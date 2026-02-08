@@ -3,7 +3,6 @@
 // Reference: https://www.ocr.org.uk/qualifications/as-and-a-level/geography-h081-h481-from-2016/
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 
 // ============================================================================
 // OCR A-LEVEL GEOGRAPHY SPECIFICATION DETAILS (H481)
@@ -1073,6 +1072,10 @@ const OCR_FUTURE_OF_FOOD_DEBATE = `
 - Dietary change: Meat demand increasing
 - Conflict: Food as weapon, displacement
 `;
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 const OCR_HAZARDOUS_EARTH_DEBATE = `
 ## Hazardous Earth - Geographical Debate

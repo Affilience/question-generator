@@ -2,7 +2,11 @@
 // Tailored to AQA specification style and assessment objectives
 
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
+
 
 // A-Level Biology mark ranges based on AQA specification
 function getMarkRangeForDifficulty(difficulty: Difficulty): { min: number; max: number } {
@@ -3870,6 +3874,9 @@ export function getAQAALevelBiologyCompactPrompt(
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
   const markRange = getMarkRangeForDifficulty(difficulty);
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating an exam-style question.
 
@@ -3919,6 +3926,8 @@ Create ONE exam-style question that:
 3. Has a mark allocation between ${markRange.min}-${markRange.max} marks (REQUIRED)
 4. Matches the ${difficulty} difficulty level
 
+${varietyInstructions}
+
 Return a JSON object with this exact structure:
 {
   "content": "The full question text including mark allocation [X marks]",
@@ -3934,6 +3943,9 @@ export function getAQAALevelBiologyExtendedPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating a 6-mark extended response question.
 
@@ -3949,6 +3961,8 @@ Create ONE 6-mark extended response question that:
 2. Tests understanding across multiple aspects of the topic
 3. Uses appropriate command words (Explain, Describe, Evaluate)
 4. Includes context where appropriate
+
+${varietyInstructions}
 
 The question should be assessed using levels of response:
 Level 3 (5-6 marks): Comprehensive, accurate, well-structured
@@ -3973,6 +3987,9 @@ export function getAQAALevelBiologyCalculationPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating a calculation question.
 
@@ -4000,6 +4017,8 @@ Create ONE calculation question that:
 3. Has realistic numerical data
 4. May involve statistics, Hardy-Weinberg, or productivity
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Calculation question with data and mark allocation]
@@ -4018,6 +4037,9 @@ export function getAQAALevelBiologyExplainPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating an explanation question.
 
@@ -4049,6 +4071,8 @@ Common A-Level explanation topics:
 - Ecological processes and succession
 - Evolution and speciation
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Explanation question with mark allocation]
@@ -4067,6 +4091,9 @@ export function getAQAALevelBiologyGraphPrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating a graph or data analysis question.
 
@@ -4096,6 +4123,8 @@ Common A-Level Biology graph/data types:
 - Genetic cross results requiring chi-squared
 - Standard deviation and error bar interpretation
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Data analysis question with table/graph description and mark allocation]
@@ -4114,6 +4143,9 @@ export function getAQAALevelBiologyComparePrompt(
   subtopic?: string
 ): string {
   const topicGuidance = BIOLOGY_TOPIC_GUIDANCE[topic.id] || '';
+  
+  // Add global variety system for systematic question variation
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `You are an expert AQA A-Level Biology examiner creating a comparison question.
 
@@ -4145,6 +4177,8 @@ A-Level Biology comparisons:
 - B-cells vs T-cells
 - Competitive vs non-competitive inhibition
 
+${varietyInstructions}
+
 OUTPUT FORMAT (use exact headers):
 **Question:**
 [Comparison question with mark allocation]
@@ -4160,6 +4194,10 @@ OUTPUT FORMAT (use exact headers):
 export function getAQAALevelBiologyEssayPrompt(
   topic: Topic
 ): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA A-Level Biology examiner creating a 25-mark essay question.
 
 ## AQA A-LEVEL 25-MARK ESSAY STYLE
@@ -4179,6 +4217,9 @@ AQA 25-mark essay questions:
 - Must include relevant examples
 - Good answers link concepts across topics
 - Quality of written communication assessed
+
+
+${varietyInstructions}
 
 Create ONE 25-mark essay question that:
 1. Has a clear, focused title

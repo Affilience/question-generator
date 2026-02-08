@@ -626,8 +626,9 @@ export async function POST(request: NextRequest) {
           { role: 'user', content: `${subjectConstraints}\n\n${prompt}` },
         ],
         response_format: { type: 'json_object' },
-        temperature: 0.5,
+        temperature: 0.8,
         max_tokens: 3000, // Practicals need detailed method descriptions and mark schemes
+        seed: Math.floor(Math.random() * 1000000), // Add random seed for variety
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -1670,8 +1671,9 @@ export async function POST(request: NextRequest) {
         },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.5,
+      temperature: 0.8,
       max_tokens: 6000,
+      seed: Math.floor(Math.random() * 1000000), // Add random seed for variety
     });
 
     const responseContent = completion.choices[0]?.message?.content;

@@ -1,8 +1,8 @@
 import type { QuestionGenerationParams } from './prompts/prompt-builder';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
 } from './prompts-common';
+
 
 export const OCR_MATHS_GCSE_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",
@@ -223,8 +223,7 @@ export function getOCRMathsGCSECompactPrompt(params: QuestionGenerationParams): 
   const markAllocation = marks || (difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4);
   
   // Use global variety system for systematic question variation
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `Generate an OCR GCSE Mathematics ${tier} tier question.
 

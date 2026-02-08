@@ -1,10 +1,10 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
   getVisualInstructions,
 } from './prompts-common';
+
 
 /**
  * AQA A-Level Further Mathematics (7367) Question Generation Prompts.
@@ -2398,6 +2398,10 @@ function getFMMarkRange(difficulty: Difficulty): { min: number; max: number } {
  * System prompt for AQA A-Level Further Maths question generation.
  */
 export function getAQAALevelFurtherMathsSystemPrompt(): string {
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `You are an expert AQA A-Level Further Mathematics examiner and question writer with extensive experience in setting papers for the AQA 7367 specification.
 
 ${AQA_FM_QUESTION_PRINCIPLES}
@@ -2422,7 +2426,10 @@ ${AQA_FM_HYPERBOLIC_EXAMPLES}
 
 ${AQA_FM_POLAR_EXAMPLES}
 
-You generate original, high-quality Further Mathematics questions that:
+You 
+${varietyInstructions}
+
+generate original, high-quality Further Mathematics questions that:
 1. Match AQA specification and examination style precisely
 2. Are mathematically rigorous and completely accurate
 3. Have appropriate difficulty for A-Level Further Maths (significantly harder than standard A-Level)
@@ -2450,8 +2457,7 @@ export function getAQAALevelFurtherMathsQuestionPrompt(
   const topicGuidance = AQA_FM_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getFMDifficultyGuidance(difficulty);
   const markRange = getFMMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
   const visualInstructions = getVisualInstructions('further-maths', 'a-level', selectedSubtopic);
 
   const paperContext = topic.paperRestriction

@@ -1,10 +1,10 @@
 import { Difficulty, Topic, Practical, PracticalSubtopic } from '@/types';
 import {
+  getRandomVarietyInstructions,
   getDiagramDocsForSubject,
   getVisualInstructions,
-  getVarietyParameters,
-  getVarietyInstructions,
 } from './prompts-common';
+
 
 /**
  * GCSE-specific mark range function for Physics AQA.
@@ -1056,8 +1056,7 @@ export function getAQAPhysicsCompactPrompt(
   const visualInstructions = getVisualInstructions('physics', 'gcse', selectedSubtopic);
   
   // Add global variety system for systematic question variation
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const difficultyLevel = difficulty === 'easy'
     ? 'Early paper (Grades 1-3): 1-2 marks. State/name questions, simple recall, basic calculations with one step.'
@@ -1151,6 +1150,10 @@ export function getAQAPhysicsEnhancedPrompt(
 - Synthesis of multiple concepts
 - Higher tier content (H)`;
 
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
   return `${AQA_PHYSICS_PRINCIPLES}
 
 ${topicGuidance}
@@ -1158,6 +1161,9 @@ ${topicGuidance}
 ---
 
 ## Your Task
+
+
+${varietyInstructions}
 
 Generate a genuinely ORIGINAL AQA GCSE Physics question with the following specifications:
 

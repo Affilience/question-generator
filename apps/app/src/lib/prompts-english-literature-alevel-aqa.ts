@@ -3,8 +3,11 @@
 // Reference: https://www.aqa.org.uk/subjects/english/a-level/english-literature-a-7712
 
 import { Difficulty, Topic } from '@/types';
-import { getDiagramDocsForSubject } from './prompts-common';
 import { getEnhancedEssayMarkSchemePrompt } from './prompts-essay-markscheme';
+import {
+  getRandomVarietyInstructions,
+  getDiagramDocsForSubject,
+} from './prompts-common';
 
 // ============================================================================
 // AQA A-LEVEL ENGLISH LITERATURE A SPECIFICATION DETAILS (7712)

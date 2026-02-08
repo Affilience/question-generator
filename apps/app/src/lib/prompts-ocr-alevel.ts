@@ -1,9 +1,9 @@
 import { Difficulty, Topic } from '@/types';
 import {
-  getVarietyParameters,
-  getVarietyInstructions,
+  getRandomVarietyInstructions,
   DIAGRAM_SCHEMA_DOCS,
 } from './prompts-common';
+
 
 /**
  * OCR A-Level Mathematics A (H240) Question Generation Prompts.
@@ -770,7 +770,14 @@ export function getOCRALevelCompactPrompt(
     ? `This topic appears on ${topic.paperRestriction}.`
     : 'This is a Pure Mathematics topic appearing on Papers 1, 2, and 3.';
 
-  return `Generate an OCR A-Level Maths question. Return ONLY valid JSON, no other text.
+  
+  // Add truly random variety system for complete question uniqueness
+  const varietyInstructions = getRandomVarietyInstructions();
+
+  return `
+${varietyInstructions}
+
+Generate an OCR A-Level Maths question. Return ONLY valid JSON, no other text.
 
 Topic: ${topic.name} - ${selectedSubtopic}
 Level: ${difficultyLevel}
@@ -801,8 +808,7 @@ export function getOCRALevelEnhancedPrompt(
   const topicGuidance = OCR_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getOCRALevelDifficultyGuidance(difficulty);
   const markRange = getOCRALevelMarkRange(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   const paperContext = topic.paperRestriction
     ? `\n**Paper:** This topic appears on ${topic.paperRestriction}.`
@@ -883,8 +889,7 @@ export function getOCRALevelMultiPartPrompt(
 ): string {
   const topicGuidance = OCR_ALEVEL_TOPIC_GUIDANCE[topic.id] || '';
   const difficultyGuidance = getOCRALevelDifficultyGuidance(difficulty);
-  const variety = getVarietyParameters();
-  const varietyInstructions = getVarietyInstructions(variety);
+  const varietyInstructions = getRandomVarietyInstructions();
 
   return `${OCR_ALEVEL_QUESTION_PRINCIPLES}
 
