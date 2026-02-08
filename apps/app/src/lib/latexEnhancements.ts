@@ -535,12 +535,12 @@ export function enhanceTextCommands(text: string): string {
   result = result.replace(/\\text\{([a-zA-Z])\}\s*\(\s*([a-zA-Z])\s*\)/g, '$1($2)');
   
   // Fix cases where literal 'text' appears before mathematical notation
-  // Pattern: "text f(x)" or "text n" or "text a" etc.
-  result = result.replace(/\btext\s+([a-zA-Z])\(/g, '$1(');
-  result = result.replace(/\btext\s+([a-zA-Z])\b(?!\w)/g, '$1');
+  // Only replace when it's clearly mathematical context (followed by math operators)
+  result = result.replace(/\btext\s+([a-zA-Z])\s*\(/g, '$1(');
+  result = result.replace(/\btext\s+([a-zA-Z])\s*[=+\-*/^]/g, '$1 ');
   
-  // More comprehensive patterns for "text" before mathematical variables
-  result = result.replace(/\btext\s*([a-zA-Z])\s*\(/g, '$1(');
+  // More specific patterns for mathematical context only
+  result = result.replace(/\btext\s*([a-zA-Z])\s*\(\s*[a-zA-Z]\s*\)/g, '$1($2)');
   result = result.replace(/\btext\s*([a-zA-Z])\s*=\s*/g, '$1 = ');
   result = result.replace(/\btext\s*([a-zA-Z])\s*\+\s*/g, '$1 + ');
   result = result.replace(/\btext\s*([a-zA-Z])\s*-\s*/g, '$1 - ');
@@ -565,13 +565,13 @@ export function enhanceTextCommands(text: string): string {
   result = result.replace(/\btext\s+([A-Z][a-z]?\d*)\s*=/g, '$1 = ');
   
   // Fix cases where "text" is concatenated directly with variables (no space)
-  // Pattern: "textt", "textk", "textn", etc.
-  result = result.replace(/\btext([a-zA-Z])\b/g, '$1');
-  result = result.replace(/\btext([a-zA-Z]\d*)\b/g, '$1');
+  // Only replace if it looks like a mathematical variable (followed by operators or end of math context)
+  // MUCH more conservative to avoid replacing normal English words
+  result = result.replace(/\btext([a-zA-Z])(?=\s*[=+\-*/^()[\]])/g, '$1');
+  result = result.replace(/\btext([a-zA-Z]\d+)(?=\s*[=+\-*/^()[\]])/g, '$1');
   
-  // Fix cases where "text" appears with multiple characters
-  // Pattern: "textV", "textABC", etc.
-  result = result.replace(/\btext([a-zA-Z]{1,3})\b/g, '$1');
+  // Remove the aggressive pattern that replaces any "text" + letters
+  // This was causing normal words to be corrupted
   
   // Additional fix for edge cases with word boundaries and punctuation
   result = result.replace(/\btext([a-zA-Z]\d*)\s*(?=[,.\s]|$)/g, '$1');
