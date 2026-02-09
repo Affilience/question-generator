@@ -1942,7 +1942,7 @@ export function parseQuestionResponse(
     
     // CRITICAL: Also clean mark scheme entries for LaTeX text prefix issues
     const cleanedMarkScheme = Array.isArray(parsed.markScheme) 
-      ? parsed.markScheme.map(mark => cleanTextPrefixes(mark))
+      ? parsed.markScheme.map((mark: string) => cleanTextPrefixes(mark))
       : [];
 
     return {
