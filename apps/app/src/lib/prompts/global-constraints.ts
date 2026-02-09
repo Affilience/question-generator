@@ -625,8 +625,15 @@ MANDATORY: Always use proper LaTeX formatting for mathematical functions and var
 ❌ NEVER WRITE: textf(x), textg(x), texth(x), textF(x), textG(x)
 ❌ NEVER WRITE: text f(x), text g(x), text h(x), text F(x), text G(x)  
 ❌ NEVER WRITE: \\textf(x), \\textg(x), \\texth(x)
+❌ NEVER WRITE: \\text{f}(x), \\text{g}(x), \\text{h}(x), \\text{F}(x), \\text{G}(x)
+❌ NEVER WRITE: \\text{x}, \\text{y}, \\text{z}, \\text{a}, \\text{b}, \\text{c}
 ❌ NEVER WRITE: textfunction, textequation, textexpression
 ❌ NEVER WRITE: text before any mathematical symbol or function name
+
+### CRITICAL LaTeX COMMAND RULES:
+- ONLY use \\text{} for actual WORDS: \\text{where}, \\text{Area}, \\text{Volume}
+- NEVER use \\text{} around single letters: Write C not \\text{C}, write f(x) not \\text{f}(x)
+- Variables and constants should be bare: just C, f(x), h — not \\text{C}, \\text{f}(x), \\text{h}
 
 ✅ ALWAYS WRITE: f(x), g(x), h(x), F(x), G(x) (clean, no prefixes)
 ✅ ALWAYS WRITE: The function f(x) = 3x^2 (proper English + math)

@@ -40,6 +40,9 @@ function cleanTextPrefixes(content: string): string {
     .replace(/\\textg\(/g, 'g(')
     .replace(/\\texth\(/g, 'h(')
     
+    // Handle \text{<single letter>} patterns - CRITICAL FIX for LaTeX issue
+    .replace(/\\text\{([a-zA-Z])\}/g, '$1')
+    
     // Clean up any remaining "text" before mathematical notation
     .replace(/text([a-zA-Z])\s*=/g, '$1 =')
     .replace(/text\s*([a-zA-Z])\s*=/g, '$1 =')
