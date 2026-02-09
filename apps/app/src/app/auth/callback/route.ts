@@ -31,31 +31,58 @@ export async function GET(request: Request) {
       }
 
       // Check if user has any question attempts to determine if new
-      const { count } = await supabase
+      console.log('[Auth Callback] Checking question attempts for user:', data.user.id);
+      const { count, error: countError } = await supabase
         .from('question_attempts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', data.user.id);
 
+      if (countError) {
+        console.error('[Auth Callback] Error checking question attempts:', countError);
+        // Default to treating as new user if query fails
+      }
+
+      console.log('[Auth Callback] Question attempts count:', count);
+
       // New users (no attempts) go to welcome, returning users go to start
-      const redirectTo = count === 0 ? '/welcome' : '/start';
+      const isNewUser = count === 0 || countError; // Treat query errors as new users
+      const redirectTo = isNewUser ? '/welcome' : '/start';
+      
+      console.log('[Auth Callback] User type:', isNewUser ? 'NEW' : 'RETURNING', '- Redirecting to:', redirectTo);
       
       // Send welcome email for new users
-      if (count === 0 && data.user.email) {
+      if (isNewUser && data.user.email) {
+        console.log('[Auth Callback] Attempting to send welcome email to:', data.user.email);
         try {
           const firstName = data.user.user_metadata?.display_name || 
                           data.user.user_metadata?.full_name || 
                           data.user.email.split('@')[0];
           
-          await sendWelcomeEmail({
+          console.log('[Auth Callback] Extracted firstName:', firstName);
+          
+          const emailResult = await sendWelcomeEmail({
             email: data.user.email,
             firstName: firstName
           });
           
-          console.log('Welcome email sent successfully to:', data.user.email);
+          console.log('[Auth Callback] ✅ Welcome email sent successfully to:', data.user.email, 'Result:', emailResult);
         } catch (error) {
-          console.error('Failed to send welcome email:', error);
+          console.error('[Auth Callback] ❌ Failed to send welcome email:', error);
+          
+          // Enhanced error logging
+          if (error instanceof Error) {
+            console.error('[Auth Callback] Error details:', {
+              message: error.message,
+              stack: error.stack
+            });
+          }
+          
           // Don't block the signup flow if email fails
         }
+      } else if (!data.user.email) {
+        console.warn('[Auth Callback] No email address found for user - skipping welcome email');
+      } else {
+        console.log('[Auth Callback] Returning user - skipping welcome email');
       }
       
       return NextResponse.redirect(`${origin}${redirectTo}`);
