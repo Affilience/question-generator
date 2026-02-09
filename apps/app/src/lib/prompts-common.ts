@@ -11,12 +11,40 @@ import { assessDiagramQuality, validateAndSanitizeDiagram } from '@/lib/diagram-
 /**
  * Removes problematic "text" prefixes from mathematical notation
  * Addresses persistent issue where AI generates textf(x) instead of f(x)
+ * Enhanced to handle all patterns found in user reports
  */
 function cleanTextPrefixes(content: string): string {
   if (!content) return content;
   
   let cleaned = content;
   
+  // === CRITICAL: Handle broken \text{} LaTeX commands ===
+  // These are the most problematic patterns reported by users
+  
+  // 1. Fix \text{single_letter} patterns - primary LaTeX issue
+  cleaned = cleaned.replace(/\\text\{([a-zA-Z])\}/g, '$1');
+  
+  // 2. Fix \text{multiple_letters} that should be single variables
+  // Common pattern: \text{kV} -> kV, \text{in} -> in (when used for units)
+  cleaned = cleaned.replace(/\\text\{([a-zA-Z]{1,3})\}/g, (match, letters) => {
+    // Keep common units in text mode, but fix mathematical variables
+    const units = new Set(['in', 'cm', 'mm', 'km', 'kg', 'mg', 'ml', 'Hz', 'Pa', 'kV', 'mA']);
+    if (units.has(letters)) {
+      return `\\text{${letters}}`; // Keep as text for units
+    }
+    return letters; // Convert to plain text for variables
+  });
+  
+  // 3. Fix mangled "textt" patterns (broken text+t)
+  cleaned = cleaned.replace(/\btextt\b/g, 't');
+  
+  // 4. Fix separated "t e x t t" patterns
+  cleaned = cleaned.replace(/\bt\s+e\s+x\s+t\s+t\b/g, 't');
+  
+  // 5. Fix standalone "text" before single letters
+  cleaned = cleaned.replace(/\btext\s*([a-zA-Z])(?=\s|\.|,|$|\))/g, '$1');
+  
+  // === Handle function patterns ===
   // Handle specific text prefix patterns before mathematical functions
   cleaned = cleaned
     // Handle textf(x) patterns specifically
@@ -40,9 +68,6 @@ function cleanTextPrefixes(content: string): string {
     .replace(/\\textg\(/g, 'g(')
     .replace(/\\texth\(/g, 'h(')
     
-    // Handle \text{<single letter>} patterns - CRITICAL FIX for LaTeX issue
-    .replace(/\\text\{([a-zA-Z])\}/g, '$1')
-    
     // Clean up any remaining "text" before mathematical notation
     .replace(/text([a-zA-Z])\s*=/g, '$1 =')
     .replace(/text\s*([a-zA-Z])\s*=/g, '$1 =')
@@ -60,6 +85,10 @@ function cleanTextPrefixes(content: string): string {
     // Remove standalone "text" that appears before mathematical expressions
     .replace(/\btext\s+(?=\$)/g, '')
     .replace(/\btext\s+(?=[A-Za-z]\s*[=<>])/g, '');
+    
+  // === Final cleanup ===
+  // Remove any remaining isolated "text" that doesn't belong
+  cleaned = cleaned.replace(/\btext\b(?!\s*\{)/g, ''); // Remove "text" not followed by {
   
   return cleaned;
 }

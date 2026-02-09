@@ -627,8 +627,12 @@ MANDATORY: Always use proper LaTeX formatting for mathematical functions and var
 ❌ NEVER WRITE: \\textf(x), \\textg(x), \\texth(x)
 ❌ NEVER WRITE: \\text{f}(x), \\text{g}(x), \\text{h}(x), \\text{F}(x), \\text{G}(x)
 ❌ NEVER WRITE: \\text{x}, \\text{y}, \\text{z}, \\text{a}, \\text{b}, \\text{c}
-❌ NEVER WRITE: textfunction, textequation, textexpression
+❌ NEVER WRITE: \\text{t}, \\text{k}, \\text{V}, \\text{P}, \\text{Q}, \\text{R}
+❌ NEVER WRITE: \\text{in}, \\text{kV}, \\text{mA} (use proper unit formatting)
+❌ NEVER WRITE: textfunction, textequation, textexpression, textt
 ❌ NEVER WRITE: text before any mathematical symbol or function name
+❌ NEVER WRITE: t e x t t or similar broken letter patterns
+❌ CRITICAL: Do not put single letters in \\text{} commands - they are mathematical variables!
 
 ### CRITICAL LaTeX COMMAND RULES:
 - ONLY use \\text{} for actual WORDS: \\text{where}, \\text{Area}, \\text{Volume}

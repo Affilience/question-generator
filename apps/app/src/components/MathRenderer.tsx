@@ -538,14 +538,38 @@ function fixLatexEscaping(text: string): string {
 function preprocessMathForKaTeX(math: string): string {
   let result = math;
   
-  // Fix common \text command issues that cause KaTeX parsing errors
-  // 1. Fix double backslashes in \text commands
+  // === CRITICAL: Fix text prefix issues that cause rendering problems ===
+  
+  // 1. Fix broken \text{single_letter} patterns - primary LaTeX issue
+  result = result.replace(/\\text\{([a-zA-Z])\}/g, '$1');
+  
+  // 2. Fix mangled "textt" and similar patterns
+  result = result.replace(/\btextt\b/g, 't');
+  result = result.replace(/\bt\s+e\s+x\s+t\s+t\b/g, 't');
+  
+  // 3. Fix standalone "text" before single letters in math mode
+  result = result.replace(/\btext\s*([a-zA-Z])(?=\s|\.|,|$|\)|\})/g, '$1');
+  
+  // 4. Fix \text{multi-letter} for mathematical variables but preserve units
+  result = result.replace(/\\text\{([a-zA-Z]{1,3})\}/g, (match, letters) => {
+    // Preserve common units in text mode
+    const units = new Set(['in', 'cm', 'mm', 'km', 'kg', 'mg', 'ml', 'Hz', 'kHz', 'MHz', 'GHz', 'Pa', 'kPa', 'atm', 'J', 'kJ', 'N', 'V', 'A', 'Ω', 'rad', 's', 'min', 'hr', '°C', 'K']);
+    if (units.has(letters)) {
+      return match; // Keep units in \text{}
+    }
+    // Convert mathematical variables to plain text
+    return letters;
+  });
+  
+  // === Standard LaTeX fixes ===
+  
+  // Fix double backslashes in \text commands
   result = result.replace(/\\\\text\{/g, '\\text{');
   
-  // 2. Fix missing backslash before text commands (only fix if it looks like a LaTeX command)
+  // Fix missing backslash before text commands (only fix if it looks like a LaTeX command)
   result = result.replace(/\btext\{/g, '\\text{');
   
-  // 3. Fix literal "text" appearing before chemical formulas or units (be more conservative)
+  // Fix literal "text" appearing before chemical formulas or units (be more conservative)
   // Only apply this fix if "text" appears to be a broken LaTeX command, not regular prose
   result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6|cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b/g, '\\text{$1}');
   
@@ -553,18 +577,16 @@ function preprocessMathForKaTeX(math: string): string {
   // Only apply to known units, not mathematical variables
   result = result.replace(/(\d+(?:\.\d+)?)\s*text(Hz|kHz|MHz|GHz|cm|mm|km|m|g|kg|mol|Pa|kPa|atm|J|kJ|N|V|A|rad|s|min|hr|°C|K)(\^?\d*)/g, '$1 \\text{$2}$3');
   
-  // 4. Only fix standalone "text" if it's clearly in a mathematical context (removed broad replacement)
-  
-  // 5. Fix underscores in \text commands (KaTeX parsing issue)
+  // Fix underscores in \text commands (KaTeX parsing issue)
   result = result.replace(/\\text\{([^}]*_[^}]*)\}/g, (match, content) => {
     const escapedContent = content.replace(/_/g, '\\_');
     return `\\text{${escapedContent}}`;
   });
   
-  // 6. Fix common chemistry notation issues
+  // Fix common chemistry notation issues
   result = result.replace(/\b(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6)\b/g, '\\text{$1}');
   
-  // 7. Fix units that appear without proper LaTeX formatting
+  // Fix units that appear without proper LaTeX formatting
   result = result.replace(/\b(cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
   
   return result;
