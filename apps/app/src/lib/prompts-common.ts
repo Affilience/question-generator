@@ -90,6 +90,13 @@ function cleanTextPrefixes(content: string): string {
   // Remove any remaining isolated "text" that doesn't belong
   cleaned = cleaned.replace(/\btext\b(?!\s*\{)/g, ''); // Remove "text" not followed by {
   
+  // === CRITICAL: Fix broken \frac commands ===
+  // Handle cases where \frac got corrupted to just "rac"
+  cleaned = cleaned.replace(/\brac\{([^}]+)\}\{([^}]+)\}/g, '\\frac{$1}{$2}');
+  
+  // Fix partial rac patterns that might appear
+  cleaned = cleaned.replace(/\brac\{/g, '\\frac{');
+  
   return cleaned;
 }
 
@@ -1932,12 +1939,17 @@ export function parseQuestionResponse(
     // Clean up any text prefix issues as a final safeguard
     const cleanedContent = cleanTextPrefixes(parsed.content);
     const cleanedSolution = cleanTextPrefixes(parsed.solution || '');
+    
+    // CRITICAL: Also clean mark scheme entries for LaTeX text prefix issues
+    const cleanedMarkScheme = Array.isArray(parsed.markScheme) 
+      ? parsed.markScheme.map(mark => cleanTextPrefixes(mark))
+      : [];
 
     return {
       content: cleanedContent,
       marks: typeof parsed.marks === 'number' ? parsed.marks : 3,
       solution: cleanedSolution,
-      markScheme: Array.isArray(parsed.markScheme) ? parsed.markScheme : [],
+      markScheme: cleanedMarkScheme,
       diagram,
       solutionDiagram,
       diagramQualityScore,
