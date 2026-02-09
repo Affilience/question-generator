@@ -1589,13 +1589,16 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
   };
 
   return (
-    <div className={`${className} w-full max-w-full overflow-x-auto`}>
+    <div className={`${className} w-full max-w-full overflow-hidden`}>
       <svg
         width={renderWidth}
         height={renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}
         viewBox={`0 0 ${renderWidth} ${renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}`}
-        className="mx-auto block max-w-full h-auto"
-        style={{ maxWidth: `${renderWidth}px` }}
+        className="mx-auto block w-full h-auto"
+        style={{ 
+          maxWidth: `min(${renderWidth}px, 100vw - 2rem)`,
+          maxHeight: `${renderHeight + (sanitizedSpec.showNotAccurate ? 25 : 0)}px`
+        }}
         preserveAspectRatio="xMidYMid meet"
       >
         {/* Definitions for markers */}
@@ -1668,8 +1671,12 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
   if (!isClient) {
     return (
       <div 
-        className={`flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg ${className || ''}`}
-        style={{ width: maxWidth, height: maxHeight }}
+        className={`flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg w-full ${className || ''}`}
+        style={{ 
+          maxWidth: `min(${maxWidth}px, 100vw - 2rem)`, 
+          height: `min(${maxHeight}px, 40vh)`,
+          minHeight: '150px'
+        }}
       >
         <div className="text-gray-500 text-sm">Loading diagram...</div>
       </div>
