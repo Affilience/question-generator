@@ -98,48 +98,37 @@ export default function AppDashboard() {
           </div>
         </section>
 
-        {/* Choose Level */}
+        {/* Start Learning */}
         <section>
           <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
-            Start Practicing
+            Start Learning
           </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {qualifications.map((qual) => (
-              <Link
-                key={qual.id}
-                href={`/${qual.id}`}
-                className="group bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)] p-6 transition-all duration-200 hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-bg-elevated)]"
+          <Link
+            href="/choose-mode"
+            className="group bg-gradient-to-r from-[var(--color-accent)]/10 to-[var(--color-accent)]/5 rounded-xl border border-[var(--color-accent)]/30 p-8 transition-all duration-200 hover:border-[var(--color-accent)]/50 hover:bg-gradient-to-r hover:from-[var(--color-accent)]/15 hover:to-[var(--color-accent)]/8 block"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">🎯</div>
+                <div>
+                  <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+                    Choose Your Study Mode
+                  </h3>
+                  <p className="text-[var(--color-text-secondary)] max-w-2xl">
+                    Practice unlimited questions or study comprehensive theory notes across all subjects and exam boards.
+                  </p>
+                </div>
+              </div>
+              <svg
+                className="w-6 h-6 text-[var(--color-accent)] group-hover:translate-x-1 transition-all"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-1">
-                      {qual.name}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)]">
-                      {qual.fullName}
-                    </p>
-                  </div>
-                  <span className="text-3xl">{qual.id === 'a-level' ? '🎓' : '📚'}</span>
-                </div>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  {qual.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--color-text-muted)]">
-                    View subjects
-                  </span>
-                  <svg
-                    className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
         </section>
       </main>
     </div>

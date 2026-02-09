@@ -476,7 +476,6 @@ export const aqaTopics: Topic[] = [
       'Velocity-time graphs',
       'Real-life graphs interpretation',
       'Gradients as rates of change',
-      'Area under a graph (H)',
       // A16-A18: Sequences
       'Term-to-term rules',
       'Position-to-term rules',
