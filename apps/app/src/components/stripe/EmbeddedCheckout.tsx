@@ -7,8 +7,14 @@ import {
   EmbeddedCheckout,
 } from '@stripe/react-stripe-js';
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) 
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublishableKey) {
+  console.error('[Stripe] Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable');
+}
+
+const stripePromise = stripePublishableKey 
+  ? loadStripe(stripePublishableKey) 
   : null;
 
 interface EmbeddedCheckoutModalProps {
@@ -34,6 +40,8 @@ export function EmbeddedCheckoutModal({
 
   const fetchClientSecret = useCallback(async () => {
     try {
+      console.log('[Checkout] Starting checkout session creation', { priceKey, userId });
+      
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,12 +54,23 @@ export function EmbeddedCheckoutModal({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create checkout');
+        console.error('[Checkout] Failed to create session:', data);
+        throw new Error(data.error || `Failed to create checkout (${response.status})`);
       }
 
       const data = await response.json();
+      console.log('[Checkout] Session created successfully', { 
+        hasClientSecret: !!data.clientSecret,
+        sessionId: data.sessionId 
+      });
+      
+      if (!data.clientSecret) {
+        throw new Error('No client secret returned from checkout session');
+      }
+      
       return data.clientSecret;
     } catch (err) {
+      console.error('[Checkout] Error in fetchClientSecret:', err);
       setError(err instanceof Error ? err.message : 'Something went wrong');
       throw err;
     }
@@ -104,6 +123,15 @@ export function EmbeddedCheckoutModal({
               >
                 Try again
               </button>
+            </div>
+          ) : !stripePromise ? (
+            <div className="text-center py-8">
+              <p className="text-red-400 mb-4">
+                Payment system is not configured. Please contact support.
+              </p>
+              <p className="text-xs text-white/40">
+                Missing Stripe configuration
+              </p>
             </div>
           ) : (
             <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>

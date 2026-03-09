@@ -281,6 +281,20 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     refreshSubscription();
   }, [refreshSubscription]);
 
+  // Listen for subscription-claimed event from auth context
+  useEffect(() => {
+    const handleSubscriptionClaimed = () => {
+      console.log('[SubscriptionContext] Subscription claimed event received, refreshing...');
+      refreshSubscription();
+    };
+
+    window.addEventListener('subscription-claimed', handleSubscriptionClaimed);
+    
+    return () => {
+      window.removeEventListener('subscription-claimed', handleSubscriptionClaimed);
+    };
+  }, [refreshSubscription]);
+
   // Listen for subscription changes in real-time
   useEffect(() => {
     if (!user) return;

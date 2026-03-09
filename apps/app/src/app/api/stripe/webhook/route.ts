@@ -116,18 +116,51 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.user_id;
   const customerId = session.customer as string;
   const priceKey = session.metadata?.price_key;
+  const customerEmail = session.customer_details?.email;
 
   console.log('Processing checkout.session.completed:', {
     sessionId: session.id,
     userId,
     customerId,
+    customerEmail,
     priceKey,
     mode: session.mode,
     subscriptionId: session.subscription
   });
 
+  // Handle anonymous purchases - store for later account creation
+  if (!userId && customerEmail) {
+    console.log('Anonymous purchase detected, storing pending subscription');
+    
+    // Store the pending subscription for when user creates account
+    const { error } = await supabase
+      .from('pending_subscriptions')
+      .insert({
+        session_id: session.id,
+        email: customerEmail.toLowerCase(),
+        stripe_customer_id: customerId,
+        stripe_subscription_id: session.subscription as string,
+        price_key: priceKey,
+        created_at: new Date().toISOString(),
+        metadata: {
+          customer_name: session.customer_details?.name,
+          payment_status: session.payment_status,
+        }
+      });
+
+    if (error) {
+      console.error('Error storing pending subscription:', error);
+    } else {
+      console.log('Pending subscription stored successfully for:', customerEmail);
+    }
+    
+    // Still process the subscription in Stripe's records
+    // but don't create a user_subscription record yet
+    return;
+  }
+
   if (!userId) {
-    console.error('No user_id in checkout session metadata');
+    console.error('No user_id and no email in checkout session');
     return;
   }
 

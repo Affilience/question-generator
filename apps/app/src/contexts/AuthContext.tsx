@@ -147,6 +147,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', authUser.id);
     }
 
+    // Check for and claim any pending subscriptions from anonymous purchase
+    if (authUser.email) {
+      try {
+        const response = await fetch('/api/subscription/claim-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authUser.id,
+            email: authUser.email
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.claimed) {
+            console.log('[Auth] Successfully claimed pending subscription for user');
+            // Trigger a subscription refresh via event
+            window.dispatchEvent(new CustomEvent('subscription-claimed'));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check for pending subscriptions:', err);
+      }
+    }
+
     // Migrate any localStorage progress to Supabase
     try {
       await migrateLocalProgressToSupabase(authUser.id);
