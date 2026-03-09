@@ -182,26 +182,46 @@ export function EmbeddedCheckoutModal({
                   onClick={async () => {
                     try {
                       setIsLoading(true);
-                      const response = await fetch('/api/stripe/create-checkout-redirect', {
+                      
+                      // First try the test endpoint to get better error info
+                      console.log('[Checkout] Trying test endpoint...');
+                      const testResponse = await fetch('/api/stripe/test-checkout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          priceKey,
-                          userId,
-                        }),
+                        body: JSON.stringify({ priceKey }),
                       });
                       
-                      if (!response.ok) {
-                        throw new Error('Failed to create checkout');
-                      }
+                      const testData = await testResponse.json();
+                      console.log('[Checkout] Test endpoint response:', testData);
                       
-                      const data = await response.json();
-                      if (data.url) {
-                        window.location.href = data.url;
+                      if (!testResponse.ok) {
+                        console.error('[Checkout] Test endpoint failed:', testData);
+                        // Fall back to redirect checkout
+                        const response = await fetch('/api/stripe/create-checkout-redirect', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            priceKey,
+                            userId,
+                          }),
+                        });
+                        
+                        if (!response.ok) {
+                          const errorData = await response.json();
+                          throw new Error(errorData.error || 'Failed to create checkout');
+                        }
+                        
+                        const data = await response.json();
+                        if (data.url) {
+                          window.location.href = data.url;
+                        }
+                      } else if (testData.url) {
+                        // If test endpoint returns a URL, use it
+                        window.location.href = testData.url;
                       }
                     } catch (err) {
                       console.error('Failed to redirect to checkout:', err);
-                      setError('Failed to open checkout. Please try again.');
+                      setError(err instanceof Error ? err.message : 'Failed to open checkout. Please try again.');
                     } finally {
                       setIsLoading(false);
                     }
