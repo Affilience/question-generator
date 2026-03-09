@@ -17,6 +17,8 @@ export function LoginForm() {
   const urlError = searchParams.get('error');
   const errorCode = searchParams.get('error_code');
   const errorDescription = searchParams.get('error_description');
+  const sessionId = searchParams.get('session_id');
+  const fromCheckout = searchParams.get('from') === 'checkout';
 
   // Handle URL-based errors (like expired OTP links)
   const getInitialError = () => {
@@ -56,6 +58,33 @@ export function LoginForm() {
       setError(error);
       setLoading(false);
     } else {
+      // Get the user data
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // If coming from checkout, try to claim the pending subscription
+      if (fromCheckout && user && email) {
+        try {
+          const response = await fetch('/api/subscription/claim-pending', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, email })
+          });
+          
+          const result = await response.json();
+          console.log('Subscription claim result:', result);
+          
+          if (result.claimed) {
+            // Redirect to dashboard with success message
+            router.push('/dashboard?subscription=claimed');
+            return;
+          }
+        } catch (err) {
+          console.error('Error claiming subscription:', err);
+          // Continue with normal flow if claim fails
+        }
+      }
+
       // If there's an explicit redirect, use it
       if (redirect) {
         router.push(redirect);
@@ -63,9 +92,6 @@ export function LoginForm() {
       }
 
       // Otherwise, check if user is new (no question attempts)
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
       if (user) {
         const { count } = await supabase
           .from('question_attempts')
@@ -110,6 +136,17 @@ export function LoginForm() {
         {/* Login Card */}
         <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-8">
           <h1 className="text-2xl font-semibold text-white mb-6">Welcome back</h1>
+
+          {fromCheckout && (
+            <div className="space-y-3 mb-6">
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg text-sm">
+                ✅ Payment successful! Log in to activate your subscription.
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm">
+                ⚠️ <strong>Important:</strong> Use the same email address you entered during checkout.
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">

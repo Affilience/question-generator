@@ -127,8 +127,13 @@ export function SignupForm() {
           <h1 className="text-2xl font-semibold text-white mb-6">Create account</h1>
 
           {fromCheckout && (
-            <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
-              ✅ Payment successful! Create your account to activate your subscription.
+            <div className="space-y-3 mb-6">
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg text-sm">
+                ✅ Payment successful! Create your account to activate your subscription.
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm">
+                ⚠️ <strong>Important:</strong> Use the same email address you entered during checkout to link your subscription.
+              </div>
             </div>
           )}
 

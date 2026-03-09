@@ -96,9 +96,13 @@ function SubscriptionSuccessContent() {
               <h1 className="text-2xl font-semibold text-white mb-4">
                 Payment Successful!
               </h1>
-              <p className="text-white/60 mb-8">
+              <p className="text-white/60 mb-4">
                 Thank you for your purchase. Please create an account to access your subscription.
               </p>
+              
+              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm mb-6">
+                ⚠️ <strong>Important:</strong> Sign up using the same email address you entered during checkout.
+              </div>
               
               <div className="space-y-3">
                 <Link
