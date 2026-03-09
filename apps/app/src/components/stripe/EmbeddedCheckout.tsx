@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   EmbeddedCheckoutProvider,
@@ -8,6 +8,11 @@ import {
 } from '@stripe/react-stripe-js';
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+console.log('[Stripe] Publishable key status:', {
+  hasKey: !!stripePublishableKey,
+  keyPrefix: stripePublishableKey?.substring(0, 7)
+});
 
 if (!stripePublishableKey) {
   console.error('[Stripe] Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable');
@@ -37,6 +42,30 @@ export function EmbeddedCheckoutModal({
   onSuccess,
 }: EmbeddedCheckoutModalProps) {
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+
+  useEffect(() => {
+    console.log('[EmbeddedCheckoutModal] Component mounted', {
+      stripePromise: !!stripePromise,
+      priceKey,
+      userId
+    });
+    
+    // Check if Stripe loads successfully
+    if (stripePromise) {
+      stripePromise.then(stripe => {
+        console.log('[EmbeddedCheckoutModal] Stripe loaded:', !!stripe);
+        setStripeLoaded(!!stripe);
+        if (!stripe) {
+          setError('Failed to load payment system. Please check your connection.');
+        }
+      }).catch(err => {
+        console.error('[EmbeddedCheckoutModal] Failed to load Stripe:', err);
+        setError('Failed to load payment system.');
+      });
+    }
+  }, [priceKey, userId]);
 
   const fetchClientSecret = useCallback(async () => {
     try {
@@ -79,9 +108,22 @@ export function EmbeddedCheckoutModal({
   const options = {
     fetchClientSecret,
     onComplete: () => {
+      console.log('[EmbeddedCheckout] Payment completed');
       onSuccess?.();
     },
   };
+
+  // Debug: Try fetching client secret immediately to test
+  useEffect(() => {
+    if (stripeLoaded && !error) {
+      console.log('[EmbeddedCheckout] Testing fetchClientSecret...');
+      fetchClientSecret().then(secret => {
+        console.log('[EmbeddedCheckout] Client secret fetched successfully:', !!secret);
+      }).catch(err => {
+        console.error('[EmbeddedCheckout] Failed to fetch client secret:', err);
+      });
+    }
+  }, [stripeLoaded, error, fetchClientSecret]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -134,9 +176,53 @@ export function EmbeddedCheckoutModal({
               </p>
             </div>
           ) : (
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
-              <EmbeddedCheckout className="stripe-checkout" />
-            </EmbeddedCheckoutProvider>
+            <>
+              <div className="stripe-checkout-container">
+                <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
+                  <EmbeddedCheckout className="stripe-checkout" />
+                </EmbeddedCheckoutProvider>
+              </div>
+              
+              {/* Fallback to redirect mode if embedded doesn't load */}
+              <div className="mt-4 p-4 bg-white/5 rounded-lg">
+                <p className="text-xs text-white/60 mb-3">
+                  Having trouble with the payment form?
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      const response = await fetch('/api/stripe/create-checkout-redirect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          priceKey,
+                          userId,
+                        }),
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error('Failed to create checkout');
+                      }
+                      
+                      const data = await response.json();
+                      if (data.url) {
+                        window.location.href = data.url;
+                      }
+                    } catch (err) {
+                      console.error('Failed to redirect to checkout:', err);
+                      setError('Failed to open checkout. Please try again.');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="w-full px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isLoading ? 'Opening checkout...' : 'Use alternative checkout →'}
+                </button>
+              </div>
+            </>
           )}
         </div>
 
@@ -155,11 +241,22 @@ export function EmbeddedCheckoutModal({
       </div>
 
       <style jsx global>{`
+        .stripe-checkout-container {
+          min-height: 400px;
+          width: 100%;
+        }
+
         .stripe-checkout {
           --colorPrimary: #3b82f6;
           --colorBackground: #111111;
           --colorText: #ffffff;
           --colorDanger: #ef4444;
+          min-height: 400px;
+        }
+
+        /* Ensure iframe has height */
+        .stripe-checkout iframe {
+          min-height: 400px !important;
         }
 
         /* Custom scrollbar for checkout */
