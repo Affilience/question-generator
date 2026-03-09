@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,6 +14,9 @@ export function SignupForm() {
   const [success, setSuccess] = useState(false);
   const { signUp, signInWithGoogle, signInWithGithub } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+  const fromCheckout = searchParams.get('from') === 'checkout';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,14 +29,39 @@ export function SignupForm() {
       return;
     }
 
-    const { error } = await signUp(email, password, displayName);
+    const { error, user } = await signUp(email, password, displayName);
 
     if (error) {
       setError(error);
       setLoading(false);
-    } else {
-      // Redirect immediately to welcome page instead of showing success screen
-      router.push('/welcome');
+    } else if (user) {
+      // If coming from checkout, try to claim the pending subscription
+      if (fromCheckout && email) {
+        try {
+          const response = await fetch('/api/subscription/claim-pending', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, email })
+          });
+          
+          const result = await response.json();
+          console.log('Subscription claim result:', result);
+          
+          if (result.claimed) {
+            // Redirect to dashboard with success message
+            router.push('/dashboard?subscription=claimed');
+          } else {
+            // Still redirect but subscription might have been processed by webhook
+            router.push('/welcome');
+          }
+        } catch (err) {
+          console.error('Error claiming subscription:', err);
+          router.push('/welcome');
+        }
+      } else {
+        // Normal signup flow
+        router.push('/welcome');
+      }
     }
   };
 
@@ -87,12 +115,22 @@ export function SignupForm() {
           <Link href="/" className="text-2xl font-semibold text-white">
             Past Papers
           </Link>
-          <p className="text-white/50 mt-2">Create an account to save your progress</p>
+          <p className="text-white/50 mt-2">
+            {fromCheckout 
+              ? "Complete your account setup to access your subscription" 
+              : "Create an account to save your progress"}
+          </p>
         </div>
 
         {/* Signup Card */}
         <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-8">
           <h1 className="text-2xl font-semibold text-white mb-6">Create account</h1>
+
+          {fromCheckout && (
+            <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
+              ✅ Payment successful! Create your account to activate your subscription.
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">

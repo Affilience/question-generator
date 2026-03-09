@@ -114,12 +114,9 @@ export async function POST(request: NextRequest) {
       sessionParams.customer = customerId;
     } else if (email) {
       sessionParams.customer_email = email;
-    } else {
-      // For anonymous users, let Stripe collect the email
-      sessionParams.customer_creation = 'always';
-      // Add field to collect phone for better conversion
-      sessionParams.phone_number_collection = { enabled: false };
     }
+    // Note: customer_creation is only for 'payment' mode, not 'subscription' mode
+    // For subscription mode, Stripe automatically creates customers
 
     console.log('[API] Creating Stripe session with params:', {
       mode: sessionParams.mode,
