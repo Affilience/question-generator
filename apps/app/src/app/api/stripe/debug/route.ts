@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const config = {
+  const config: any = {
     environment: process.env.NODE_ENV,
     hasStripeSecret: !!process.env.STRIPE_SECRET_KEY,
     stripeSecretPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7),
