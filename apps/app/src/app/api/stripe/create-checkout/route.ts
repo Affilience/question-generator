@@ -12,6 +12,15 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   console.log('[API] Create checkout session started');
   
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('[API] Missing STRIPE_SECRET_KEY');
+    return NextResponse.json(
+      { error: 'Payment system not configured' },
+      { status: 500 }
+    );
+  }
+  
   try {
     const body = await request.json();
     console.log('[API] Request body:', { 
@@ -31,14 +40,31 @@ export async function POST(request: NextRequest) {
 
     const { priceKey, userId, returnUrl } = validation.data!;
 
+    // Log all available price environment variables for debugging
+    console.log('[API] Environment check:', {
+      hasStudentPlusMonthly: !!process.env.STRIPE_PRICE_STUDENT_PLUS_MONTHLY,
+      hasStudentPlusAnnual: !!process.env.STRIPE_PRICE_STUDENT_PLUS_ANNUAL,
+      hasExamProMonthly: !!process.env.STRIPE_PRICE_EXAM_PRO_MONTHLY,
+      hasExamProAnnual: !!process.env.STRIPE_PRICE_EXAM_PRO_ANNUAL,
+    });
+
     const priceId = STRIPE_PRICES[priceKey as keyof typeof STRIPE_PRICES];
-    console.log('[API] Price mapping:', { priceKey, priceId, availablePrices: Object.keys(STRIPE_PRICES) });
+    console.log('[API] Price mapping:', { 
+      priceKey, 
+      priceId, 
+      availablePrices: Object.keys(STRIPE_PRICES),
+      stripeConfig: STRIPE_PRICES 
+    });
     
-    if (!priceId) {
-      console.error('[API] Invalid price key:', priceKey);
+    if (!priceId || priceId === `price_${priceKey}`) {
+      console.error('[API] Invalid price configuration:', { 
+        priceKey, 
+        priceId,
+        envVarName: `STRIPE_PRICE_${priceKey.toUpperCase()}`
+      });
       return NextResponse.json({ 
-        error: 'Invalid price key',
-        details: `Price key "${priceKey}" not found in configuration` 
+        error: 'Invalid price configuration',
+        details: `Price not configured for "${priceKey}". Please check environment variables.` 
       }, { status: 400 });
     }
 
@@ -124,11 +150,31 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    
+    // Provide more detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = {
+      message: errorMessage,
+      type: error?.constructor?.name,
+      route: '/api/stripe/create-checkout',
+      // Include Stripe error details if available
+      stripeError: (error as any)?.raw?.message || (error as any)?.statusCode,
+    };
+    
+    console.error('Detailed error:', errorDetails);
+    
     Sentry.captureException(error, {
-      extra: { route: '/api/stripe/create-checkout' },
+      extra: errorDetails,
     });
+    
+    // Return more informative error in development
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { 
+        error: 'Failed to create checkout session',
+        ...(isDevelopment && { details: errorMessage })
+      },
       { status: 500 }
     );
   }

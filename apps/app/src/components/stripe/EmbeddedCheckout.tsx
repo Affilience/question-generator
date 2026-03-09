@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   EmbeddedCheckoutProvider,
@@ -105,25 +105,15 @@ export function EmbeddedCheckoutModal({
     }
   }, [priceKey, userId]);
 
-  const options = {
+  // Memoize options to prevent "Unsupported prop change" warning
+  const options = useMemo(() => ({
     fetchClientSecret,
     onComplete: () => {
       console.log('[EmbeddedCheckout] Payment completed');
       onSuccess?.();
     },
-  };
+  }), [fetchClientSecret, onSuccess]);
 
-  // Debug: Try fetching client secret immediately to test
-  useEffect(() => {
-    if (stripeLoaded && !error) {
-      console.log('[EmbeddedCheckout] Testing fetchClientSecret...');
-      fetchClientSecret().then(secret => {
-        console.log('[EmbeddedCheckout] Client secret fetched successfully:', !!secret);
-      }).catch(err => {
-        console.error('[EmbeddedCheckout] Failed to fetch client secret:', err);
-      });
-    }
-  }, [stripeLoaded, error, fetchClientSecret]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
