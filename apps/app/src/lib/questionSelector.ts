@@ -340,6 +340,10 @@ export class QuestionSelector {
     // Clone allocations for this section's use
     const availableAllocations = subtopicAllocations.map((a) => ({ ...a }));
 
+    // Track used topics for diversity enforcement
+    const usedTopics = new Set<string>();
+    const topicUsageCount = new Map<string, number>();
+
     // Calculate target marks per difficulty
     const difficultyTargets: Record<Difficulty, number> = {
       easy: Math.round((difficultyDistribution.easy / 100) * targetMarks),
@@ -349,11 +353,16 @@ export class QuestionSelector {
 
     const difficultyUsed: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0 };
 
+    // Get unique topic count for diversity calculation
+    const uniqueTopics = new Set(availableAllocations.map(a => a.topicId));
+    const targetTopicsPerSection = Math.min(uniqueTopics.size, Math.max(2, Math.floor(targetMarks / 15))); // At least 2 topics per section, more for longer sections
+
     // Generate questions until we hit target marks
     const maxIterations = 100; // Safety limit
     let iterations = 0;
 
     console.log(`🔧 QUESTION PLANNING DEBUG - Section: ${section.id}, Target marks: ${targetMarks}, Available allocations: ${availableAllocations.length}`);
+    console.log(`🎯 DIVERSITY TARGET: Aiming for ${targetTopicsPerSection} different topics out of ${uniqueTopics.size} available`);
     if (availableAllocations.length > 0) {
       console.log(`📝 First few allocations:`, availableAllocations.slice(0, 3).map(a => `${a.topicId}/${a.subtopic} (${a.allocatedMarks} marks)`));
     }
@@ -387,13 +396,20 @@ export class QuestionSelector {
       );
       console.log(`📊 Chose difficulty: ${difficulty}`);
 
-      // Choose subtopic based on allocations
-      const subtopicChoice = this.chooseSubtopic(availableAllocations, marks);
+      // Choose subtopic with diversity enforcement
+      const subtopicChoice = this.chooseSubtopicWithDiversity(
+        availableAllocations, 
+        marks, 
+        usedTopics,
+        topicUsageCount,
+        targetTopicsPerSection,
+        questions.length
+      );
       if (!subtopicChoice) {
         console.log(`❌ No subtopic available for ${marks} marks`);
         break;
       }
-      console.log(`🎯 Chose subtopic: ${subtopicChoice.topicId}/${subtopicChoice.subtopic}`);
+      console.log(`🎯 Chose subtopic: ${subtopicChoice.topicId}/${subtopicChoice.subtopic} (topic usage: ${topicUsageCount.get(subtopicChoice.topicId) || 0})`);
 
       // Create the question plan
       const plan: QuestionPlan = {
@@ -410,6 +426,10 @@ export class QuestionSelector {
       questions.push(plan);
       remainingMarks -= marks;
       difficultyUsed[difficulty] += marks;
+
+      // Update topic usage tracking
+      usedTopics.add(subtopicChoice.topicId);
+      topicUsageCount.set(subtopicChoice.topicId, (topicUsageCount.get(subtopicChoice.topicId) || 0) + 1);
 
       // Update subtopic allocation
       subtopicChoice.allocatedMarks -= marks;
@@ -588,6 +608,65 @@ export class QuestionSelector {
     }
 
     return null;
+  }
+
+  /**
+   * Choose a subtopic with diversity enforcement to ensure varied question topics
+   * CRITICAL FIX: Prevents all questions being on same topic (e.g., all speed/distance/time)
+   */
+  private chooseSubtopicWithDiversity(
+    allocations: SubtopicAllocation[],
+    marks: number,
+    usedTopics: Set<string>,
+    topicUsageCount: Map<string, number>,
+    targetTopicsPerSection: number,
+    questionsGenerated: number
+  ): SubtopicAllocation | null {
+    if (allocations.length === 0) return null;
+
+    // DIVERSITY PHASE 1: If we haven't used enough different topics, prioritize unused topics
+    if (usedTopics.size < targetTopicsPerSection && questionsGenerated < 10) {
+      const unusedTopicAllocations = allocations.filter(a => !usedTopics.has(a.topicId) && a.allocatedMarks >= marks);
+      if (unusedTopicAllocations.length > 0) {
+        console.log(`🌈 DIVERSITY: Selecting from ${unusedTopicAllocations.length} unused topics`);
+        return unusedTopicAllocations[Math.floor(this.random() * unusedTopicAllocations.length)];
+      }
+    }
+
+    // DIVERSITY PHASE 2: Avoid overusing any single topic
+    const maxUsagePerTopic = Math.max(1, Math.ceil(10 / usedTopics.size)); // Allow at most this many questions per topic
+    
+    // Filter out overused topics
+    const balancedAllocations = allocations.filter(a => {
+      const usage = topicUsageCount.get(a.topicId) || 0;
+      return usage < maxUsagePerTopic && a.allocatedMarks >= marks;
+    });
+
+    if (balancedAllocations.length > 0) {
+      console.log(`⚖️ DIVERSITY: Selecting from ${balancedAllocations.length} balanced topics (avoiding overuse)`);
+      return balancedAllocations[Math.floor(this.random() * balancedAllocations.length)];
+    }
+
+    // DIVERSITY PHASE 3: Prefer least-used topics
+    const sortedByUsage = allocations
+      .filter(a => a.allocatedMarks >= marks)
+      .sort((a, b) => {
+        const usageA = topicUsageCount.get(a.topicId) || 0;
+        const usageB = topicUsageCount.get(b.topicId) || 0;
+        return usageA - usageB; // Least used first
+      });
+
+    if (sortedByUsage.length > 0) {
+      // Select from the least-used quarter to maintain some randomness
+      const topQuarter = Math.max(1, Math.floor(sortedByUsage.length / 4));
+      const leastUsedOptions = sortedByUsage.slice(0, topQuarter);
+      console.log(`📊 DIVERSITY: Selecting from ${leastUsedOptions.length} least-used topics`);
+      return leastUsedOptions[Math.floor(this.random() * leastUsedOptions.length)];
+    }
+
+    // FALLBACK: Use original logic if diversity constraints can't be met
+    console.log(`🔄 FALLBACK: Using original subtopic selection`);
+    return this.chooseSubtopic(allocations, marks);
   }
 
   /**

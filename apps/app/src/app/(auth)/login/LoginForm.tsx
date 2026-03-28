@@ -64,6 +64,7 @@ export function LoginForm() {
 
       // If coming from checkout, try to claim the pending subscription
       if (fromCheckout && user && email) {
+        console.log('[LoginForm] User logged in from checkout, attempting to claim subscription');
         try {
           const response = await fetch('/api/subscription/claim-pending', {
             method: 'POST',
@@ -71,16 +72,25 @@ export function LoginForm() {
             body: JSON.stringify({ userId: user.id, email })
           });
           
+          if (!response.ok) {
+            console.error('[LoginForm] Claim-pending response not OK:', response.status);
+          }
+          
           const result = await response.json();
-          console.log('Subscription claim result:', result);
+          console.log('[LoginForm] Subscription claim result:', result);
           
           if (result.claimed) {
+            console.log('[LoginForm] Subscription claimed successfully');
             // Redirect to dashboard with success message
             router.push('/dashboard?subscription=claimed');
             return;
+          } else if (result.hasActiveSubscription) {
+            console.log('[LoginForm] User already has active subscription');
+            router.push('/dashboard');
+            return;
           }
         } catch (err) {
-          console.error('Error claiming subscription:', err);
+          console.error('[LoginForm] Error claiming subscription:', err);
           // Continue with normal flow if claim fails
         }
       }

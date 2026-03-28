@@ -37,26 +37,42 @@ export function SignupForm() {
     } else if (user) {
       // If coming from checkout, try to claim the pending subscription
       if (fromCheckout && email) {
+        console.log('[SignupForm] User signed up from checkout, attempting to claim subscription');
         try {
+          // Wait a moment for the auth state to stabilize
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           const response = await fetch('/api/subscription/claim-pending', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id, email })
           });
           
+          if (!response.ok) {
+            console.error('[SignupForm] Claim-pending response not OK:', response.status);
+            const errorText = await response.text();
+            console.error('[SignupForm] Error response:', errorText);
+            // Still continue to dashboard - syncUserToDatabase might handle it
+            router.push('/dashboard?subscription=pending');
+            return;
+          }
+          
           const result = await response.json();
-          console.log('Subscription claim result:', result);
+          console.log('[SignupForm] Subscription claim result:', result);
           
           if (result.claimed) {
             // Redirect to dashboard with success message
+            console.log('[SignupForm] Subscription claimed successfully');
             router.push('/dashboard?subscription=claimed');
           } else {
-            // Still redirect but subscription might have been processed by webhook
-            router.push('/welcome');
+            console.log('[SignupForm] No pending subscription found, might be handled by webhook');
+            // Still redirect to dashboard - subscription might have been processed by webhook
+            router.push('/dashboard?subscription=checking');
           }
         } catch (err) {
-          console.error('Error claiming subscription:', err);
-          router.push('/welcome');
+          console.error('[SignupForm] Error claiming subscription:', err);
+          // Still continue to dashboard - syncUserToDatabase might handle it
+          router.push('/dashboard?subscription=error');
         }
       } else {
         // Normal signup flow

@@ -32,9 +32,9 @@ async function getUserStatistics() {
       return;
     }
 
-    // Active users from user_progress table
+    // Active users from user_topic_progress table
     const { data: progress, error: progressError } = await supabase
-      .from('user_progress')
+      .from('user_topic_progress')
       .select('user_id, last_practiced_at')
       .order('last_practiced_at', { ascending: false });
 

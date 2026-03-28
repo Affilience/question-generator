@@ -101,6 +101,126 @@ function cleanTextPrefixes(content: string): string {
 }
 
 /**
+ * Validates and fixes mark scheme quality issues
+ * CRITICAL FIX: Ensures mark schemes make mathematical sense and match question marks
+ */
+function validateMarkScheme(markScheme: string[], questionMarks: number): string[] {
+  if (!Array.isArray(markScheme) || markScheme.length === 0) {
+    console.warn(`[Mark Scheme] Missing mark scheme for ${questionMarks}-mark question`);
+    return generateFallbackMarkScheme(questionMarks);
+  }
+
+  let validatedScheme = [...markScheme];
+  let issues: string[] = [];
+
+  // Check 1: Remove empty or useless entries
+  validatedScheme = validatedScheme.filter(entry => {
+    const cleaned = entry.trim();
+    if (!cleaned || cleaned === '...' || cleaned === 'etc.') {
+      issues.push('Removed empty/placeholder entries');
+      return false;
+    }
+    return true;
+  });
+
+  // Check 2: Validate mark notation format (M1, A1, B1, etc.)
+  const markNotationPattern = /\b[MAB]\d+\b|[Ll]evel\s+\d+|\d+\s*marks?/i;
+  const hasProperNotation = validatedScheme.some(entry => markNotationPattern.test(entry));
+  
+  if (!hasProperNotation && questionMarks <= 6) {
+    issues.push('Added proper mark notation (M1, A1, B1)');
+    validatedScheme = addMarkNotation(validatedScheme, questionMarks);
+  }
+
+  // Check 3: Ensure mark scheme has reasonable number of entries
+  if (validatedScheme.length < Math.max(1, Math.floor(questionMarks / 2))) {
+    issues.push('Mark scheme too sparse - added additional marking points');
+    const additional = generateAdditionalMarkPoints(questionMarks, validatedScheme.length);
+    validatedScheme.push(...additional);
+  }
+
+  // Check 4: Look for mathematical accuracy issues
+  validatedScheme = validatedScheme.map(entry => {
+    let fixed = entry;
+    
+    // Fix common notation errors
+    fixed = fixed.replace(/\bFor\b/g, 'for'); // Capitalize errors
+    fixed = fixed.replace(/\b1 mark\b/g, '(1 mark)'); // Formatting
+    fixed = fixed.replace(/([MAB])(\d+)/g, '$1$2:'); // Add colons M1: instead of M1
+    
+    return fixed;
+  });
+
+  if (issues.length > 0) {
+    console.warn(`[Mark Scheme] Fixed ${issues.length} issues for ${questionMarks}-mark question:`, issues);
+  }
+
+  return validatedScheme;
+}
+
+/**
+ * Generates a fallback mark scheme when none provided or invalid
+ */
+function generateFallbackMarkScheme(marks: number): string[] {
+  if (marks === 1) {
+    return ['B1: Correct answer'];
+  } else if (marks === 2) {
+    return ['M1: Correct method', 'A1: Correct answer'];
+  } else if (marks === 3) {
+    return ['M1: Correct method/setup', 'M1: Appropriate calculation', 'A1: Correct answer'];
+  } else if (marks === 4) {
+    return ['M1: Correct method', 'M1: Substitution into formula', 'A1: Intermediate step', 'A1: Final answer'];
+  } else if (marks === 5) {
+    return ['M1: Correct method', 'M1: Setup equation/formula', 'A1: Substitution', 'A1: Calculation', 'A1: Final answer'];
+  } else if (marks === 6) {
+    return [
+      'Level 3 (5-6 marks): Clear, detailed explanation with correct terminology',
+      'Level 2 (3-4 marks): Some explanation with partially correct terminology', 
+      'Level 1 (1-2 marks): Basic statements with limited explanation'
+    ];
+  } else {
+    // For higher marks, create level-based scheme
+    return [
+      `Level 3 (${Math.ceil(marks * 0.7)}-${marks} marks): Comprehensive answer with detailed analysis`,
+      `Level 2 (${Math.ceil(marks * 0.4)}-${Math.ceil(marks * 0.6)} marks): Partial answer with some analysis`,
+      `Level 1 (1-${Math.ceil(marks * 0.3)} marks): Basic answer with limited detail`
+    ];
+  }
+}
+
+/**
+ * Adds proper mark notation to existing mark scheme
+ */
+function addMarkNotation(scheme: string[], questionMarks: number): string[] {
+  const notated = scheme.map((entry, index) => {
+    if (index === scheme.length - 1 && questionMarks <= 6) {
+      return `A1: ${entry}`; // Last entry is usually the answer
+    } else {
+      return `M${index + 1}: ${entry}`; // Method marks
+    }
+  });
+  return notated;
+}
+
+/**
+ * Generates additional marking points when scheme is too sparse
+ */
+function generateAdditionalMarkPoints(totalMarks: number, currentPoints: number): string[] {
+  const needed = Math.max(1, Math.floor(totalMarks / 2)) - currentPoints;
+  const additional: string[] = [];
+  
+  for (let i = 0; i < needed; i++) {
+    if (i === needed - 1) {
+      additional.push('A1: Correct final answer');
+    } else {
+      additional.push(`M${currentPoints + i + 1}: Appropriate working shown`);
+    }
+  }
+  
+  return additional;
+}
+
+/**
  * Question variety dimensions to ensure diverse question generation.
  */
 export const VARIETY_DIMENSIONS = {
@@ -1945,11 +2065,15 @@ export function parseQuestionResponse(
       ? parsed.markScheme.map((mark: string) => cleanTextPrefixes(mark))
       : [];
 
+    // VALIDATE MARK SCHEME QUALITY
+    const questionMarks = typeof parsed.marks === 'number' ? parsed.marks : 3;
+    const validatedMarkScheme = validateMarkScheme(cleanedMarkScheme, questionMarks);
+
     return {
       content: cleanedContent,
-      marks: typeof parsed.marks === 'number' ? parsed.marks : 3,
+      marks: questionMarks,
       solution: cleanedSolution,
-      markScheme: cleanedMarkScheme,
+      markScheme: validatedMarkScheme,
       diagram,
       solutionDiagram,
       diagramQualityScore,

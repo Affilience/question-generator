@@ -15,13 +15,35 @@ export async function POST(request: NextRequest) {
     const { userId, email } = await request.json();
     
     if (!userId || !email) {
+      console.warn('[Claim Pending] Missing required fields:', { userId: !!userId, email: !!email });
       return NextResponse.json(
         { error: 'User ID and email are required' },
         { status: 400 }
       );
     }
 
-    console.log('[Claim Pending] Checking for pending subscriptions:', { userId, email });
+    console.log('[Claim Pending] Starting claim check:', { 
+      userId, 
+      email,
+      timestamp: new Date().toISOString() 
+    });
+
+    // Check if user already has an active subscription
+    const { data: existingSubscription } = await supabase
+      .from('user_subscriptions')
+      .select('id, status, price_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single();
+
+    if (existingSubscription) {
+      console.log('[Claim Pending] User already has active subscription:', existingSubscription);
+      return NextResponse.json({ 
+        claimed: false, 
+        message: 'User already has an active subscription',
+        hasActiveSubscription: true 
+      });
+    }
 
     // Find pending subscription by email
     const { data: pendingSubscription, error: fetchError } = await supabase
@@ -33,7 +55,19 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
-    if (fetchError || !pendingSubscription) {
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') {
+        console.log('[Claim Pending] No pending subscription found for email:', email);
+        return NextResponse.json({ 
+          claimed: false, 
+          message: 'No pending subscription found' 
+        });
+      }
+      console.error('[Claim Pending] Database error:', fetchError);
+      throw fetchError;
+    }
+
+    if (!pendingSubscription) {
       console.log('[Claim Pending] No pending subscription found for:', email);
       return NextResponse.json({ 
         claimed: false, 
@@ -112,24 +146,36 @@ export async function POST(request: NextRequest) {
       // Don't throw here as the subscription was created successfully
     }
 
-    console.log('[Claim Pending] Successfully claimed subscription for user:', userId);
+    console.log('[Claim Pending] Successfully claimed subscription:', {
+      userId,
+      subscriptionId: pendingSubscription.stripe_subscription_id,
+      priceKey: pendingSubscription.price_key,
+      claimedAt: new Date().toISOString()
+    });
 
     return NextResponse.json({
       claimed: true,
       subscription: {
         tier: pendingSubscription.price_key?.split('_')[0] + '_' + 
               pendingSubscription.price_key?.split('_')[1],
-        stripe_customer_id: pendingSubscription.stripe_customer_id
+        stripe_customer_id: pendingSubscription.stripe_customer_id,
+        stripe_subscription_id: pendingSubscription.stripe_subscription_id
       }
     });
 
   } catch (error) {
-    console.error('[Claim Pending] Error:', error);
+    console.error('[Claim Pending] Unexpected error:', error);
     Sentry.captureException(error, {
-      extra: { route: '/api/subscription/claim-pending' }
+      extra: { 
+        route: '/api/subscription/claim-pending',
+        error: error instanceof Error ? error.message : String(error)
+      }
     });
     return NextResponse.json(
-      { error: 'Failed to claim subscription' },
+      { 
+        error: 'Failed to claim subscription',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

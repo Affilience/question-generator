@@ -1430,17 +1430,32 @@ class DiagramErrorBoundary extends Component<DiagramErrorBoundaryProps, DiagramE
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Diagram rendering error:', error, errorInfo);
+    console.error('DIAGRAM RENDERING ERROR:', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Store error details for debugging
+    (window as any).__diagramError = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    };
   }
 
   render(): ReactNode {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex flex-col items-center justify-center p-4 bg-gray-100 border border-gray-300 rounded-lg min-h-[200px]">
-          <svg className="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div className="flex flex-col items-center justify-center p-4 bg-red-50 border border-red-300 rounded-lg min-h-[200px]">
+          <svg className="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm text-gray-500">Diagram could not be rendered</span>
+          <span className="text-sm text-red-600 font-medium">Diagram rendering failed</span>
+          <span className="text-xs text-red-500 mt-1">
+            {this.state.error?.message ? `Error: ${this.state.error.message}` : 'Check browser console for details'}
+          </span>
         </div>
       );
     }
@@ -1662,9 +1677,21 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
     setIsClient(true);
   }, []);
 
-  // Handle completely invalid/missing specs
-  if (!spec || !spec.elements || spec.elements.length === 0) {
-    return <DiagramFallback message="No diagram data available" />;
+  // Handle completely invalid/missing specs with detailed debugging
+  if (!spec) {
+    return <DiagramFallback message="No diagram specification provided" />;
+  }
+  
+  if (!spec.elements) {
+    return <DiagramFallback message={`Diagram missing elements array. Spec keys: ${Object.keys(spec).join(', ')}`} />;
+  }
+  
+  if (!Array.isArray(spec.elements)) {
+    return <DiagramFallback message={`Diagram elements is not an array. Type: ${typeof spec.elements}`} />;
+  }
+  
+  if (spec.elements.length === 0) {
+    return <DiagramFallback message="Diagram has no elements to render" />;
   }
 
   // Only render on client to prevent hydration mismatches

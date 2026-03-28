@@ -63,7 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Fire-and-forget database sync on sign in (don't await!)
         if (event === 'SIGNED_IN' && session?.user) {
-          syncUserToDatabase(session.user).catch(err => {
+          console.log('[AuthContext] SIGNED_IN event fired for user:', session.user.id);
+          // Check if this is a new user (created within last minute)
+          const userCreatedAt = new Date(session.user.created_at).getTime();
+          const isNewUser = Date.now() - userCreatedAt < 60000; // 1 minute
+          
+          syncUserToDatabase(session.user, isNewUser).catch(err => {
             console.error('Failed to sync user to database:', err);
           });
         }
@@ -126,7 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, refreshSession]);
 
   // Sync auth user to our users table
-  async function syncUserToDatabase(authUser: User) {
+  async function syncUserToDatabase(authUser: User, isNewUser: boolean = false) {
+    console.log('[AuthContext.syncUserToDatabase] Starting sync for user:', authUser.id, { isNewUser, email: authUser.email });
+    
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -135,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!existingUser) {
       // Create user in our table
+      console.log('[AuthContext.syncUserToDatabase] Creating new user profile');
       await supabase.from('users').insert({
         id: authUser.id,
         display_name: authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
@@ -148,7 +156,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Check for and claim any pending subscriptions from anonymous purchase
-    if (authUser.email) {
+    // Only do this on initial sign-in, not on every page refresh
+    if (authUser.email && (isNewUser || !existingUser)) {
+      console.log('[AuthContext.syncUserToDatabase] Checking for pending subscriptions');
+      
+      // Add a small delay to ensure webhook has processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       try {
         const response = await fetch('/api/subscription/claim-pending', {
           method: 'POST',
@@ -162,13 +176,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           const result = await response.json();
           if (result.claimed) {
-            console.log('[Auth] Successfully claimed pending subscription for user');
+            console.log('[AuthContext.syncUserToDatabase] Successfully claimed pending subscription');
             // Trigger a subscription refresh via event
             window.dispatchEvent(new CustomEvent('subscription-claimed'));
+          } else {
+            console.log('[AuthContext.syncUserToDatabase] No pending subscription found');
           }
+        } else {
+          console.error('[AuthContext.syncUserToDatabase] Claim-pending failed:', response.status);
         }
       } catch (err) {
-        console.error('Failed to check for pending subscriptions:', err);
+        console.error('[AuthContext.syncUserToDatabase] Failed to check for pending subscriptions:', err);
       }
     }
 
