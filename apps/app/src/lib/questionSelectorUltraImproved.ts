@@ -94,7 +94,7 @@ function isEssaySubject(subject: string): boolean {
  * Map question types to Bloom's levels for cognitive diversity
  */
 function getBloomLevelsForQuestionType(questionType: QuestionType, difficulty: Difficulty): string[] {
-    const mapping: Record<QuestionType, Record<Difficulty, string[]>> = {
+  const mapping: Record<QuestionType, Record<Difficulty, string[]>> = {
     'multiple-choice': {
       easy: ['remember'],
       medium: ['remember', 'understand'],
@@ -166,244 +166,244 @@ function getBloomLevelsForQuestionType(questionType: QuestionType, difficulty: D
       hard: ['evaluate', 'create']
     },
     'construction': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'loci': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'algebraic-manipulation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'simultaneous-equations': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'optimization': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'differential-equations': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'integration-by-parts': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'statistical-hypothesis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'sequence-series': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'transformation-geometry': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'practical-method': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'practical-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'circuit-design': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'wave-calculation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'nuclear-decay': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'energy-transfer': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'chemical-equation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'structure-drawing': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'titration-calculation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'organic-mechanism': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'inorganic-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'bonding-structure': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'microscopy-drawing': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'lifecycle-diagram': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'food-web-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'genetics-calculation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'plant-adaptation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'human-physiology': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'algorithm-design': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'code-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'data-structure': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'pseudocode-writing': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'trace-table': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'system-design': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'data-response': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'diagram-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'economic-calculation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'case-study-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'business-calculation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'stakeholder-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'research-methods': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'study-evaluation': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'map-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'fieldwork-method': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'chronology-analysis': {
-      easy: ["remember","understand"],
-      medium: ["apply","analyze"],
-      hard: ["evaluate","create"]
+      easy: ['remember','understand'],
+      medium: ['apply','analyze'],
+      hard: ['evaluate','create']
     },
     'historical-significance': {
-      easy: ["understand"],
-      medium: ["analyze","evaluate"],
-      hard: ["evaluate","create"]
+      easy: ['understand'],
+      medium: ['analyze','evaluate'],
+      hard: ['evaluate','create']
     },
     'poetry-comparison': {
-      easy: ["understand","analyze"],
-      medium: ["analyze","evaluate"],
-      hard: ["evaluate","create"]
+      easy: ['understand','analyze'],
+      medium: ['analyze','evaluate'],
+      hard: ['evaluate','create']
     },
     'character-analysis': {
-      easy: ["understand"],
-      medium: ["analyze"],
-      hard: ["evaluate","create"]
+      easy: ['understand'],
+      medium: ['analyze'],
+      hard: ['evaluate','create']
     }
   };
 
@@ -1225,7 +1225,7 @@ export class UltraImprovedQuestionSelector {
 /**
  * Create ultra-improved selection result
  */
-export function selectQuestionsForPaper(
+export function selectQuestionsForPaperUltraImproved(
   config: PaperConfig,
   subject: string,
   qualification: string = 'alevel',

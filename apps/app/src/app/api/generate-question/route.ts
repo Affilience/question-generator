@@ -5,6 +5,8 @@ import { GenerateQuestionRequestSchema, validateRequest } from '@/lib/validation
 import { parseQuestionResponse, ValidationContext } from '@/lib/prompts-common';
 import { getEnhancedSystemPrompt, ENHANCED_SYSTEM_PROMPTS } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
+import { generateEnhancedMarkScheme } from '@/lib/enhancedMarkScheme';
+import { getSubjectSpecificProfile } from '@/lib/subjectSpecificDifficulty';
 import {
   getAQACompactPrompt,
   getAQAMultipleChoicePrompt,
@@ -1717,6 +1719,75 @@ Required: Generate something entirely different from the excluded content above.
       difficulty,
     };
     const questionData = parseQuestionResponse(responseContent, validationContext);
+
+    // Enhance the mark scheme with subject-specific details
+    try {
+      // Determine the question type based on the question content
+      const profile = getSubjectSpecificProfile(subject, qualification, difficulty);
+      const questionType = profile.questionTypes[0]; // Use the most likely type for this profile
+      
+      // Generate enhanced mark scheme
+      const enhancedMarkScheme = generateEnhancedMarkScheme(
+        subject,
+        qualification,
+        examBoard,
+        difficulty,
+        questionData.marks,
+        questionType as 'calculation' | 'explain' | 'essay' | 'practical' | 'proof' | 'analysis',
+        topicId
+      );
+      
+      // Convert enhanced mark scheme to array format for backward compatibility
+      const detailedMarkScheme: string[] = [];
+      
+      if (enhancedMarkScheme.mainScheme) {
+        for (const point of enhancedMarkScheme.mainScheme) {
+          let markPoint = `[${point.mark}] ${point.description}`;
+          if (point.notes) {
+            markPoint += ` (${point.notes})`;
+          }
+          detailedMarkScheme.push(markPoint);
+          
+          if (point.alternatives && point.alternatives.length > 0) {
+            for (const alt of point.alternatives) {
+              detailedMarkScheme.push(`  OR: ${alt}`);
+            }
+          }
+        }
+      }
+      
+      if (enhancedMarkScheme.levelDescriptors && enhancedMarkScheme.levelDescriptors.length > 0) {
+        detailedMarkScheme.push('');
+        detailedMarkScheme.push('Level Descriptors:');
+        for (const level of enhancedMarkScheme.levelDescriptors) {
+          detailedMarkScheme.push(`Level ${level.level} (${level.marksRange[0]}-${level.marksRange[1]} marks):`);
+          for (const char of level.characteristics) {
+            detailedMarkScheme.push(`  • ${char}`);
+          }
+        }
+      }
+      
+      if (enhancedMarkScheme.assessmentObjectives && enhancedMarkScheme.assessmentObjectives.length > 0) {
+        detailedMarkScheme.push('');
+        detailedMarkScheme.push('Assessment Objectives:');
+        for (const ao of enhancedMarkScheme.assessmentObjectives) {
+          detailedMarkScheme.push(`${ao.objective}: ${ao.marks} marks - ${ao.description}`);
+        }
+      }
+      
+      if (enhancedMarkScheme.examinerNotes) {
+        detailedMarkScheme.push('');
+        detailedMarkScheme.push(`Examiner Notes: ${enhancedMarkScheme.examinerNotes}`);
+      }
+      
+      // Use enhanced mark scheme if it has more detail, otherwise keep original
+      if (detailedMarkScheme.length > questionData.markScheme.length) {
+        questionData.markScheme = detailedMarkScheme;
+      }
+    } catch (error) {
+      console.error('Failed to enhance mark scheme:', error);
+      // Continue with original mark scheme if enhancement fails
+    }
 
     // Cache the generated question (async, don't wait)
     cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {

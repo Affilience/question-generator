@@ -20,6 +20,8 @@ import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE } 
 import { getTopicByIdSubjectBoardAndLevel, getTopicById, getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
+import { generateEnhancedMarkScheme } from '@/lib/enhancedMarkScheme';
+import { getSubjectSpecificProfile } from '@/lib/subjectSpecificDifficulty';
 import {
   getQuestionConfig,
   isEssaySubject,
@@ -866,6 +868,67 @@ IMPORTANT: Create a completely different question scenario, context, and wording
     }
 
     const questionData = parseQuestionResponse(responseContent);
+
+    // Enhance the mark scheme with subject-specific details
+    try {
+      // Determine the appropriate question type
+      const profile = getSubjectSpecificProfile(subject, qualification, plan.difficulty);
+      const questionTypeForMarkScheme = plan.questionType === ('auto' as any)
+        ? profile.questionTypes[0] 
+        : plan.questionType;
+      
+      // Generate enhanced mark scheme
+      const enhancedMarkScheme = generateEnhancedMarkScheme(
+        subject,
+        qualification,
+        examBoard,
+        plan.difficulty,
+        plan.marks,
+        questionTypeForMarkScheme as 'calculation' | 'explain' | 'essay' | 'practical' | 'proof' | 'analysis',
+        plan.topicId
+      );
+      
+      // Convert enhanced mark scheme to array format
+      const detailedMarkScheme: string[] = [];
+      
+      if (enhancedMarkScheme.mainScheme) {
+        for (const point of enhancedMarkScheme.mainScheme) {
+          let markPoint = `[${point.mark}] ${point.description}`;
+          if (point.notes) {
+            markPoint += ` (${point.notes})`;
+          }
+          detailedMarkScheme.push(markPoint);
+          
+          if (point.alternatives && point.alternatives.length > 0) {
+            for (const alt of point.alternatives.slice(0, 1)) { // Limit alternatives to keep concise
+              detailedMarkScheme.push(`  OR: ${alt}`);
+            }
+          }
+        }
+      }
+      
+      if (enhancedMarkScheme.levelDescriptors && enhancedMarkScheme.levelDescriptors.length > 0) {
+        detailedMarkScheme.push('');
+        for (const level of enhancedMarkScheme.levelDescriptors) {
+          detailedMarkScheme.push(`Level ${level.level} (${level.marksRange[0]}-${level.marksRange[1]} marks): ${level.characteristics[0]}`);
+        }
+      }
+      
+      if (enhancedMarkScheme.assessmentObjectives && enhancedMarkScheme.assessmentObjectives.length > 0) {
+        const aoLine = enhancedMarkScheme.assessmentObjectives
+          .map(ao => `${ao.objective}=${ao.marks}`)
+          .join(', ');
+        detailedMarkScheme.unshift(`AO Breakdown: ${aoLine}`);
+      }
+      
+      // Use enhanced mark scheme if it provides more detail
+      if (detailedMarkScheme.length > 0 && detailedMarkScheme.length >= questionData.markScheme.length) {
+        questionData.markScheme = detailedMarkScheme;
+      }
+    } catch (error) {
+      console.error('Failed to enhance mark scheme for paper question:', error);
+      // Continue with original mark scheme if enhancement fails
+    }
 
     return {
       id: plan.id,
