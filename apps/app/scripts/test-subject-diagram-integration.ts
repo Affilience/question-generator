@@ -36,7 +36,7 @@ const SUBJECT_TEST_CASES: TestCase[] = [
     questionType: 'construction',
     difficulty: 'hard',
     marks: 3,
-    expectedDiagramTypes: ['geometric-construction'],
+    expectedDiagramTypes: ['geometry', 'construction', 'transformation'],
     shouldRequire: true,
   },
   {

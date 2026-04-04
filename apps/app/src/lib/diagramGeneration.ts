@@ -123,10 +123,15 @@ export function shouldGenerateDiagram(
   // Subject-specific rules
   switch (subject) {
     case 'maths':
+      // Add specific types based on topic
+      const mathsTypes = ['coordinate-plane', 'geometry', 'graph', 'number-line'];
+      if (topic?.includes('circle') || topic?.includes('geometry')) {
+        mathsTypes.push('triangle', 'circle', 'quadrilateral');
+      }
       return {
         required: marks >= 6 && difficulty === 'hard',
         probability: marks >= 4 ? 0.4 : 0.2,
-        types: ['coordinate-plane', 'geometry', 'graph', 'number-line'],
+        types: mathsTypes,
         minComplexity: 1,
         maxComplexity: 3,
         responsive: true,
@@ -136,17 +141,21 @@ export function shouldGenerateDiagram(
       return {
         required: marks >= 5,
         probability: marks >= 3 ? 0.5 : 0.2,
-        types: ['force-diagram', 'circuit', 'wave', 'ray-diagram', 'motion-graph'],
+        types: ['force-diagram', 'circuit-diagram', 'wave', 'ray-diagram', 'motion-graph'],
         minComplexity: 2,
         maxComplexity: 4,
         responsive: true,
       };
 
     case 'chemistry':
+      const chemTypes = ['molecular-structure', 'apparatus', 'energy-diagram', 'reaction-profile'];
+      if (topic?.includes('organic')) {
+        chemTypes.push('organic-structure');
+      }
       return {
         required: questionType === 'structure-drawing' || marks >= 6,
         probability: marks >= 4 ? 0.4 : 0.15,
-        types: ['molecular-structure', 'apparatus', 'energy-diagram', 'reaction-profile'],
+        types: chemTypes,
         minComplexity: 2,
         maxComplexity: 4,
         responsive: true,
@@ -172,11 +181,21 @@ export function shouldGenerateDiagram(
         responsive: true,
       };
 
+    case 'history':
+      return {
+        required: false,
+        probability: questionType === 'chronology-analysis' ? 0.4 : 0.1,
+        types: ['timeline', 'map', 'generic'],
+        minComplexity: 1,
+        maxComplexity: 3,
+        responsive: true,
+      };
+      
     default:
       return {
         required: false,
         probability: marks >= 6 ? 0.1 : 0.05,
-        types: ['generic'],
+        types: ['generic-diagram'],
         minComplexity: 1,
         maxComplexity: 3,
         responsive: true,
@@ -231,6 +250,16 @@ function getDiagramTypesForQuestion(
     if (topicLower.includes('genetics')) return ['genetic-cross', 'punnett-square'];
     if (topicLower.includes('anatomy')) return ['anatomy', 'organ-system'];
     return ['biology-diagram'];
+  }
+  
+  // Geography-specific
+  if (subject === 'geography') {
+    if (questionType === 'map-analysis') return ['map', 'cross-section'];
+    if (topicLower.includes('climate')) return ['climate-graph', 'weather-map'];
+    if (topicLower.includes('population')) return ['population-pyramid', 'demographic-chart'];
+    if (topicLower.includes('river') || topicLower.includes('coast')) return ['cross-section', 'landform'];
+    if (topicLower.includes('urban')) return ['map', 'land-use'];
+    return ['map', 'geographic-diagram'];
   }
 
   return ['generic-diagram'];
