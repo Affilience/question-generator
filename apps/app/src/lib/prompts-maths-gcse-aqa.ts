@@ -7,6 +7,7 @@ type Subtopic = string;
 import {
   getRandomVarietyInstructions,
 } from './prompts-common';
+import { getTopicAdherenceConstraints, getTopicReinforcement } from './topicAdherence';
 
 export const AQA_MATHS_GCSE_ASSESSMENT_OBJECTIVES = {
   AO1: "Use and apply standard techniques",
@@ -235,12 +236,20 @@ CRITICAL NUMBER VARIETY REQUIREMENTS (MANDATORY):
 - Pick random numbers from the list above - never repeat the same numerical values
 ` : '';
 
+  // Add strict topic adherence constraints
+  const effectiveSubtopic = subtopic || topic.subtopics[0] || topic.name;
+  const topicConstraints = getTopicAdherenceConstraints(topic, effectiveSubtopic, 'maths');
+  const topicReinforcement = getTopicReinforcement(topic, effectiveSubtopic);
+
   return `${surdVarietyInstructions}
 
 Generate an AQA GCSE Mathematics ${tier} tier question.
 
+${topicConstraints}
+
 QUESTION REQUIREMENTS:
-- Topic: ${topic.name}${subtopic ? `, Subtopic: ${subtopic}` : ''}
+- Topic: ${topic.name}
+- Subtopic: ${effectiveSubtopic}
 - Marks: ${markAllocation}
 - Tier: ${tier}
 - Style: Authentic AQA GCSE Mathematics format
@@ -280,7 +289,9 @@ MARK SCHEME REQUIREMENTS:
 - Specify 'cao' (correct answer only) for straightforward calculations
 - Use 'oe' (or equivalent) for alternative correct forms
 
-Generate a complete question with full mark scheme using AQA conventions.`;
+Generate a complete question with full mark scheme using AQA conventions.
+
+${topicReinforcement}`;
 }
 
 export function getAQAMathsGCSEFoundationPrompt(topic: Topic, difficulty: Difficulty, subtopic: Subtopic): string {
