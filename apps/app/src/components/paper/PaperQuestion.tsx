@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { GeneratedQuestion } from '@/types';
 import { MarkBadge } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
-import { DiagramRenderer } from '@/components/DiagramRenderer';
+import { ResponsiveDiagramRenderer } from '@/components/ResponsiveDiagramRenderer';
 import { getValidatedMarks, formatMarksDisplay, validateQuestionCompleteness } from '@/lib/markValidation';
 
 // Parse mark scheme point to extract mark type and description
@@ -206,11 +206,11 @@ export function PaperQuestion({
       {/* Diagram (if present) - context/reference diagrams always show */}
       {question.diagram && question.diagram.elements && question.diagram.elements.length > 0 && (
         <div className="p-4 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]">
-          <DiagramRenderer
+          <ResponsiveDiagramRenderer
             spec={question.diagram}
-            maxWidth={400}
-            maxHeight={300}
             className="w-full overflow-x-auto"
+            darkMode={false}
+            interactive={false}
           />
         </div>
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { DiagramRenderer } from '@/components/DiagramRenderer';
+import { ResponsiveDiagramRenderer } from '@/components/ResponsiveDiagramRenderer';
 import { PrintTest } from '@/components/PrintTest';
 import type {
   DiagramSpec,
@@ -2058,10 +2058,11 @@ export default function TestDiagramsPage() {
                     </span>
                   </div>
                   <div className="bg-white rounded-lg p-4 flex items-center justify-center" style={{ minHeight: sizes.maxHeight + 40 }}>
-                    <DiagramRenderer
+                    <ResponsiveDiagramRenderer
                       spec={diagram.spec}
-                      maxWidth={sizes.maxWidth}
-                      maxHeight={sizes.maxHeight}
+                      className="w-full"
+                      darkMode={false}
+                      interactive={false}
                     />
                   </div>
                 </div>
@@ -2080,11 +2081,11 @@ export default function TestDiagramsPage() {
               className="bg-gray-900 rounded-lg p-4 flex items-center justify-center"
               style={{ minHeight: sizes.maxHeight + 40 }}
             >
-              <DiagramRenderer
+              <ResponsiveDiagramRenderer
                 spec={diagram.spec}
-                maxWidth={sizes.maxWidth}
-                maxHeight={sizes.maxHeight}
+                className="w-full"
                 darkMode={true}
+                interactive={false}
               />
             </div>
           ))}

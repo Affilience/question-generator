@@ -383,6 +383,12 @@ export interface DiagramSpec {
   background?: string;
   /** Whether to show "Diagram NOT accurately drawn" label */
   showNotAccurate?: boolean;
+  /** Title for the diagram (for accessibility) */
+  title?: string;
+  /** Description for screen readers */
+  description?: string;
+  /** Device optimization flag */
+  deviceOptimized?: 'mobile' | 'tablet' | 'desktop';
   /** Custom disclaimer text */
   disclaimer?: string;
   /** All diagram elements to render */

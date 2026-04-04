@@ -3,7 +3,7 @@
 import { forwardRef, Component, ReactNode, ErrorInfo } from 'react';
 import { GeneratedPaper, GeneratedQuestion } from '@/types';
 import { MathRenderer } from './MathRenderer';
-import { DiagramRenderer } from './DiagramRenderer';
+import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
 
 // Error boundary for graceful diagram rendering failures in print
 class DiagramErrorBoundary extends Component<
@@ -558,11 +558,11 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                     {question.diagram && (
                       <div className="question-diagram">
                         <DiagramErrorBoundary>
-                          <DiagramRenderer
+                          <ResponsiveDiagramRenderer
                             spec={question.diagram}
-                            maxWidth={400}
-                            maxHeight={250}
                             className="print-diagram"
+                            darkMode={false}
+                            interactive={false}
                           />
                         </DiagramErrorBoundary>
                       </div>

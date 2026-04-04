@@ -5,7 +5,7 @@ import { Question, Difficulty } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { MathRenderer } from '../MathRenderer';
 import { BookmarkButton } from '../BookmarkButton';
-import { DiagramRenderer } from '../DiagramRenderer';
+import { ResponsiveDiagramRenderer } from '../ResponsiveDiagramRenderer';
 import { getValidatedMarks, formatMarksDisplay, validateQuestionCompleteness } from '@/lib/markValidation';
 
 // Error boundary for diagram rendering
@@ -231,11 +231,11 @@ export function QuestionSlide({
           <div className="mt-6 w-full max-w-full overflow-hidden px-2">
             <div className="bg-white rounded-lg p-4 mx-auto" style={{ minHeight: '280px' }}>
               <DiagramErrorBoundary>
-                <DiagramRenderer
+                <ResponsiveDiagramRenderer
                   spec={question.diagram}
-                  maxWidth={340}
-                  maxHeight={260}
                   className="w-full h-full flex items-center justify-center"
+                  darkMode={false}
+                  interactive={true}
                 />
               </DiagramErrorBoundary>
             </div>
@@ -318,11 +318,11 @@ export function QuestionSlide({
                 <h4 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">Expected Diagram</h4>
                 <div className="flex justify-center">
                   <DiagramErrorBoundary>
-                    <DiagramRenderer
+                    <ResponsiveDiagramRenderer
                       spec={question.solutionDiagram}
-                      maxWidth={400}
-                      maxHeight={320}
                       className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
+                      darkMode={false}
+                      interactive={false}
                     />
                   </DiagramErrorBoundary>
                 </div>

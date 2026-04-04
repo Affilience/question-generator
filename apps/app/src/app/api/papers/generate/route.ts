@@ -22,6 +22,8 @@ import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import { generateEnhancedMarkScheme } from '@/lib/enhancedMarkScheme';
 import { getSubjectSpecificProfile } from '@/lib/subjectSpecificDifficulty';
+import { shouldGenerateDiagram, generateDiagramInstructions } from '@/lib/diagramGeneration';
+import { getSubjectDiagramInstructions } from '@/lib/subjectSpecificDiagrams';
 import {
   getQuestionConfig,
   isEssaySubject,
@@ -836,9 +838,33 @@ ${excludeContent.map((content, i) => `${i + 1}. "${content}..."`).join('\n')}
 IMPORTANT: Create a completely different question scenario, context, and wording to ensure variety.`;
   }
 
+  // Add diagram instructions based on subject and question type
+  const diagramRequirements = shouldGenerateDiagram(
+    subject,
+    plan.questionType,
+    plan.difficulty,
+    plan.marks,
+    plan.subtopic
+  );
+  
+  let diagramInstructions = '';
+  if (diagramRequirements.required || Math.random() < diagramRequirements.probability) {
+    // Get subject-specific diagram instructions
+    const diagramTypes = diagramRequirements.types;
+    const selectedDiagramType = diagramTypes[Math.floor(Math.random() * diagramTypes.length)];
+    
+    diagramInstructions = `
+
+DIAGRAM REQUIREMENTS:
+${getSubjectDiagramInstructions(subject, selectedDiagramType, plan.difficulty, plan.subtopic)}
+${generateDiagramInstructions(diagramRequirements, 'desktop')}
+
+Include a diagram field in your JSON response with appropriate elements for ${subject}.`;
+  }
+
   // Add global constraints
   const subjectConstraints = getAllConstraints(subject);
-  const prompt = `${subjectConstraints}\n\n${basePrompt}${exclusionPrompt}`;
+  const prompt = `${subjectConstraints}\n\n${basePrompt}${exclusionPrompt}${diagramInstructions}`;
 
   // Get system prompt
   const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);

@@ -7,6 +7,8 @@ import { getEnhancedSystemPrompt, ENHANCED_SYSTEM_PROMPTS } from '@/lib/prompts/
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
 import { generateEnhancedMarkScheme } from '@/lib/enhancedMarkScheme';
 import { getSubjectSpecificProfile } from '@/lib/subjectSpecificDifficulty';
+import { shouldGenerateDiagram, generateDiagramInstructions } from '@/lib/diagramGeneration';
+import { getSubjectDiagramInstructions } from '@/lib/subjectSpecificDiagrams';
 import {
   getAQACompactPrompt,
   getAQAMultipleChoicePrompt,
@@ -438,7 +440,7 @@ import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
 import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
 import { checkQuestionGenerationAllowed, incrementQuestionUsage } from '@/lib/api/subscription-check';
 import { getClientIP } from '@/lib/rate-limit';
-import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic } from '@/types';
+import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic, QuestionType as QuestionTypeEnum } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 
 // Using Node.js runtime (default) - Edge runtime has 1MB limit which is exceeded by prompt imports
@@ -1685,8 +1687,36 @@ Required: Generate something entirely different from the excluded content above.
     // Get subject-specific accuracy constraints to prepend to user prompt
     const subjectConstraints = getAllConstraints(subject);
     
+    // Add diagram instructions based on subject and question type
+    const effectiveQuestionType = questionType === 'auto' ? 
+      getSubjectSpecificProfile(subject, qualification, difficulty).questionTypes[0] : 
+      questionType;
+    
+    const diagramRequirements = shouldGenerateDiagram(
+      subject,
+      effectiveQuestionType as QuestionTypeEnum,
+      difficulty,
+      4, // Default marks for individual questions
+      topicId
+    );
+    
+    let diagramInstructions = '';
+    if (diagramRequirements.required || Math.random() < diagramRequirements.probability) {
+      // Get subject-specific diagram instructions
+      const diagramTypes = diagramRequirements.types;
+      const selectedDiagramType = diagramTypes[Math.floor(Math.random() * diagramTypes.length)];
+      
+      diagramInstructions = `
+
+DIAGRAM REQUIREMENTS:
+${getSubjectDiagramInstructions(subject, selectedDiagramType, difficulty, topicId)}
+${generateDiagramInstructions(diagramRequirements, 'desktop')}
+
+Include a diagram field in your JSON response with appropriate elements for ${subject}.`;
+    }
+    
     // Combine all prompt components
-    const prompt = `${basePrompt}${exclusionPrompt}`;
+    const prompt = `${basePrompt}${exclusionPrompt}${diagramInstructions}`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',

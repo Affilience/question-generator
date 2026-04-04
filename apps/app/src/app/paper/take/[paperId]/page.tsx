@@ -12,7 +12,7 @@ import {
 } from '@/types';
 import { MarkBadge, InlineMarks } from '@/components/ui/MarkBadge';
 import { MathRenderer } from '@/components/MathRenderer';
-import { DiagramRenderer } from '@/components/DiagramRenderer';
+import { ResponsiveDiagramRenderer } from '@/components/ResponsiveDiagramRenderer';
 import { PrintPaperButton } from '@/components/PrintPaperButton';
 import { getValidatedMarks } from '@/lib/markValidation';
 
@@ -394,11 +394,11 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                     </div>
                     {currentQuestion.diagram && (
                       <div className="mt-4 flex justify-center">
-                        <DiagramRenderer
+                        <ResponsiveDiagramRenderer
                           spec={currentQuestion.diagram}
-                          maxWidth={450}
-                          maxHeight={350}
                           className="bg-[var(--color-bg-primary)] rounded-lg p-4"
+                          darkMode={false}
+                          interactive={false}
                         />
                       </div>
                     )}

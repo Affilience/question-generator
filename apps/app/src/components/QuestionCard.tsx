@@ -4,7 +4,7 @@ import { Component, ReactNode, useState } from 'react';
 import { Question } from '@/types';
 import { MathRenderer } from './MathRenderer';
 import { BookmarkButton } from './BookmarkButton';
-import { DiagramRenderer } from './DiagramRenderer';
+import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
 import { PrintableQuestion } from './PrintableQuestion';
 import { usePrintQuestion } from '@/hooks/usePrintQuestion';
 import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
@@ -96,11 +96,11 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
                 </div>
               }
             >
-              <DiagramRenderer
+              <ResponsiveDiagramRenderer
                 spec={question.diagram}
-                maxWidth={typeof window !== 'undefined' && window.innerWidth < 640 ? 320 : 450}
-                maxHeight={typeof window !== 'undefined' && window.innerWidth < 640 ? 240 : 350}
                 className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 mx-auto"
+                darkMode={false}
+                interactive={false}
               />
             </ErrorBoundary>
           </div>
