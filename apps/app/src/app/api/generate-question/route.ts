@@ -1706,13 +1706,20 @@ Required: Generate something entirely different from the excluded content above.
       const diagramTypes = diagramRequirements.types;
       const selectedDiagramType = diagramTypes[Math.floor(Math.random() * diagramTypes.length)];
       
+      // Detect device type from user agent if available (defaults to desktop)
+      const userAgent = request.headers.get('user-agent') || '';
+      const isMobile = /mobile|android|iphone/i.test(userAgent);
+      const isTablet = /ipad|tablet/i.test(userAgent);
+      const deviceType = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop';
+      
       diagramInstructions = `
 
 DIAGRAM REQUIREMENTS:
 ${getSubjectDiagramInstructions(subject, selectedDiagramType, difficulty, topicId)}
-${generateDiagramInstructions(diagramRequirements, 'desktop')}
+${generateDiagramInstructions(diagramRequirements, deviceType)}
 
-Include a diagram field in your JSON response with appropriate elements for ${subject}.`;
+Include a diagram field in your JSON response with appropriate elements for ${subject}.
+The diagram should be optimized for ${deviceType} viewing.`;
     }
     
     // Combine all prompt components

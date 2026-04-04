@@ -21,6 +21,12 @@ export interface LabelledPoint extends Point {
 // Diagram Elements
 // ============================================
 
+// Generic custom element for subject-specific diagrams
+export interface CustomElement {
+  type: string; // Allow any type for flexibility
+  [key: string]: any; // Allow any additional properties
+}
+
 export interface PointElement {
   type: 'point';
   position: LabelledPoint;
@@ -366,7 +372,8 @@ export type DiagramElement =
   | Cylinder3DElement
   | Cone3DElement
   | Sphere3DElement
-  | Pyramid3DElement;
+  | Pyramid3DElement
+  | CustomElement;
 
 // ============================================
 // Main Diagram Specification

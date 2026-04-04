@@ -450,9 +450,10 @@ async function generateSingleQuestionWithExclusion(
   examBoard: ExamBoard,
   qualification: QualificationLevel,
   openai: ReturnType<typeof getOpenAIClient>,
-  excludeContent: string[] = []
+  excludeContent: string[] = [],
+  deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
 ): Promise<GeneratedQuestion> {
-  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, excludeContent);
+  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, excludeContent, deviceType);
 }
 
 /**
@@ -463,9 +464,10 @@ async function generateSingleQuestion(
   subject: Subject,
   examBoard: ExamBoard,
   qualification: QualificationLevel,
-  openai: ReturnType<typeof getOpenAIClient>
+  openai: ReturnType<typeof getOpenAIClient>,
+  deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
 ): Promise<GeneratedQuestion> {
-  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, []);
+  return generateSingleQuestionInternal(plan, subject, examBoard, qualification, openai, [], deviceType);
 }
 
 /**
@@ -819,7 +821,8 @@ async function generateSingleQuestionInternal(
   examBoard: ExamBoard,
   qualification: QualificationLevel,
   openai: ReturnType<typeof getOpenAIClient>,
-  excludeContent: string[] = []
+  excludeContent: string[] = [],
+  deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
 ): Promise<GeneratedQuestion> {
   const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
                 getTopicById(plan.topicId);
@@ -857,9 +860,10 @@ IMPORTANT: Create a completely different question scenario, context, and wording
 
 DIAGRAM REQUIREMENTS:
 ${getSubjectDiagramInstructions(subject, selectedDiagramType, plan.difficulty, plan.subtopic)}
-${generateDiagramInstructions(diagramRequirements, 'desktop')}
+${generateDiagramInstructions(diagramRequirements, deviceType)}
 
-Include a diagram field in your JSON response with appropriate elements for ${subject}.`;
+Include a diagram field in your JSON response with appropriate elements for ${subject}.
+The diagram should be optimized for ${deviceType} viewing.`;
   }
 
   // Add global constraints
@@ -994,7 +998,8 @@ async function generateQuestionsInBatches(
   subject: Subject,
   examBoard: ExamBoard,
   qualification: QualificationLevel,
-  batchSize: number = 5
+  batchSize: number = 5,
+  deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
 ): Promise<GeneratedQuestion[]> {
   const openai = getOpenAIClient();
   const results: GeneratedQuestion[] = [];
@@ -1002,7 +1007,7 @@ async function generateQuestionsInBatches(
   for (let i = 0; i < plans.length; i += batchSize) {
     const batch = plans.slice(i, i + batchSize);
     const batchResults = await Promise.all(
-      batch.map((plan) => generateSingleQuestion(plan, subject, examBoard, qualification, openai))
+      batch.map((plan) => generateSingleQuestion(plan, subject, examBoard, qualification, openai, 'desktop'))
     );
     results.push(...batchResults);
   }
@@ -1020,6 +1025,12 @@ export async function POST(request: NextRequest) {
   }
 
   const { examBoard, qualification, subject, paperName, config, userId } = body;
+
+  // Detect device type from user agent
+  const userAgent = request.headers.get('user-agent') || '';
+  const isMobile = /mobile|android|iphone/i.test(userAgent);
+  const isTablet = /ipad|tablet/i.test(userAgent);
+  const deviceType = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop' as const;
 
   // Check subscription-based access (before streaming)
   const usageCheck = await checkPaperGenerationAllowed(userId || null);
@@ -1135,7 +1146,7 @@ export async function POST(request: NextRequest) {
         
         for (let i = 0; i < allPlans.length; i++) {
           const plan = allPlans[i];
-          const question = await generateSingleQuestionWithExclusion(plan, subject, examBoard, qualification, openai, seenContent);
+          const question = await generateSingleQuestionWithExclusion(plan, subject, examBoard, qualification, openai, seenContent, deviceType);
           generatedQuestions.push(question);
           
           // Track content prefix for deduplication (first 100 characters)

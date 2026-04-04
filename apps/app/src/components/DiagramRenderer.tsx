@@ -1553,51 +1553,51 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
 
     switch (el.type) {
       case 'point':
-        return renderPoint(el, key, transform, scale);
+        return renderPoint(el as any, key, transform, scale);
       case 'line':
-        return renderLine(el, key, transform);
+        return renderLine(el as any, key, transform);
       case 'polygon':
-        return renderPolygon(el, key, transform);
+        return renderPolygon(el as any, key, transform);
       case 'circle':
-        return renderCircle(el, key, transform, scale);
+        return renderCircle(el as any, key, transform, scale);
       case 'arc':
-        return renderArc(el, key, transform, scale);
+        return renderArc(el as any, key, transform, scale);
       case 'angle-marker':
-        return renderAngleMarker(el, key, transform, scale);
+        return renderAngleMarker(el as any, key, transform, scale);
       case 'text':
-        return renderText(el, key, transform);
+        return renderText(el as any, key, transform);
       case 'arrow':
-        return renderArrow(el, key, transform);
+        return renderArrow(el as any, key, transform);
       case 'curve':
-        return renderCurve(el, key, transform, logicalBounds);
+        return renderCurve(el as any, key, transform, logicalBounds);
       case 'rectangle':
-        return renderRectangle(el, key, transform, scale);
+        return renderRectangle(el as any, key, transform, scale);
       case 'grid':
-        return renderGrid(el, key, transform);
+        return renderGrid(el as any, key, transform);
       case 'axes':
-        return renderAxes(el, key, transform, renderWidth, renderHeight);
+        return renderAxes(el as any, key, transform, renderWidth, renderHeight);
       case 'tree-diagram':
-        return renderTreeDiagram(el, key, renderWidth, renderHeight);
+        return renderTreeDiagram(el as any, key, renderWidth, renderHeight);
       case 'venn-diagram':
-        return renderVennDiagram(el, key, renderWidth, renderHeight);
+        return renderVennDiagram(el as any, key, renderWidth, renderHeight);
       case 'number-line':
-        return renderNumberLine(el, key, renderWidth, renderHeight);
+        return renderNumberLine(el as any, key, renderWidth, renderHeight);
       case 'bar-chart':
-        return renderBarChart(el, key, renderWidth, renderHeight);
+        return renderBarChart(el as any, key, renderWidth, renderHeight);
       case 'pie-chart':
-        return renderPieChart(el, key, renderWidth, renderHeight);
+        return renderPieChart(el as any, key, renderWidth, renderHeight);
       case 'box-plot':
-        return renderBoxPlot(el, key, renderWidth, renderHeight);
+        return renderBoxPlot(el as any, key, renderWidth, renderHeight);
       case 'prism-3d':
-        return render3DPrism(el, key, renderWidth, renderHeight);
+        return render3DPrism(el as any, key, renderWidth, renderHeight);
       case 'cylinder-3d':
-        return render3DCylinder(el, key, renderWidth, renderHeight);
+        return render3DCylinder(el as any, key, renderWidth, renderHeight);
       case 'cone-3d':
-        return render3DCone(el, key, renderWidth, renderHeight);
+        return render3DCone(el as any, key, renderWidth, renderHeight);
       case 'sphere-3d':
-        return render3DSphere(el, key, renderWidth, renderHeight);
+        return render3DSphere(el as any, key, renderWidth, renderHeight);
       case 'pyramid-3d':
-        return render3DPyramid(el, key, renderWidth, renderHeight);
+        return render3DPyramid(el as any, key, renderWidth, renderHeight);
       default:
         return null;
     }

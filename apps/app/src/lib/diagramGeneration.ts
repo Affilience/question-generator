@@ -184,8 +184,81 @@ export function shouldGenerateDiagram(
     case 'history':
       return {
         required: false,
-        probability: questionType === 'chronology-analysis' ? 0.4 : 0.1,
-        types: ['timeline', 'map', 'generic'],
+        probability: questionType === 'chronology-analysis' ? 0.7 : 0.4,
+        types: getDiagramTypesForQuestion('history', questionType, topic),
+        minComplexity: 1,
+        maxComplexity: 3,
+        responsive: true,
+      };
+
+    case 'economics':
+      return {
+        required: marks >= 4,
+        probability: 0.8,
+        types: getDiagramTypesForQuestion('economics', questionType, topic),
+        minComplexity: 2,
+        maxComplexity: 3,
+        responsive: true,
+      };
+
+    case 'business':
+      return {
+        required: false,
+        probability: 0.6,
+        types: getDiagramTypesForQuestion('business', questionType, topic),
+        minComplexity: 1,
+        maxComplexity: 3,
+        responsive: true,
+      };
+
+    case 'psychology':
+      return {
+        required: false,
+        probability: topic?.toLowerCase().includes('brain') || topic?.toLowerCase().includes('experiment') ? 0.7 : 0.4,
+        types: getDiagramTypesForQuestion('psychology', questionType, topic),
+        minComplexity: 2,
+        maxComplexity: 3,
+        responsive: true,
+      };
+
+    case 'english-literature':
+      return {
+        required: false,
+        probability: questionType === 'extract-analysis' ? 0.3 : 0.2,
+        types: getDiagramTypesForQuestion('english-literature', questionType, topic),
+        minComplexity: 1,
+        maxComplexity: 3,
+        responsive: true,
+      };
+
+    case 'further-maths':
+      return {
+        required: marks >= 4,
+        probability: 0.9,
+        types: getDiagramTypesForQuestion('further-maths', questionType, topic),
+        minComplexity: 2,
+        maxComplexity: 4,
+        responsive: true,
+      };
+
+    case 'combined-science':
+      // Use the same logic as individual sciences
+      const scienceTopic = topic?.toLowerCase() || '';
+      if (scienceTopic.includes('force') || scienceTopic.includes('circuit') || 
+          scienceTopic.includes('cell') || scienceTopic.includes('reaction')) {
+        return {
+          required: marks >= 4,
+          probability: 0.8,
+          types: getDiagramTypesForQuestion('combined-science', questionType, topic),
+          minComplexity: 2,
+          maxComplexity: 3,
+          responsive: true,
+        };
+      }
+      return {
+        required: false,
+        probability: 0.5,
+        types: getDiagramTypesForQuestion('combined-science', questionType, topic),
         minComplexity: 1,
         maxComplexity: 3,
         responsive: true,
@@ -260,6 +333,62 @@ function getDiagramTypesForQuestion(
     if (topicLower.includes('river') || topicLower.includes('coast')) return ['cross-section', 'landform'];
     if (topicLower.includes('urban')) return ['map', 'land-use'];
     return ['map', 'geographic-diagram'];
+  }
+
+  // History-specific
+  if (subject === 'history') {
+    if (topicLower.includes('timeline') || topicLower.includes('chronolog')) return ['timeline'];
+    if (topicLower.includes('source')) return ['source-analysis'];
+    if (topicLower.includes('cause') || topicLower.includes('consequence')) return ['causation-diagram'];
+    return ['timeline', 'source-analysis'];
+  }
+
+  // Economics-specific
+  if (subject === 'economics') {
+    if (topicLower.includes('supply') || topicLower.includes('demand')) return ['supply-demand'];
+    if (topicLower.includes('ppf') || topicLower.includes('production')) return ['ppf'];
+    if (topicLower.includes('circular') || topicLower.includes('flow')) return ['circular-flow'];
+    return ['supply-demand', 'economic-graph'];
+  }
+
+  // Business-specific
+  if (subject === 'business') {
+    if (topicLower.includes('organization') || topicLower.includes('structure')) return ['org-chart'];
+    if (topicLower.includes('product') || topicLower.includes('lifecycle')) return ['product-lifecycle'];
+    if (topicLower.includes('swot')) return ['swot-analysis'];
+    return ['org-chart', 'business-diagram'];
+  }
+
+  // Psychology-specific
+  if (subject === 'psychology') {
+    if (topicLower.includes('brain') || topicLower.includes('neuro')) return ['brain-diagram'];
+    if (topicLower.includes('experiment') || topicLower.includes('research')) return ['experimental-design'];
+    if (topicLower.includes('distribution') || topicLower.includes('normal')) return ['normal-distribution'];
+    return ['brain-diagram', 'experimental-design'];
+  }
+
+  // English Literature-specific
+  if (subject === 'english-literature') {
+    if (topicLower.includes('plot') || topicLower.includes('structure')) return ['plot-diagram'];
+    if (topicLower.includes('character') || topicLower.includes('relationship')) return ['character-map'];
+    if (topicLower.includes('theme')) return ['theme-diagram'];
+    return ['plot-diagram', 'character-map'];
+  }
+
+  // Further Maths-specific
+  if (subject === 'further-maths') {
+    if (topicLower.includes('3d') || topicLower.includes('vector')) return ['3d-vector'];
+    if (topicLower.includes('complex') || topicLower.includes('argand')) return ['complex-plane'];
+    if (topicLower.includes('matrix') || topicLower.includes('transformation')) return ['matrix-transformation'];
+    return ['3d-vector', 'complex-plane'];
+  }
+
+  // Combined Science - delegate to specific sciences
+  if (subject === 'combined-science') {
+    if (topicLower.includes('force') || topicLower.includes('motion')) return ['force-diagram', 'motion-graph'];
+    if (topicLower.includes('cell') || topicLower.includes('organism')) return ['cell-diagram', 'biology-diagram'];
+    if (topicLower.includes('reaction') || topicLower.includes('element')) return ['molecular-structure', 'chemistry-diagram'];
+    return ['science-diagram'];
   }
 
   return ['generic-diagram'];
