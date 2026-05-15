@@ -87,8 +87,7 @@ export default function TermsPage() {
                 Subscriptions auto-renew unless cancelled before the renewal date.
               </p>
               <p>
-                <strong className="text-white/80">Refunds:</strong> We offer refunds within 7 days of purchase if you are not
-                satisfied with the service. Contact us at support@past-papers.co.uk.
+                <strong className="text-white/80">Refunds:</strong> We offer no refunds. All purchases are final.
               </p>
               <p>
                 <strong className="text-white/80">Cancellation:</strong> You can cancel your subscription at any time from your
