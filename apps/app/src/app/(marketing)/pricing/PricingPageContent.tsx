@@ -327,9 +327,28 @@ function PricingContent() {
 export default function PricingPageContent() {
   const { user } = useAuth();
   const { subscription, openPortal } = useSubscription();
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  // openPortal() rejects on any failure (misconfigured Stripe portal, network,
+  // no customer). Without awaiting/catching, the click was a silent no-op — the
+  // user pressed "Manage Subscription" and nothing happened, which reads as
+  // "cancelling doesn't work". Await it and surface the failure.
+  const handleManage = async () => {
+    setPortalError(null);
+    try {
+      await openPortal();
+    } catch {
+      setPortalError('Unable to open the billing portal. Please try again or contact support.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      {portalError && (
+        <div className="fixed top-20 right-4 z-[60] max-w-xs bg-red-500/95 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg">
+          {portalError}
+        </div>
+      )}
       {/* Header - always rendered */}
       <header className="border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -348,7 +367,7 @@ export default function PricingPageContent() {
                   </Link>
                   {subscription && (
                     <button
-                      onClick={() => openPortal()}
+                      onClick={handleManage}
                       className="text-white/80 hover:text-white transition-colors"
                     >
                       Manage Subscription

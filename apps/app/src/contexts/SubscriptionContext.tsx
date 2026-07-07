@@ -41,6 +41,8 @@ interface SubscriptionContextType {
   refreshSubscription: () => Promise<void>;
   openCheckout: (priceKey: string) => Promise<void>;
   openPortal: () => Promise<void>;
+  cancelMembership: () => Promise<{ currentPeriodEnd?: string | null }>;
+  resumeMembership: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -276,6 +278,28 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  // Cancel the current membership in-app (calls Stripe directly; no hosted
+  // portal required). Refreshes local state so the UI reflects it immediately.
+  const cancelMembership = async () => {
+    const response = await fetch('/api/subscription/cancel', { method: 'POST' });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to cancel membership');
+    }
+    await refreshSubscription();
+    return data as { currentPeriodEnd?: string | null };
+  };
+
+  // Undo a scheduled cancellation ("changed my mind").
+  const resumeMembership = async () => {
+    const response = await fetch('/api/subscription/reactivate', { method: 'POST' });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to resume membership');
+    }
+    await refreshSubscription();
+  };
+
   // Fetch subscription on mount and when user changes
   useEffect(() => {
     refreshSubscription();
@@ -351,6 +375,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         refreshSubscription,
         openCheckout,
         openPortal,
+        cancelMembership,
+        resumeMembership,
       }}
     >
       {children}
