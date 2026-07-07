@@ -11,9 +11,12 @@ const TIER_DISPLAY = {
 };
 
 export function SubscriptionStatus() {
-  const { tier, subscription, dailyUsage, limits, openPortal, loading } = useSubscription();
+  const { tier, subscription, dailyUsage, limits, openPortal, cancelMembership, resumeMembership, loading } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
+  const [membershipBusy, setMembershipBusy] = useState(false);
+  const [membershipError, setMembershipError] = useState<string | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const handleManage = async () => {
     setPortalLoading(true);
@@ -24,6 +27,31 @@ export function SubscriptionStatus() {
       setPortalError('Unable to open billing portal');
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setMembershipBusy(true);
+    setMembershipError(null);
+    try {
+      await cancelMembership();
+      setConfirmingCancel(false);
+    } catch {
+      setMembershipError('Could not cancel your membership. Please try again or contact support.');
+    } finally {
+      setMembershipBusy(false);
+    }
+  };
+
+  const handleResume = async () => {
+    setMembershipBusy(true);
+    setMembershipError(null);
+    try {
+      await resumeMembership();
+    } catch {
+      setMembershipError('Could not resume your membership. Please try again.');
+    } finally {
+      setMembershipBusy(false);
     }
   };
 
@@ -115,6 +143,71 @@ export function SubscriptionStatus() {
       {/* Portal error message */}
       {portalError && (
         <p className="mt-2 text-xs text-red-400">{portalError}</p>
+      )}
+
+      {/* Membership cancel / resume — in-app, no Stripe portal needed */}
+      {!isFreeTier && (
+        <div className="mt-3 pt-3 border-t border-white/[0.06]">
+          {subscription?.cancelAtPeriodEnd ? (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-white/50">
+                {daysRemaining !== null && daysRemaining >= 0
+                  ? `Your membership ends in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. You keep access until then.`
+                  : 'Your membership is set to cancel at the end of the period.'}
+              </p>
+              <button
+                type="button"
+                onClick={handleResume}
+                disabled={membershipBusy}
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 cursor-pointer whitespace-nowrap"
+              >
+                {membershipBusy ? 'Resuming…' : 'Resume'}
+              </button>
+            </div>
+          ) : confirmingCancel ? (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-white/60">
+                Cancel your membership? You&apos;ll keep access until{' '}
+                {subscription?.currentPeriodEnd
+                  ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
+                  : 'the end of your billing period'}
+                .
+              </p>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={membershipBusy}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 cursor-pointer whitespace-nowrap"
+                >
+                  {membershipBusy ? 'Canceling…' : 'Yes, cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingCancel(false)}
+                  disabled={membershipBusy}
+                  className="text-xs text-white/50 hover:text-white/70 transition-colors cursor-pointer"
+                >
+                  Keep
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMembershipError(null);
+                setConfirmingCancel(true);
+              }}
+              className="text-xs text-white/40 hover:text-white/60 transition-colors cursor-pointer"
+            >
+              Cancel membership
+            </button>
+          )}
+          {membershipError && (
+            <p className="mt-2 text-xs text-red-400">{membershipError}</p>
+          )}
+        </div>
       )}
 
       {/* Usage bar for free tier */}
