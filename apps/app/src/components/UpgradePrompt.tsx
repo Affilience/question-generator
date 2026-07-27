@@ -195,6 +195,13 @@ function UpgradeContent({
           <span className="text-white/40 text-xs">/month</span>
         </div>
       </div>
+
+      <p className="text-white/30 text-xs mt-3">
+        Already paid for a plan?{' '}
+        <Link href="/subscription/link-purchase" className="text-blue-400/80 hover:text-blue-300 transition-colors">
+          Link your purchase
+        </Link>
+      </p>
     </div>
   );
 

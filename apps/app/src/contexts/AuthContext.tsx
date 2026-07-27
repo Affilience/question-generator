@@ -155,31 +155,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', authUser.id);
     }
 
-    // Check for and claim any pending subscriptions from anonymous purchase
-    // Only do this on initial sign-in, not on every page refresh
-    if (authUser.email && (isNewUser || !existingUser)) {
+    // Check for and claim any pending subscriptions from anonymous purchase.
+    // The stored checkout session id (set on the subscription success page)
+    // survives OAuth redirects and lets us link the purchase even when the
+    // account email differs from the checkout email. If one is present, keep
+    // retrying on each sign-in until the claim succeeds (covers webhook lag).
+    let storedSessionId: string | null = null;
+    try {
+      storedSessionId = localStorage.getItem('pp_checkout_session_id');
+    } catch {
+      // Storage unavailable - fall back to email matching for new users only
+    }
+
+    if (authUser.email && (isNewUser || !existingUser || storedSessionId)) {
       console.log('[AuthContext.syncUserToDatabase] Checking for pending subscriptions');
-      
+
       // Add a small delay to ensure webhook has processed
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       try {
         const response = await fetch('/api/subscription/claim-pending', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: authUser.id,
-            email: authUser.email
+            email: authUser.email,
+            sessionId: storedSessionId
           })
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.claimed) {
             console.log('[AuthContext.syncUserToDatabase] Successfully claimed pending subscription');
+            try { localStorage.removeItem('pp_checkout_session_id'); } catch {}
             // Trigger a subscription refresh via event
             window.dispatchEvent(new CustomEvent('subscription-claimed'));
           } else {
+            if (result.hasActiveSubscription) {
+              try { localStorage.removeItem('pp_checkout_session_id'); } catch {}
+            }
             console.log('[AuthContext.syncUserToDatabase] No pending subscription found');
           }
         } else {

@@ -14,6 +14,20 @@ function SubscriptionSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [needsSignup, setNeedsSignup] = useState(false);
 
+  // Persist the checkout session id so the purchase can be linked to whatever
+  // account is created/logged into later in this browser — even if the account
+  // email differs from the checkout email, and even across an OAuth redirect
+  // (which loses URL params).
+  useEffect(() => {
+    if (sessionId?.startsWith('cs_')) {
+      try {
+        localStorage.setItem('pp_checkout_session_id', sessionId);
+      } catch {
+        // Storage unavailable (private mode) - email matching still applies
+      }
+    }
+  }, [sessionId]);
+
   useEffect(() => {
     const handleSubscriptionSetup = async () => {
       try {
@@ -101,7 +115,7 @@ function SubscriptionSuccessContent() {
               </p>
               
               <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm mb-6">
-                ⚠️ <strong>Important:</strong> Sign up using the same email address you entered during checkout.
+                Sign up with any email you like — we&apos;ll link your purchase to your new account automatically. (Signing up on a different device? Use the same email you entered during checkout.)
               </div>
               
               <div className="space-y-3">
@@ -116,6 +130,11 @@ function SubscriptionSuccessContent() {
                   <Link href={`/login?session_id=${sessionId}&from=checkout`} className="text-blue-400 hover:text-blue-300">
                     Log in instead
                   </Link>
+                </p>
+                <p className="text-white/30 text-xs">
+                  Buying for someone else? They can sign in on their own device and link
+                  this purchase at any time via{' '}
+                  <span className="text-white/50">past-papers.co.uk/subscription/link-purchase</span>
                 </p>
               </div>
             </>

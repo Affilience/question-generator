@@ -413,6 +413,13 @@ export default function PricingPageContent() {
 
         {/* Dynamic pricing content */}
         <PricingContent />
+
+        <p className="text-center text-white/40 text-sm mt-12">
+          Already bought a plan but your account doesn&apos;t show it?{' '}
+          <Link href="/subscription/link-purchase" className="text-blue-400 hover:text-blue-300 transition-colors">
+            Link your purchase
+          </Link>
+        </p>
       </main>
 
       {/* Footer - always rendered */}

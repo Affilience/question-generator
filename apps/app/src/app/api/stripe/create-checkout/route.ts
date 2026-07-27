@@ -107,6 +107,17 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         metadata: { user_id: userId || '' },
       },
+      // Parents often pay with their own email while the student has (or will
+      // create) an account under a different one. Capturing the student email
+      // at checkout lets the webhook/claim flow link the purchase automatically.
+      custom_fields: [
+        {
+          key: 'student_email',
+          label: { type: 'custom', custom: "Student's account email (if different)" },
+          type: 'text',
+          optional: true,
+        },
+      ],
     };
 
     // Add customer or email

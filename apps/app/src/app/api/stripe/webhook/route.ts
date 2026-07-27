@@ -112,32 +112,65 @@ const PRICE_KEY_TO_DB_ID: Record<string, string> = {
   exam_pro_annual: 'price_exam_pro_annual',
 };
 
+/**
+ * Extracts the optional "student's account email" checkout field, normalized,
+ * or null when absent/implausible. Treated as a match hint only — it's typed
+ * by the payer and never verified.
+ */
+function extractStudentEmail(session: Stripe.Checkout.Session): string | null {
+  const raw = session.custom_fields?.find((f) => f.key === 'student_email')?.text?.value;
+  if (!raw) return null;
+  const normalized = raw.trim().toLowerCase();
+  if (normalized.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.user_id;
+  let userId = session.metadata?.user_id;
   const customerId = session.customer as string;
   const priceKey = session.metadata?.price_key;
   const customerEmail = session.customer_details?.email;
+  const studentEmail = extractStudentEmail(session);
 
   console.log('Processing checkout.session.completed:', {
     sessionId: session.id,
     userId,
     customerId,
     customerEmail,
+    studentEmail,
     priceKey,
     mode: session.mode,
     subscriptionId: session.subscription
   });
 
-  // Handle anonymous purchases - store for later account creation
+  // No user_id in metadata: try to auto-link by email before falling back to pending.
+  // This avoids the failure mode where a customer pays, never returns to /signup?from=checkout,
+  // and ends up paying Stripe while the app thinks they're on a free trial.
   if (!userId && customerEmail) {
-    console.log('Anonymous purchase detected, storing pending subscription');
-    
-    // Store the pending subscription for when user creates account
-    const { error } = await supabase
+    let matchedUserId = await findUserIdByEmail(customerEmail);
+
+    if (matchedUserId) {
+      console.log('Auto-linked anonymous checkout to existing user by email:', { customerEmail, userId: matchedUserId });
+    } else if (studentEmail && studentEmail !== customerEmail.toLowerCase()) {
+      matchedUserId = await findUserIdByEmail(studentEmail);
+      if (matchedUserId) {
+        console.log('Auto-linked anonymous checkout via student email field:', { studentEmail, userId: matchedUserId });
+      }
+    }
+
+    if (matchedUserId) {
+      userId = matchedUserId;
+    }
+
+    // Always record in pending_subscriptions for audit. If we matched a user, mark it claimed inline.
+    const { error: pendingError } = await supabase
       .from('pending_subscriptions')
       .insert({
         session_id: session.id,
         email: customerEmail.toLowerCase(),
+        alt_email: studentEmail,
         stripe_customer_id: customerId,
         stripe_subscription_id: session.subscription as string,
         price_key: priceKey,
@@ -145,18 +178,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         metadata: {
           customer_name: session.customer_details?.name,
           payment_status: session.payment_status,
-        }
+        },
+        ...(matchedUserId && {
+          claimed_by: matchedUserId,
+          claimed_at: new Date().toISOString(),
+        }),
       });
 
-    if (error) {
-      console.error('Error storing pending subscription:', error);
+    if (pendingError) {
+      console.error('Error storing pending subscription:', pendingError);
     } else {
-      console.log('Pending subscription stored successfully for:', customerEmail);
+      console.log('Pending subscription stored:', { email: customerEmail, autoClaimed: !!matchedUserId });
     }
-    
-    // Still process the subscription in Stripe's records
-    // but don't create a user_subscription record yet
-    return;
+
+    // If we couldn't auto-link, stop here — claim-pending will pick it up at signup/login.
+    if (!userId) {
+      return;
+    }
   }
 
   if (!userId) {
@@ -411,4 +449,24 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 // Note: One-time payments are no longer supported - all plans are subscriptions
 async function handleOneTimePayment(paymentIntent: Stripe.PaymentIntent) {
   console.log('One-time payment received but not processed (deprecated):', paymentIntent.id);
+}
+
+async function findUserIdByEmail(email: string): Promise<string | null> {
+  // Service-role client can read auth.users via the admin API.
+  // Page through results because listUsers paginates; in practice an exam-prep app
+  // user base is small enough that the first page is almost always enough.
+  const normalized = email.toLowerCase();
+  let page = 1;
+  const perPage = 1000;
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) {
+      console.error('findUserIdByEmail: listUsers failed', error);
+      return null;
+    }
+    const match = data.users.find(u => u.email?.toLowerCase() === normalized);
+    if (match) return match.id;
+    if (data.users.length < perPage) return null;
+    page += 1;
+  }
 }

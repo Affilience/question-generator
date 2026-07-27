@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
+import {
+  claimPendingSubscription,
+  ClaimMethod,
+  PendingSubscriptionRow,
+} from '@/lib/subscription/claim';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,25 +13,42 @@ const supabase = createClient(
 );
 
 /**
- * Claims a pending subscription for a user who purchased before creating an account
+ * Claims a pending subscription for a user who purchased before creating an account.
+ *
+ * Matching is deliberately conservative:
+ * - by checkout session id (unguessable, carried through the post-payment flow), or
+ * - by the account's OWN email as verified server-side — never an email supplied
+ *   in the request body, so a caller can only ever match purchases made with
+ *   the email of the account being claimed into.
+ * Cross-email linking requires payer approval via /api/subscription/request-claim.
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email } = await request.json();
-    
-    if (!userId || !email) {
-      console.warn('[Claim Pending] Missing required fields:', { userId: !!userId, email: !!email });
+    const { userId, email, sessionId } = await request.json();
+
+    if (!userId || (!email && !sessionId)) {
+      console.warn('[Claim Pending] Missing required fields:', { userId: !!userId, email: !!email, sessionId: !!sessionId });
       return NextResponse.json(
-        { error: 'User ID and email are required' },
+        { error: 'User ID and either email or session ID are required' },
         { status: 400 }
       );
     }
 
-    console.log('[Claim Pending] Starting claim check:', { 
-      userId, 
+    console.log('[Claim Pending] Starting claim check:', {
+      userId,
       email,
-      timestamp: new Date().toISOString() 
+      sessionId,
+      timestamp: new Date().toISOString()
     });
+
+    // Resolve the account's real email server-side; body email is never
+    // trusted for matching.
+    const { data: targetUser, error: userError } = await supabase.auth.admin.getUserById(userId);
+    if (userError || !targetUser?.user) {
+      console.warn('[Claim Pending] Unknown user id:', userId);
+      return NextResponse.json({ error: 'Unknown user' }, { status: 400 });
+    }
+    const accountEmail = targetUser.user.email?.toLowerCase() ?? null;
 
     // Check if user already has an active subscription
     const { data: existingSubscription } = await supabase
@@ -34,129 +56,118 @@ export async function POST(request: NextRequest) {
       .select('id, status, price_id')
       .eq('user_id', userId)
       .eq('status', 'active')
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     if (existingSubscription) {
       console.log('[Claim Pending] User already has active subscription:', existingSubscription);
-      return NextResponse.json({ 
-        claimed: false, 
+      return NextResponse.json({
+        claimed: false,
         message: 'User already has an active subscription',
-        hasActiveSubscription: true 
+        hasActiveSubscription: true
       });
     }
 
-    // Find pending subscription by email
-    const { data: pendingSubscription, error: fetchError } = await supabase
-      .from('pending_subscriptions')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .is('claimed_by', null)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    // Match by checkout session id first — it's unguessable and works no matter
+    // which email the account was created with (payer email often differs from
+    // the student's account email). Fall back to the verified account email,
+    // then to the student-email field captured at checkout.
+    let pendingSubscription: PendingSubscriptionRow | null = null;
+    let claimMethod: ClaimMethod = 'email';
 
-    if (fetchError) {
-      if (fetchError.code === 'PGRST116') {
-        console.log('[Claim Pending] No pending subscription found for email:', email);
-        return NextResponse.json({ 
-          claimed: false, 
-          message: 'No pending subscription found' 
-        });
+    if (sessionId) {
+      const { data, error: sessionFetchError } = await supabase
+        .from('pending_subscriptions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .is('claimed_by', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (sessionFetchError) {
+        console.error('[Claim Pending] Session lookup error:', sessionFetchError);
+        throw sessionFetchError;
       }
-      console.error('[Claim Pending] Database error:', fetchError);
-      throw fetchError;
+      if (data) {
+        pendingSubscription = data;
+        claimMethod = 'session_id';
+      }
+    }
+
+    if (!pendingSubscription && accountEmail) {
+      const { data, error: emailFetchError } = await supabase
+        .from('pending_subscriptions')
+        .select('*')
+        .eq('email', accountEmail)
+        .is('claimed_by', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (emailFetchError) {
+        console.error('[Claim Pending] Email lookup error:', emailFetchError);
+        throw emailFetchError;
+      }
+      pendingSubscription = data;
+    }
+
+    if (!pendingSubscription && accountEmail) {
+      const { data, error: altFetchError } = await supabase
+        .from('pending_subscriptions')
+        .select('*')
+        .eq('alt_email', accountEmail)
+        .is('claimed_by', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (altFetchError) {
+        console.error('[Claim Pending] Alt email lookup error:', altFetchError);
+        throw altFetchError;
+      }
+      if (data) {
+        pendingSubscription = data;
+        claimMethod = 'alt_email';
+      }
     }
 
     if (!pendingSubscription) {
-      console.log('[Claim Pending] No pending subscription found for:', email);
-      return NextResponse.json({ 
-        claimed: false, 
-        message: 'No pending subscription found' 
+      console.log('[Claim Pending] No pending subscription found for:', { accountEmail, sessionId });
+      return NextResponse.json({
+        claimed: false,
+        message: 'No pending subscription found'
       });
     }
 
     console.log('[Claim Pending] Found pending subscription:', {
       sessionId: pendingSubscription.session_id,
       stripeCustomerId: pendingSubscription.stripe_customer_id,
-      priceKey: pendingSubscription.price_key
+      priceKey: pendingSubscription.price_key,
+      claimMethod
     });
 
-    // Map price_key to database price_id
-    const PRICE_KEY_TO_DB_ID: Record<string, string> = {
-      student_plus_monthly: 'price_student_plus_monthly',
-      student_plus_annual: 'price_student_plus_annual',
-      exam_pro_monthly: 'price_exam_pro_monthly',
-      exam_pro_annual: 'price_exam_pro_annual',
-    };
+    const claim = await claimPendingSubscription(supabase, pendingSubscription, userId, claimMethod);
 
-    const priceId = pendingSubscription.price_key ? 
-      PRICE_KEY_TO_DB_ID[pendingSubscription.price_key] : null;
-
-    if (!priceId) {
-      console.error('[Claim Pending] Invalid price key:', pendingSubscription.price_key);
+    if (!claim.ok) {
       return NextResponse.json(
-        { error: 'Invalid subscription configuration' },
+        { error: claim.error },
         { status: 500 }
       );
-    }
-
-    // Calculate period end based on plan type
-    const isAnnual = pendingSubscription.price_key?.includes('annual');
-    const periodEndDate = isAnnual 
-      ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 1 month
-
-    // Create user subscription
-    const { error: createError } = await supabase
-      .from('user_subscriptions')
-      .upsert({
-        user_id: userId,
-        stripe_customer_id: pendingSubscription.stripe_customer_id,
-        stripe_subscription_id: pendingSubscription.stripe_subscription_id,
-        status: 'active',
-        price_id: priceId,
-        current_period_start: new Date().toISOString(),
-        current_period_end: periodEndDate.toISOString(),
-        metadata: {
-          checkout_session_id: pendingSubscription.session_id,
-          claimed_from_pending: true,
-          original_purchase_date: pendingSubscription.created_at,
-          ...pendingSubscription.metadata
-        }
-      }, {
-        onConflict: 'user_id',
-      });
-
-    if (createError) {
-      console.error('[Claim Pending] Error creating subscription:', createError);
-      throw createError;
-    }
-
-    // Mark pending subscription as claimed
-    const { error: updateError } = await supabase
-      .from('pending_subscriptions')
-      .update({
-        claimed_by: userId,
-        claimed_at: new Date().toISOString()
-      })
-      .eq('id', pendingSubscription.id);
-
-    if (updateError) {
-      console.error('[Claim Pending] Error updating pending subscription:', updateError);
-      // Don't throw here as the subscription was created successfully
     }
 
     console.log('[Claim Pending] Successfully claimed subscription:', {
       userId,
       subscriptionId: pendingSubscription.stripe_subscription_id,
       priceKey: pendingSubscription.price_key,
+      claimMethod,
       claimedAt: new Date().toISOString()
     });
 
     return NextResponse.json({
       claimed: true,
       subscription: {
-        tier: pendingSubscription.price_key?.split('_')[0] + '_' + 
+        tier: pendingSubscription.price_key?.split('_')[0] + '_' +
               pendingSubscription.price_key?.split('_')[1],
         stripe_customer_id: pendingSubscription.stripe_customer_id,
         stripe_subscription_id: pendingSubscription.stripe_subscription_id
@@ -166,13 +177,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Claim Pending] Unexpected error:', error);
     Sentry.captureException(error, {
-      extra: { 
+      extra: {
         route: '/api/subscription/claim-pending',
         error: error instanceof Error ? error.message : String(error)
       }
     });
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to claim subscription',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

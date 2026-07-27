@@ -18,6 +18,19 @@ export function SignupForm() {
   const sessionId = searchParams.get('session_id');
   const fromCheckout = searchParams.get('from') === 'checkout';
 
+  // Persist the checkout session id so the purchase survives OAuth redirects
+  // (Google/GitHub signups lose URL params) and can be claimed by AuthContext
+  // regardless of which email the account uses.
+  useEffect(() => {
+    if (sessionId?.startsWith('cs_')) {
+      try {
+        localStorage.setItem('pp_checkout_session_id', sessionId);
+      } catch {
+        // Storage unavailable - email matching still applies
+      }
+    }
+  }, [sessionId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -45,7 +58,7 @@ export function SignupForm() {
           const response = await fetch('/api/subscription/claim-pending', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, email })
+            body: JSON.stringify({ userId: user.id, email, sessionId })
           });
           
           if (!response.ok) {
@@ -63,6 +76,7 @@ export function SignupForm() {
           if (result.claimed) {
             // Redirect to dashboard with success message
             console.log('[SignupForm] Subscription claimed successfully');
+            try { localStorage.removeItem('pp_checkout_session_id'); } catch {}
             router.push('/dashboard?subscription=claimed');
           } else {
             console.log('[SignupForm] No pending subscription found, might be handled by webhook');
@@ -148,7 +162,9 @@ export function SignupForm() {
                 ✅ Payment successful! Create your account to activate your subscription.
               </div>
               <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm">
-                ⚠️ <strong>Important:</strong> Use the same email address you entered during checkout to link your subscription.
+                {sessionId
+                  ? 'You can sign up with any email — your purchase will be linked to this account automatically.'
+                  : <>⚠️ <strong>Important:</strong> Use the same email address you entered during checkout to link your subscription.</>}
               </div>
             </div>
           )}

@@ -36,6 +36,19 @@ export function LoginForm() {
 
   const [error, setError] = useState(() => getInitialError());
 
+  // Persist the checkout session id so the purchase survives OAuth redirects
+  // (Google/GitHub logins lose URL params) and can be claimed by AuthContext
+  // regardless of which email the account uses.
+  useEffect(() => {
+    if (sessionId?.startsWith('cs_')) {
+      try {
+        localStorage.setItem('pp_checkout_session_id', sessionId);
+      } catch {
+        // Storage unavailable - email matching still applies
+      }
+    }
+  }, [sessionId]);
+
   // Clear URL error parameters after showing the error
   useEffect(() => {
     if (urlError && (errorCode || errorDescription)) {
@@ -69,7 +82,7 @@ export function LoginForm() {
           const response = await fetch('/api/subscription/claim-pending', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, email })
+            body: JSON.stringify({ userId: user.id, email, sessionId })
           });
           
           if (!response.ok) {
@@ -81,11 +94,13 @@ export function LoginForm() {
           
           if (result.claimed) {
             console.log('[LoginForm] Subscription claimed successfully');
+            try { localStorage.removeItem('pp_checkout_session_id'); } catch {}
             // Redirect to dashboard with success message
             router.push('/dashboard?subscription=claimed');
             return;
           } else if (result.hasActiveSubscription) {
             console.log('[LoginForm] User already has active subscription');
+            try { localStorage.removeItem('pp_checkout_session_id'); } catch {}
             router.push('/dashboard');
             return;
           }
@@ -153,7 +168,9 @@ export function LoginForm() {
                 ✅ Payment successful! Log in to activate your subscription.
               </div>
               <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-lg text-sm">
-                ⚠️ <strong>Important:</strong> Use the same email address you entered during checkout.
+                {sessionId
+                  ? 'Log in to any account — your purchase will be linked to it automatically.'
+                  : <>⚠️ <strong>Important:</strong> Use the same email address you entered during checkout.</>}
               </div>
             </div>
           )}

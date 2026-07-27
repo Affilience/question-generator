@@ -77,6 +77,15 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         metadata: { user_id: userId || '' },
       },
+      // Same student-email capture as the embedded checkout route
+      custom_fields: [
+        {
+          key: 'student_email',
+          label: { type: 'custom', custom: "Student's account email (if different)" },
+          type: 'text',
+          optional: true,
+        },
+      ],
     };
 
     // Add customer or email
