@@ -54,9 +54,13 @@
   --color-selection-bg: rgba(59, 130, 246, 0.3);
   --color-selection-text: #ffffff;
 
-  /* Diagram (on white background) */
-  --color-diagram-stroke: #1a1a1a;
-  --color-diagram-text: #1a1a1a;
+  /* Diagrams render as exam-paper-style white panels in BOTH themes:
+     dark strokes on --color-diagram-bg, so SVGs stay legible and print
+     correctly without theme-dependent colours */
+  --color-diagram-stroke: #374151;
+  --color-diagram-text: #1f2937;
+  --color-diagram-grid: #d1d5db;
+  --color-diagram-accent: #2563eb;
   --color-diagram-bg: #ffffff;
 
   /* Legacy compatibility */
@@ -117,9 +121,11 @@
   --color-selection-bg: rgba(37, 99, 235, 0.2);
   --color-selection-text: #171717;
 
-  /* Diagram (still on white background in light mode) */
-  --color-diagram-stroke: #1a1a1a;
-  --color-diagram-text: #1a1a1a;
+  /* Diagram (same white-panel treatment in light mode) */
+  --color-diagram-stroke: #374151;
+  --color-diagram-text: #1f2937;
+  --color-diagram-grid: #d1d5db;
+  --color-diagram-accent: #2563eb;
   --color-diagram-bg: #ffffff;
 
   /* Legacy compatibility */

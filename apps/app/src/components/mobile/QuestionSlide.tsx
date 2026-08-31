@@ -233,9 +233,7 @@ export function QuestionSlide({
               <DiagramErrorBoundary>
                 <ResponsiveDiagramRenderer
                   spec={question.diagram}
-                  className="w-full h-full flex items-center justify-center"
-                  darkMode={false}
-                  interactive={true}
+                  className="bg-[var(--color-diagram-bg)] rounded-lg p-3"
                 />
               </DiagramErrorBoundary>
             </div>
@@ -321,8 +319,6 @@ export function QuestionSlide({
                     <ResponsiveDiagramRenderer
                       spec={question.solutionDiagram}
                       className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
-                      darkMode={false}
-                      interactive={false}
                     />
                   </DiagramErrorBoundary>
                 </div>

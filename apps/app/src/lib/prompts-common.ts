@@ -2,6 +2,7 @@ import { Difficulty, Topic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 import { assessDiagramQuality, validateAndSanitizeDiagram } from '@/lib/diagram-utils';
+import { repairLatex } from '@/lib/latexRepair';
 
 /**
  * Shared utilities for question generation prompts.
@@ -9,94 +10,24 @@ import { assessDiagramQuality, validateAndSanitizeDiagram } from '@/lib/diagram-
  */
 
 /**
- * Removes problematic "text" prefixes from mathematical notation
- * Addresses persistent issue where AI generates textf(x) instead of f(x)
- * Enhanced to handle all patterns found in user reports
+ * Repair LaTeX in AI output at parse time.
+ *
+ * The historic "textf(x)" / "rac{" garbage was downstream damage from the
+ * model single-escaping LaTeX commands inside JSON (\t -> TAB, \f ->
+ * formfeed). repairLatex inverts that damage deterministically; the handful
+ * of extra patterns below cover legacy shapes seen in stored content. The
+ * old version of this function also deleted the standalone word "text" from
+ * prose — English Literature questions saying "the text" lost the word.
  */
 function cleanTextPrefixes(content: string): string {
   if (!content) return content;
-  
-  let cleaned = content;
-  
-  // === CRITICAL: Handle broken \text{} LaTeX commands ===
-  // These are the most problematic patterns reported by users
-  
-  // 1. Fix \text{single_letter} patterns - primary LaTeX issue
-  cleaned = cleaned.replace(/\\text\{([a-zA-Z])\}/g, '$1');
-  
-  // 2. Fix \text{multiple_letters} that should be single variables
-  // Common pattern: \text{kV} -> kV, \text{in} -> in (when used for units)
-  cleaned = cleaned.replace(/\\text\{([a-zA-Z]{1,3})\}/g, (match, letters) => {
-    // Keep common units in text mode, but fix mathematical variables
-    const units = new Set(['in', 'cm', 'mm', 'km', 'kg', 'mg', 'ml', 'Hz', 'Pa', 'kV', 'mA']);
-    if (units.has(letters)) {
-      return `\\text{${letters}}`; // Keep as text for units
-    }
-    return letters; // Convert to plain text for variables
-  });
-  
-  // 3. Fix mangled "textt" patterns (broken text+t)
+
+  let cleaned = repairLatex(content);
+
+  // Legacy symptom shapes from before the root-cause fix
+  cleaned = cleaned.replace(/\btext([fghFGH])\(/g, '$1(');
   cleaned = cleaned.replace(/\btextt\b/g, 't');
-  
-  // 4. Fix separated "t e x t t" patterns
-  cleaned = cleaned.replace(/\bt\s+e\s+x\s+t\s+t\b/g, 't');
-  
-  // 5. Fix standalone "text" before single letters
-  cleaned = cleaned.replace(/\btext\s*([a-zA-Z])(?=\s|\.|,|$|\))/g, '$1');
-  
-  // === Handle function patterns ===
-  // Handle specific text prefix patterns before mathematical functions
-  cleaned = cleaned
-    // Handle textf(x) patterns specifically
-    .replace(/textf\(/g, 'f(')
-    .replace(/textg\(/g, 'g(')
-    .replace(/texth\(/g, 'h(')
-    .replace(/textF\(/g, 'F(')
-    .replace(/textG\(/g, 'G(')
-    .replace(/textH\(/g, 'H(')
-    
-    // Handle text with space before function
-    .replace(/text\s+f\(/g, 'f(')
-    .replace(/text\s+g\(/g, 'g(')
-    .replace(/text\s+h\(/g, 'h(')
-    .replace(/text\s+F\(/g, 'F(')
-    .replace(/text\s+G\(/g, 'G(')
-    .replace(/text\s+H\(/g, 'H(')
-    
-    // Handle LaTeX command style
-    .replace(/\\textf\(/g, 'f(')
-    .replace(/\\textg\(/g, 'g(')
-    .replace(/\\texth\(/g, 'h(')
-    
-    // Clean up any remaining "text" before mathematical notation
-    .replace(/text([a-zA-Z])\s*=/g, '$1 =')
-    .replace(/text\s*([a-zA-Z])\s*=/g, '$1 =')
-    
-    // Remove text prefix from common mathematical terms
-    .replace(/textfunction/gi, 'function')
-    .replace(/textequation/gi, 'equation')
-    .replace(/textexpression/gi, 'expression')
-    .replace(/textintegral/gi, 'integral')
-    .replace(/textderivative/gi, 'derivative')
-    
-    // Handle function names with subscripts
-    .replace(/text([fghijklmnpqrstuvwxyzFGHIJKLMNPQRSTUVWXYZ])_(\d+)\(/g, '$1_$2(')
-    
-    // Remove standalone "text" that appears before mathematical expressions
-    .replace(/\btext\s+(?=\$)/g, '')
-    .replace(/\btext\s+(?=[A-Za-z]\s*[=<>])/g, '');
-    
-  // === Final cleanup ===
-  // Remove any remaining isolated "text" that doesn't belong
-  cleaned = cleaned.replace(/\btext\b(?!\s*\{)/g, ''); // Remove "text" not followed by {
-  
-  // === CRITICAL: Fix broken \frac commands ===
-  // Handle cases where \frac got corrupted to just "rac"
-  cleaned = cleaned.replace(/\brac\{([^}]+)\}\{([^}]+)\}/g, '\\frac{$1}{$2}');
-  
-  // Fix partial rac patterns that might appear
-  cleaned = cleaned.replace(/\brac\{/g, '\\frac{');
-  
+
   return cleaned;
 }
 
@@ -111,7 +42,7 @@ function validateMarkScheme(markScheme: string[], questionMarks: number): string
   }
 
   let validatedScheme = [...markScheme];
-  let issues: string[] = [];
+  const issues: string[] = [];
 
   // Check 1: Remove empty or useless entries
   validatedScheme = validatedScheme.filter(entry => {
@@ -2046,14 +1977,16 @@ export function parseQuestionResponse(
         );
       }
 
-      // Auto-sanitize the diagram
+      // Auto-sanitize the diagram. An unrenderable/empty diagram is worse
+      // than none — don't attach it (14 empty diagrams used to reach the
+      // bank and rendered as fallback boxes).
       const { sanitizedSpec } = validateAndSanitizeDiagram(diagram);
-      diagram = sanitizedSpec;
+      diagram = sanitizedSpec.elements.length > 0 ? sanitizedSpec : undefined;
     }
 
     if (solutionDiagram) {
       const { sanitizedSpec } = validateAndSanitizeDiagram(solutionDiagram);
-      solutionDiagram = sanitizedSpec;
+      solutionDiagram = sanitizedSpec.elements.length > 0 ? sanitizedSpec : undefined;
     }
 
     // Clean up any text prefix issues as a final safeguard

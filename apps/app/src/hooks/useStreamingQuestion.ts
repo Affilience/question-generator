@@ -171,25 +171,13 @@ export function useStreamingQuestion() {
           ...options,
           userId: user?.id,
         });
-        
-        // Track usage via API endpoint
+
+        // Usage is counted server-side by the generation route; just refresh
+        // local subscription state so remaining-quota UI stays accurate
         if (user) {
-          try {
-            await fetch('/api/usage/increment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                userId: user.id,
-                type: 'question'
-              }),
-            });
-            // Refresh subscription data after successful tracking
-            refreshSubscription();
-          } catch (error) {
-            console.error('Failed to track usage:', error);
-          }
+          refreshSubscription();
         }
-        
+
         return question;
       }
 
@@ -250,25 +238,13 @@ export function useStreamingQuestion() {
                   ...options,
                   userId: user?.id,
                 });
-                
-                // Track usage via API endpoint
+
+                // Usage is counted server-side by the generation route; just
+                // refresh local subscription state for remaining-quota UI
                 if (user) {
-                  try {
-                    await fetch('/api/usage/increment', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ 
-                        userId: user.id,
-                        type: 'question'
-                      }),
-                    });
-                    // Refresh subscription data after successful tracking
-                    refreshSubscription();
-                  } catch (error) {
-                    console.error('Failed to track usage:', error);
-                  }
+                  refreshSubscription();
                 }
-                
+
                 return data.question;
               }
             } catch {

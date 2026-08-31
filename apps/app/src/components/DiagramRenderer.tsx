@@ -5,7 +5,6 @@ import {
   DiagramSpec,
   DiagramElement,
   Point,
-  LabelledPoint,
   PointElement,
   LineElement,
   PolygonElement,
@@ -32,34 +31,24 @@ import {
   TreeNode,
 } from '@/types/diagram';
 import { validateAndSanitizeDiagram } from '@/lib/diagram-utils';
+import { compileExpression } from '@/lib/mathExpression';
 
 // ============================================
 // Constants
 // ============================================
 
-// Colors that work in both light and dark modes
-// Using CSS variables where possible for theme compatibility
+// Diagrams render on a white panel (--color-diagram-bg) in every theme, so
+// colours are theme-variable-driven with exam-paper-style dark defaults.
+// The old darkMode prop selected an alternative palette that was computed
+// and then never passed to any render function — dead plumbing, removed.
 const DEFAULT_COLORS = {
-  stroke: '#374151', // gray-700 - works on both light and dark
+  stroke: 'var(--color-diagram-stroke, #374151)',
   fill: 'none',
-  text: '#1f2937', // gray-800
-  grid: '#d1d5db', // gray-300
-  accent: '#3b82f6', // blue-500
+  text: 'var(--color-diagram-text, #1f2937)',
+  grid: 'var(--color-diagram-grid, #d1d5db)',
+  accent: 'var(--color-diagram-accent, #2563eb)',
   angle: 'rgba(59, 130, 246, 0.3)',
 };
-
-// Dark mode colors (used when darkMode prop is true)
-const DARK_MODE_COLORS = {
-  stroke: '#e5e7eb', // gray-200
-  fill: 'none',
-  text: '#f3f4f6', // gray-100
-  grid: '#374151', // gray-700
-  accent: '#60a5fa', // blue-400
-  angle: 'rgba(96, 165, 250, 0.3)',
-};
-
-const DEFAULT_RENDER_WIDTH = 400;
-const DEFAULT_RENDER_HEIGHT = 300;
 
 // Precision for SVG coordinates (2 decimal places for performance)
 const COORD_PRECISION = 2;
@@ -71,13 +60,6 @@ const COORD_PRECISION = 2;
 function round(n: number, decimals: number = COORD_PRECISION): number {
   const factor = Math.pow(10, decimals);
   return Math.round(n * factor) / factor;
-}
-
-/**
- * Round a point's coordinates.
- */
-function roundPoint(p: Point): Point {
-  return { x: round(p.x), y: round(p.y) };
 }
 
 // ============================================
@@ -112,10 +94,6 @@ function getMidpoint(p1: Point, p2: Point): Point {
 
 function getAngle(from: Point, to: Point): number {
   return Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI;
-}
-
-function getDistance(p1: Point, p2: Point): number {
-  return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
 }
 
 function getLabelOffset(position: string | undefined, offset: number = 12): Point {
@@ -398,7 +376,7 @@ function renderAngleMarker(el: AngleMarkerElement, key: string, transform: (p: P
   const angle2 = Math.atan2(ray2.y - vertex.y, ray2.x - vertex.x) * 180 / Math.PI;
 
   // Normalize angles
-  let startAngle = angle1 + 90;
+  const startAngle = angle1 + 90;
   let endAngle = angle2 + 90;
   if (endAngle < startAngle) endAngle += 360;
 
@@ -529,37 +507,28 @@ function renderCurve(el: CurveElement, key: string, transform: (p: Point) => Poi
       pathData = transformed.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
     }
   } else if (el.fn) {
-    // Function-based curve
-    const domain = el.domain || [logicalBounds.xMin, logicalBounds.xMax];
-    const steps = 100;
-    const dx = (domain[1] - domain[0]) / steps;
+    // Function-based curve. compileExpression is a whitelisted parser — the
+    // old code eval()'d the AI-generated string in every viewer's browser,
+    // which was an arbitrary-code-execution hole via stored diagram JSON.
+    const compiled = compileExpression(el.fn);
+    if (compiled) {
+      const domain = el.domain || [logicalBounds.xMin, logicalBounds.xMax];
+      const steps = 100;
+      const dx = (domain[1] - domain[0]) / steps;
 
-    const points: Point[] = [];
-    for (let i = 0; i <= steps; i++) {
-      const x = domain[0] + i * dx;
-      let y: number;
-      try {
-        // Simple function parser
-        const fn = el.fn
-          .replace(/\^/g, '**')
-          .replace(/sin/g, 'Math.sin')
-          .replace(/cos/g, 'Math.cos')
-          .replace(/tan/g, 'Math.tan')
-          .replace(/sqrt/g, 'Math.sqrt')
-          .replace(/abs/g, 'Math.abs')
-          .replace(/x/g, `(${x})`);
-        y = eval(fn);
+      const points: Point[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const x = domain[0] + i * dx;
+        const y = compiled(x);
         if (isFinite(y) && y >= logicalBounds.yMin - 10 && y <= logicalBounds.yMax + 10) {
           points.push({ x, y });
         }
-      } catch {
-        continue;
       }
-    }
 
-    if (points.length > 0) {
-      const transformed = points.map(p => transform(p));
-      pathData = transformed.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      if (points.length > 0) {
+        const transformed = points.map(p => transform(p));
+        pathData = transformed.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      }
     }
   }
 
@@ -1402,7 +1371,6 @@ interface DiagramRendererProps {
   className?: string;
   maxWidth?: number;
   maxHeight?: number;
-  darkMode?: boolean;
 }
 
 // ============================================
@@ -1438,7 +1406,7 @@ class DiagramErrorBoundary extends Component<DiagramErrorBoundaryProps, DiagramE
     });
     
     // Store error details for debugging
-    (window as any).__diagramError = {
+    (window as unknown as Record<string, unknown>).__diagramError = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
@@ -1448,12 +1416,12 @@ class DiagramErrorBoundary extends Component<DiagramErrorBoundaryProps, DiagramE
   render(): ReactNode {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex flex-col items-center justify-center p-4 bg-red-50 border border-red-300 rounded-lg min-h-[200px]">
-          <svg className="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex flex-col items-center justify-center p-4 bg-[var(--color-error-subtle)] border border-[var(--color-error)] rounded-lg min-h-[200px]">
+          <svg className="w-12 h-12 text-[var(--color-error)] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm text-red-600 font-medium">Diagram rendering failed</span>
-          <span className="text-xs text-red-500 mt-1">
+          <span className="text-sm text-[var(--color-error)] font-medium">Diagram rendering failed</span>
+          <span className="text-xs text-[var(--color-text-muted)] mt-1">
             {this.state.error?.message ? `Error: ${this.state.error.message}` : 'Check browser console for details'}
           </span>
         </div>
@@ -1470,11 +1438,11 @@ class DiagramErrorBoundary extends Component<DiagramErrorBoundaryProps, DiagramE
 
 function DiagramFallback({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg min-h-[150px]">
-      <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="flex flex-col items-center justify-center p-4 bg-[var(--color-bg-card)] border-2 border-dashed border-[var(--color-border-visible)] rounded-lg min-h-[150px]">
+      <svg className="w-10 h-10 text-[var(--color-text-muted)] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
       </svg>
-      <span className="text-sm text-gray-500 text-center">
+      <span className="text-sm text-[var(--color-text-muted)] text-center">
         {message || 'Diagram not available'}
       </span>
     </div>
@@ -1485,12 +1453,9 @@ function DiagramFallback({ message }: { message?: string }) {
 // Main Component
 // ============================================
 
-function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400, darkMode = false }: DiagramRendererProps) {
+function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400 }: DiagramRendererProps) {
   // Validate and sanitize the diagram spec
   const { sanitizedSpec } = useMemo(() => validateAndSanitizeDiagram(spec), [spec]);
-
-  // Select color scheme based on dark mode
-  const colors = darkMode ? DARK_MODE_COLORS : DEFAULT_COLORS;
 
   const { renderWidth, renderHeight, transform, scale, logicalBounds } = useMemo(() => {
     // Determine logical bounds from elements or spec
@@ -1553,51 +1518,51 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
 
     switch (el.type) {
       case 'point':
-        return renderPoint(el as any, key, transform, scale);
+        return renderPoint(el as PointElement, key, transform, scale);
       case 'line':
-        return renderLine(el as any, key, transform);
+        return renderLine(el as LineElement, key, transform);
       case 'polygon':
-        return renderPolygon(el as any, key, transform);
+        return renderPolygon(el as PolygonElement, key, transform);
       case 'circle':
-        return renderCircle(el as any, key, transform, scale);
+        return renderCircle(el as CircleElement, key, transform, scale);
       case 'arc':
-        return renderArc(el as any, key, transform, scale);
+        return renderArc(el as ArcElement, key, transform, scale);
       case 'angle-marker':
-        return renderAngleMarker(el as any, key, transform, scale);
+        return renderAngleMarker(el as AngleMarkerElement, key, transform, scale);
       case 'text':
-        return renderText(el as any, key, transform);
+        return renderText(el as TextElement, key, transform);
       case 'arrow':
-        return renderArrow(el as any, key, transform);
+        return renderArrow(el as ArrowElement, key, transform);
       case 'curve':
-        return renderCurve(el as any, key, transform, logicalBounds);
+        return renderCurve(el as CurveElement, key, transform, logicalBounds);
       case 'rectangle':
-        return renderRectangle(el as any, key, transform, scale);
+        return renderRectangle(el as RectangleElement, key, transform, scale);
       case 'grid':
-        return renderGrid(el as any, key, transform);
+        return renderGrid(el as GridElement, key, transform);
       case 'axes':
-        return renderAxes(el as any, key, transform, renderWidth, renderHeight);
+        return renderAxes(el as AxesElement, key, transform, renderWidth, renderHeight);
       case 'tree-diagram':
-        return renderTreeDiagram(el as any, key, renderWidth, renderHeight);
+        return renderTreeDiagram(el as TreeDiagramElement, key, renderWidth, renderHeight);
       case 'venn-diagram':
-        return renderVennDiagram(el as any, key, renderWidth, renderHeight);
+        return renderVennDiagram(el as VennDiagramElement, key, renderWidth, renderHeight);
       case 'number-line':
-        return renderNumberLine(el as any, key, renderWidth, renderHeight);
+        return renderNumberLine(el as NumberLineElement, key, renderWidth, renderHeight);
       case 'bar-chart':
-        return renderBarChart(el as any, key, renderWidth, renderHeight);
+        return renderBarChart(el as BarChartElement, key, renderWidth, renderHeight);
       case 'pie-chart':
-        return renderPieChart(el as any, key, renderWidth, renderHeight);
+        return renderPieChart(el as PieChartElement, key, renderWidth, renderHeight);
       case 'box-plot':
-        return renderBoxPlot(el as any, key, renderWidth, renderHeight);
+        return renderBoxPlot(el as BoxPlotElement, key, renderWidth, renderHeight);
       case 'prism-3d':
-        return render3DPrism(el as any, key, renderWidth, renderHeight);
+        return render3DPrism(el as Prism3DElement, key, renderWidth, renderHeight);
       case 'cylinder-3d':
-        return render3DCylinder(el as any, key, renderWidth, renderHeight);
+        return render3DCylinder(el as Cylinder3DElement, key, renderWidth, renderHeight);
       case 'cone-3d':
-        return render3DCone(el as any, key, renderWidth, renderHeight);
+        return render3DCone(el as Cone3DElement, key, renderWidth, renderHeight);
       case 'sphere-3d':
-        return render3DSphere(el as any, key, renderWidth, renderHeight);
+        return render3DSphere(el as Sphere3DElement, key, renderWidth, renderHeight);
       case 'pyramid-3d':
-        return render3DPyramid(el as any, key, renderWidth, renderHeight);
+        return render3DPyramid(el as Pyramid3DElement, key, renderWidth, renderHeight);
       default:
         return null;
     }
@@ -1670,7 +1635,7 @@ function DiagramRendererInner({ spec, className, maxWidth = 500, maxHeight = 400
 // Exported Component with Error Boundary
 // ============================================
 
-export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400, darkMode = false }: DiagramRendererProps) {
+export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 400 }: DiagramRendererProps) {
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -1697,15 +1662,15 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
   // Only render on client to prevent hydration mismatches
   if (!isClient) {
     return (
-      <div 
-        className={`flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg w-full ${className || ''}`}
-        style={{ 
-          maxWidth: `min(${maxWidth}px, 100vw - 2rem)`, 
+      <div
+        className={`flex items-center justify-center bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg w-full ${className || ''}`}
+        style={{
+          maxWidth: `min(${maxWidth}px, 100vw - 2rem)`,
           height: `min(${maxHeight}px, 40vh)`,
           minHeight: '150px'
         }}
       >
-        <div className="text-gray-500 text-sm">Loading diagram...</div>
+        <div className="text-[var(--color-text-muted)] text-sm">Loading diagram...</div>
       </div>
     );
   }
@@ -1717,7 +1682,6 @@ export function DiagramRenderer({ spec, className, maxWidth = 500, maxHeight = 4
         className={className}
         maxWidth={maxWidth}
         maxHeight={maxHeight}
-        darkMode={darkMode}
       />
     </DiagramErrorBoundary>
   );

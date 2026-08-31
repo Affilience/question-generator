@@ -19,7 +19,7 @@ interface ValidationResult {
  * - Missing label positions
  */
 export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null): ValidationResult {
-  if (!spec || !spec.elements || spec.elements.length === 0) {
+  if (!spec || !spec.elements || !Array.isArray(spec.elements) || spec.elements.length === 0) {
     return {
       isValid: false,
       warnings: ['No diagram spec or empty elements'],
@@ -30,8 +30,41 @@ export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null)
   const warnings: string[] = [];
   const sanitizedSpec = { ...spec };
 
+  // Coerce numeric strings ("radius": "3" happens in AI output) and drop
+  // elements containing non-finite numbers — either would otherwise become
+  // NaN SVG attributes and blank the whole diagram
+  sanitizedSpec.width = coerceFiniteNumber(spec.width);
+  sanitizedSpec.height = coerceFiniteNumber(spec.height);
+  sanitizedSpec.padding = coerceFiniteNumber(spec.padding);
+
+  const elements: DiagramElement[] = [];
+  for (const el of spec.elements) {
+    if (!el || typeof el !== 'object' || typeof (el as { type?: unknown }).type !== 'string') {
+      warnings.push('Dropped malformed element (missing type)');
+      continue;
+    }
+    const coerced = normalizeElementAliases(deepCoerceNumbers(el) as DiagramElement, warnings);
+    if (hasNonFiniteNumber(coerced)) {
+      warnings.push(`Dropped element of type '${coerced.type}' containing non-finite numbers`);
+      continue;
+    }
+    if (!isRenderableElement(coerced)) {
+      warnings.push(`Dropped unrenderable '${coerced.type}' element (missing required geometry)`);
+      continue;
+    }
+    elements.push(coerced);
+  }
+
+  if (elements.length === 0) {
+    return {
+      isValid: false,
+      warnings: [...warnings, 'No renderable elements after sanitisation'],
+      sanitizedSpec: { elements: [] },
+    };
+  }
+
   // Check if axes element exists (which defines bounds automatically)
-  const axesElement = spec.elements.find(el => el.type === 'axes') as AxesElement | undefined;
+  const axesElement = elements.find(el => el.type === 'axes') as AxesElement | undefined;
 
   // Determine bounds
   let bounds = { xMin: 0, xMax: 10, yMin: 0, yMax: 10 };
@@ -43,11 +76,11 @@ export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null)
       yMin: axesElement.yMin,
       yMax: axesElement.yMax,
     };
-  } else if (spec.width && spec.height) {
-    bounds = { xMin: 0, xMax: spec.width, yMin: 0, yMax: spec.height };
+  } else if (sanitizedSpec.width && sanitizedSpec.height) {
+    bounds = { xMin: 0, xMax: sanitizedSpec.width, yMin: 0, yMax: sanitizedSpec.height };
   } else {
     // Calculate bounds from elements
-    const calculatedBounds = calculateBoundsFromElements(spec.elements);
+    const calculatedBounds = calculateBoundsFromElements(elements);
     if (calculatedBounds) {
       // Add padding
       const padding = 2;
@@ -64,14 +97,29 @@ export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null)
   }
 
   // Validate and fix elements
-  sanitizedSpec.elements = spec.elements.map((el, index) => {
+  sanitizedSpec.elements = elements.map((el, index) => {
     const fixed = fixElement(el, bounds, warnings, index);
     return fixed;
   });
 
+  // Grow declared bounds to fit stray elements instead of clipping them
+  // (models occasionally place a vertex just past the stated width)
+  if (!axesElement && sanitizedSpec.width && sanitizedSpec.height) {
+    const elBounds = calculateBoundsFromElements(sanitizedSpec.elements);
+    if (elBounds) {
+      if (elBounds.xMax > sanitizedSpec.width) {
+        sanitizedSpec.width = Math.ceil(elBounds.xMax + 1);
+        warnings.push(`Expanded width to ${sanitizedSpec.width} to fit elements`);
+      }
+      if (elBounds.yMax > sanitizedSpec.height) {
+        sanitizedSpec.height = Math.ceil(elBounds.yMax + 1);
+        warnings.push(`Expanded height to ${sanitizedSpec.height} to fit elements`);
+      }
+    }
+  }
+
   // Normalize coordinates if there are negative values (and no axes)
-  const hasAxes = spec.elements.some(el => el.type === 'axes');
-  if (!hasAxes) {
+  if (!axesElement) {
     const normalizedSpec = normalizeCoordinatesInternal(sanitizedSpec, 2);
     if (normalizedSpec !== sanitizedSpec) {
       warnings.push('Coordinates were auto-normalized to positive values');
@@ -88,6 +136,195 @@ export function validateAndSanitizeDiagram(spec: DiagramSpec | undefined | null)
     warnings,
     sanitizedSpec,
   };
+}
+
+/**
+ * Normalise the field-name variants the model actually produces onto the
+ * canonical DiagramSpec shapes. Measured in production data: 28 of 81 stored
+ * line elements used start/end instead of from/to (rendering as NaN
+ * coordinates, i.e. invisible), arrows 13 of 17; plus text/content mixups,
+ * flat x1/y1/x2/y2 pairs, point-array lines, and a 'vector' type the
+ * renderer did not know. Runs at parse time AND render time, so previously
+ * stored broken diagrams heal without a data migration.
+ */
+const isPoint = (v: unknown): v is { x: number; y: number } =>
+  !!v && typeof v === 'object' && typeof (v as { x?: unknown }).x === 'number' && typeof (v as { y?: unknown }).y === 'number';
+
+function normalizeElementAliases(el: DiagramElement, warnings: string[]): DiagramElement {
+  const e = el as Record<string, unknown>;
+  const type = e.type as string;
+
+  // Unknown 'vector' type -> arrow
+  if (type === 'vector') {
+    e.type = 'arrow';
+    warnings.push("Normalised element type 'vector' to 'arrow'");
+  }
+
+  if (e.type === 'line' || e.type === 'arrow') {
+    // start/end -> from/to
+    if (!e.from && isPoint(e.start)) e.from = e.start;
+    if (!e.to && isPoint(e.end)) e.to = e.end;
+
+    // Flat x1/y1/x2/y2 -> from/to
+    if (!e.from && typeof e.x1 === 'number' && typeof e.y1 === 'number') {
+      e.from = { x: e.x1, y: e.y1 };
+    }
+    if (!e.to && typeof e.x2 === 'number' && typeof e.y2 === 'number') {
+      e.to = { x: e.x2, y: e.y2 };
+    }
+
+    // Horizontal rule described as xMin/xMax at yValue
+    if (!e.from && typeof e.xMin === 'number' && typeof e.yValue === 'number') {
+      e.from = { x: e.xMin, y: e.yValue };
+    }
+    if (!e.to && typeof e.xMax === 'number' && typeof e.yValue === 'number') {
+      e.to = { x: e.xMax, y: e.yValue };
+    }
+
+    // A "line" with a point array or a function is really a curve
+    if (!e.from && Array.isArray(e.points) && e.points.length >= 2 && e.points.every(isPoint)) {
+      if (e.points.length === 2) {
+        e.from = e.points[0];
+        e.to = e.points[1];
+      } else {
+        e.type = 'curve';
+        warnings.push("Normalised multi-point 'line' to 'curve'");
+      }
+    }
+    if (!e.from && typeof e.fn === 'string') {
+      e.type = 'curve';
+      warnings.push("Normalised function-based 'line' to 'curve'");
+    }
+  }
+
+  if (e.type === 'text') {
+    if (!e.content && typeof e.text === 'string') e.content = e.text;
+    if (!e.content && typeof e.label === 'string') e.content = e.label;
+  }
+
+  if (e.type === 'rectangle' && !e.topLeft && typeof e.x === 'number' && typeof e.y === 'number') {
+    e.topLeft = { x: e.x, y: e.y };
+  }
+
+  if (e.type === 'point' && !e.position && typeof e.x === 'number' && typeof e.y === 'number') {
+    e.position = { x: e.x, y: e.y, ...(typeof e.label === 'string' ? { label: e.label } : {}) };
+  }
+
+  return e as DiagramElement;
+}
+
+/**
+ * Reject elements that would reach the renderer without the geometry it
+ * needs (previously they produced NaN SVG attributes and drew nothing).
+ * Compound types (charts, trees, 3D shapes) position themselves.
+ */
+function isRenderableElement(el: DiagramElement): boolean {
+  const e = el as Record<string, unknown>;
+  switch (e.type) {
+    case 'line':
+    case 'arrow':
+      return isPoint(e.from) && isPoint(e.to);
+    case 'point':
+      return isPoint(e.position);
+    case 'circle':
+      return isPoint(e.center) && typeof e.radius === 'number';
+    case 'arc':
+      return isPoint(e.center) && typeof e.radius === 'number' &&
+        typeof e.startAngle === 'number' && typeof e.endAngle === 'number';
+    case 'text':
+      return isPoint(e.position) && typeof e.content === 'string' && e.content.length > 0;
+    case 'polygon':
+      return Array.isArray(e.vertices) && e.vertices.length >= 2 && e.vertices.every(isPoint);
+    case 'rectangle':
+      return isPoint(e.topLeft) && typeof e.width === 'number' && typeof e.height === 'number';
+    case 'curve':
+      return (Array.isArray(e.points) && e.points.length >= 2 && e.points.every(isPoint)) ||
+        typeof e.fn === 'string';
+    case 'angle-marker':
+      return isPoint(e.vertex) && isPoint(e.ray1End) && isPoint(e.ray2End);
+    default:
+      return true;
+  }
+}
+
+/** Coerce a value to a finite positive number, else undefined. */
+function coerceFiniteNumber(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+/** Recursively convert numeric strings to numbers (AI JSON often quotes them). */
+function deepCoerceNumbers(value: unknown): unknown {
+  if (typeof value === 'string') {
+    if (/^-?\d+(\.\d+)?$/.test(value.trim())) {
+      return Number(value);
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(deepCoerceNumbers);
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = deepCoerceNumbers(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/** True if any number anywhere in the structure is NaN/Infinity. */
+function hasNonFiniteNumber(value: unknown): boolean {
+  if (typeof value === 'number') return !Number.isFinite(value);
+  if (Array.isArray(value)) return value.some(hasNonFiniteNumber);
+  if (value && typeof value === 'object') {
+    return Object.values(value).some(hasNonFiniteNumber);
+  }
+  return false;
+}
+
+/**
+ * Human-readable summary of a diagram for aria-labels / screen readers.
+ */
+export function describeDiagram(spec: DiagramSpec | undefined | null): string {
+  if (spec?.description) return spec.description;
+  if (!spec?.elements || spec.elements.length === 0) return 'Diagram';
+
+  const names: Record<string, string> = {
+    'polygon': 'shape',
+    'circle': 'circle',
+    'line': 'line',
+    'point': 'point',
+    'axes': 'coordinate axes',
+    'curve': 'curve',
+    'bar-chart': 'bar chart',
+    'pie-chart': 'pie chart',
+    'tree-diagram': 'probability tree',
+    'venn-diagram': 'Venn diagram',
+    'number-line': 'number line',
+    'box-plot': 'box plot',
+    'prism-3d': '3D prism',
+    'cylinder-3d': 'cylinder',
+    'cone-3d': 'cone',
+    'sphere-3d': 'sphere',
+    'pyramid-3d': 'pyramid',
+  };
+
+  const counts = new Map<string, number>();
+  for (const el of spec.elements) {
+    const name = names[el.type] || null;
+    if (name) counts.set(name, (counts.get(name) || 0) + 1);
+  }
+
+  if (counts.size === 0) return spec.title || 'Diagram';
+
+  const parts = [...counts.entries()]
+    .slice(0, 4)
+    .map(([name, n]) => (n > 1 ? `${n} ${name}s` : name));
+  const summary = `Diagram showing ${parts.join(', ')}`;
+  return spec.title ? `${summary} — ${spec.title}` : summary;
 }
 
 /**
@@ -108,47 +345,7 @@ function normalizeCoordinatesInternal(spec: DiagramSpec, margin: number): Diagra
   if (shiftX === 0 && shiftY === 0) return spec;
 
   const normalized = { ...spec };
-  normalized.elements = spec.elements.map((el) => {
-    if (el.type === 'polygon') {
-      const poly = el as PolygonElement;
-      return {
-        ...poly,
-        vertices: poly.vertices.map((v) => ({
-          ...v,
-          x: v.x + shiftX,
-          y: v.y + shiftY,
-        })),
-      };
-    } else if (el.type === 'point') {
-      const point = el as PointElement;
-      return {
-        ...point,
-        position: {
-          ...point.position,
-          x: point.position.x + shiftX,
-          y: point.position.y + shiftY,
-        },
-      };
-    } else if (el.type === 'circle') {
-      const circle = el as CircleElement;
-      return {
-        ...circle,
-        center: {
-          ...circle.center,
-          x: circle.center.x + shiftX,
-          y: circle.center.y + shiftY,
-        },
-      };
-    } else if (el.type === 'line') {
-      const line = el as LineElement;
-      return {
-        ...line,
-        from: { ...line.from, x: line.from.x + shiftX, y: line.from.y + shiftY },
-        to: { ...line.to, x: line.to.x + shiftX, y: line.to.y + shiftY },
-      };
-    }
-    return el;
-  });
+  normalized.elements = spec.elements.map((el) => shiftElement(el, shiftX, shiftY));
 
   // Update bounds
   normalized.width = Math.ceil(bounds.xMax + shiftX + margin);
@@ -164,43 +361,101 @@ function calculateBoundsFromElements(elements: DiagramElement[]): { xMin: number
   let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
   let hasPoints = false;
 
+  const include = (x: number, y: number) => {
+    xMin = Math.min(xMin, x);
+    xMax = Math.max(xMax, x);
+    yMin = Math.min(yMin, y);
+    yMax = Math.max(yMax, y);
+    hasPoints = true;
+  };
+
   for (const el of elements) {
-    if (el.type === 'polygon') {
-      const poly = el as PolygonElement;
-      for (const v of poly.vertices) {
-        xMin = Math.min(xMin, v.x);
-        xMax = Math.max(xMax, v.x);
-        yMin = Math.min(yMin, v.y);
-        yMax = Math.max(yMax, v.y);
-        hasPoints = true;
+    switch (el.type) {
+      case 'polygon':
+        for (const v of (el as PolygonElement).vertices) include(v.x, v.y);
+        break;
+      case 'circle': {
+        const c = el as CircleElement;
+        include(c.center.x - c.radius, c.center.y - c.radius);
+        include(c.center.x + c.radius, c.center.y + c.radius);
+        break;
       }
-    } else if (el.type === 'circle') {
-      const circle = el as CircleElement;
-      xMin = Math.min(xMin, circle.center.x - circle.radius);
-      xMax = Math.max(xMax, circle.center.x + circle.radius);
-      yMin = Math.min(yMin, circle.center.y - circle.radius);
-      yMax = Math.max(yMax, circle.center.y + circle.radius);
-      hasPoints = true;
-    } else if (el.type === 'point') {
-      const point = el as PointElement;
-      xMin = Math.min(xMin, point.position.x);
-      xMax = Math.max(xMax, point.position.x);
-      yMin = Math.min(yMin, point.position.y);
-      yMax = Math.max(yMax, point.position.y);
-      hasPoints = true;
-    } else if (el.type === 'line') {
-      const line = el as LineElement;
-      xMin = Math.min(xMin, line.from.x, line.to.x);
-      xMax = Math.max(xMax, line.from.x, line.to.x);
-      yMin = Math.min(yMin, line.from.y, line.to.y);
-      yMax = Math.max(yMax, line.from.y, line.to.y);
-      hasPoints = true;
+      case 'arc': {
+        const a = el as { center: { x: number; y: number }; radius: number };
+        include(a.center.x - a.radius, a.center.y - a.radius);
+        include(a.center.x + a.radius, a.center.y + a.radius);
+        break;
+      }
+      case 'point':
+        include((el as PointElement).position.x, (el as PointElement).position.y);
+        break;
+      case 'line':
+      case 'arrow': {
+        const l = el as LineElement;
+        include(l.from.x, l.from.y);
+        include(l.to.x, l.to.y);
+        break;
+      }
+      case 'text':
+        include((el as TextElement).position.x, (el as TextElement).position.y);
+        break;
+      case 'rectangle': {
+        const r = el as { topLeft: { x: number; y: number }; width: number; height: number };
+        include(r.topLeft.x, r.topLeft.y);
+        include(r.topLeft.x + r.width, r.topLeft.y - r.height);
+        break;
+      }
+      case 'curve': {
+        const points = (el as { points?: { x: number; y: number }[] }).points;
+        if (points) for (const pt of points) include(pt.x, pt.y);
+        break;
+      }
+      case 'angle-marker': {
+        const m = el as { vertex: { x: number; y: number } };
+        include(m.vertex.x, m.vertex.y);
+        break;
+      }
     }
   }
 
   if (!hasPoints) return null;
 
   return { xMin, xMax, yMin, yMax };
+}
+
+/** Shift every coordinate-bearing field of an element by (dx, dy). */
+function shiftElement(el: DiagramElement, dx: number, dy: number): DiagramElement {
+  const shiftPt = <P extends { x: number; y: number }>(p: P): P => ({ ...p, x: p.x + dx, y: p.y + dy });
+
+  switch (el.type) {
+    case 'polygon':
+      return { ...(el as PolygonElement), vertices: (el as PolygonElement).vertices.map(shiftPt) };
+    case 'point':
+      return { ...(el as PointElement), position: shiftPt((el as PointElement).position) };
+    case 'circle':
+      return { ...(el as CircleElement), center: shiftPt((el as CircleElement).center) };
+    case 'arc':
+      return { ...el, center: shiftPt((el as { center: { x: number; y: number } }).center) };
+    case 'line':
+    case 'arrow': {
+      const l = el as LineElement;
+      return { ...l, from: shiftPt(l.from), to: shiftPt(l.to) };
+    }
+    case 'text':
+      return { ...(el as TextElement), position: shiftPt((el as TextElement).position) };
+    case 'rectangle':
+      return { ...el, topLeft: shiftPt((el as { topLeft: { x: number; y: number } }).topLeft) };
+    case 'curve': {
+      const points = (el as { points?: { x: number; y: number }[] }).points;
+      return points ? { ...el, points: points.map(shiftPt) } : el;
+    }
+    case 'angle-marker': {
+      const m = el as { vertex: { x: number; y: number }; ray1End: { x: number; y: number }; ray2End: { x: number; y: number } };
+      return { ...el, vertex: shiftPt(m.vertex), ray1End: shiftPt(m.ray1End), ray2End: shiftPt(m.ray2End) };
+    }
+    default:
+      return el;
+  }
 }
 
 /**
@@ -679,47 +934,7 @@ export function normalizeCoordinates(spec: DiagramSpec, margin: number = 2): Dia
   if (shiftX === 0 && shiftY === 0) return spec;
 
   const normalized = { ...spec };
-  normalized.elements = spec.elements.map((el) => {
-    if (el.type === 'polygon') {
-      const poly = el as PolygonElement;
-      return {
-        ...poly,
-        vertices: poly.vertices.map((v) => ({
-          ...v,
-          x: v.x + shiftX,
-          y: v.y + shiftY,
-        })),
-      };
-    } else if (el.type === 'point') {
-      const point = el as PointElement;
-      return {
-        ...point,
-        position: {
-          ...point.position,
-          x: point.position.x + shiftX,
-          y: point.position.y + shiftY,
-        },
-      };
-    } else if (el.type === 'circle') {
-      const circle = el as CircleElement;
-      return {
-        ...circle,
-        center: {
-          ...circle.center,
-          x: circle.center.x + shiftX,
-          y: circle.center.y + shiftY,
-        },
-      };
-    } else if (el.type === 'line') {
-      const line = el as LineElement;
-      return {
-        ...line,
-        from: { ...line.from, x: line.from.x + shiftX, y: line.from.y + shiftY },
-        to: { ...line.to, x: line.to.x + shiftX, y: line.to.y + shiftY },
-      };
-    }
-    return el;
-  });
+  normalized.elements = spec.elements.map((el) => shiftElement(el, shiftX, shiftY));
 
   // Update bounds
   if (normalized.width && normalized.height) {
@@ -984,7 +1199,7 @@ export const DiagramTemplates = {
         type: 'curve',
         fn,
         stroke: '#3b82f6',
-      } as any);
+      } as DiagramElement);
     }
 
     points.forEach(p => {

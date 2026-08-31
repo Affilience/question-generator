@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
+// A processing job whose worker hasn't touched it for this long is dead
+// (progress updates land every few seconds while generation runs)
+const STALE_JOB_MS = 3 * 60 * 1000;
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +28,38 @@ export async function GET(
   // Fetch job status
   const { data: job, error } = await supabase
     .from('paper_jobs')
-    .select('id, status, progress_current, progress_total, paper_id, error, created_at, completed_at')
+    .select('id, status, progress_current, progress_total, paper_id, error, created_at, updated_at, completed_at')
     .eq('id', jobId)
     .eq('user_id', user.id)
     .single();
 
   if (error || !job) {
     return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  }
+
+  // Detect dead workers so the UI doesn't poll forever: if a pending or
+  // processing job has gone quiet, mark it failed and report that
+  if (
+    (job.status === 'pending' || job.status === 'processing') &&
+    job.updated_at &&
+    Date.now() - new Date(job.updated_at).getTime() > STALE_JOB_MS
+  ) {
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    await admin
+      .from('paper_jobs')
+      .update({
+        status: 'failed',
+        error: 'Paper generation timed out. Please try again.',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', job.id)
+      .in('status', ['pending', 'processing']);
+
+    job.status = 'failed';
+    job.error = 'Paper generation timed out. Please try again.';
   }
 
   // If completed, also fetch the paper data

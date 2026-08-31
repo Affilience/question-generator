@@ -113,17 +113,23 @@ export default function SubtopicPracticePage() {
 
     setIsMarked(false);
 
-    // For random mode, pick a random subtopic each time
-    // For specific subtopic, look up the actual name from the URL slug
-    const actualSubtopicName = topic.subtopics.find(s => slugify(s) === subtopic);
+    // For random mode, pick a random subtopic each time.
+    // For a specific subtopic, resolve the URL slug to the real subtopic name
+    // using the same normalisation as the render path. Never fall back to the
+    // raw slug: that used to leak slugs like "expanding-brackets" into
+    // prompts and fragment the bank keys — the render path shows a proper
+    // "Subtopic not found" page instead.
+    const normalizedSlug = slugify(decodeURIComponent(subtopic));
+    const actualSubtopicName = topic.subtopics.find(s => slugify(s) === normalizedSlug);
+    if (!isRandom && !actualSubtopicName) return;
     const selectedSubtopic = isRandom
       ? topic.subtopics[Math.floor(Math.random() * topic.subtopics.length)]
-      : actualSubtopicName || subtopic;
+      : actualSubtopicName!;
 
     setCurrentSubtopic(selectedSubtopic);
 
-    // Pass all seen question prefixes to avoid repeats (cache exhaustion)
-    const excludeContent = seenQuestionsRef.current.map(q => q.substring(0, 100));
+    // Send the most recent seen-question prefixes (the server caps these too)
+    const excludeContent = seenQuestionsRef.current.slice(-20).map(q => q.substring(0, 150));
 
     const result = await generate({
       topicId: topic.id,
@@ -137,6 +143,10 @@ export default function SubtopicPracticePage() {
 
     if (result) {
       seenQuestionsRef.current.push(result.content);
+      // Bound session memory; the server only uses the most recent prefixes
+      if (seenQuestionsRef.current.length > 40) {
+        seenQuestionsRef.current = seenQuestionsRef.current.slice(-40);
+      }
     }
   }, [topic?.id, topic, difficulty, subtopic, isRandom, examBoard, subject, generate]);
 
@@ -176,7 +186,9 @@ export default function SubtopicPracticePage() {
         userId,
         topicId,
         subtopic: currentSubtopic || subtopic,
-        difficulty,
+        // Record the difficulty actually served (free users get a randomised
+        // one server-side), not the UI selection
+        difficulty: question.difficulty ?? difficulty,
         correct,
         questionContent: question.content,
         questionSolution: question.solution,

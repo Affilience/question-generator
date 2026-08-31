@@ -55,7 +55,12 @@ export const GenerateQuestionRequestSchema = z.object({
   qualification: QualificationSchema.optional().default('gcse'),
   subject: SubjectSchema.optional().default('maths'),
   questionType: QuestionTypeSchema.optional().default('auto'),
-  excludeContent: z.union([z.string(), z.array(z.string())]).optional(),
+  // Recently seen question prefixes; bounded so request bodies and prompt
+  // injections can't grow without limit
+  excludeContent: z.union([
+    z.string().max(300),
+    z.array(z.string().max(300)).max(30),
+  ]).optional(),
 }).refine(
   (data) => data.topicId || data.practicalId,
   { message: 'Either topicId or practicalId is required' }

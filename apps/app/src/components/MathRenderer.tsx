@@ -1,69 +1,12 @@
 'use client';
 
 import { InlineMath, BlockMath } from 'react-katex';
-import { Component, ReactNode, useEffect, useState, useMemo } from 'react';
+import { Component, ReactNode, useMemo } from 'react';
 import { enhanceLatexForKatex } from '@/lib/latexEnhancements';
+import { splitAtDelimiters, prepareContentForRender } from '@/lib/mathText';
 
-// Track KaTeX CSS loading state globally
-let katexCssLoaded = false;
-let katexCssReady = false;
-let katexCssCallbacks: (() => void)[] = [];
-
-// Check if KaTeX CSS is already loaded in the document (e.g., from layout.tsx)
-function checkKatexCssAlreadyLoaded(): boolean {
-  if (typeof document === 'undefined') return false;
-  const links = document.querySelectorAll('link[rel="stylesheet"]');
-  for (const link of links) {
-    if ((link as HTMLLinkElement).href.includes('katex')) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function useKatexCss(): boolean {
-  const [cssReady, setCssReady] = useState(() => {
-    if (katexCssReady) return true;
-    if (typeof document !== 'undefined' && checkKatexCssAlreadyLoaded()) {
-      katexCssReady = true;
-      katexCssLoaded = true;
-      return true;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (katexCssReady || checkKatexCssAlreadyLoaded()) {
-      katexCssReady = true;
-      katexCssLoaded = true;
-      setCssReady(true);
-      return;
-    }
-
-    const callback = () => setCssReady(true);
-    katexCssCallbacks.push(callback);
-
-    if (!katexCssLoaded && typeof document !== 'undefined') {
-      katexCssLoaded = true;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css';
-      link.crossOrigin = 'anonymous';
-      link.onload = () => {
-        katexCssReady = true;
-        katexCssCallbacks.forEach(cb => cb());
-        katexCssCallbacks = [];
-      };
-      document.head.appendChild(link);
-    }
-
-    return () => {
-      katexCssCallbacks = katexCssCallbacks.filter(cb => cb !== callback);
-    };
-  }, []);
-
-  return cssReady;
-}
+// KaTeX CSS is bundled globally via layout.tsx (`import 'katex/dist/katex.min.css'`),
+// so there is no CDN dependency and no visibility gating needed here.
 
 interface MathRendererProps {
   content: string;
@@ -106,21 +49,13 @@ class MathErrorBoundary extends Component<{ children: ReactNode; fallback: strin
 // Safe wrapper for InlineMath
 function SafeInlineMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
-  
-  // Apply comprehensive LaTeX enhancements
-  const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
-  
-  // Log validation issues in development
+
+  const { enhanced: processedMath, validation } = enhanceLatexForKatex(math);
+
   if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && !validation.isValid) {
     console.warn('LaTeX validation issues:', validation.errors);
-    if (validation.warnings.length > 0) {
-      console.warn('LaTeX validation warnings:', validation.warnings);
-    }
   }
-  
-  // Preprocess math to fix common LaTeX issues (legacy preprocessing)
-  const processedMath = preprocessMathForKaTeX(enhancedMath);
-  
+
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
       <InlineMath math={processedMath} />
@@ -131,465 +66,18 @@ function SafeInlineMath({ math }: { math: string }) {
 // Safe wrapper for BlockMath
 function SafeBlockMath({ math }: { math: string }) {
   if (!math || math.trim() === '') return null;
-  
-  // Apply comprehensive LaTeX enhancements
-  const { enhanced: enhancedMath, validation } = enhanceLatexForKatex(math);
-  
-  // Log validation issues in development
+
+  const { enhanced: processedMath, validation } = enhanceLatexForKatex(math);
+
   if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && !validation.isValid) {
     console.warn('LaTeX validation issues in block math:', validation.errors);
-    if (validation.warnings.length > 0) {
-      console.warn('LaTeX validation warnings in block math:', validation.warnings);
-    }
   }
-  
-  // Preprocess math to fix common LaTeX issues (legacy preprocessing)
-  const processedMath = preprocessMathForKaTeX(enhancedMath);
-  
+
   return (
     <MathErrorBoundary fallback={processedMath} originalMath={math}>
       <BlockMath math={processedMath} />
     </MathErrorBoundary>
   );
-}
-
-// =============================================================================
-// ROBUST LATEX DELIMITER PARSING (based on KaTeX's splitAtDelimiters approach)
-// =============================================================================
-
-interface MathSegment {
-  type: 'text' | 'math';
-  content: string;
-  display: boolean;
-}
-
-// Find the end of a math expression, tracking brace depth and escaped characters
-function findEndOfMath(delimiter: string, text: string, startIndex: number): number {
-  let index = startIndex;
-  let braceLevel = 0;
-  const delimLength = delimiter.length;
-
-  while (index < text.length) {
-    const char = text[index];
-
-    // Check if we've found the closing delimiter (only at brace level 0)
-    if (braceLevel <= 0 && text.slice(index, index + delimLength) === delimiter) {
-      return index;
-    }
-
-    // Handle escaped characters - skip the next character
-    if (char === '\\') {
-      index += 2;
-      continue;
-    }
-
-    // Track brace depth for nested content like \frac{a}{b}
-    if (char === '{') {
-      braceLevel++;
-    } else if (char === '}') {
-      braceLevel--;
-    }
-
-    index++;
-  }
-
-  return -1; // No closing delimiter found
-}
-
-// Split text at LaTeX delimiters, processing longer delimiters first
-function splitAtDelimiters(text: string): MathSegment[] {
-  // Define delimiters in order of priority (longer/more specific first)
-  const delimiters = [
-    { left: '$$', right: '$$', display: true },
-    { left: '\\[', right: '\\]', display: true },
-    { left: '\\(', right: '\\)', display: false },
-    { left: '$', right: '$', display: false },
-  ];
-
-  const segments: MathSegment[] = [];
-  let currentText = '';
-  let index = 0;
-
-  while (index < text.length) {
-    // Check for escaped dollar sign
-    if (text[index] === '\\' && text[index + 1] === '$') {
-      currentText += '$';
-      index += 2;
-      continue;
-    }
-
-    // Try to match each delimiter type
-    let foundDelimiter = false;
-
-    for (const delim of delimiters) {
-      if (text.slice(index, index + delim.left.length) === delim.left) {
-        // Found opening delimiter - look for closing
-        const contentStart = index + delim.left.length;
-        const contentEnd = findEndOfMath(delim.right, text, contentStart);
-
-        if (contentEnd !== -1) {
-          // Extract math content
-          const mathContent = text.slice(contentStart, contentEnd);
-
-          // Validate the math content before accepting
-          if (!isValidMathContent(mathContent, delim.left === '$')) {
-            // Not valid math - treat opening delimiter as regular text
-            currentText += text[index];
-            index++;
-            foundDelimiter = true;
-            break;
-          }
-
-          // Found valid math expression
-          // Save any text before this math
-          if (currentText) {
-            segments.push({ type: 'text', content: currentText, display: false });
-            currentText = '';
-          }
-
-          segments.push({
-            type: 'math',
-            content: mathContent,
-            display: delim.display,
-          });
-
-          index = contentEnd + delim.right.length;
-          foundDelimiter = true;
-          break;
-        }
-      }
-    }
-
-    // No delimiter found at this position - add character to current text
-    if (!foundDelimiter) {
-      currentText += text[index];
-      index++;
-    }
-  }
-
-  // Add any remaining text
-  if (currentText) {
-    segments.push({ type: 'text', content: currentText, display: false });
-  }
-
-  return segments;
-}
-
-// Validate if content between delimiters is actually math
-function isValidMathContent(content: string, isInlineDelimiter: boolean): boolean {
-  const trimmed = content.trim();
-
-  // Empty content is not valid math
-  if (!trimmed) {
-    return false;
-  }
-
-  // For inline $ delimiters, apply stricter validation
-  if (isInlineDelimiter) {
-    // Currency pattern: digits with decimal places like "5.99"
-    if (/^\d+[.,]\d{2}$/.test(trimmed)) {
-      return false;
-    }
-
-    // Mark scheme notation: A1, M1, B1, E1, etc. (letter followed by number)
-    if (/^[A-Z]\d+$/.test(trimmed)) {
-      return false;
-    }
-
-    // Single letters (geometric points, variables): A, B, C, etc.
-    if (/^[A-Z]$/.test(trimmed)) {
-      return false;
-    }
-
-    // If content contains LaTeX commands, it's definitely math
-    // Check for backslash followed by letters (LaTeX command)
-    if (/\\[a-zA-Z]+/.test(trimmed)) {
-      return true;
-    }
-
-    // Prose-like content: contains common English words (not math)
-    // This catches cases like "$5 to $10" where "5 to " is captured
-    const proseWords = /\b(to|and|or|the|a|an|is|are|was|were|be|been|for|of|in|on|at|by|with|from|as|into|that|this|it|its|if|but|not|no|so|than|too|very|just|only|also|even|still|yet|now|then|here|there|where|when|how|why|what|which|who|whom|whose|each|every|any|some|all|both|few|more|most|other|such|own|same|new|old|good|bad|big|small|great|little|long|short|high|low|much|many|first|last|next|after|before|over|under|again|further|once|twice)\b/i;
-    if (proseWords.test(trimmed)) {
-      return false;
-    }
-
-    // Content that's just a number followed by text (like "5 meters") is not math
-    if (/^\d+\s+[a-zA-Z]/.test(trimmed)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-// =============================================================================
-// TEXT PREPROCESSING
-// =============================================================================
-
-// Detect and wrap bare LaTeX expressions in math delimiters
-function wrapBareLatexExpressions(text: string): string {
-  // Common LaTeX patterns that should be in math mode
-  const latexPatterns = [
-    // Trigonometric functions with \text commands
-    /\\?(sin|cos|tan|cot|sec|csc)\\text\{[^}]+\}/g,
-    // Mathematical expressions with \text commands and operators
-    /\\text\{[^}]+\}\s*[≤≥<>=]\s*\\text\{[^}]+\}/g,
-    // Sequences of LaTeX commands and operators
-    /(?:\\[a-zA-Z]+(?:\{[^}]*\})?[\s]*[≤≥<>=+\-*/][\s]*)+\\[a-zA-Z]+(?:\{[^}]*\})?/g,
-    // Single LaTeX commands followed by operators
-    /\\[a-zA-Z]+(?:\{[^}]*\})?\s*[≤≥<>=]\s*\\[a-zA-Z]+(?:\{[^}]*\})?/g,
-  ];
-
-  let result = text;
-  
-  // Check if text already has math delimiters
-  const hasDelimiters = /\$|\\\[|\\\(/.test(result);
-  
-  if (!hasDelimiters) {
-    // Apply patterns to detect bare LaTeX
-    for (const pattern of latexPatterns) {
-      result = result.replace(pattern, (match) => {
-        // Don't wrap if already wrapped
-        if (match.startsWith('$') || match.startsWith('\\[') || match.startsWith('\\(')) {
-          return match;
-        }
-        // Wrap in inline math delimiters
-        return `$${match}$`;
-      });
-    }
-  }
-  
-  return result;
-}
-
-// Process JSON escape sequences while protecting LaTeX commands
-function processEscapeSequences(text: string, isStreaming: boolean = false): string {
-  const endCheck = isStreaming ? '(?=.)' : '';
-
-  let result = text
-    // \n that's not a LaTeX command (nabla, neq, neg, nu, etc.)
-    .replace(new RegExp(`\\\\n(?!(?:abla|eq|eg|u|ewline|warrow|earrow|exists|i|otin|ot|cong|less|geq|leq|gtr|mid|parallel|prec|succ|sim|subseteq|supseteq|vdash|vDash|Vdash|VDash)\\b)${endCheck}`, 'g'), '\n')
-    // \t that's not a LaTeX command (theta, times, text, etc.)
-    .replace(new RegExp(`\\\\t(?!(?:heta|imes|ext\\{|an|anh|op|au|herefore|riangle|o|extrm|extit|extbf|exttt|extsf|frac|ilde|iny)\\b)${endCheck}`, 'g'), '\t')
-    // \r that's not a LaTeX command (rho, rightarrow, etc.)
-    .replace(new RegExp(`\\\\r(?!(?:ho|ightarrow|Rightarrow|angle|ceil|floor|ight|vert|Vert|brace|brack|ule)\\b)${endCheck}`, 'g'), '\r')
-    // Escaped quotes
-    .replace(/\\"/g, '"');
-
-  // Normalize multiple backslashes before LaTeX commands (\\frac -> \frac)
-  result = result.replace(/\\{2,}([a-zA-Z])/g, '\\$1');
-  
-  // Fix common LaTeX \text command issues
-  // First, handle double backslashes that might be over-escaped
-  result = result.replace(/\\\\text\{/g, '\\text{');
-  
-  // Then ensure all \text commands are properly formatted
-  // This handles cases where AI generates broken \text commands
-  result = result.replace(/\\text\{([^}]*)\}/g, (match, content) => {
-    // Clean the content - remove any stray backslashes and normalize whitespace
-    const cleanContent = content.trim().replace(/\\\\/g, '');
-    
-    // For units and simple text, use \text{}
-    // For chemical formulas, we might want \mathrm{} but \text{} works fine too
-    return `\\text{${cleanContent}}`;
-  });
-
-  // Fix common issues where "text" appears literally (from broken \text commands)
-  // REMOVED: The aggressive pattern that was replacing "text" + letters as it corrupts normal English text
-  
-  // Fix broken patterns like "text{stuff}" (missing backslash)
-  result = result.replace(/\btext\{([^}]+)\}/g, '\\text{$1}');
-  
-  // Fix patterns where backslash was stripped: Only for specific known text commands to avoid breaking variables
-  // This handles cases like "textnumberofatoms", "textmass", etc. - but NOT mathematical variables like "textA"
-  result = result.replace(/\btext(mass|volume|density|concentration|temperature|pressure|atoms|molecules|formula|units?)\b/gi, '\\text{$1}');
-  
-  // Fix patterns where text command got mangled with units: "3.545extcm^3" -> "3.545 \text{cm}^3"
-  result = result.replace(/(\d+(?:\.\d+)?)\s*ext([a-zA-Z]+)(\^?\d*)/g, '$1 \\text{$2}$3');
-  
-  // Fix literal "text" appearing before units: "1textHz" -> "1 \text{Hz}"
-  // Be more specific about which patterns to match to avoid corrupting normal text
-  const knownUnits = /(Hz|kHz|MHz|GHz|cm|mm|km|m|g|kg|mol|Pa|kPa|atm|J|kJ|N|V|A|rad|s|min|hr|°C|K)/;
-  result = result.replace(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*text(${knownUnits.source})(\\^?\\d*)`, 'g'), '$1 \\text{$2}$3');
-  
-  // Fix common chemistry/physics units that appear without proper LaTeX formatting
-  result = result.replace(/\b(cm|mm|km|m|g|kg|mol|dmol|kmol|°C|K|Pa|kPa|MPa|atm|bar|J|kJ|MJ|cal|kcal|eV|N|kN|W|kW|MW|V|mV|kV|A|mA|μA|Ω|kΩ|MΩ|Hz|kHz|MHz|GHz|rad|sr|C|F|H|Wb|T|lm|lx|Bq|Gy|Sv)\b(?=\s|$|[.,;:\)])/g, '\\text{$1}');
-  
-  // Fix chemistry terms that should be in text mode
-  result = result.replace(/\b(number\s+of\s+atoms|mass|volume|density|concentration|temperature|pressure|molar\s+mass|relative\s+atomic\s+mass|relative\s+molecular\s+mass)\b/gi, '\\text{$1}');
-
-  // CONSERVATIVE text cleanup: Only remove "text" if it's clearly not part of LaTeX
-  // Don't remove "text" that might be legitimate content or part of \text{} commands
-  
-  // Only fix obvious cases where "text" got separated from a single variable in math mode
-  // and only if we're certain it's not destroying legitimate text content
-  result = result.replace(/\b(?:text){2,}([a-zA-Z])\b/g, '$1'); // Fix multiple "text" like "texttextt" -> "t"
-  
-  // Very conservative: only fix "text" + single letter if surrounded by math delimiters
-  result = result.replace(/\$([^$]*)\btext\s*([a-zA-Z])\b([^$]*)\$/g, '$$$1$2$3$$');
-
-  return result;
-}
-
-// Handle \text{} commands that appear outside math delimiters
-function handleTextCommandsOutsideMath(text: string): string {
-  // Use a more conservative approach - only fix \text{} that are clearly outside math
-  // Don't process \text{} commands that might be part of proper LaTeX math expressions
-  
-  // First, protect all math expressions by replacing them with placeholders
-  const mathBlocks: string[] = [];
-  let protectedText = text;
-  
-  // Protect display math ($$...$$, \[...\])
-  protectedText = protectedText.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, (match) => {
-    const placeholder = `__MATH_BLOCK_${mathBlocks.length}__`;
-    mathBlocks.push(match);
-    return placeholder;
-  });
-  
-  // Protect inline math (\(...\), $...$)  
-  protectedText = protectedText.replace(/(\\\([^)]*\\\)|\$[^$\n]*?\$)/g, (match) => {
-    const placeholder = `__MATH_BLOCK_${mathBlocks.length}__`;
-    mathBlocks.push(match);
-    return placeholder;
-  });
-  
-  // Now only process \text{} commands in the non-math parts
-  // Convert \text{} to regular text when it's clearly outside math delimiters
-  protectedText = protectedText.replace(/\\text\{([^}]*)\}/g, (match, content) => {
-    // For single letters or simple text content outside math, convert to plain text
-    // This fixes cases like "\text{a}" appearing as literal "/text{a}"
-    const trimmedContent = content.trim();
-    
-    // If it's a single letter (like "a", "b", "c"), convert to plain text
-    if (/^[a-zA-Z]$/.test(trimmedContent)) {
-      return trimmedContent;
-    }
-    
-    // If it's a simple word without mathematical notation, convert to plain text
-    if (/^[a-zA-Z]+$/.test(trimmedContent) && trimmedContent.length > 1) {
-      return trimmedContent;
-    }
-    
-    // Keep the \text{} command for units, formulas, or complex content
-    return match;
-  });
-  
-  // Restore the math blocks
-  mathBlocks.forEach((block, index) => {
-    protectedText = protectedText.replace(`__MATH_BLOCK_${index}__`, block);
-  });
-  
-  return protectedText;
-}
-
-// Fix forward slashes used instead of backslashes for LaTeX commands
-function fixLatexEscaping(text: string): string {
-  const latexCommands = [
-    'frac', 'dfrac', 'tfrac', 'cfrac', 'sqrt', 'root',
-    'times', 'div', 'cdot', 'pm', 'mp',
-    'approx', 'sim', 'simeq', 'cong', 'equiv', 'propto',
-    'leq', 'geq', 'neq', 'lt', 'gt', 'le', 'ge', 'ne',
-    'll', 'gg', 'subset', 'supset', 'subseteq', 'supseteq',
-    'in', 'notin', 'ni',
-    'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'varepsilon',
-    'zeta', 'eta', 'theta', 'vartheta', 'iota', 'kappa',
-    'lambda', 'mu', 'nu', 'xi', 'pi', 'varpi',
-    'rho', 'varrho', 'sigma', 'varsigma', 'tau', 'upsilon',
-    'phi', 'varphi', 'chi', 'psi', 'omega',
-    'Gamma', 'Delta', 'Theta', 'Lambda', 'Xi', 'Pi',
-    'Sigma', 'Upsilon', 'Phi', 'Psi', 'Omega',
-    'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
-    'arcsin', 'arccos', 'arctan',
-    'sinh', 'cosh', 'tanh', 'coth',
-    'log', 'ln', 'exp', 'lim', 'max', 'min',
-    'sum', 'prod', 'int', 'iint', 'iiint', 'oint',
-    'partial', 'nabla',
-    'leftarrow', 'rightarrow', 'leftrightarrow',
-    'Leftarrow', 'Rightarrow', 'Leftrightarrow',
-    'uparrow', 'downarrow', 'mapsto', 'to',
-    'forall', 'exists', 'neg',
-    'land', 'lor', 'implies', 'iff',
-    'cup', 'cap', 'setminus', 'emptyset',
-    'left', 'right', 'middle',
-    'langle', 'rangle', 'lfloor', 'rfloor', 'lceil', 'rceil',
-    'ldots', 'cdots', 'vdots', 'ddots', 'dots',
-    'quad', 'qquad', 'text', 'textrm', 'textit', 'textbf',
-    'mathrm', 'mathit', 'mathbf', 'mathbb', 'mathcal',
-    'hat', 'bar', 'vec', 'dot', 'ddot', 'tilde',
-    'overline', 'underline', 'widehat', 'widetilde',
-    'overbrace', 'underbrace', 'overset', 'underset',
-    'degree', 'circ', 'angle', 'triangle', 'square',
-    'parallel', 'perp', 'infty', 'prime',
-    'begin', 'end', 'matrix', 'pmatrix', 'bmatrix', 'cases',
-    'binom', 'boxed', 'cancel',
-  ];
-
-  let result = text;
-  for (const cmd of latexCommands) {
-    result = result.replace(new RegExp(`//${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
-    result = result.replace(new RegExp(`/(?!/)${cmd}(?![a-zA-Z])`, 'g'), `\\${cmd}`);
-  }
-  return result;
-}
-
-// Preprocess LaTeX specifically for KaTeX to handle common AI generation errors
-function preprocessMathForKaTeX(math: string): string {
-  let result = math;
-  
-  // === CRITICAL: Fix text prefix issues that cause rendering problems ===
-  
-  // 1. Fix broken \text{single_letter} patterns - primary LaTeX issue
-  result = result.replace(/\\text\{([a-zA-Z])\}/g, '$1');
-  
-  // 2. Fix mangled "textt" and similar patterns
-  result = result.replace(/\btextt\b/g, 't');
-  result = result.replace(/\bt\s+e\s+x\s+t\s+t\b/g, 't');
-  
-  // 3. Fix standalone "text" before single letters in math mode
-  result = result.replace(/\btext\s*([a-zA-Z])(?=\s|\.|,|$|\)|\})/g, '$1');
-  
-  // 4. Fix \text{multi-letter} for mathematical variables but preserve units
-  result = result.replace(/\\text\{([a-zA-Z]{1,3})\}/g, (match, letters) => {
-    // Preserve common units in text mode
-    const units = new Set(['in', 'cm', 'mm', 'km', 'kg', 'mg', 'ml', 'Hz', 'kHz', 'MHz', 'GHz', 'Pa', 'kPa', 'atm', 'J', 'kJ', 'N', 'V', 'A', 'Ω', 'rad', 's', 'min', 'hr', '°C', 'K']);
-    if (units.has(letters)) {
-      return match; // Keep units in \text{}
-    }
-    // Convert mathematical variables to plain text
-    return letters;
-  });
-  
-  // === Standard LaTeX fixes ===
-  
-  // Fix double backslashes in \text commands
-  result = result.replace(/\\\\text\{/g, '\\text{');
-  
-  // Fix missing backslash before text commands (only fix if it looks like a LaTeX command)
-  result = result.replace(/\btext\{/g, '\\text{');
-  
-  // Fix literal "text" appearing before chemical formulas or units (be more conservative)
-  // Only apply this fix if "text" appears to be a broken LaTeX command, not regular prose
-  result = result.replace(/\btext\s+(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6|cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b/g, '\\text{$1}');
-  
-  // Fix literal "text" appearing directly before units without space: "1textHz" -> "1 \text{Hz}"
-  // Only apply to known units, not mathematical variables
-  result = result.replace(/(\d+(?:\.\d+)?)\s*text(Hz|kHz|MHz|GHz|cm|mm|km|m|g|kg|mol|Pa|kPa|atm|J|kJ|N|V|A|rad|s|min|hr|°C|K)(\^?\d*)/g, '$1 \\text{$2}$3');
-  
-  // Fix underscores in \text commands (KaTeX parsing issue)
-  result = result.replace(/\\text\{([^}]*_[^}]*)\}/g, (match, content) => {
-    const escapedContent = content.replace(/_/g, '\\_');
-    return `\\text{${escapedContent}}`;
-  });
-  
-  // Fix common chemistry notation issues
-  result = result.replace(/\b(H2O|CO2|NaCl|CaCO3|HCl|H2SO4|NH3|CH4|C6H12O6)\b/g, '\\text{$1}');
-  
-  // Fix units that appear without proper LaTeX formatting
-  result = result.replace(/\b(cm|mm|km|g|kg|mol|°C|K|Pa|kPa|atm|J|kJ|N|V|A|Ω|Hz|rad|s|min|hr)\b(?=\s|$|[.,;:])/g, '\\text{$1}');
-  
-  return result;
 }
 
 // =============================================================================
@@ -622,22 +110,11 @@ function parseMarkdownTable(tableText: string): { headers: string[]; rows: strin
 // MAIN COMPONENT
 // =============================================================================
 
-export function MathRenderer({ content, className = '', isStreaming = false }: MathRendererProps) {
-  const cssReady = useKatexCss();
-
-  // Process content once and memoize
-  const processedContent = useMemo(() => {
-    const escaped = processEscapeSequences(content, isStreaming);
-    let result = fixLatexEscaping(escaped);
-    
-    // Detect and wrap bare LaTeX expressions that lack math delimiters
-    result = wrapBareLatexExpressions(result);
-    
-    // Handle \text{} commands that appear outside math mode - convert to regular text
-    result = handleTextCommandsOutsideMath(result);
-    
-    return result;
-  }, [content, isStreaming]);
+export function MathRenderer({ content, className = '' }: MathRendererProps) {
+  // Deterministic repair + bare-LaTeX wrapping + out-of-math \text handling.
+  // Streamed content arrives properly unescaped from the server, so it takes
+  // the same path as final content.
+  const processedContent = useMemo(() => prepareContentForRender(content), [content]);
 
   // Process markdown bold/italic
   const processMarkdown = (text: string): React.ReactNode[] => {
@@ -859,11 +336,9 @@ export function MathRenderer({ content, className = '', isStreaming = false }: M
 
   // Main render
   const blocks = splitIntoBlocks(processedContent);
-  const hasMath = /\$|\\\[|\\\(/.test(processedContent);
-  const mathVisibilityClass = hasMath && !cssReady ? 'invisible' : 'visible';
 
   return (
-    <div className={`math-content ${className} ${mathVisibilityClass}`}>
+    <div className={`math-content ${className}`}>
       {blocks.map((block, blockIndex) => {
         if (block.type === 'code') {
           return <div key={blockIndex}>{renderCodeBlock(block.content, block.language)}</div>;

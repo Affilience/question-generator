@@ -437,7 +437,9 @@ import { getPracticalById } from '@/lib/practicals';
 import { getAQAPhysicsRequiredPracticalPrompt } from '@/lib/prompts-physics-aqa';
 import { getAQAChemistryRequiredPracticalPrompt } from '@/lib/prompts-chemistry-gcse-aqa';
 import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
-import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
+import { findExistingQuestion, storeQuestion, QuestionCriteria } from '@/lib/question-bank';
+import { buildVariationBrief, buildExclusionDirective } from '@/lib/questionVariation';
+import { getTopicAdherenceConstraints, getTopicReinforcement } from '@/lib/topicAdherence';
 import { checkQuestionGenerationAllowed, incrementQuestionUsage } from '@/lib/api/subscription-check';
 import { getClientIP } from '@/lib/rate-limit';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic, QuestionType as QuestionTypeEnum } from '@/types';
@@ -541,8 +543,13 @@ export async function POST(request: NextRequest) {
       excludeContent?: string | string[];
     };
 
-    // Extract userId from request headers if available (for logged-in users)
-    const userId = request.headers.get('x-user-id') || null;
+    // Identity comes from the server-side session — never from client headers
+    // (the old x-user-id header let anyone impersonate any user)
+    const { createClient: createServerClient } = await import('@/lib/supabase/server');
+    const supabaseAuth = await createServerClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const userId = user?.id || null;
+    const userEmail = user?.email || null;
 
     // Check for admin authorization (for scripts and internal tools)
     const adminKey = request.headers.get('x-admin-key');
@@ -552,7 +559,17 @@ export async function POST(request: NextRequest) {
     const clientIP = getClientIP(request);
 
     // Check if user can generate a question based on their subscription tier
-    const usageCheck = await checkQuestionGenerationAllowed(userId, clientIP, isAdmin);
+    const usageCheck = await checkQuestionGenerationAllowed(userId, clientIP, isAdmin, userEmail);
+
+    // Session-scoped exclusion prefixes (recently seen questions), capped
+    const excludePrefixes = (Array.isArray(excludeContent)
+      ? excludeContent
+      : excludeContent
+        ? [excludeContent]
+        : [])
+      .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+      .slice(-20)
+      .map(p => p.slice(0, 150));
     if (!usageCheck.allowed) {
       return NextResponse.json(
         {
@@ -580,9 +597,11 @@ export async function POST(request: NextRequest) {
 
       // Try to get from cache first (unless skipCache is true)
       if (!skipCache) {
-        const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, difficulty, excludeContent);
+        const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, difficulty, excludePrefixes);
 
         if (cached) {
+          incrementQuestionUsage(userId, clientIP, isAdmin).catch(console.error);
+
           const question: Question = {
             id: crypto.randomUUID(),
             topicId: practicalId,
@@ -621,15 +640,7 @@ export async function POST(request: NextRequest) {
         qualification
       );
       // Add content exclusion constraints for practicals if provided
-      let practicalExclusionPrompt = '';
-      if (excludeContent && excludeContent.length > 0) {
-        const exclusions = Array.isArray(excludeContent) ? excludeContent : [excludeContent];
-        practicalExclusionPrompt = `\n\nCONTENT EXCLUSION REQUIREMENTS:
-Avoid generating questions that start with or are similar to these previously generated questions:
-${exclusions.map((content, i) => `${i + 1}. "${content}..."`).join('\n')}
-
-IMPORTANT: Create a completely different practical scenario, equipment, and procedure to ensure variety.`;
-      }
+      const practicalExclusionPrompt = buildExclusionDirective(excludePrefixes);
 
       // Get subject-specific accuracy constraints
       const subjectConstraints = getAllConstraints(practical.subject);
@@ -669,6 +680,8 @@ IMPORTANT: Create a completely different practical scenario, equipment, and proc
         markScheme: questionData.markScheme,
         diagram: questionData.diagram,
       }).catch(err => console.error('Failed to cache question:', err));
+
+      incrementQuestionUsage(userId, clientIP, isAdmin).catch(console.error);
 
       const question: Question = {
         id: crypto.randomUUID(),
@@ -712,12 +725,17 @@ IMPORTANT: Create a completely different practical scenario, equipment, and proc
       questionType: questionType === 'auto' ? undefined : questionType,
     };
 
-    const existingQuestion = await findExistingQuestion(questionCriteria, userId);
-    
+    // The RPC atomically filters by the user's history and this session's
+    // exclusion prefixes, and records the serve in the same round trip.
+    // Topic questions no longer use the Redis/Supabase cache — the bank is
+    // the single store, so per-user history always applies.
+    const existingQuestion = skipCache
+      ? null
+      : await findExistingQuestion(questionCriteria, userId, excludePrefixes, 'practice');
+
     if (existingQuestion) {
-      // Record that this question was served
-      await recordQuestionServed(existingQuestion.id, userId, 'practice');
-      
+      incrementQuestionUsage(userId, clientIP, isAdmin).catch(console.error);
+
       const question: Question = {
         id: crypto.randomUUID(),
         topicId,
@@ -732,32 +750,6 @@ IMPORTANT: Create a completely different practical scenario, equipment, and proc
       return NextResponse.json(question, {
         headers: { 'X-Cache': 'BANK-HIT' },
       });
-    }
-
-    // Include subject and qualification in cache key for separation
-    const cacheKey = `${subject}:${qualification}:${topicId}`;
-
-    // Try to get from cache first (unless skipCache is true)
-    if (!skipCache) {
-      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, difficulty, excludeContent);
-
-      if (cached) {
-        const question: Question = {
-          id: crypto.randomUUID(),
-          topicId,
-          difficulty,
-          content: cached.content,
-          solution: cached.solution,
-          marks: cached.marks,
-          markScheme: cached.markScheme,
-          diagram: cached.diagram,
-        };
-
-        // Add header to indicate cache hit
-        return NextResponse.json(question, {
-          headers: { 'X-Cache': 'HIT' },
-        });
-      }
     }
 
     // Cache miss or skipCache - generate new question with compact prompt for speed
@@ -1668,18 +1660,20 @@ IMPORTANT: Create a completely different practical scenario, equipment, and proc
     };
     const basePrompt = getPromptForSubjectBoardAndLevel();
 
-    // Add content exclusion constraints if provided
-    let exclusionPrompt = '';
-    if (excludeContent && excludeContent.length > 0) {
-      const exclusions = Array.isArray(excludeContent) ? excludeContent : [excludeContent];
-      console.log(`[EXCLUSION] Excluding ${exclusions.length} questions:`, exclusions);
-      exclusionPrompt = `\n\nCRITICAL EXCLUSION REQUIREMENTS - MUST AVOID:
-Do NOT generate questions that start with or are similar to these previously generated questions:
-${exclusions.map((content, i) => `${i + 1}. FORBIDDEN: "${content}..."`).join('\n')}
-
-MANDATORY: Use completely different scenarios (NOT shopping centres), different contexts, different numbers, different wording.
-Required: Generate something entirely different from the excluded content above.`;
-    }
+    // Exclusions + per-request variety + subtopic adherence (shared builders,
+    // same behaviour as the streaming route)
+    const exclusionPrompt = buildExclusionDirective(excludePrefixes);
+    const variationBrief = buildVariationBrief(subject, effectiveSubtopic, difficulty);
+    const adherencePrompt =
+      getTopicAdherenceConstraints(
+        { id: topic.id, name: topic.name, subtopics: topic.subtopics },
+        effectiveSubtopic,
+        subject
+      ) +
+      getTopicReinforcement(
+        { id: topic.id, name: topic.name, subtopics: topic.subtopics },
+        effectiveSubtopic
+      );
 
     const openai = getOpenAIClient();
     // Use exam board-specific system prompt with enhanced constraints
@@ -1723,7 +1717,7 @@ The diagram should be optimized for ${deviceType} viewing.`;
     }
     
     // Combine all prompt components
-    const prompt = `${basePrompt}${exclusionPrompt}${diagramInstructions}`;
+    const prompt = `${basePrompt}${adherencePrompt}${variationBrief}${exclusionPrompt}${diagramInstructions}`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -1826,27 +1820,23 @@ The diagram should be optimized for ${deviceType} viewing.`;
       // Continue with original mark scheme if enhancement fails
     }
 
-    // Cache the generated question (async, don't wait)
-    cacheQuestion(cacheKey, effectiveSubtopic, difficulty, {
-      content: questionData.content,
-      solution: questionData.solution,
-      marks: questionData.marks,
-      markScheme: questionData.markScheme,
-      diagram: questionData.diagram,
-    }).catch(err => console.error('Failed to cache question:', err));
-
-    // Store the generated question in the bank for future reuse (async, don't wait)
-    const bankQuestionId = await storeQuestion(
+    // Store in the bank for future reuse. The RPC rejects near-duplicates and
+    // records this user's history in the same call.
+    await storeQuestion(
       questionCriteria,
       questionData.content,
       questionData.solution,
       questionData.markScheme,
       questionData.marks,
-      questionData.diagram ? (questionData.diagram as unknown as Record<string, unknown>) : undefined
+      questionData.diagram ? (questionData.diagram as unknown as Record<string, unknown>) : undefined,
+      userId,
+      'practice'
     ).catch(err => {
       console.error('Failed to store question in bank:', err);
       return null;
     });
+
+    incrementQuestionUsage(userId, clientIP, isAdmin).catch(console.error);
 
     const question: Question = {
       id: crypto.randomUUID(),
@@ -1854,13 +1844,6 @@ The diagram should be optimized for ${deviceType} viewing.`;
       difficulty,
       ...questionData,
     };
-
-    // If stored successfully, record that it was served
-    if (bankQuestionId) {
-      recordQuestionServed(bankQuestionId, userId, 'practice').catch(err => 
-        console.error('Failed to record question served:', err)
-      );
-    }
 
     return NextResponse.json(question, {
       headers: { 'X-Cache': 'MISS' },

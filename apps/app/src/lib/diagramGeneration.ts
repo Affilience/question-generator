@@ -15,65 +15,6 @@ interface DiagramRequirements {
   responsive: boolean;
 }
 
-interface ResponsiveDiagramConfig {
-  mobile: {
-    maxWidth: number;
-    maxHeight: number;
-    fontSize: number;
-    strokeWidth: number;
-    pointRadius: number;
-    padding: number;
-  };
-  tablet: {
-    maxWidth: number;
-    maxHeight: number;
-    fontSize: number;
-    strokeWidth: number;
-    pointRadius: number;
-    padding: number;
-  };
-  desktop: {
-    maxWidth: number;
-    maxHeight: number;
-    fontSize: number;
-    strokeWidth: number;
-    pointRadius: number;
-    padding: number;
-  };
-}
-
-/**
- * Get responsive diagram configuration based on device type
- */
-export function getResponsiveDiagramConfig(): ResponsiveDiagramConfig {
-  return {
-    mobile: {
-      maxWidth: 320,
-      maxHeight: 240,
-      fontSize: 12,
-      strokeWidth: 1.5,
-      pointRadius: 4,
-      padding: 16,
-    },
-    tablet: {
-      maxWidth: 480,
-      maxHeight: 360,
-      fontSize: 14,
-      strokeWidth: 2,
-      pointRadius: 5,
-      padding: 20,
-    },
-    desktop: {
-      maxWidth: 600,
-      maxHeight: 450,
-      fontSize: 16,
-      strokeWidth: 2,
-      pointRadius: 6,
-      padding: 24,
-    },
-  };
-}
-
 /**
  * Determine if a diagram should be generated based on subject, question type, and marks
  */
@@ -395,194 +336,25 @@ function getDiagramTypesForQuestion(
 }
 
 /**
- * Generate responsive diagram instructions for AI
+ * Diagram instructions appended to generation prompts.
+ *
+ * Must stay consistent with DIAGRAM_SCHEMA_DOCS (logical units, y-up): the
+ * old version quoted pixel dimensions and font sizes, giving the model two
+ * contradictory coordinate systems in one prompt.
  */
 export function generateDiagramInstructions(
   requirements: DiagramRequirements,
-  deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
+  _deviceType: 'mobile' | 'tablet' | 'desktop' = 'desktop'
 ): string {
-  const config = getResponsiveDiagramConfig()[deviceType];
-  
   return `
-Generate a diagram with these requirements:
+Diagram requirements:
 - Type: ${requirements.types.join(' or ')}
 - Complexity: ${requirements.minComplexity}-${requirements.maxComplexity} (1=simple, 5=complex)
-- Max dimensions: ${config.maxWidth}x${config.maxHeight}
-- Font size: ${config.fontSize}px
-- Stroke width: ${config.strokeWidth}px
-- Point radius: ${config.pointRadius}px
-
-RESPONSIVE REQUIREMENTS:
-- Use relative positioning (percentages where possible)
-- Ensure text doesn't overlap
-- Maintain minimum touch target of 44x44px for interactive elements
-- Scale appropriately for device: ${deviceType}
-- Include clear labels with appropriate spacing
-- Use high contrast colors for accessibility
+- Use LOGICAL units (width/height around 10-14) exactly as the diagram schema describes — never pixel values
+- Keep every element inside the declared width/height with at least 1 unit of margin
+- Label all key points, sides, and angles the question refers to
+- Ensure labels do not overlap each other or the shapes
 
 ${requirements.required ? 'REQUIRED: This diagram is essential for the question.' : 'OPTIONAL: Include if it adds value.'}
 `;
-}
-
-/**
- * Optimize diagram for specific device
- */
-export function optimizeDiagramForDevice(
-  diagram: DiagramSpec,
-  deviceType: 'mobile' | 'tablet' | 'desktop'
-): DiagramSpec {
-  const config = getResponsiveDiagramConfig()[deviceType];
-  
-  // Scale dimensions
-  const scaleX = config.maxWidth / (diagram.width || 400);
-  const scaleY = config.maxHeight / (diagram.height || 300);
-  const scale = Math.min(scaleX, scaleY, 1); // Don't upscale
-
-  // Scale all elements
-  const scaledElements = diagram.elements.map(element => {
-    const scaled = { ...element };
-    
-    // Scale coordinates
-    if ('x' in scaled && typeof scaled.x === 'number') {
-      scaled.x = Math.round(scaled.x * scale);
-    }
-    if ('y' in scaled && typeof scaled.y === 'number') {
-      scaled.y = Math.round(scaled.y * scale);
-    }
-    if ('x1' in scaled && typeof scaled.x1 === 'number') {
-      scaled.x1 = Math.round(scaled.x1 * scale);
-    }
-    if ('y1' in scaled && typeof scaled.y1 === 'number') {
-      scaled.y1 = Math.round(scaled.y1 * scale);
-    }
-    if ('x2' in scaled && typeof scaled.x2 === 'number') {
-      scaled.x2 = Math.round(scaled.x2 * scale);
-    }
-    if ('y2' in scaled && typeof scaled.y2 === 'number') {
-      scaled.y2 = Math.round(scaled.y2 * scale);
-    }
-    
-    // Scale radius
-    if ('radius' in scaled && typeof scaled.radius === 'number') {
-      scaled.radius = Math.round(scaled.radius * scale);
-    }
-    
-    // Scale font size
-    if ('fontSize' in scaled) {
-      scaled.fontSize = config.fontSize;
-    }
-    
-    // Scale stroke width
-    if ('strokeWidth' in scaled) {
-      scaled.strokeWidth = config.strokeWidth;
-    }
-    
-    // Scale points (for line charts, scatter plots, etc.)
-    if ('points' in scaled && Array.isArray(scaled.points)) {
-      scaled.points = scaled.points.map((point: any) => {
-        // Handle both Point and other point-like structures
-        if (typeof point === 'object' && 'x' in point && 'y' in point) {
-          return {
-            ...point,
-            x: Math.round(point.x * scale),
-            y: Math.round(point.y * scale),
-          };
-        }
-        return point;
-      });
-    }
-    
-    return scaled as DiagramElement;
-  });
-
-  return {
-    ...diagram,
-    width: Math.round((diagram.width || 400) * scale),
-    height: Math.round((diagram.height || 300) * scale),
-    elements: scaledElements,
-    deviceOptimized: deviceType,
-  };
-}
-
-/**
- * Validate diagram accessibility
- */
-export function validateDiagramAccessibility(diagram: DiagramSpec): {
-  valid: boolean;
-  issues: string[];
-  suggestions: string[];
-} {
-  const issues: string[] = [];
-  const suggestions: string[] = [];
-
-  // Check for alt text
-  if (!diagram.title && !diagram.description) {
-    issues.push('Missing title or description for screen readers');
-    suggestions.push('Add a descriptive title or description');
-  }
-
-  // Check text contrast
-  const textElements = diagram.elements.filter(el => el.type === 'text');
-  if (textElements.length > 0) {
-    const hasLowContrast = textElements.some(el => {
-      const color = (el as any).color || '#000000';
-      // Simple check - could be enhanced with actual contrast calculation
-      return color === '#cccccc' || color === '#dddddd';
-    });
-    
-    if (hasLowContrast) {
-      issues.push('Some text may have insufficient contrast');
-      suggestions.push('Use darker colors for text elements');
-    }
-  }
-
-  // Check minimum sizes
-  const minSize = 44; // iOS/Android minimum touch target
-  const interactiveElements = diagram.elements.filter(el => 
-    ['point', 'circle'].includes(el.type)
-  );
-  
-  interactiveElements.forEach(el => {
-    if ('radius' in el && (el as any).radius < minSize / 2) {
-      issues.push(`Interactive element too small (radius: ${(el as any).radius}px)`);
-      suggestions.push(`Increase radius to at least ${minSize / 2}px for touch targets`);
-    }
-  });
-
-  return {
-    valid: issues.length === 0,
-    issues,
-    suggestions,
-  };
-}
-
-/**
- * Generate fallback text description for diagrams
- */
-export function generateDiagramDescription(diagram: DiagramSpec): string {
-  const elements = diagram.elements;
-  const elementCounts: Record<string, number> = {};
-  
-  elements.forEach(el => {
-    elementCounts[el.type] = (elementCounts[el.type] || 0) + 1;
-  });
-
-  let description = diagram.title || 'Diagram showing ';
-  
-  const descriptions: string[] = [];
-  Object.entries(elementCounts).forEach(([type, count]) => {
-    if (count === 1) {
-      descriptions.push(`a ${type}`);
-    } else {
-      descriptions.push(`${count} ${type}s`);
-    }
-  });
-
-  description += descriptions.join(', ');
-  
-  if (diagram.description) {
-    description += `. ${diagram.description}`;
-  }
-
-  return description;
 }

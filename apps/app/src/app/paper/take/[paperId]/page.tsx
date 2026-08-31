@@ -396,9 +396,7 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                       <div className="mt-4 flex justify-center">
                         <ResponsiveDiagramRenderer
                           spec={currentQuestion.diagram}
-                          className="bg-[var(--color-bg-primary)] rounded-lg p-4"
-                          darkMode={false}
-                          interactive={false}
+                          className="bg-[var(--color-diagram-bg)] rounded-lg p-4"
                         />
                       </div>
                     )}

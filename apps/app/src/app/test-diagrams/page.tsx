@@ -2060,9 +2060,7 @@ export default function TestDiagramsPage() {
                   <div className="bg-white rounded-lg p-4 flex items-center justify-center" style={{ minHeight: sizes.maxHeight + 40 }}>
                     <ResponsiveDiagramRenderer
                       spec={diagram.spec}
-                      className="w-full"
-                      darkMode={false}
-                      interactive={false}
+                      className="w-full bg-[var(--color-diagram-bg)] rounded-lg p-3"
                     />
                   </div>
                 </div>
@@ -2083,9 +2081,7 @@ export default function TestDiagramsPage() {
             >
               <ResponsiveDiagramRenderer
                 spec={diagram.spec}
-                className="w-full"
-                darkMode={true}
-                interactive={false}
+                className="w-full bg-[var(--color-diagram-bg)] rounded-lg p-3"
               />
             </div>
           ))}

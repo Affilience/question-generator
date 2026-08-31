@@ -130,7 +130,6 @@ export default function PaperGeneratorPage() {
           subject,
           paperName: `${examBoard.toUpperCase()} ${level === 'gcse' ? 'GCSE' : 'A-Level'} ${subjectData?.name || subject} Practice Paper`,
           config,
-          userId: user.id,
         }),
         signal,
       });

@@ -561,8 +561,6 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                           <ResponsiveDiagramRenderer
                             spec={question.diagram}
                             className="print-diagram"
-                            darkMode={false}
-                            interactive={false}
                           />
                         </DiagramErrorBoundary>
                       </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -228,33 +229,8 @@ export default function RootLayout({
           `
         }} />
         
-        {/* KaTeX CSS for math rendering - load immediately to prevent flash of unstyled content */}
-        <link
-          rel="preload"
-          href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
-          as="style"
-          crossOrigin="anonymous"
-        />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('DOMContentLoaded', function() {
-              var katexLink = document.querySelector('link[href*="katex"][rel="preload"]');
-              if (katexLink) {
-                katexLink.onload = function() {
-                  this.onload = null;
-                  this.rel = 'stylesheet';
-                };
-              }
-            });
-          `
-        }} />
-        <noscript>
-          <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css"
-            crossOrigin="anonymous"
-          />
-        </noscript>
+        {/* KaTeX CSS is bundled via the katex package import above — no CDN
+            dependency, no flash of invisible math while a preload resolves */}
       </head>
       <body
         className={`font-sans antialiased bg-[var(--color-bg-deepest)] min-h-screen overflow-x-hidden`}

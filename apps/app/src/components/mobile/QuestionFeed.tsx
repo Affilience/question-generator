@@ -147,22 +147,10 @@ export function QuestionFeed({
         previousQuestionsRef.current.push(data.content);
         setStreamingContent('');
         
-        // Track usage via API endpoint and refresh subscription data
+        // Usage is counted server-side by the generation route; just refresh
+        // local subscription state so remaining-quota UI stays accurate
         if (user) {
-          try {
-            await fetch('/api/usage/increment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                userId: user.id,
-                type: 'question'
-              }),
-            });
-            // Refresh subscription data after successful tracking
-            refreshSubscription();
-          } catch (error) {
-            console.error('Failed to track usage:', error);
-          }
+          refreshSubscription();
         }
         return;
       }
@@ -222,22 +210,10 @@ export function QuestionFeed({
                   previousQuestionsRef.current.push(questionData.content);
                   questionAdded = true;
                   
-                  // Track usage via API endpoint after successful generation
+                  // Usage is counted server-side by the generation route;
+                  // just refresh local subscription state
                   if (user) {
-                    try {
-                      await fetch('/api/usage/increment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                          userId: user.id,
-                          type: 'question'
-                        }),
-                      });
-                      // Refresh subscription data after successful tracking
-                      refreshSubscription();
-                    } catch (error) {
-                      console.error('Failed to track usage:', error);
-                    }
+                    refreshSubscription();
                   }
                 }
               } catch (e) {

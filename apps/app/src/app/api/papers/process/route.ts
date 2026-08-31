@@ -9,16 +9,18 @@ import {
   GeneratedPaper,
   GeneratedSection,
   GeneratedQuestion,
-  Difficulty,
+  QuestionType,
 } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
-import { selectQuestionsForPaper, QuestionPlan } from '@/lib/questionSelector';
+import { selectQuestionsForPaper, QuestionPlan, SelectionResult } from '@/lib/questionSelector';
+import { buildVariationBrief, buildExclusionDirective } from '@/lib/questionVariation';
+import { getTopicAdherenceConstraints } from '@/lib/topicAdherence';
 import { getOpenAIClient } from '@/lib/openai';
 import { parseQuestionResponse, DIAGRAM_SCHEMA_DOCS, SUBJECT_DIAGRAM_GUIDANCE, ValidationContext, getVisualInstructions, shouldIncludeVisual } from '@/lib/prompts-common';
 import { getTopicByIdSubjectBoardAndLevel, getTopicById } from '@/lib/topics';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
-import { findExistingQuestion, storeQuestion, recordQuestionServed, QuestionCriteria } from '@/lib/question-bank';
+import { findExistingQuestion, storeQuestion, QuestionCriteria } from '@/lib/question-bank';
 import {
   getQuestionConfig,
   isEssaySubject,
@@ -28,6 +30,7 @@ import {
   getRandomScienceQuestionType,
   getRandomMathsQuestionType,
   QuestionFormat,
+  EssayQuestionConfig,
 } from '@/lib/essay-subject-config';
 import { getRandomExtractForTheme } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme } from '@/lib/extracts/history-sources';
@@ -46,6 +49,10 @@ interface ProcessPaperRequest {
   subject: Subject;
   paperName: string;
   config: PaperConfig;
+  // The exact plan computed by /api/papers/start. Without it the worker used
+  // to re-run the (random) selector and generate a different paper than the
+  // one whose question count was promised to the UI.
+  plan?: SelectionResult;
   userId?: string;
 }
 
@@ -291,6 +298,27 @@ OR include a trace table showing variable states.`,
   }
 }
 
+// Honour the planned question type: the paper's section structure promises
+// e.g. "Section C: essay", and picking a random format here used to put
+// short data-response questions into essay slots.
+function formatForPlanType(questionType: QuestionType, config: EssayQuestionConfig): QuestionFormat {
+  const mapping: Partial<Record<QuestionType, QuestionFormat>> = {
+    'essay': 'extended_essay',
+    'interpretation': 'extended_essay',
+    'extended': 'short_essay',
+    'extract-analysis': 'data_response',
+    'source-analysis': 'data_response',
+    'data-analysis': 'data_response',
+    'graph': 'data_response',
+    'compare': 'analyse',
+    'explain': 'explain',
+    'short-answer': 'short_answer',
+    'multiple-choice': 'short_answer',
+    'calculation': 'calculation',
+  };
+  return mapping[questionType] ?? getRandomQuestionFormat(config);
+}
+
 function buildEssayQuestionPrompt(
   plan: QuestionPlan,
   subject: Subject,
@@ -305,7 +333,7 @@ function buildEssayQuestionPrompt(
 
   const levelDisplay = qualification === 'a-level' ? 'A-Level' : 'GCSE';
   const boardUpper = examBoard.toUpperCase();
-  const selectedFormat = getRandomQuestionFormat(config);
+  const selectedFormat = formatForPlanType(plan.questionType, config);
 
   let formatGuidance = '';
   let commandWords: string[] = [];
@@ -516,8 +544,8 @@ LaTeX Math Formatting:
 - Variables: $x$, $F_{net}$, $v^2$
 - Fractions: $\\\\frac{a}{b}$
 - Greek: $\\\\theta$, $\\\\alpha$
-- Chemistry: $\\text{H}_2\\text{O}$, $\\text{Na}^+$
-- Units: $\\text{m s}^{-1}$
+- Chemistry: $\\\\text{H}_2\\\\text{O}$, $\\\\text{Na}^+$
+- Units: $\\\\text{m s}^{-1}$
 ${diagramInstructions}
 
 Return JSON:
@@ -530,7 +558,8 @@ async function generateSingleQuestion(
   examBoard: ExamBoard,
   qualification: QualificationLevel,
   openai: ReturnType<typeof getOpenAIClient>,
-  userId?: string
+  userId?: string,
+  excludePrefixes: string[] = []
 ): Promise<GeneratedQuestion> {
   const topic = getTopicByIdSubjectBoardAndLevel(plan.topicId, subject, examBoard, qualification) ||
                 getTopicById(plan.topicId);
@@ -547,11 +576,12 @@ async function generateSingleQuestion(
     marks: plan.marks,
   };
 
-  const bankQuestion = await findExistingQuestion(criteria, userId || null);
+  // The RPC records the serve atomically (context 'paper') and skips
+  // row-locked candidates, so parallel workers and later slots can never
+  // reuse a question. Exclusion prefixes also keep bank picks dissimilar
+  // to questions already generated for this paper.
+  const bankQuestion = await findExistingQuestion(criteria, userId || null, excludePrefixes, 'paper');
   if (bankQuestion) {
-    // Record that this user has seen this question
-    recordQuestionServed(bankQuestion.id, userId || null, 'paper').catch(console.error);
-
     return {
       id: plan.id,
       questionNumber: '',
@@ -572,81 +602,100 @@ async function generateSingleQuestion(
     ? buildEssayQuestionPrompt(plan, subject, examBoard, qualification, topicName)
     : buildQuantitativeQuestionPrompt(plan, subject, examBoard, qualification, topicName);
 
+  // Subtopic adherence + the planned concept focus + a per-question variety
+  // brief + exclusions against the rest of this paper
+  const adherence = topic
+    ? getTopicAdherenceConstraints(
+        { id: topic.id, name: topic.name, subtopics: topic.subtopics },
+        plan.subtopic,
+        subject
+      )
+    : '';
+  const conceptLine = plan.conceptFocus
+    ? `\nCONCEPT FOCUS: centre the question on "${plan.conceptFocus}".`
+    : '';
+  const variationBrief = buildVariationBrief(subject, plan.subtopic, plan.difficulty);
+  const exclusionDirective = buildExclusionDirective(excludePrefixes);
+
   const subjectConstraints = getAllConstraints(subject);
-  const prompt = `${subjectConstraints}\n\n${basePrompt}`;
+  const prompt = `${subjectConstraints}\n\n${basePrompt}\n${adherence}${conceptLine}${variationBrief}\n${exclusionDirective}\n\nReturn ONLY the JSON object in the exact structure specified above.`;
   const systemPrompt = getEnhancedSystemPrompt(subject, examBoard, qualification);
   const maxTokens = getMaxTokens(subject, plan.marks);
+  const temperature = excludePrefixes.length > 0 ? 0.8 : 0.7;
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.6,
-      max_tokens: maxTokens,
-    });
+  const MAX_ATTEMPTS = 2;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature,
+        max_tokens: maxTokens,
+      });
 
-    const responseContent = completion.choices[0]?.message?.content;
-    if (!responseContent) {
-      throw new Error('No response from AI');
-    }
-
-    // Validation context for paper questions
-    const validationContext: ValidationContext = {
-      subject,
-      examBoard,
-      qualification,
-      difficulty: plan.difficulty,
-    };
-    const questionData = parseQuestionResponse(responseContent, validationContext);
-
-    const generatedQuestion: GeneratedQuestion = {
-      id: plan.id,
-      questionNumber: '',
-      content: questionData.content,
-      marks: plan.marks,
-      difficulty: plan.difficulty,
-      questionType: plan.questionType,
-      topicId: plan.topicId,
-      subtopic: plan.subtopic,
-      solution: questionData.solution,
-      markScheme: questionData.markScheme,
-      diagram: questionData.diagram as DiagramSpec | undefined,
-    };
-
-    // QUESTION BANK: Store for reuse by other users
-    storeQuestion(
-      criteria,
-      generatedQuestion.content,
-      generatedQuestion.solution,
-      generatedQuestion.markScheme,
-      generatedQuestion.marks,
-      generatedQuestion.diagram as Record<string, unknown> | undefined
-    ).then(bankId => {
-      if (bankId && userId) {
-        recordQuestionServed(bankId, userId, 'paper').catch(console.error);
+      const responseContent = completion.choices[0]?.message?.content;
+      if (!responseContent) {
+        throw new Error('No response from AI');
       }
-    }).catch(console.error);
 
-    return generatedQuestion;
-  } catch (error) {
-    console.error('Failed to generate question:', error);
-    return {
-      id: plan.id,
-      questionNumber: '',
-      content: `[Failed to generate question for ${plan.subtopic}]`,
-      marks: plan.marks,
-      difficulty: plan.difficulty,
-      questionType: plan.questionType,
-      topicId: plan.topicId,
-      subtopic: plan.subtopic,
-      solution: 'Generation failed',
-      markScheme: ['Unable to generate mark scheme'],
-    };
+      // Validation context for paper questions
+      const validationContext: ValidationContext = {
+        subject,
+        examBoard,
+        qualification,
+        difficulty: plan.difficulty,
+      };
+      const questionData = parseQuestionResponse(responseContent, validationContext);
+
+      const generatedQuestion: GeneratedQuestion = {
+        id: plan.id,
+        questionNumber: '',
+        content: questionData.content,
+        marks: plan.marks,
+        difficulty: plan.difficulty,
+        questionType: plan.questionType,
+        topicId: plan.topicId,
+        subtopic: plan.subtopic,
+        solution: questionData.solution,
+        markScheme: questionData.markScheme,
+        diagram: questionData.diagram as DiagramSpec | undefined,
+      };
+
+      // QUESTION BANK: Store for reuse by other users (near-duplicate aware;
+      // records this user's history in the same call)
+      storeQuestion(
+        criteria,
+        generatedQuestion.content,
+        generatedQuestion.solution,
+        generatedQuestion.markScheme,
+        generatedQuestion.marks,
+        generatedQuestion.diagram as Record<string, unknown> | undefined,
+        userId || null,
+        'paper'
+      ).catch(console.error);
+
+      return generatedQuestion;
+    } catch (error) {
+      console.error(`Failed to generate question (attempt ${attempt}/${MAX_ATTEMPTS}):`, error);
+    }
   }
+
+  return {
+    id: plan.id,
+    questionNumber: '',
+    content: `[Failed to generate question for ${plan.subtopic}]`,
+    marks: plan.marks,
+    difficulty: plan.difficulty,
+    questionType: plan.questionType,
+    topicId: plan.topicId,
+    subtopic: plan.subtopic,
+    solution: 'Generation failed',
+    markScheme: ['Unable to generate mark scheme'],
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -675,7 +724,7 @@ export async function POST(request: NextRequest) {
   }
 
   const data: ProcessPaperRequest = JSON.parse(body);
-  const { jobId, examBoard, qualification, subject, paperName, config, userId } = data;
+  const { jobId, examBoard, qualification, subject, paperName, config, plan, userId } = data;
 
   const supabase = getSupabaseAdmin();
 
@@ -688,34 +737,65 @@ export async function POST(request: NextRequest) {
   try {
     const openai = getOpenAIClient();
 
-    // Plan the questions
-    const selectionResult = selectQuestionsForPaper(config, subject);
+    // Use the exact plan computed by /start (fallback re-plan only for jobs
+    // queued before the plan travelled with the job)
+    const selectionResult: SelectionResult = plan ?? selectQuestionsForPaper(config, subject);
     const allPlans: QuestionPlan[] = [];
     selectionResult.sections.forEach((section) => {
       allPlans.push(...section.questions);
     });
 
-    const generatedQuestions: GeneratedQuestion[] = [];
     const totalQuestions = allPlans.length;
+    const questionMap = new Map<string, GeneratedQuestion>();
+    // Prefixes of questions already produced for THIS paper, fed into both
+    // the bank lookup and the generation prompt of later questions
+    const seenPrefixes: string[] = [];
+    let completedCount = 0;
+    let failedCount = 0;
 
-    // Generate questions one at a time, updating progress
-    for (let i = 0; i < allPlans.length; i++) {
-      const plan = allPlans[i];
-      const question = await generateSingleQuestion(plan, subject, examBoard, qualification, openai, userId);
-      generatedQuestions.push(question);
+    // Bounded-concurrency generation: ~4 in flight brings a 15-question paper
+    // from ~2 minutes (sequential) to ~30s. Bank serving is race-safe under
+    // parallelism (FOR UPDATE SKIP LOCKED in get_unseen_question).
+    const CONCURRENCY = 4;
+    let nextIndex = 0;
+    const worker = async () => {
+      while (nextIndex < allPlans.length) {
+        const planItem = allPlans[nextIndex++];
+        const question = await generateSingleQuestion(
+          planItem,
+          subject,
+          examBoard,
+          qualification,
+          openai,
+          userId,
+          seenPrefixes.slice(-12)
+        );
+        questionMap.set(planItem.id, question);
 
-      // Update progress in database
-      await supabase
-        .from('paper_jobs')
-        .update({
-          progress_current: i + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', jobId);
+        if (question.solution === 'Generation failed') {
+          failedCount++;
+        } else {
+          seenPrefixes.push(question.content.slice(0, 150));
+        }
+
+        completedCount++;
+        await supabase
+          .from('paper_jobs')
+          .update({
+            progress_current: completedCount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', jobId);
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, allPlans.length) }, () => worker())
+    );
+
+    // A paper riddled with placeholders is worse than a clean failure
+    if (failedCount > 0 && failedCount * 2 >= totalQuestions) {
+      throw new Error(`Generation failed for ${failedCount} of ${totalQuestions} questions`);
     }
-
-    // Create lookup map
-    const questionMap = new Map(generatedQuestions.map((q) => [q.id, q]));
 
     // Organize into sections with question numbers
     let globalQuestionNumber = 1;

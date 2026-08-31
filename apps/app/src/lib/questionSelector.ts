@@ -4,7 +4,6 @@ import {
   QuestionType,
   Difficulty,
   DifficultyDistribution,
-  QuestionTypeDistribution,
 } from '@/types';
 
 /**
@@ -84,10 +83,6 @@ function isMathsSubject(subject: string): boolean {
 
 function isScienceSubject(subject: string): boolean {
   return ['physics', 'chemistry', 'biology', 'combined-science'].includes(subject);
-}
-
-function isEssaySubject(subject: string): boolean {
-  return ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'].includes(subject);
 }
 
 /**
@@ -486,60 +481,43 @@ function generateUltraDiverseConceptVariations(subtopic: string, subject: string
 }
 
 /**
- * Latin Square design for optimal topic-difficulty pairing
- */
-class LatinSquareDesign {
-  private size: number;
-  private square: number[][];
-
-  constructor(size: number) {
-    this.size = size;
-    this.square = this.generateLatinSquare(size);
-  }
-
-  private generateLatinSquare(n: number): number[][] {
-    const square: number[][] = [];
-    for (let i = 0; i < n; i++) {
-      square[i] = [];
-      for (let j = 0; j < n; j++) {
-        square[i][j] = (i + j) % n;
-      }
-    }
-    return square;
-  }
-
-  getOptimalPairing(row: number, col: number): number {
-    return this.square[row % this.size][col % this.size];
-  }
-}
-
-/**
  * Simulated Annealing for optimal question arrangement
  */
 class SimulatedAnnealing {
-  private temperature: number = 100;
   private coolingRate: number = 0.95;
   private minTemperature: number = 1;
+  private random: () => number;
+
+  constructor(random: () => number = Math.random) {
+    this.random = random;
+  }
 
   optimize(questions: QuestionPlan[], iterations: number = 100): QuestionPlan[] {
-    let current = [...questions];
-    let best = [...questions];
-    let bestScore = this.calculateDiversityScore(best);
+    if (questions.length < 2) return [...questions];
 
-    for (let i = 0; i < iterations && this.temperature > this.minTemperature; i++) {
+    // Fresh temperature per run — a shared instance-level temperature cooled
+    // to zero after the first section, so later sections never got optimised
+    let temperature = 100;
+    let current = [...questions];
+    let currentScore = this.calculateDiversityScore(current);
+    let best = current;
+    let bestScore = currentScore;
+
+    for (let i = 0; i < iterations && temperature > this.minTemperature; i++) {
       const candidate = this.generateNeighbor(current);
       const candidateScore = this.calculateDiversityScore(candidate);
-      const delta = candidateScore - this.calculateDiversityScore(current);
+      const delta = candidateScore - currentScore;
 
-      if (delta > 0 || Math.random() < Math.exp(delta / this.temperature)) {
+      if (delta > 0 || this.random() < Math.exp(delta / temperature)) {
         current = candidate;
+        currentScore = candidateScore;
         if (candidateScore > bestScore) {
           best = candidate;
           bestScore = candidateScore;
         }
       }
 
-      this.temperature *= this.coolingRate;
+      temperature *= this.coolingRate;
     }
 
     return best;
@@ -547,8 +525,8 @@ class SimulatedAnnealing {
 
   private generateNeighbor(questions: QuestionPlan[]): QuestionPlan[] {
     const neighbor = [...questions];
-    const i = Math.floor(Math.random() * neighbor.length);
-    const j = Math.floor(Math.random() * neighbor.length);
+    const i = Math.floor(this.random() * neighbor.length);
+    const j = Math.floor(this.random() * neighbor.length);
     [neighbor[i], neighbor[j]] = [neighbor[j], neighbor[i]];
     return neighbor;
   }
@@ -579,7 +557,6 @@ export class UltraImprovedQuestionSelector {
   private config: PaperConfig;
   private subject: string;
   private random: () => number;
-  private latinSquare: LatinSquareDesign;
   private annealer: SimulatedAnnealing;
   private usedConcepts: Set<string> = new Set();
   private usedBloomLevels: Map<string, number> = new Map();
@@ -590,10 +567,8 @@ export class UltraImprovedQuestionSelector {
     this.subject = subject;
     this.random = seed !== undefined ? this.seededRandom(seed) : Math.random.bind(Math);
     
-    // Initialize advanced diversity tools
-    const numTopics = Object.keys(config.selectedSubtopics).length;
-    this.latinSquare = new LatinSquareDesign(Math.max(3, numTopics));
-    this.annealer = new SimulatedAnnealing();
+    // Initialize diversity tools
+    this.annealer = new SimulatedAnnealing(this.random);
     
     // Initialize Bloom's level tracking
     BLOOM_LEVELS.forEach(level => this.usedBloomLevels.set(level, 0));
@@ -736,9 +711,6 @@ export class UltraImprovedQuestionSelector {
       [allocations[i], allocations[j]] = [allocations[j], allocations[i]];
     }
 
-    console.log(`🚀 ULTRA ALLOCATION: ${allocations.length} subtopics, ${baseMarksPerSubtopic}-${baseMarksPerSubtopic + 1} marks each`);
-    console.log(`🧬 Generated ${allocations[0]?.conceptVariations.length || 0} concept variations per subtopic`);
-    
     return allocations;
   }
 
@@ -772,10 +744,7 @@ export class UltraImprovedQuestionSelector {
     const recentTypes: QuestionType[] = [];
     const recentDifficulties: Difficulty[] = [];
     const RECENCY_WINDOW = 3;
-    
-    let totalCognitiveLoad = 0;
-    const targetCognitiveLoad = targetMarks * 2; // Approximate target
-    
+
     const maxIterations = 100;
     let iterations = 0;
 
@@ -795,21 +764,14 @@ export class UltraImprovedQuestionSelector {
       const marks = this.chooseMarksWithGoldenRatio(questionType, remainingMarks, questions.length);
       if (marks === 0) break;
 
-      // Choose difficulty using Latin Square pairing
-      const difficulty = this.chooseDifficultyWithLatinSquare(
-        questionOrder,
-        availableAllocations.length,
-        difficultyTargets,
-        difficultyUsed,
-        marks
-      );
+      // Choose difficulty weighted by remaining distribution headroom
+      const difficulty = this.chooseDifficultyWeighted(difficultyTargets, difficultyUsed);
 
       // Choose subtopic with maximum diversity constraints
       const subtopicChoice = this.chooseSubtopicWithUltraDiversity(
         availableAllocations,
         marks,
-        recentSubtopics,
-        RECENCY_WINDOW
+        recentSubtopics
       );
       if (!subtopicChoice) break;
 
@@ -844,8 +806,7 @@ export class UltraImprovedQuestionSelector {
       questions.push(plan);
       remainingMarks -= marks;
       difficultyUsed[difficulty] += marks;
-      totalCognitiveLoad += cognitiveLoad;
-      
+
       // Update tracking
       subtopicChoice.allocatedMarks -= marks;
       subtopicChoice.usageCount++;
@@ -866,27 +827,25 @@ export class UltraImprovedQuestionSelector {
       this.usedContextTypes.set(contextType, (this.usedContextTypes.get(contextType) || 0) + 1);
     }
 
-    // Final optimization: Sort by cognitive load for better pacing
-    questions.sort((a, b) => {
-      // Interleave high and low cognitive load
-      const aIndex = questions.indexOf(a);
-      const bIndex = questions.indexOf(b);
-      const aIsEven = aIndex % 2 === 0;
-      const bIsEven = bIndex % 2 === 0;
-      
-      if (aIsEven && !bIsEven) {
-        return (a.cognitiveLoad || 0) - (b.cognitiveLoad || 0);
-      } else if (!aIsEven && bIsEven) {
-        return (b.cognitiveLoad || 0) - (a.cognitiveLoad || 0);
-      }
-      return 0;
-    });
+    // Pacing: weave lighter and heavier questions so cognitive load
+    // alternates instead of ramping monotonically. (The old comparator called
+    // indexOf inside sort — an inconsistent comparator with arbitrary output.)
+    const byLoad = [...questions].sort(
+      (a, b) => (a.cognitiveLoad || 0) - (b.cognitiveLoad || 0)
+    );
+    const woven: QuestionPlan[] = [];
+    let lo = 0;
+    let hi = byLoad.length - 1;
+    while (lo <= hi) {
+      woven.push(byLoad[lo++]);
+      if (lo <= hi) woven.push(byLoad[hi--]);
+    }
 
-    questions.forEach((q, i) => {
+    woven.forEach((q, i) => {
       q.order = i;
     });
 
-    return questions;
+    return woven;
   }
 
   /**
@@ -950,36 +909,33 @@ export class UltraImprovedQuestionSelector {
   }
 
   /**
-   * Choose difficulty using Latin Square design
+   * Choose difficulty weighted by remaining headroom against each
+   * difficulty's mark target, so the paper converges on the distribution the
+   * user actually selected. (The old fixed easy/medium/hard cycle only
+   * respected the distribution via overflow caps, and its fallback dumped
+   * excess marks into 'medium' even when medium was set to 0%.)
    */
-  private chooseDifficultyWithLatinSquare(
-    questionIndex: number,
-    totalSubtopics: number,
+  private chooseDifficultyWeighted(
     targets: Record<Difficulty, number>,
-    used: Record<Difficulty, number>,
-    marks: number
+    used: Record<Difficulty, number>
   ): Difficulty {
     const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-    
-    // Use Latin Square for initial selection
-    const latinIndex = this.latinSquare.getOptimalPairing(questionIndex, totalSubtopics);
-    const suggestedDifficulty = difficulties[latinIndex % 3];
-    
-    // Check if suggestion fits within targets
-    if (used[suggestedDifficulty] + marks <= targets[suggestedDifficulty] * 1.2) {
-      return suggestedDifficulty;
+
+    const headrooms = difficulties.map(d => Math.max(0, targets[d] - used[d]));
+    const totalHeadroom = headrooms.reduce((a, b) => a + b, 0);
+
+    if (totalHeadroom > 0) {
+      let r = this.random() * totalHeadroom;
+      for (let i = 0; i < difficulties.length; i++) {
+        r -= headrooms[i];
+        if (r <= 0) return difficulties[i];
+      }
     }
-    
-    // Fallback to best fit
-    const availableDifficulties = difficulties.filter(d => 
-      used[d] + marks <= targets[d] * 1.2
+
+    // Rounding tail — all targets met: pick the least-overshot difficulty
+    return difficulties.reduce((best, d) =>
+      used[d] - targets[d] < used[best] - targets[best] ? d : best
     );
-    
-    if (availableDifficulties.length > 0) {
-      return availableDifficulties[0];
-    }
-    
-    return 'medium';
   }
 
   /**
@@ -988,8 +944,7 @@ export class UltraImprovedQuestionSelector {
   private chooseSubtopicWithUltraDiversity(
     allocations: SubtopicAllocation[],
     marks: number,
-    recentSubtopics: string[],
-    recencyWindow: number
+    recentSubtopics: string[]
   ): SubtopicAllocation | null {
     if (allocations.length === 0) return null;
     
@@ -1019,8 +974,12 @@ export class UltraImprovedQuestionSelector {
     if (withAllocation.length > 0) {
       return withAllocation[Math.floor(this.random() * withAllocation.length)];
     }
-    
-    return allocations[0];
+
+    // Last resort: the subtopic with the most budget left (returning [0]
+    // unconditionally could push a spent subtopic's allocation negative)
+    return allocations.reduce((best, a) =>
+      a.allocatedMarks > best.allocatedMarks ? a : best
+    );
   }
 
   /**
@@ -1035,8 +994,8 @@ export class UltraImprovedQuestionSelector {
       return selected;
     }
     
-    // Fallback: generate unique variation
-    const unique = `${allocation.subtopic} - unique scenario ${Date.now()}`;
+    // Fallback: deterministic counter keeps seeded runs reproducible
+    const unique = `${allocation.subtopic} - fresh scenario ${this.usedConcepts.size + 1}`;
     this.usedConcepts.add(unique);
     return unique;
   }
@@ -1075,7 +1034,7 @@ export class UltraImprovedQuestionSelector {
    * Select least used context type
    */
   private selectLeastUsedContextType(): string {
-    const sorted = CONTEXT_TYPES.sort((a, b) => {
+    const sorted = [...CONTEXT_TYPES].sort((a, b) => {
       const aCount = this.usedContextTypes.get(a) || 0;
       const bCount = this.usedContextTypes.get(b) || 0;
       return aCount - bCount;
@@ -1089,7 +1048,9 @@ export class UltraImprovedQuestionSelector {
   /**
    * Calculate overall diversity score
    */
-  private calculateOverallDiversityScore(sections: any[]): number {
+  private calculateOverallDiversityScore(
+    sections: { questions: QuestionPlan[] }[]
+  ): number {
     let score = 0;
     const allQuestions: QuestionPlan[] = [];
     
@@ -1111,13 +1072,14 @@ export class UltraImprovedQuestionSelector {
     
     score += entropy * 10;
     
-    // Bloom's level diversity
-    const bloomDiversity = this.usedBloomLevels.size / BLOOM_LEVELS.length;
-    score += bloomDiversity * 20;
-    
+    // Bloom's level diversity — count levels actually used (the maps are
+    // pre-seeded with zeros, so .size is always the full set)
+    const bloomLevelsUsed = [...this.usedBloomLevels.values()].filter(v => v > 0).length;
+    score += (bloomLevelsUsed / BLOOM_LEVELS.length) * 20;
+
     // Context type diversity
-    const contextDiversity = this.usedContextTypes.size / CONTEXT_TYPES.length;
-    score += contextDiversity * 15;
+    const contextTypesUsed = [...this.usedContextTypes.values()].filter(v => v > 0).length;
+    score += (contextTypesUsed / CONTEXT_TYPES.length) * 15;
     
     // Question type variety
     const typeCounts: Record<string, number> = {};
@@ -1228,12 +1190,13 @@ export class UltraImprovedQuestionSelector {
 export function selectQuestionsForPaper(
   config: PaperConfig,
   subject: string,
-  qualification: string = 'alevel',
+  _qualification: string = 'alevel',
   seed?: number
 ): SelectionResult {
+  // Legacy callers supplied `marks` instead of `targetMarks` on sections
   const transformedSections = config.sections.map(section => ({
     ...section,
-    targetMarks: (section as any).marks || section.targetMarks || 0,
+    targetMarks: (section as { marks?: number }).marks || section.targetMarks || 0,
     instructions: section.instructions || 'Answer all questions.',
     questionTypes: section.questionTypes || ['short-answer', 'explain', 'calculation'],
     order: section.order || 0,

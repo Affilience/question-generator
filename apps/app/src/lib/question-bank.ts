@@ -9,6 +9,19 @@ function getSupabaseAdmin() {
   );
 }
 
+// Trigram thresholds calibrated against real near-clone families in the bank
+// (see supabase/migrations/20260831_similarity_calibration.sql). Tune here,
+// not in SQL — both RPCs take these as parameters.
+const SERVE_PREFIX_SIMILARITY = 0.5;
+const STORE_SIMILARITY_THRESHOLD = 0.55;
+
+// The RPCs only need the most recent session exclusions; prefixes are capped
+// server-side too, but trim here to keep payloads small.
+const MAX_EXCLUDE_PREFIXES = 20;
+const EXCLUDE_PREFIX_LENGTH = 150;
+
+export type ServeContext = 'practice' | 'paper';
+
 export interface BankQuestion {
   id: string;
   subject: string;
@@ -37,71 +50,66 @@ export interface QuestionCriteria {
   marks?: number;
 }
 
-/**
- * Find an existing question in the bank that the user hasn't seen
- */
-export async function findExistingQuestion(
-  criteria: QuestionCriteria,
-  userId: string | null
-): Promise<BankQuestion | null> {
-  const supabase = getSupabaseAdmin();
-
-  // Build query for matching questions
-  let query = supabase
-    .from('question_bank')
-    .select('*')
-    .eq('subject', criteria.subject)
-    .eq('exam_board', criteria.examBoard)
-    .eq('qualification', criteria.qualification)
-    .eq('topic_id', criteria.topicId)
-    .eq('difficulty', criteria.difficulty);
-
-  // Optionally filter by subtopic if specified
-  if (criteria.subtopic) {
-    query = query.eq('subtopic', criteria.subtopic);
-  }
-
-  // Optionally filter by marks if specified (with ±1 tolerance)
-  if (criteria.marks) {
-    query = query.gte('marks', criteria.marks - 1).lte('marks', criteria.marks + 1);
-  }
-
-  // Order by times_served to prefer less-used questions
-  query = query.order('times_served', { ascending: true });
-
-  const { data: questions, error } = await query.limit(50);
-
-  if (error || !questions || questions.length === 0) {
-    return null;
-  }
-
-  // If user is logged in, filter out questions they've already seen
-  if (userId) {
-    const { data: seenQuestions } = await supabase
-      .from('user_question_history')
-      .select('question_id')
-      .eq('user_id', userId);
-
-    const seenIds = new Set(seenQuestions?.map(sq => sq.question_id) || []);
-    const unseenQuestions = questions.filter(q => !seenIds.has(q.id));
-
-    if (unseenQuestions.length > 0) {
-      // Return a random unseen question (with bias towards less-served ones)
-      const index = Math.floor(Math.random() * Math.min(5, unseenQuestions.length));
-      return unseenQuestions[index] as BankQuestion;
-    }
-
-    // If all questions have been seen, return null to trigger new AI generation
-    // The new question will be stored in the bank for other users
-    return null;
-  }
-
-  // For anonymous users, just return the least-served question
-  return questions[0] as BankQuestion;
+function normalizeExcludePrefixes(excludePrefixes: string[]): string[] {
+  return excludePrefixes
+    .filter(p => typeof p === 'string' && p.trim().length > 0)
+    .slice(-MAX_EXCLUDE_PREFIXES)
+    .map(p => p.slice(0, EXCLUDE_PREFIX_LENGTH));
 }
 
 /**
- * Store a newly generated question in the bank
+ * Atomically find a question the user hasn't seen and record the serve.
+ *
+ * The get_unseen_question RPC does everything in one round trip: exact
+ * subtopic/difficulty matching, an anti-join against the user's full history
+ * (no client-side fetch, no 1000-row cap), trigram-similarity filtering
+ * against this session's excluded prefixes, least-served-first rotation, a
+ * times_served bump, and the user_question_history upsert. Because recording
+ * happens in the same call, rapid repeat requests can never serve the same
+ * question twice.
+ */
+export async function findExistingQuestion(
+  criteria: QuestionCriteria,
+  userId: string | null,
+  excludePrefixes: string[] = [],
+  context: ServeContext = 'practice'
+): Promise<BankQuestion | null> {
+  const supabase = getSupabaseAdmin();
+
+  const { data, error } = await supabase.rpc('get_unseen_question', {
+    p_user_id: userId,
+    p_subject: criteria.subject,
+    p_exam_board: criteria.examBoard,
+    p_qualification: criteria.qualification,
+    p_topic_id: criteria.topicId,
+    p_subtopic: criteria.subtopic,
+    p_difficulty: criteria.difficulty,
+    p_exclude_prefixes: normalizeExcludePrefixes(excludePrefixes),
+    p_record: true,
+    p_prefix_similarity: SERVE_PREFIX_SIMILARITY,
+    p_question_type: criteria.questionType ?? null,
+    p_marks: criteria.marks ?? null,
+    p_context: context,
+  });
+
+  if (error) {
+    console.error('get_unseen_question failed:', error.message);
+    return null;
+  }
+
+  const rows = (data ?? []) as BankQuestion[];
+  return rows.length > 0 ? rows[0] : null;
+}
+
+/**
+ * Store a newly generated question in the bank.
+ *
+ * The store_bank_question RPC rejects near-duplicates (trigram similarity
+ * against existing questions in the same subtopic key) instead of only exact
+ * content matches, so the bank stops accumulating reworded clones. When the
+ * new content is a near-duplicate, the existing question's id is returned and
+ * — like on a fresh insert — the generating user's history is recorded
+ * against it, which prevents them being served the lookalike later.
  */
 export async function storeQuestion(
   criteria: QuestionCriteria,
@@ -109,106 +117,35 @@ export async function storeQuestion(
   solution: string,
   markScheme: string[],
   marks: number,
-  diagram?: Record<string, unknown> | null
+  diagram?: Record<string, unknown> | null,
+  userId?: string | null,
+  context: ServeContext = 'practice'
 ): Promise<string | null> {
   const supabase = getSupabaseAdmin();
 
-  const { data, error } = await supabase
-    .from('question_bank')
-    .insert({
-      subject: criteria.subject,
-      exam_board: criteria.examBoard,
-      qualification: criteria.qualification,
-      topic_id: criteria.topicId,
-      subtopic: criteria.subtopic,
-      difficulty: criteria.difficulty,
-      question_type: criteria.questionType || null,
-      content,
-      solution,
-      mark_scheme: markScheme,
-      marks,
-      diagram: diagram || null,
-    })
-    .select('id')
-    .single();
+  const { data, error } = await supabase.rpc('store_bank_question', {
+    p_subject: criteria.subject,
+    p_exam_board: criteria.examBoard,
+    p_qualification: criteria.qualification,
+    p_topic_id: criteria.topicId,
+    p_subtopic: criteria.subtopic,
+    p_difficulty: criteria.difficulty,
+    p_question_type: criteria.questionType ?? null,
+    p_content: content,
+    p_solution: solution,
+    p_mark_scheme: markScheme,
+    p_marks: marks,
+    p_diagram: diagram ?? null,
+    p_user_id: userId ?? null,
+    p_similarity_threshold: STORE_SIMILARITY_THRESHOLD,
+    p_context: context,
+  });
 
   if (error) {
-    // Likely a duplicate, which is fine
-    console.log('Could not store question (may be duplicate):', error.message);
+    console.error('store_bank_question failed:', error.message);
     return null;
   }
 
-  return data?.id || null;
-}
-
-/**
- * Record that a user has been served a question
- */
-export async function recordQuestionServed(
-  questionId: string,
-  userId: string | null,
-  context: 'practice' | 'paper' = 'practice'
-): Promise<void> {
-  const supabase = getSupabaseAdmin();
-
-  // Increment times_served counter
-  await supabase.rpc('increment_times_served', { question_id: questionId });
-
-  // Record in user history if logged in
-  if (userId) {
-    await supabase
-      .from('user_question_history')
-      .upsert(
-        {
-          user_id: userId,
-          question_id: questionId,
-          context,
-          served_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,question_id' }
-      );
-  }
-}
-
-/**
- * Get statistics about the question bank
- */
-export async function getQuestionBankStats(): Promise<{
-  totalQuestions: number;
-  bySubject: Record<string, number>;
-  byDifficulty: Record<string, number>;
-}> {
-  const supabase = getSupabaseAdmin();
-
-  const { count: totalQuestions } = await supabase
-    .from('question_bank')
-    .select('*', { count: 'exact', head: true });
-
-  const { data: subjectCounts } = await supabase
-    .from('question_bank')
-    .select('subject')
-    .then(result => {
-      const counts: Record<string, number> = {};
-      result.data?.forEach(q => {
-        counts[q.subject] = (counts[q.subject] || 0) + 1;
-      });
-      return { data: counts };
-    });
-
-  const { data: difficultyCounts } = await supabase
-    .from('question_bank')
-    .select('difficulty')
-    .then(result => {
-      const counts: Record<string, number> = {};
-      result.data?.forEach(q => {
-        counts[q.difficulty] = (counts[q.difficulty] || 0) + 1;
-      });
-      return { data: counts };
-    });
-
-  return {
-    totalQuestions: totalQuestions || 0,
-    bySubject: subjectCounts || {},
-    byDifficulty: difficultyCounts || {},
-  };
+  const rows = (data ?? []) as { question_id: string | null; was_duplicate: boolean }[];
+  return rows.length > 0 ? rows[0].question_id : null;
 }

@@ -98,9 +98,7 @@ export function QuestionCard({ question, questionNumber, userId, subtopic }: Que
             >
               <ResponsiveDiagramRenderer
                 spec={question.diagram}
-                className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 mx-auto"
-                darkMode={false}
-                interactive={false}
+                className="bg-[var(--color-diagram-bg)] rounded-lg p-3 sm:p-4 mx-auto"
               />
             </ErrorBoundary>
           </div>

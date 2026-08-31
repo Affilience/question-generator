@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Client } from '@upstash/qstash';
-import { PaperConfig, ExamBoard, QualificationLevel, Subject, QuestionType } from '@/types';
+import { PaperConfig, ExamBoard, QualificationLevel, Subject } from '@/types';
 import { checkPaperGenerationAllowed } from '@/lib/api/subscription-check';
 import { selectQuestionsForPaper } from '@/lib/questionSelector';
 import { getTopicsBySubjectBoardAndLevel } from '@/lib/topics';
@@ -24,7 +24,6 @@ interface StartPaperRequest {
   subject: Subject;
   paperName: string;
   config: SimplifiedConfig | PaperConfig;
-  userId?: string;
 }
 
 // Check if config is simplified (from PaperBuilder)
@@ -52,10 +51,14 @@ function transformConfig(
     }
   }
 
-  // Subject-specific configuration with exam board differences
-  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography', 'biology'];
-  const isEssaySubject = essaySubjects.includes(subject);
-  
+  // Subject-specific configuration with exam board differences.
+  // Biology only has essay components at A-Level — GCSE biology must take the
+  // STEM structure (listing it unconditionally used to send GCSE biology down
+  // the generic essay fallback with essay/extended sections).
+  const essaySubjects = ['english-literature', 'history', 'economics', 'business', 'psychology', 'geography'];
+  const isEssaySubject = essaySubjects.includes(subject) ||
+    (subject === 'biology' && qualification === 'a-level');
+
   if (isEssaySubject) {
     // Economics configurations by exam board
     if (subject === 'economics') {
@@ -88,7 +91,7 @@ function transformConfig(
               id: 'section-c',
               name: 'Section C',
               targetMarks: Math.round(simplified.totalMarks * 0.25), // 25% essay
-              instructions: 'Answer ONE question from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay'],
               order: 3,
             },
@@ -129,7 +132,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.6),
-              instructions: 'Answer TWO questions from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'extended'],
               order: 2,
             },
@@ -172,7 +175,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B', 
               targetMarks: Math.round(simplified.totalMarks * 0.5),
-              instructions: 'Answer ONE question from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'extended'],
               order: 2,
             },
@@ -198,88 +201,9 @@ function transformConfig(
       }
     }
     
-    // Geography configurations
-    if (subject === 'geography') {
-      return {
-        totalMarks: simplified.totalMarks,
-        timeLimit: Math.round(simplified.totalMarks * 1.5), // 2.5 hours for 120 marks typically
-        sections: [
-          {
-            id: 'section-a',
-            name: 'Section A',
-            targetMarks: Math.round(simplified.totalMarks * 0.3), // ~30% for short answers
-            instructions: 'Answer all questions in this section.',
-            questionTypes: ['short-answer', 'data-analysis'],
-            order: 1,
-          },
-          {
-            id: 'section-b',
-            name: 'Section B',
-            targetMarks: Math.round(simplified.totalMarks * 0.7), // ~70% for essays
-            instructions: 'Answer TWO questions from this section.',
-            questionTypes: ['essay', 'compare'],
-            order: 2,
-          },
-        ],
-        selectedTopics: simplified.selectedTopics,
-        selectedSubtopics,
-        difficultyDistribution: simplified.difficulty,
-        questionTypeDistribution: {
-          essay: 60, // 20-mark questions
-          dataAnalysis: 20, // 6-mark questions
-          shortAnswer: 20, // 4-mark questions
-        },
-        settings: {
-          includeFormulaSheet: false,
-          includeDataBooklet: false,
-          showMarks: true,
-          calculatorAllowed: false,
-          examConditions: true,
-        },
-      };
-    }
-    
-    // Business Studies configurations
-    if (subject === 'business') {
-      return {
-        totalMarks: simplified.totalMarks,
-        timeLimit: Math.round(simplified.totalMarks * 1.5),
-        sections: [
-          {
-            id: 'section-a',
-            name: 'Section A',
-            targetMarks: Math.round(simplified.totalMarks * 0.4),
-            instructions: 'Answer all questions in this section.',
-            questionTypes: ['short-answer', 'explain'],
-            order: 1,
-          },
-          {
-            id: 'section-b',
-            name: 'Section B',
-            targetMarks: Math.round(simplified.totalMarks * 0.6),
-            instructions: 'Answer TWO questions from this section.',
-            questionTypes: ['essay', 'compare'],
-            order: 2,
-          },
-        ],
-        selectedTopics: simplified.selectedTopics,
-        selectedSubtopics,
-        difficultyDistribution: simplified.difficulty,
-        questionTypeDistribution: {
-          essay: 60, // 20-25 mark evaluation questions
-          explain: 25, // 9-mark analysis questions  
-          shortAnswer: 15,
-        },
-        settings: {
-          includeFormulaSheet: false,
-          includeDataBooklet: false,
-          showMarks: true,
-          calculatorAllowed: true,
-          examConditions: true,
-        },
-      };
-    }
-    
+    // Geography and Business are handled by the board-specific blocks below
+    // (generic duplicates used to shadow them, making them unreachable).
+
     // English Literature configurations by exam board
     if (subject === 'english-literature') {
       if (examBoard === 'aqa') {
@@ -300,7 +224,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.6),
-              instructions: 'Answer TWO questions from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'interpretation'],
               order: 2,
             },
@@ -338,7 +262,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.5),
-              instructions: 'Answer ONE question from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay'],
               order: 2,
             },
@@ -377,7 +301,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.7),
-              instructions: 'Answer TWO questions from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'compare'],
               order: 2,
             },
@@ -420,7 +344,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.625), // 50/80 = 62.5%
-              instructions: 'Answer TWO questions from this section. Spend approximately 45 minutes on each.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay'],
               order: 2,
             },
@@ -549,7 +473,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.75), // 20-mark essays
-              instructions: 'Answer THREE questions from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'compare'],
               order: 2,
             },
@@ -673,7 +597,7 @@ function transformConfig(
               id: 'section-b',
               name: 'Section B',
               targetMarks: Math.round(simplified.totalMarks * 0.6),
-              instructions: 'Answer TWO evaluation questions from this section.',
+              instructions: 'Answer ALL questions in this section.',
               questionTypes: ['essay', 'compare'], // 20-mark evaluation questions
               order: 2,
             },
@@ -1063,7 +987,7 @@ function transformConfig(
           id: 'section-b',
           name: 'Section B',
           targetMarks: Math.round(simplified.totalMarks * 0.6),
-          instructions: 'Answer TWO questions from this section.',
+          instructions: 'Answer ALL questions in this section.',
           questionTypes: ['essay', 'extended'],
           order: 2,
         },
@@ -1141,10 +1065,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { examBoard, qualification, subject, paperName, config: rawConfig, userId } = body;
+  const { examBoard, qualification, subject, paperName, config: rawConfig } = body;
+
+  // Identity comes from the server-side session — never from the request body
+  // (the old body userId let anyone generate papers on another user's quota)
+  const { createClient: createServerClient } = await import('@/lib/supabase/server');
+  const supabaseAuth = await createServerClient();
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: 'You must be signed in to generate practice papers.' },
+      { status: 401 }
+    );
+  }
+  const userId = user.id;
 
   // Check subscription
-  const usageCheck = await checkPaperGenerationAllowed(userId || null);
+  const usageCheck = await checkPaperGenerationAllowed(userId, user.email);
   if (!usageCheck.allowed) {
     return NextResponse.json(
       {
@@ -1165,10 +1102,65 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Server-side bounds so a crafted request can't queue an enormous paper
+  // (the weekly quota only counts on completion)
+  const requestedMarks = Number(rawConfig.totalMarks);
+  if (!Number.isFinite(requestedMarks) || requestedMarks < 20 || requestedMarks > 200) {
+    return NextResponse.json(
+      { error: 'totalMarks must be between 20 and 200' },
+      { status: 400 }
+    );
+  }
+
+  // At most 2 papers generating at once per user — concurrent starts used to
+  // slip past the weekly limit because it only counts completed papers
+  const supabase = getSupabaseAdmin();
+  const { count: activeJobs } = await supabase
+    .from('paper_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .in('status', ['pending', 'processing']);
+
+  if ((activeJobs || 0) >= 2) {
+    return NextResponse.json(
+      { error: 'You already have papers generating. Please wait for them to finish.' },
+      { status: 429 }
+    );
+  }
+
   // Transform config if it's the simplified version from PaperBuilder
   const config: PaperConfig = isSimplifiedConfig(rawConfig)
     ? transformConfig(rawConfig, subject, examBoard, qualification)
     : rawConfig;
+
+  // Normalise the difficulty distribution to sum to exactly 100 so the
+  // selector's targets always mean what the user chose
+  const dd = config.difficultyDistribution || { easy: 30, medium: 50, hard: 20 };
+  const clampPct = (v: number) => (Number.isFinite(v) && v > 0 ? v : 0);
+  const rawEasy = clampPct(dd.easy);
+  const rawMedium = clampPct(dd.medium);
+  const rawHard = clampPct(dd.hard);
+  const ddSum = rawEasy + rawMedium + rawHard;
+  if (ddSum > 0) {
+    const easy = Math.round((rawEasy / ddSum) * 100);
+    const medium = Math.round((rawMedium / ddSum) * 100);
+    config.difficultyDistribution = { easy, medium, hard: 100 - easy - medium };
+  } else {
+    config.difficultyDistribution = { easy: 30, medium: 50, hard: 20 };
+  }
+
+  // Subtopic authority: only real subtopics of real topics for this
+  // subject/board/level survive, so papers can never drift outside what the
+  // platform actually teaches (protects the raw-PaperConfig path too)
+  const allTopics = getTopicsBySubjectBoardAndLevel(subject, examBoard, qualification);
+  const validatedSubtopics: Record<string, string[]> = {};
+  for (const [topicId, subs] of Object.entries(config.selectedSubtopics || {})) {
+    const topic = allTopics.find(t => t.id === topicId);
+    if (!topic) continue;
+    const valid = (subs || []).filter(s => topic.subtopics.includes(s));
+    if (valid.length > 0) validatedSubtopics[topicId] = valid;
+  }
+  config.selectedSubtopics = validatedSubtopics;
 
   // Validate transformed config
   if (!config.sections || config.sections.length === 0) {
@@ -1185,7 +1177,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Plan the questions to get total count
+  // Plan the questions ONCE. This exact plan ships to the worker — the old
+  // flow re-ran the (random) selector there, so the generated paper never
+  // matched the question count promised to the UI.
   const selectionResult = selectQuestionsForPaper(config, subject);
   let totalQuestions = 0;
   selectionResult.sections.forEach((section) => {
@@ -1200,7 +1194,6 @@ export async function POST(request: NextRequest) {
   }
 
   // Create job in database
-  const supabase = getSupabaseAdmin();
   const { data: job, error: jobError } = await supabase
     .from('paper_jobs')
     .insert({
@@ -1214,6 +1207,7 @@ export async function POST(request: NextRequest) {
         subject,
         paperName,
         config,
+        plan: selectionResult,
       },
     })
     .select('id')
@@ -1241,11 +1235,13 @@ export async function POST(request: NextRequest) {
     token: process.env.QSTASH_TOKEN,
   });
 
-  // Get the base URL for the callback
+  // Get the base URL for the callback — env-derived values first; client
+  // headers only as a last-resort dev fallback
   const requestOrigin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/');
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
                   requestOrigin ||
-                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+                  'http://localhost:3000';
 
   console.log('QStash callback URL:', `${baseUrl}/api/papers/process`);
 
@@ -1259,6 +1255,7 @@ export async function POST(request: NextRequest) {
         subject,
         paperName,
         config,
+        plan: selectionResult,
         userId,
       },
       retries: 2,

@@ -2,11 +2,13 @@ import { NextRequest } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai';
 import { getTopicById, getTopicByIdSubjectBoardAndLevel } from '@/lib/topics';
 import { getPracticalById } from '@/lib/practicals';
-import { getCachedQuestion, cacheQuestion, getCacheCount } from '@/lib/questionCache';
+import { getCachedQuestion, cacheQuestion } from '@/lib/questionCache';
 import { checkRateLimit, getClientIP, getRateLimitHeaders, RATE_LIMITS } from '@/lib/rate-limit';
-import { checkQuestionGenerationAllowed, incrementQuestionUsage, canControlDifficulty } from '@/lib/api/subscription-check';
-import { findExistingQuestion, storeQuestion, recordQuestionServed } from '@/lib/question-bank';
-import { Difficulty, ExamBoard, QualificationLevel, Subject, Practical, PracticalSubtopic } from '@/types';
+import { checkQuestionGenerationAllowed, incrementQuestionUsage } from '@/lib/api/subscription-check';
+import { findExistingQuestion, storeQuestion } from '@/lib/question-bank';
+import { buildVariationBrief, buildExclusionDirective } from '@/lib/questionVariation';
+import { getTopicAdherenceConstraints, getTopicReinforcement } from '@/lib/topicAdherence';
+import { Difficulty, ExamBoard, QualificationLevel, Subject, Practical, PracticalSubtopic, Topic } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 import { getEnhancedSystemPrompt } from '@/lib/prompts/system-prompts';
 import { getAllConstraints } from '@/lib/prompts/global-constraints';
@@ -15,6 +17,8 @@ import { getSubjectSpecificMarkRange } from '@/lib/prompt-router';
 import { getAQAALevelProofPrompt } from '@/lib/prompts-aqa-alevel';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
 import { calculateMarksFromScheme } from '@/lib/markValidation';
+import { repairLatex, unescapeJsonChunk } from '@/lib/latexRepair';
+import { validateAndSanitizeDiagram } from '@/lib/diagram-utils';
 // Import real extract/source databases for English Literature and History
 import { getRandomExtractForTheme, LiteraryExtract } from '@/lib/extracts/english-literature-extracts';
 import { getRandomSourceForTheme, HistoricalSource } from '@/lib/extracts/history-sources';
@@ -864,11 +868,11 @@ LaTeX/Math Formatting (CRITICAL):
 - Greek: $\\\\theta$, $\\\\alpha$, $\\\\lambda$, $\\\\mu$, $\\\\pi$, $\\\\omega$
 - Symbols: $\\\\approx$, $\\\\times$, $\\\\div$, $\\\\pm$, $\\\\leq$, $\\\\geq$, $\\\\neq$
 - Trig: $\\\\sin\\\\theta$, $\\\\cos 30°$, $\\\\tan^{-1}$
-- Units with exponents: $\\text{m s}^{-1}$, $\\text{kg m}^{-2}$
+- Units with exponents: $\\\\text{m s}^{-1}$, $\\\\text{kg m}^{-2}$
 
 Chemistry Notation (for science subjects):
-- Chemical formulas: use subscripts like $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{CaCO}_3$
-- Ions: $\\text{Na}^+$, $\\text{OH}^-$, $\\text{SO}_4^{2-}$
+- Chemical formulas: use subscripts like $\\\\text{H}_2\\\\text{O}$, $\\\\text{CO}_2$, $\\\\text{CaCO}_3$
+- Ions: $\\\\text{Na}^+$, $\\\\text{OH}^-$, $\\\\text{SO}_4^{2-}$
 - Reaction arrows: $\\\\rightarrow$ for reactions
 - State symbols in text: (s), (l), (g), (aq)
 
@@ -1086,7 +1090,7 @@ MARK SCHEME FORMAT:
 
 LaTeX/Math Formatting:
 - Wrap ALL math in $...$ delimiters
-- Units: $\\text{m s}^{-1}$, $\\text{kg}$
+- Units: $\\\\text{m s}^{-1}$, $\\\\text{kg}$
 - Formulas: $\\\\frac{1}{2}mv^2$, $E = mc^2$
 - Use DOUBLE backslashes for LaTeX commands
 ${diagramInstructions}
@@ -1111,11 +1115,15 @@ function buildPrompt(
   // SPECIAL HANDLING: Proof topics for A-Level Maths
   if (subject === 'maths' && level === 'a-level' && board === 'aqa' && topicName === 'Proof') {
     // Create a mock Topic object for the proof prompt function
-    const mockTopic = { 
-      name: topicName, 
-      subtopics: ['Proof by deduction', 'Proof by exhaustion', 'Proof by contradiction'] 
+    const mockTopic: Topic = {
+      id: 'alevel-proof',
+      name: topicName,
+      description: 'Mathematical proof techniques',
+      icon: '',
+      color: '',
+      subtopics: ['Proof by deduction', 'Proof by exhaustion', 'Proof by contradiction'],
     };
-    return getAQAALevelProofPrompt(mockTopic as any, difficulty, subtopic);
+    return getAQAALevelProofPrompt(mockTopic, difficulty, subtopic);
   }
 
   // Check if this is an essay subject and get its configuration (now board-specific)
@@ -1135,6 +1143,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || null;
+    const userEmail = user?.email || null;
 
     const body = await request.json();
     const {
@@ -1163,13 +1172,26 @@ export async function POST(request: NextRequest) {
       stream?: boolean;
     };
 
-    // Rate limiting
+    // Session-scoped exclusion prefixes (recently seen questions), capped
+    const excludePrefixes = (Array.isArray(excludeContent)
+      ? excludeContent
+      : excludeContent
+        ? [excludeContent]
+        : [])
+      .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+      .slice(-20)
+      .map(p => p.slice(0, 150));
+
+    // Rate limiting + subscription check in parallel (independent lookups)
     const clientIP = getClientIP(request);
     const rateLimitConfig = userId
       ? RATE_LIMITS.QUESTION_GENERATION_AUTH
       : RATE_LIMITS.QUESTION_GENERATION_ANON;
 
-    const rateLimitResult = await checkRateLimit(rateLimitConfig, userId || undefined, clientIP);
+    const [rateLimitResult, usageCheck] = await Promise.all([
+      checkRateLimit(rateLimitConfig, userId || undefined, clientIP),
+      checkQuestionGenerationAllowed(userId || null, clientIP, false, userEmail),
+    ]);
 
     if (!rateLimitResult.allowed) {
       return new Response(
@@ -1188,7 +1210,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Check subscription-based usage limits
-    const usageCheck = await checkQuestionGenerationAllowed(userId || null, clientIP);
     if (!usageCheck.allowed) {
       return new Response(
         JSON.stringify({
@@ -1207,8 +1228,7 @@ export async function POST(request: NextRequest) {
     // Check if user can control difficulty (paid feature)
     // Free users get random difficulty
     let effectiveDifficulty: Difficulty = difficulty;
-    const canControl = await canControlDifficulty(userId || null);
-    if (!canControl) {
+    if (!usageCheck.canControlDifficulty) {
       // Random difficulty for free users
       const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
       effectiveDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
@@ -1222,12 +1242,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine topic or practical based on request
-    let topic: any = null;
-    let practical: any = null;
+    let topic: Topic | null = null;
+    let practical: Practical | null = null;
 
     if (practicalId || isPractical) {
       // Handle practical request
-      practical = getPracticalById(practicalId || topicId!);
+      practical = getPracticalById(practicalId || topicId!) ?? null;
       if (!practical) {
         return new Response(
           JSON.stringify({ error: 'Invalid practical ID' }),
@@ -1236,7 +1256,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Handle regular topic request
-      topic = getTopicByIdSubjectBoardAndLevel(topicId!, subject, examBoard, qualification) || getTopicById(topicId!);
+      topic = getTopicByIdSubjectBoardAndLevel(topicId!, subject, examBoard, qualification) || getTopicById(topicId!) || null;
       if (!topic) {
         return new Response(
           JSON.stringify({ error: 'Invalid topic ID' }),
@@ -1258,7 +1278,9 @@ export async function POST(request: NextRequest) {
       : `${subject}:${qualification}:${topicId}`;
 
     // QUESTION BANK: Try to find an existing question the user hasn't seen
-    // This dramatically reduces API costs by reusing questions across users
+    // This dramatically reduces API costs by reusing questions across users.
+    // The RPC atomically filters by the user's full history AND this session's
+    // exclusion prefixes, and records the serve in the same round trip.
     if (!skipCache && !isPracticalQuestion && topicId) {
       const bankQuestion = await findExistingQuestion(
         {
@@ -1269,14 +1291,14 @@ export async function POST(request: NextRequest) {
           subtopic: effectiveSubtopic,
           difficulty: effectiveDifficulty,
         },
-        userId || null
+        userId || null,
+        excludePrefixes,
+        'practice'
       );
 
       if (bankQuestion) {
         // Track usage for subscription limits
         incrementQuestionUsage(userId || null, clientIP).catch(console.error);
-        // Record that this user has seen this question
-        recordQuestionServed(bankQuestion.id, userId || null, 'practice').catch(console.error);
 
         if (stream) {
           // Stream the question for consistent typing animation UX
@@ -1339,30 +1361,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Try in-memory cache as secondary option
-    // Only use cache if we have enough questions to avoid cycling
-    const cacheCount = !skipCache ? await getCacheCount(cacheKey, effectiveSubtopic, effectiveDifficulty) : 0;
-    const shouldTryCache = !skipCache && cacheCount >= 3; // Need at least 3 questions to avoid obvious cycling
+    // Redis/Supabase question cache: PRACTICALS ONLY. Topic questions now live
+    // exclusively in the question bank (per-user history + similarity checks);
+    // the old dual-store design caused cross-session repeats because cache
+    // serves were never recorded in user history.
+    const shouldTryCache = !skipCache && isPracticalQuestion;
+    const cached = shouldTryCache
+      ? await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludePrefixes)
+      : null;
 
-    if (shouldTryCache && stream) {
-      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludeContent);
-      if (cached) {
-        // Track usage for subscription limits (cache hit still counts)
-        incrementQuestionUsage(userId || null, clientIP).catch(console.error);
+    if (cached) {
+      // Track usage for subscription limits (cache hit still counts)
+      incrementQuestionUsage(userId || null, clientIP).catch(console.error);
 
+      const question = {
+        id: crypto.randomUUID(),
+        topicId,
+        difficulty: effectiveDifficulty,
+        content: cached.content,
+        solution: cached.solution,
+        marks: cached.marks,
+        markScheme: cached.markScheme,
+        ...(cached.diagram && { diagram: cached.diagram }),
+      };
+
+      if (stream) {
         // Stream cached question for consistent typing animation UX
         const encoder = new TextEncoder();
-        const question = {
-          id: crypto.randomUUID(),
-          topicId,
-          difficulty: effectiveDifficulty,
-          content: cached.content,
-          solution: cached.solution,
-          marks: cached.marks,
-          markScheme: cached.markScheme,
-        };
-
-        // Simulate streaming by sending content in chunks with fast but smooth typing speed
         const readable = new ReadableStream({
           async start(controller) {
             const content = cached.content;
@@ -1393,26 +1418,13 @@ export async function POST(request: NextRequest) {
           },
         });
       }
-    } else if (shouldTryCache && !stream) {
-      // Non-streaming cached response (for backwards compatibility)
-      const cached = await getCachedQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, excludeContent);
-      if (cached) {
-        const question = {
-          id: crypto.randomUUID(),
-          topicId,
-          difficulty: effectiveDifficulty,
-          content: cached.content,
-          solution: cached.solution,
-          marks: cached.marks,
-          markScheme: cached.markScheme,
-        };
-        return new Response(JSON.stringify(question), {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Cache': 'HIT',
-          },
-        });
-      }
+
+      return new Response(JSON.stringify(question), {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Cache': 'HIT',
+        },
+      });
     }
 
     // Generate question with OpenAI
@@ -1424,7 +1436,30 @@ export async function POST(request: NextRequest) {
     // Add global constraints (copyright, accuracy, safety) to the prompt
     const effectiveSubject = isPracticalQuestion ? practical!.subject : subject;
     const subjectConstraints = getAllConstraints(effectiveSubject);
-    const prompt = `${subjectConstraints}\n\n${basePrompt}`;
+
+    // Keep the question inside the requested subtopic: detailed specs where
+    // defined, strict generic constraints otherwise
+    const adherence = !isPracticalQuestion && topic
+      ? getTopicAdherenceConstraints(
+          { id: topic.id, name: topic.name, subtopics: topic.subtopics },
+          effectiveSubtopic,
+          effectiveSubject
+        ) +
+        getTopicReinforcement(
+          { id: topic.id, name: topic.name, subtopics: topic.subtopics },
+          effectiveSubtopic
+        )
+      : '';
+
+    // Per-request variety: a scenario/angle/numbers brief, plus the student's
+    // recently seen questions to steer away from
+    const variationBrief = buildVariationBrief(effectiveSubject, effectiveSubtopic, effectiveDifficulty);
+    const exclusionDirective = buildExclusionDirective(excludePrefixes);
+
+    // Higher temperature when we're explicitly avoiding seen questions
+    const genTemperature = excludePrefixes.length > 0 ? 0.85 : 0.7;
+
+    const prompt = `${subjectConstraints}\n\n${basePrompt}\n${adherence}${variationBrief}\n${exclusionDirective}\n\nReturn ONLY the JSON object in the exact structure specified above.`;
 
     // Use exam board-specific system prompt with enhanced constraints
     const effectiveBoard = isPracticalQuestion ? practical!.examBoard : examBoard;
@@ -1445,7 +1480,7 @@ export async function POST(request: NextRequest) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt },
         ],
-        temperature: 0.5,
+        temperature: genTemperature,
         max_tokens: maxTokens,
         response_format: { type: 'json_object' },
         stream: true,
@@ -1457,16 +1492,24 @@ export async function POST(request: NextRequest) {
       let inContentField = false;
       let contentComplete = false;
       let pendingContent = '';
+      let escapeHoldback = '';
       let lastFlushTime = Date.now();
       const FLUSH_INTERVAL = 15; // Flush every 15ms for fast display
       const MIN_CHARS = 5; // Or when we have at least 5 chars
 
-      // Helper to flush pending content
+      // Send clean text to the client: the extractor pulls the JSON-escaped
+      // value of the "content" field, so convert it exactly as JSON.parse
+      // would (holding back incomplete trailing escape sequences). This is
+      // what keeps streamed LaTeX identical to the final parsed question —
+      // clients used to receive raw "\\\\frac"/"\\n" and had to guess.
       const flushContent = (controller: ReadableStreamDefaultController) => {
-        if (pendingContent.length > 0) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: pendingContent })}\n\n`));
-          pendingContent = '';
-          lastFlushTime = Date.now();
+        if (pendingContent.length === 0) return;
+        const { text, holdback } = unescapeJsonChunk(escapeHoldback + pendingContent);
+        pendingContent = '';
+        escapeHoldback = holdback;
+        lastFlushTime = Date.now();
+        if (text.length > 0) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: text })}\n\n`));
         }
       };
 
@@ -1563,7 +1606,8 @@ export async function POST(request: NextRequest) {
               }
 
               // Calculate authoritative marks from mark scheme (more accurate than AI's parsed.marks)
-              const markScheme = parsed.markScheme || [];
+              const markScheme = (Array.isArray(parsed.markScheme) ? parsed.markScheme : [])
+                .map((m: unknown) => (typeof m === 'string' ? repairLatex(m) : String(m)));
               const calculatedMarks = calculateMarksFromScheme(markScheme);
               const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
 
@@ -1580,28 +1624,34 @@ export async function POST(request: NextRequest) {
                 id: crypto.randomUUID(),
                 topicId: topicId || practicalId || 'unknown',
                 difficulty: effectiveDifficulty,
-                content: parsed.content || '',
-                solution: parsed.solution || '',
+                content: repairLatex(parsed.content || ''),
+                solution: repairLatex(parsed.solution || ''),
                 marks: finalMarks,
                 markScheme: markScheme,
               };
 
-              // Include diagram if present
+              // Sanitize and include the diagram; empty/unrenderable specs
+              // are dropped rather than stored (this route used to pass raw
+              // model output straight through with no validation)
               if (parsed.diagram) {
-                question.diagram = parsed.diagram;
+                const { sanitizedSpec } = validateAndSanitizeDiagram(parsed.diagram);
+                if (sanitizedSpec.elements.length > 0) {
+                  question.diagram = sanitizedSpec;
+                }
               }
 
-              // Cache it (including diagram if present)
-              cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
-                content: question.content,
-                solution: question.solution,
-                marks: question.marks,
-                markScheme: question.markScheme,
-                ...(question.diagram && { diagram: question.diagram }),
-              }).catch(console.error);
-
-              // QUESTION BANK: Store for reuse by other users
-              if (!isPracticalQuestion) {
+              // Practicals go to the Redis/Supabase cache; topic questions go
+              // to the question bank, which rejects near-duplicates and
+              // records the generating user's history in the same call
+              if (isPracticalQuestion) {
+                cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
+                  content: question.content,
+                  solution: question.solution,
+                  marks: question.marks,
+                  markScheme: question.markScheme,
+                  ...(question.diagram && { diagram: question.diagram }),
+                }).catch(console.error);
+              } else {
                 storeQuestion(
                   {
                     subject: effectiveSubject,
@@ -1615,13 +1665,10 @@ export async function POST(request: NextRequest) {
                   question.solution,
                   question.markScheme,
                   question.marks,
-                  question.diagram as Record<string, unknown> | undefined
-                ).then(bankId => {
-                  // Record that this user has seen this question
-                  if (bankId && userId) {
-                    recordQuestionServed(bankId, userId, 'practice').catch(console.error);
-                  }
-                }).catch(console.error);
+                  question.diagram as Record<string, unknown> | undefined,
+                  userId,
+                  'practice'
+                ).catch(console.error);
               }
 
               // Track usage for subscription limits
@@ -1657,7 +1704,7 @@ export async function POST(request: NextRequest) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.5,
+      temperature: genTemperature,
       max_tokens: maxTokens,
       response_format: { type: 'json_object' },
     });
@@ -1689,7 +1736,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate authoritative marks from mark scheme (more accurate than AI's parsed.marks)
-    const markScheme = parsed.markScheme || [];
+    const markScheme = (Array.isArray(parsed.markScheme) ? parsed.markScheme : [])
+      .map((m: unknown) => (typeof m === 'string' ? repairLatex(m) : String(m)));
     const calculatedMarks = calculateMarksFromScheme(markScheme);
     const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
 
@@ -1706,29 +1754,33 @@ export async function POST(request: NextRequest) {
       id: crypto.randomUUID(),
       topicId: topicId || practicalId || 'unknown',
       difficulty: effectiveDifficulty,
-      content: parsed.content || '',
-      solution: parsed.solution || '',
+      content: repairLatex(parsed.content || ''),
+      solution: repairLatex(parsed.solution || ''),
       marks: finalMarks,
       markScheme: markScheme,
     };
 
-    // Include diagram if present
+    // Sanitize and include the diagram; empty/unrenderable specs are dropped
     if (parsed.diagram) {
-      question.diagram = parsed.diagram;
+      const { sanitizedSpec } = validateAndSanitizeDiagram(parsed.diagram);
+      if (sanitizedSpec.elements.length > 0) {
+        question.diagram = sanitizedSpec;
+      }
     }
 
-    // Cache it (including diagram if present)
-    cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
-      content: question.content,
-      solution: question.solution,
-      marks: question.marks,
-      markScheme: question.markScheme,
-      ...(question.diagram && { diagram: question.diagram }),
-    }).catch(console.error);
-
-    // QUESTION BANK: Store for reuse by other users
-    if (!isPracticalQuestion) {
-      const bankId = await storeQuestion(
+    // Practicals go to the Redis/Supabase cache; topic questions go to the
+    // question bank, which rejects near-duplicates and records the
+    // generating user's history in the same call
+    if (isPracticalQuestion) {
+      cacheQuestion(cacheKey, effectiveSubtopic, effectiveDifficulty, {
+        content: question.content,
+        solution: question.solution,
+        marks: question.marks,
+        markScheme: question.markScheme,
+        ...(question.diagram && { diagram: question.diagram }),
+      }).catch(console.error);
+    } else {
+      await storeQuestion(
         {
           subject: effectiveSubject,
           examBoard: effectiveBoard,
@@ -1741,12 +1793,14 @@ export async function POST(request: NextRequest) {
         question.solution,
         question.markScheme,
         question.marks,
-        question.diagram as Record<string, unknown> | undefined
+        question.diagram as Record<string, unknown> | undefined,
+        userId,
+        'practice'
       );
-      if (bankId && userId) {
-        await recordQuestionServed(bankId, userId, 'practice');
-      }
     }
+
+    // Track usage for subscription limits (this path previously never counted)
+    incrementQuestionUsage(userId || null, clientIP).catch(console.error);
 
     return new Response(JSON.stringify(question), {
       headers: {
