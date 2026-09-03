@@ -3,33 +3,132 @@
  * Ensures marks displayed match between question.marks and markScheme
  */
 
-// Parse mark scheme point to extract mark type and value
+/**
+ * Parse one mark-scheme point.
+ *
+ * Mark codes are ORDINALS, not values: in every UK exam board's scheme M1 is
+ * "the first method mark", A2 is "the second accuracy mark". Each labelled
+ * point is worth exactly one mark. Reading the digit as a value (M2 -> 2)
+ * inflated totals across the whole question bank — measured at 1,166 of 2,441
+ * stored questions whose recorded total equalled the sum of their label digits.
+ *
+ * A point may still declare a larger value explicitly, e.g. "B2 (2 marks):" or
+ * "M1 [2]"; those are honoured.
+ */
 export function parseMarkSchemePoint(point: string): { markType: string; value: number; description: string } {
   // Match patterns like "M1:", "(a) M2:", "A3:", "B1:", "SC1:"
   const match = point.match(/^(?:\([a-z]\)\s*)?(M\d+|A\d+|B\d+|SC\d*):?\s*(.*)$/i);
   if (match) {
     const markType = match[1].toUpperCase();
     const description = match[2];
-    
-    // Extract number from mark type (M1=1, A2=2, B1=1, etc.)
-    const numMatch = markType.match(/\d+/);
-    const value = numMatch ? parseInt(numMatch[0], 10) : 1;
-    
-    return { markType, value, description };
+
+    return { markType, value: extractExplicitMarks(point) ?? 1, description };
   }
-  
+
   // Fallback for non-standard format - treat as 1 mark
-  return { markType: '', value: 1, description: point };
+  return { markType: '', value: extractExplicitMarks(point) ?? 1, description: point };
+}
+
+/**
+ * Read an explicitly stated mark value, e.g. "(2 marks)", "[3]", "2 marks".
+ * Returns null when the point does not state one.
+ */
+function extractExplicitMarks(point: string): number | null {
+  const parenthesised = point.match(/\(\s*(\d+)\s*marks?\s*\)/i);
+  if (parenthesised) return clampMarks(parseInt(parenthesised[1], 10));
+
+  const bracketed = point.match(/\[\s*(\d+)\s*\]/);
+  if (bracketed) return clampMarks(parseInt(bracketed[1], 10));
+
+  const bare = point.match(/(?:^|\s)(\d+)\s*marks?\b/i);
+  if (bare) return clampMarks(parseInt(bare[1], 10));
+
+  return null;
+}
+
+function clampMarks(n: number): number | null {
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.min(n, 30);
+}
+
+/**
+ * True for lines that describe a scheme rather than earn a mark: level
+ * descriptors ("Level 3 (5-6 marks): ..."), assessment-objective breakdowns,
+ * and indicative-content lists. These carry mark ranges that must never be
+ * summed — they are how a 6-point essay scheme became a "30 mark" question.
+ */
+function isNonScoringLine(point: string): boolean {
+  return /^\s*(?:level\s*\d+\b|ao\s*breakdown\b|indicative\s+content\b|guidance\b|note\b|accept\b|reject\b|allow\b|ignore\b|or\b\s*:)/i.test(
+    point
+  );
 }
 
 // Calculate total marks from mark scheme
 export function calculateMarksFromScheme(markScheme: string[]): number {
+  const scoring = markScheme.filter(
+    point => typeof point === 'string' && point.trim().length > 0 && !isNonScoringLine(point)
+  );
+
+  // A level-descriptor scheme has no per-point marks to count. Take the top of
+  // the highest band instead of summing anything.
+  if (scoring.length === 0) {
+    return highestLevelBand(markScheme) ?? 0;
+  }
+
   let totalMarks = 0;
-  for (const point of markScheme) {
+  for (const point of scoring) {
     const { value } = parseMarkSchemePoint(point);
     totalMarks += value;
   }
   return totalMarks;
+}
+
+/** Highest upper bound across "Level n (x-y marks)" descriptors, if any. */
+function highestLevelBand(markScheme: string[]): number | null {
+  let best: number | null = null;
+  for (const point of markScheme) {
+    if (typeof point !== 'string') continue;
+    const band = point.match(/level\s*\d+\s*\(\s*\d+\s*[-–]\s*(\d+)\s*marks?\s*\)/i);
+    if (band) {
+      const upper = parseInt(band[1], 10);
+      if (Number.isFinite(upper) && (best === null || upper > best)) best = upper;
+    }
+  }
+  return best;
+}
+
+/**
+ * Decide the mark total to serve and store, given what the model stated and
+ * what the mark scheme actually supports.
+ *
+ * The scheme is the better authority when the two agree closely, because the
+ * model routinely states a round number and then writes a scheme of a
+ * different length. But when they diverge wildly the scheme is usually the
+ * thing that is malformed (truncated, or all guidance), so the model's stated
+ * total is the safer answer. Never return 0 — a question worth no marks is
+ * unusable.
+ */
+export function reconcileMarks(
+  statedMarks: unknown,
+  calculatedMarks: number
+): number {
+  const stated =
+    typeof statedMarks === 'number' && Number.isFinite(statedMarks) && statedMarks > 0
+      ? Math.min(Math.round(statedMarks), 30)
+      : null;
+
+  if (calculatedMarks <= 0) return stated ?? 3;
+  if (stated === null) return Math.min(calculatedMarks, 30);
+
+  // Within one mark, or within 50%: trust the scheme, which is what the
+  // student is actually marked against.
+  const difference = Math.abs(stated - calculatedMarks);
+  if (difference <= 1 || difference <= stated * 0.5) {
+    return Math.min(calculatedMarks, 30);
+  }
+
+  // Wildly apart — the scheme is probably malformed. Keep the stated total.
+  return stated;
 }
 
 // Validate mark consistency between question.marks and markScheme

@@ -102,6 +102,13 @@ export default function PaperGeneratorPage() {
       return;
     }
 
+    // The tier defaults to 'free' while the subscription query is in flight, so
+    // a paying user who clicked immediately on load was shown the upgrade wall
+    // instead of getting a paper. Wait for the real answer first.
+    if (subscriptionLoading) {
+      return;
+    }
+
     if (!canGeneratePaper) {
       // Determine the right reason: free users need to upgrade, paid users hit their limit
       setUpgradeReason(tier === 'free' ? 'papers' : 'papers_limit_reached');

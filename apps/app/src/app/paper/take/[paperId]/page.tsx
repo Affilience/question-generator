@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,11 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
   // Paper taking state
   const [answers, setAnswers] = useState<AnswerState>({});
   const [selfMarks, setSelfMarks] = useState<SelfMarkState>({});
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error' | 'anonymous'>('idle');
+  // When the student opened the paper, used to record time taken.
+  const startedAtRef = useRef<number>(Date.now());
+  const restoredRef = useRef(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSolutions, setShowSolutions] = useState(false);
@@ -128,6 +133,53 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
 
   // Calculate totals for self-marking
   const totalSelfMarks = Object.values(selfMarks).reduce((sum, m) => sum + m, 0);
+
+  // Persist in-progress work. Answers, marks and flags were plain component
+  // state, so a refresh or an accidental back-navigation mid-paper silently
+  // discarded every answer with no warning.
+  const draftKey = `paper-draft-${paperId}`;
+
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.answers) setAnswers(draft.answers);
+      if (draft.selfMarks) setSelfMarks(draft.selfMarks);
+      if (Array.isArray(draft.flagged)) setFlaggedQuestions(new Set(draft.flagged));
+      if (typeof draft.isSubmitted === 'boolean' && draft.isSubmitted) {
+        setIsSubmitted(true);
+        setShowSolutions(true);
+      }
+      if (typeof draft.attemptId === 'string') setAttemptId(draft.attemptId);
+      if (typeof draft.startedAt === 'number') startedAtRef.current = draft.startedAt;
+    } catch {
+      // Corrupt or unavailable storage - start fresh.
+    }
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    try {
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          answers,
+          selfMarks,
+          flagged: Array.from(flaggedQuestions),
+          isSubmitted,
+          attemptId,
+          startedAt: startedAtRef.current,
+        })
+      );
+    } catch {
+      // Storage full or blocked - the paper still works, it just will not
+      // survive a refresh.
+    }
+  }, [draftKey, answers, selfMarks, flaggedQuestions, isSubmitted, attemptId]);
+
   const questionsMarked = Object.keys(selfMarks).length;
   const allQuestionsMarked = questionsMarked === allQuestions.length;
 
@@ -143,37 +195,128 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
     setShowSolutions(true); // Always show solutions after submit for self-marking
     setCurrentQuestionIndex(0); // Go back to first question for marking
 
-    // Save attempt to database
+    // Save the attempt.
+    //
+    // This previously wrote `paper_id` and `answers` — neither column exists on
+    // paper_attempts — omitted the NOT NULL `questions` column, and left out
+    // `user_id`, which the row-level policy requires. It was rejected on every
+    // single submission and the error was only logged, which is why the table
+    // held zero rows against 145 generated papers.
+    if (!paper) return;
+
+    if (!user) {
+      setSaveState('anonymous');
+      return;
+    }
+
+    // Self-marking happens AFTER submission, so the score is not known yet.
+    // Record the attempt and the answers now; a separate effect writes the
+    // score back as the student marks, and stamps completed_at at the end.
+    setSaveState('saving');
     try {
-      if (paper) {
-        const supabase = createClient();
+      const supabase = createClient();
 
-        const attemptAnswers: Omit<PaperAttemptAnswer, 'id' | 'attemptId'>[] =
-          allQuestions.map((q) => ({
-            questionId: q.id,
-            questionNumber: q.questionNumber,
-            answer: answers[q.id] || '',
-            marksAvailable: q.marks,
-          }));
+      const answeredQuestions = allQuestions.map((q) => ({
+        questionId: q.id,
+        questionNumber: q.questionNumber,
+        answer: answers[q.id] || '',
+        marksAvailable: q.marks,
+      }));
 
-        const { error: attemptError } = await supabase.from('paper_attempts').insert({
-          paper_id: paperId,
+      const timeTaken = startedAtRef.current
+        ? Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000))
+        : null;
+
+      const { data: attempt, error: attemptError } = await supabase
+        .from('paper_attempts')
+        .insert({
+          user_id: user.id,
           exam_board: paper.examBoard,
           qualification: paper.qualification,
           subject: paper.subject,
           paper_name: paper.paperName,
           total_marks: paper.totalMarks,
-          answers: attemptAnswers,
-        });
+          questions: answeredQuestions,
+          time_taken: timeTaken,
+        })
+        .select('id')
+        .single();
 
-        if (attemptError) {
-          console.error('Failed to save attempt:', attemptError);
-        }
+      if (attemptError || !attempt) {
+        console.error('Failed to save attempt:', attemptError);
+        setSaveState('error');
+        return;
       }
+
+      setAttemptId(attempt.id);
+
+      // Per-answer rows power the mistake review; a failure here must not lose
+      // the attempt itself, which is already saved above.
+      const answerRows = allQuestions.map((q) => ({
+        attempt_id: attempt.id,
+        question_id: q.id,
+        question_number: q.questionNumber,
+        answer: answers[q.id] || '',
+        marks_available: q.marks,
+      }));
+
+      const { error: answersError } = await supabase
+        .from('paper_attempt_answers')
+        .insert(answerRows);
+
+      if (answersError) {
+        console.error('Failed to save per-answer rows:', answersError);
+      }
+
+      setSaveState('saved');
     } catch (err) {
       console.error('Error saving attempt:', err);
+      setSaveState('error');
     }
-  }, [isSubmitted, paper, allQuestions, answers, paperId]);
+  }, [isSubmitted, paper, allQuestions, answers, user]);
+
+  // Write self-marks back to the attempt as the student marks, debounced so a
+  // burst of clicks is one write. completed_at is stamped once every question
+  // has a mark, which is what makes the paper count as completed for
+  // achievements and the dashboard.
+  useEffect(() => {
+    if (!attemptId || !paper) return;
+    if (Object.keys(selfMarks).length === 0) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const supabase = createClient();
+        const allMarked = allQuestions.every((q) => selfMarks[q.id] !== undefined);
+
+        await supabase
+          .from('paper_attempts')
+          .update({
+            score: totalSelfMarks,
+            completed_at: allMarked ? new Date().toISOString() : null,
+          })
+          .eq('id', attemptId);
+
+        await Promise.all(
+          allQuestions
+            .filter((q) => selfMarks[q.id] !== undefined)
+            .map((q) =>
+              supabase
+                .from('paper_attempt_answers')
+                .update({
+                  marks_awarded: selfMarks[q.id],
+                  is_correct: selfMarks[q.id] >= q.marks,
+                })
+                .eq('attempt_id', attemptId)
+                .eq('question_id', q.id)
+            )
+        );
+      } catch (err) {
+        console.error('Failed to sync self-marks:', err);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [attemptId, selfMarks, totalSelfMarks, allQuestions, paper]);
 
   if (loading) {
     return (
@@ -351,8 +494,26 @@ export default function PaperTakePage({ params }: PaperTakePageProps) {
                       Score: {totalSelfMarks}/{paper.totalMarks}
                     </div>
                     <div className="text-xs text-[var(--color-text-muted)]">
-                      {Math.round((totalSelfMarks / paper.totalMarks) * 100)}%
+                      {paper.totalMarks > 0
+                        ? `${Math.round((totalSelfMarks / paper.totalMarks) * 100)}%`
+                        : '—'}
                     </div>
+                    {saveState === 'saving' && (
+                      <p className="text-xs text-[var(--color-text-muted)] mt-2">Saving your attempt…</p>
+                    )}
+                    {saveState === 'saved' && (
+                      <p className="text-xs text-green-500 mt-2">Attempt saved to your history</p>
+                    )}
+                    {saveState === 'error' && (
+                      <p className="text-xs text-red-400 mt-2">
+                        We couldn&apos;t save this attempt. Your marks are still shown here.
+                      </p>
+                    )}
+                    {saveState === 'anonymous' && (
+                      <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                        Sign in to save attempts to your history.
+                      </p>
+                    )}
                   </div>
                 </>
               )}

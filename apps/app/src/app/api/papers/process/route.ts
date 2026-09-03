@@ -797,14 +797,23 @@ export async function POST(request: NextRequest) {
       throw new Error(`Generation failed for ${failedCount} of ${totalQuestions} questions`);
     }
 
-    // Organize into sections with question numbers
+    // Organize into sections with question numbers.
+    //
+    // Placeholders are DROPPED rather than numbered and shipped. They were
+    // previously rendered to students as real questions — "[Failed to generate
+    // question for X]" with the mark scheme "Unable to generate mark scheme" —
+    // while still counting toward the paper total, so students were marked out
+    // of a score they could not reach. 15 of 145 live papers carried 33 of
+    // them, worth 203 unreachable marks.
     let globalQuestionNumber = 1;
     const sections: GeneratedSection[] = selectionResult.sections.map((section) => {
-      const sectionQuestions = section.questions.map((plan) => {
-        const question = questionMap.get(plan.id)!;
-        question.questionNumber = String(globalQuestionNumber++);
-        return question;
-      });
+      const sectionQuestions = section.questions
+        .map((plan) => questionMap.get(plan.id)!)
+        .filter((question) => question && question.solution !== 'Generation failed')
+        .map((question) => {
+          question.questionNumber = String(globalQuestionNumber++);
+          return question;
+        });
 
       return {
         id: section.sectionId,
@@ -814,6 +823,11 @@ export async function POST(request: NextRequest) {
         totalMarks: sectionQuestions.reduce((sum, q) => sum + q.marks, 0),
       };
     });
+
+    const keptQuestions = sections.reduce((sum, s) => sum + s.questions.length, 0);
+    if (keptQuestions === 0) {
+      throw new Error('No questions could be generated for this paper');
+    }
 
     // Create paper object
     const paper: GeneratedPaper = {
@@ -847,7 +861,11 @@ export async function POST(request: NextRequest) {
       });
 
     if (paperError) {
+      // Must throw. Marking the job 'completed' with an unsaved paper sent the
+      // user to a paper that does not exist ("Paper Not Found") after a
+      // generation that had already consumed their weekly allowance.
       console.error('Failed to save paper:', paperError);
+      throw new Error(`Failed to save paper: ${paperError.message}`);
     }
 
     // Mark job as completed

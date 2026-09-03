@@ -117,6 +117,39 @@ export async function trackJourneyEvent(
   }
 }
 
+/**
+ * Fire an event at most once per browser session.
+ *
+ * Backed by sessionStorage so it survives client-side navigation (which
+ * remounts the hook and would otherwise reset an in-memory guard), and falls
+ * back to a module-level set when storage is unavailable.
+ */
+const firedThisSession = new Set<JourneyEvent>();
+
+function trackOnce(event: JourneyEvent, properties: Record<string, any> = {}): void {
+  const key = `journey_once_${event}`;
+
+  if (firedThisSession.has(event)) return;
+
+  try {
+    if (typeof window !== 'undefined' && sessionStorage.getItem(key)) {
+      firedThisSession.add(event);
+      return;
+    }
+  } catch {
+    // Storage blocked - the in-memory set still prevents the runaway loop.
+  }
+
+  firedThisSession.add(event);
+  try {
+    if (typeof window !== 'undefined') sessionStorage.setItem(key, '1');
+  } catch {
+    // Ignore.
+  }
+
+  void trackJourneyEvent(event, properties);
+}
+
 // Specialized tracking functions for common scenarios
 export const analytics = {
   // Page view tracking
@@ -155,14 +188,20 @@ export const analytics = {
       trackJourneyEvent('solution_view', properties),
   },
 
-  // Milestone tracking
+  // Milestone tracking.
+  //
+  // Each milestone fires at most once per session. Without this guard the
+  // 30-second interval in useAnalytics re-sent session_10min on every tick
+  // after ten minutes (and both events after thirty): one tab left open for a
+  // week produced 20,046 rows, and these two events accounted for 68,329 of
+  // the 85,342 rows in journey_events from just 222 distinct sessions.
   milestone: (questionCount: number, sessionTime: number) => {
-    if (questionCount === 2) trackJourneyEvent('second_question_start');
-    if (questionCount === 3) trackJourneyEvent('third_question_start');
-    if (questionCount === 5) trackJourneyEvent('fifth_question_start');
-    
-    if (sessionTime > 10 * 60 * 1000) trackJourneyEvent('session_10min');
-    if (sessionTime > 30 * 60 * 1000) trackJourneyEvent('session_30min');
+    if (questionCount === 2) trackOnce('second_question_start');
+    if (questionCount === 3) trackOnce('third_question_start');
+    if (questionCount === 5) trackOnce('fifth_question_start');
+
+    if (sessionTime > 10 * 60 * 1000) trackOnce('session_10min');
+    if (sessionTime > 30 * 60 * 1000) trackOnce('session_30min');
   },
 
   // Drop-off detection

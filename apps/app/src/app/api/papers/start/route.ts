@@ -1115,6 +1115,24 @@ export async function POST(request: NextRequest) {
   // At most 2 papers generating at once per user — concurrent starts used to
   // slip past the weekly limit because it only counts completed papers
   const supabase = getSupabaseAdmin();
+
+  // Expire abandoned jobs before counting. A job whose worker died stays
+  // 'processing' forever, and two of them permanently locked the account out
+  // of paper generation with a message telling the user to wait for something
+  // that would never finish. Five such jobs existed in production, the oldest
+  // frozen since January.
+  const STALE_AFTER_MS = 5 * 60 * 1000;
+  await supabase
+    .from('paper_jobs')
+    .update({
+      status: 'failed',
+      error: 'Generation timed out. Please try again.',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .in('status', ['pending', 'processing'])
+    .lt('updated_at', new Date(Date.now() - STALE_AFTER_MS).toISOString());
+
   const { count: activeJobs } = await supabase
     .from('paper_jobs')
     .select('id', { count: 'exact', head: true })

@@ -46,14 +46,22 @@ export function useAnalytics() {
     hasTrackedPageView.current = false;
   }, [pathname]);
 
-  // Track session milestones
+  // Track session milestones.
+  //
+  // analytics.milestone is now once-per-session, but the interval itself is
+  // still pointless work once the last time-based milestone has passed, so
+  // stop it at that point rather than ticking for the life of the tab.
   useEffect(() => {
-    const checkMilestones = () => {
+    const LAST_MILESTONE_MS = 30 * 60 * 1000;
+
+    const interval = setInterval(() => {
       const sessionTime = Date.now() - sessionStartTime.current;
       analytics.milestone(questionCount.current, sessionTime);
-    };
+      if (sessionTime > LAST_MILESTONE_MS) {
+        clearInterval(interval);
+      }
+    }, 30000); // Check every 30 seconds
 
-    const interval = setInterval(checkMilestones, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
   }, []);
 

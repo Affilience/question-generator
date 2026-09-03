@@ -16,7 +16,7 @@ import { DIAGRAM_SCHEMA_DOCS } from '@/lib/prompts-common';
 import { getSubjectSpecificMarkRange } from '@/lib/prompt-router';
 import { getAQAALevelProofPrompt } from '@/lib/prompts-aqa-alevel';
 import { validateQuestionOutput, ValidationContext } from '@/lib/validations/question-output';
-import { calculateMarksFromScheme } from '@/lib/markValidation';
+import { calculateMarksFromScheme, reconcileMarks } from '@/lib/markValidation';
 import { repairLatex, unescapeJsonChunk } from '@/lib/latexRepair';
 import { validateAndSanitizeDiagram } from '@/lib/diagram-utils';
 // Import real extract/source databases for English Literature and History
@@ -1609,7 +1609,7 @@ export async function POST(request: NextRequest) {
               const markScheme = (Array.isArray(parsed.markScheme) ? parsed.markScheme : [])
                 .map((m: unknown) => (typeof m === 'string' ? repairLatex(m) : String(m)));
               const calculatedMarks = calculateMarksFromScheme(markScheme);
-              const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
+              const finalMarks = reconcileMarks(parsed.marks, calculatedMarks);
 
               const question: {
                 id: string;
@@ -1739,7 +1739,7 @@ export async function POST(request: NextRequest) {
     const markScheme = (Array.isArray(parsed.markScheme) ? parsed.markScheme : [])
       .map((m: unknown) => (typeof m === 'string' ? repairLatex(m) : String(m)));
     const calculatedMarks = calculateMarksFromScheme(markScheme);
-    const finalMarks = calculatedMarks > 0 ? calculatedMarks : (parsed.marks || 3);
+    const finalMarks = reconcileMarks(parsed.marks, calculatedMarks);
 
     const question: {
       id: string;

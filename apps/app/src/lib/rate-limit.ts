@@ -36,95 +36,70 @@ export const RATE_LIMITS = {
 } as const;
 
 /**
- * Check and update rate limit for a user/IP
+ * Check and update the rate limit for a user or IP.
+ *
+ * Delegates the whole check to a single atomic `INSERT … ON CONFLICT DO UPDATE
+ * … RETURNING` in Postgres. The previous read-then-write had three faults that
+ * together meant anonymous traffic was effectively unlimited:
+ *
+ *  1. The unique index covers (user_id, endpoint, window_start), and Postgres
+ *     treats NULLs as distinct — so it never applied to anonymous rows. Every
+ *     concurrent request inserted a fresh row instead of incrementing one, and
+ *     114,742 of the table's 117,475 rows were anonymous.
+ *  2. Once a window held more than one row, `.single()` errored, and the error
+ *     branch failed open AND skipped the increment — so the limiter silently
+ *     switched itself off for that IP. Already true for 540 windows.
+ *  3. Two concurrent requests could both read the same count and both write
+ *     count+1, losing an increment.
  */
 export async function checkRateLimit(
   config: RateLimitConfig,
   userId?: string,
   ipAddress?: string
 ): Promise<RateLimitResult> {
+  const { endpoint, maxRequests, windowMs } = config;
+
+  // Truncate to the window size so every request in the same window agrees.
+  const now = Date.now();
+  const windowStart = new Date(Math.floor(now / windowMs) * windowMs);
+  const resetAt = new Date(windowStart.getTime() + windowMs);
+
+  const identifier = userId || ipAddress;
+  if (!identifier) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+      error: 'No user ID or IP address provided',
+    };
+  }
+
   try {
-    const { endpoint, maxRequests, windowMs } = config;
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId ?? null,
+      p_ip_address: userId ? null : (ipAddress ?? null),
+      p_endpoint: endpoint,
+      p_window_start: windowStart.toISOString(),
+      p_max_requests: maxRequests,
+    });
 
-    // Calculate window start (truncate to window size)
-    const now = new Date();
-    const windowStart = new Date(Math.floor(now.getTime() / windowMs) * windowMs);
-
-    // Build query based on user or IP
-    const identifier = userId || ipAddress;
-    if (!identifier) {
-      return {
-        allowed: false,
-        remaining: 0,
-        resetAt: new Date(windowStart.getTime() + windowMs),
-        error: 'No user ID or IP address provided',
-      };
+    if (error) {
+      console.error('Rate limit check error:', error);
+      // Fail open: a limiter outage must not take the product down.
+      return { allowed: true, remaining: maxRequests, resetAt };
     }
 
-    // Check current usage
-    const { data: existing, error: fetchError } = await supabase
-      .from('api_usage')
-      .select('request_count, window_start')
-      .eq(userId ? 'user_id' : 'ip_address', identifier)
-      .eq('endpoint', endpoint)
-      .gte('window_start', windowStart.toISOString())
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 = no rows found (which is fine)
-      console.error('Rate limit check error:', fetchError);
-      // Allow request on error (fail open)
-      return {
-        allowed: true,
-        remaining: maxRequests,
-        resetAt: new Date(windowStart.getTime() + windowMs),
-      };
-    }
-
-    const currentCount = existing?.request_count || 0;
-    const remaining = Math.max(0, maxRequests - currentCount - 1);
-    const resetAt = new Date(windowStart.getTime() + windowMs);
-
-    // Check if limit exceeded
-    if (currentCount >= maxRequests) {
-      return {
-        allowed: false,
-        remaining: 0,
-        resetAt,
-      };
-    }
-
-    // Update or insert usage record
-    if (existing) {
-      await supabase
-        .from('api_usage')
-        .update({ request_count: currentCount + 1 })
-        .eq(userId ? 'user_id' : 'ip_address', identifier)
-        .eq('endpoint', endpoint)
-        .gte('window_start', windowStart.toISOString());
-    } else {
-      await supabase.from('api_usage').insert({
-        user_id: userId || null,
-        ip_address: userId ? null : ipAddress,
-        endpoint,
-        request_count: 1,
-        window_start: windowStart.toISOString(),
-      });
-    }
+    const row = Array.isArray(data) ? data[0] : data;
+    const count = Number(row?.request_count ?? 0);
 
     return {
-      allowed: true,
-      remaining,
+      allowed: Boolean(row?.allowed),
+      remaining: Math.max(0, maxRequests - count),
       resetAt,
     };
   } catch (error) {
     console.error('Rate limit error:', error);
-    // Fail open on error
-    return {
-      allowed: true,
-      remaining: 0,
-      resetAt: new Date(),
-    };
+    return { allowed: true, remaining: maxRequests, resetAt };
   }
 }
 

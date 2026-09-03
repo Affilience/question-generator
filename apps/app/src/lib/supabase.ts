@@ -661,8 +661,9 @@ export async function updateUserXP(userId: string, newXP: number, newLevel: numb
 }
 
 // Get all achievements
-export async function getAllAchievements(): Promise<Achievement[]> {
-  const { data } = await supabase
+export async function getAllAchievements(customClient?: any): Promise<Achievement[]> {
+  const client = customClient || supabase;
+  const { data } = await client
     .from('achievements')
     .select('*')
     .order('requirement_value', { ascending: true });
@@ -671,8 +672,9 @@ export async function getAllAchievements(): Promise<Achievement[]> {
 }
 
 // Get user's unlocked achievements
-export async function getUserAchievements(userId: string): Promise<UserAchievement[]> {
-  const { data } = await supabase
+export async function getUserAchievements(userId: string, customClient?: any): Promise<UserAchievement[]> {
+  const client = customClient || supabase;
+  const { data } = await client
     .from('user_achievements')
     .select('*, achievement:achievements(*)')
     .eq('user_id', userId)
@@ -684,32 +686,37 @@ export async function getUserAchievements(userId: string): Promise<UserAchieveme
 // Unlock an achievement for a user
 export async function unlockAchievement(
   userId: string,
-  achievementId: string
+  achievementId: string,
+  customClient?: any
 ): Promise<boolean> {
-  try {
-    // Check if already unlocked
-    const { data: existing } = await supabase
-      .from('user_achievements')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('achievement_id', achievementId)
-      .single();
+  // Insert directly and let the (user_id, achievement_id) unique constraint
+  // decide whether this is new — the previous read-then-write raced itself and,
+  // more importantly, swallowed every failure in a bare catch. With the anon
+  // client on the server the insert was always rejected by RLS, which is why
+  // user_achievements had zero rows against 2,994 recorded attempts.
+  const client = customClient || supabase;
 
-    if (existing) return false; // Already unlocked
+  const { error } = await client
+    .from('user_achievements')
+    .insert({ user_id: userId, achievement_id: achievementId });
 
-    await supabase.from('user_achievements').insert({
-      user_id: userId,
-      achievement_id: achievementId,
-    });
+  if (!error) return true;
 
-    return true;
-  } catch {
-    return false;
-  }
+  // 23505 = unique violation: already unlocked, which is not a failure.
+  if ((error as { code?: string }).code === '23505') return false;
+
+  console.error('Failed to unlock achievement', { userId, achievementId, error });
+  return false;
 }
 
 // Get gamification stats for a user (for achievement checking)
-export async function getGamificationStats(userId: string): Promise<GamificationStats> {
+export async function getGamificationStats(userId: string, customClient?: any): Promise<GamificationStats> {
+  // Must accept the caller's client. On the server this module's default
+  // client is the browser (anon) client, which has no session, so every one of
+  // these reads returned zero and every achievement check was evaluated
+  // against empty stats.
+  const client = customClient || supabase;
+
   // Run all queries in parallel for faster loading
   const [
     xpData,
@@ -719,27 +726,27 @@ export async function getGamificationStats(userId: string): Promise<Gamification
     { data: topicData },
     { count: papersCompleted }
   ] = await Promise.all([
-    getUserXP(userId),
-    supabase
+    getUserXP(userId, client),
+    client
       .from('question_attempts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId),
-    supabase
+    client
       .from('question_attempts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_correct', true),
-    supabase
+    client
       .from('user_streaks')
       .select('*')
       .eq('user_id', userId)
       .order('practice_date', { ascending: false })
       .limit(30),
-    supabase
+    client
       .from('user_topic_progress')
       .select('topic_id')
       .eq('user_id', userId),
-    supabase
+    client
       .from('paper_attempts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
@@ -769,10 +776,11 @@ export async function checkAndUnlockAchievements(
   userId: string,
   stats: GamificationStats,
   correctStreak: number = 0,
-  hour?: number
+  hour?: number,
+  customClient?: any
 ): Promise<Achievement[]> {
-  const allAchievements = await getAllAchievements();
-  const userAchievements = await getUserAchievements(userId);
+  const allAchievements = await getAllAchievements(customClient);
+  const userAchievements = await getUserAchievements(userId, customClient);
   const unlockedCodes = userAchievements.map(ua => ua.achievement?.code).filter(Boolean);
 
   const newlyUnlocked: Achievement[] = [];
@@ -812,7 +820,7 @@ export async function checkAndUnlockAchievements(
     }
 
     if (shouldUnlock) {
-      const unlocked = await unlockAchievement(userId, achievement.id);
+      const unlocked = await unlockAchievement(userId, achievement.id, customClient);
       if (unlocked) {
         newlyUnlocked.push(achievement);
       }
@@ -873,10 +881,16 @@ export async function processQuestionAnswer(
   await updateUserXP(userId, newTotalXP, newLevel, customClient);
 
   // Get stats and check achievements
-  const stats = await getGamificationStats(userId);
+  const stats = await getGamificationStats(userId, customClient);
   const hour = new Date().getHours();
   const newCorrectStreak = isCorrect ? correctStreak + 1 : 0;
-  const newAchievements = await checkAndUnlockAchievements(userId, stats, newCorrectStreak, hour);
+  const newAchievements = await checkAndUnlockAchievements(
+    userId,
+    stats,
+    newCorrectStreak,
+    hour,
+    customClient
+  );
 
   // Add XP rewards from achievements
   let achievementXP = 0;
