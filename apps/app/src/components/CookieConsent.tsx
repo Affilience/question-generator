@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const COOKIE_CONSENT_KEY = 'cookie-consent';
-
-type ConsentStatus = 'accepted' | 'rejected' | null;
+import { readConsent, writeConsent, type ConsentStatus } from '@/lib/consent';
 
 export function CookieConsent() {
   const [consentStatus, setConsentStatus] = useState<ConsentStatus | 'pending'>('pending');
@@ -12,8 +9,8 @@ export function CookieConsent() {
 
   useEffect(() => {
     // Check if user has already made a choice
-    const stored = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (stored === 'accepted' || stored === 'rejected') {
+    const stored = readConsent();
+    if (stored) {
       setConsentStatus(stored);
     } else {
       setConsentStatus(null);
@@ -24,13 +21,13 @@ export function CookieConsent() {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    writeConsent('accepted');
     setConsentStatus('accepted');
     setIsVisible(false);
   };
 
   const handleReject = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'rejected');
+    writeConsent('rejected');
     setConsentStatus('rejected');
     setIsVisible(false);
   };

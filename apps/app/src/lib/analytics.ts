@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/client';
+import { hasAnalyticsConsent } from '@/lib/consent';
 
 // Define journey events that indicate user progression
 export type JourneyEvent = 
@@ -82,6 +83,10 @@ export async function trackJourneyEvent(
   properties: Record<string, any> = {},
   userId?: string
 ): Promise<void> {
+  // Respect the cookie banner. This used to fire identically after "Reject",
+  // which made the banner decorative and the privacy policy inaccurate.
+  if (!hasAnalyticsConsent()) return;
+
   try {
     const sessionId = getSessionId();
     const timestamp = new Date();

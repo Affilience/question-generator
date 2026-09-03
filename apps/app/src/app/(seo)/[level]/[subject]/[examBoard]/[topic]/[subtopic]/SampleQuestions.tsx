@@ -14,43 +14,17 @@ interface SampleQuestionsProps {
   dbQuestions?: SampleQuestion[];
 }
 
-// Fallback placeholder questions when no database content exists
-function getPlaceholderQuestions(
-  level: QualificationLevel,
-  subject: Subject,
-  examBoard: ExamBoard,
-  topicId: string,
-  subtopic: string
-): { id: number; difficulty: string; marks: number; question: string; solution: string }[] {
-  const levelName = level === 'gcse' ? 'GCSE' : 'A-Level';
-  const boardName = examBoard.toUpperCase();
-
-  // Generate more realistic placeholder text based on the subtopic
-  return [
-    {
-      id: 1,
-      difficulty: 'Easy',
-      marks: 2,
-      question: `[Sample ${levelName} ${boardName} question on ${subtopic} - Easy difficulty]\n\nThis question tests foundational understanding of ${subtopic}. Real exam-style questions will appear here once content is generated.`,
-      solution: `**Method:**\n1. Identify the key concept being tested\n2. Apply the basic principle of ${subtopic}\n3. State your answer clearly\n\n**Answer:** [Solution will be provided with real questions]`,
-    },
-    {
-      id: 2,
-      difficulty: 'Medium',
-      marks: 4,
-      question: `[Sample ${levelName} ${boardName} question on ${subtopic} - Medium difficulty]\n\nThis question requires applying ${subtopic} concepts to a problem. Multi-step working is expected.`,
-      solution: `**Method:**\n1. Read the question and identify given information\n2. Plan your approach\n3. Show clear working for each step\n4. Check your answer\n\n**Answer:** [Solution will be provided with real questions]`,
-    },
-    {
-      id: 3,
-      difficulty: 'Hard',
-      marks: 6,
-      question: `[Sample ${levelName} ${boardName} question on ${subtopic} - Hard difficulty]\n\nThis challenging question combines ${subtopic} with other concepts. Extended working and clear reasoning required.`,
-      solution: `**Method:**\n1. Analyse what the question is asking\n2. Break down into manageable parts\n3. Apply relevant formulas/principles\n4. Show all working clearly\n5. Evaluate your answer\n\n**Answer:** [Solution will be provided with real questions]`,
-    },
-  ];
-}
-
+/**
+ * Sample questions for a public subtopic page.
+ *
+ * When the database has no questions for this subtopic we render a genuine
+ * call to action instead of fabricated ones. The previous fallback published
+ * three fake questions reading "[Sample GCSE AQA question on X - Easy
+ * difficulty] ... Real exam-style questions will appear here once content is
+ * generated", with "[Solution will be provided with real questions]" beneath
+ * and an amber "Preview Mode" banner — near-identically across thousands of
+ * indexed URLs, which is textbook thin/doorway content.
+ */
 export function SampleQuestions({
   level,
   subject,
@@ -61,10 +35,9 @@ export function SampleQuestions({
 }: SampleQuestionsProps) {
   const [expandedSolutions, setExpandedSolutions] = useState<Set<number | string>>(new Set());
 
-  // Use database questions if available, otherwise fall back to placeholders
-  const hasRealQuestions = dbQuestions && dbQuestions.length > 0;
+  const hasRealQuestions = !!dbQuestions && dbQuestions.length > 0;
 
-  const questions: { id: string; difficulty: string; marks: number; question: string; solution: string }[] = hasRealQuestions
+  const questions = hasRealQuestions
     ? dbQuestions.map((q) => ({
         id: q.id,
         difficulty: q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1),
@@ -72,10 +45,7 @@ export function SampleQuestions({
         question: q.content,
         solution: q.solution,
       }))
-    : getPlaceholderQuestions(level, subject, examBoard, topicId, subtopic).map((q) => ({
-        ...q,
-        id: String(q.id),
-      }));
+    : [];
 
   const toggleSolution = (id: number | string) => {
     const newExpanded = new Set(expandedSolutions);
@@ -100,16 +70,29 @@ export function SampleQuestions({
     }
   };
 
+  if (!hasRealQuestions) {
+    const levelName = level === 'gcse' ? 'GCSE' : 'A-Level';
+    return (
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg p-6 text-center">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+          Practise {subtopic} now
+        </h3>
+        <p className="text-[var(--color-text-secondary)] mb-5 max-w-prose mx-auto">
+          Generate unlimited {examBoard.toUpperCase()} {levelName} questions on{' '}
+          {subtopic}, each with a full mark scheme and worked solution.
+        </p>
+        <a
+          href={`/${level}/${subject}/${examBoard}/practice/${topicId}/${encodeURIComponent(subtopic)}`}
+          className="inline-block px-6 py-3 rounded-lg bg-[var(--color-accent)] text-white font-medium"
+        >
+          Start practising
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {!hasRealQuestions && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
-          <p className="text-amber-400 text-sm">
-            <strong>Preview Mode:</strong> These are placeholder questions. Start practicing to get real AI-generated exam questions!
-          </p>
-        </div>
-      )}
-
       {questions.map((q) => (
         <div
           key={q.id}

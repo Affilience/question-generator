@@ -82,7 +82,7 @@ const plans: Plan[] = [
     priceKey: { monthly: 'exam_pro_monthly', annual: 'exam_pro_annual' },
     features: [
       { text: 'Unlimited questions', included: true, highlight: true },
-      { text: 'Unlimited custom papers', included: true, highlight: true },
+      { text: '7 custom papers per week', included: true, highlight: true },
       { text: 'Print custom papers (PDF)', included: true, highlight: true },
       { text: 'Professional exam-style PDFs', included: true, highlight: true },
       { text: 'Full difficulty control', included: true },

@@ -263,7 +263,7 @@ export default function HomePageContent() {
                 variants={fadeInUp}
                 className="text-lg text-white/50 mb-10 max-w-xl mx-auto"
               >
-                Free to use. No account required. Generate your first question now or try our <Link href="/paper-generator" className="text-blue-400 hover:text-blue-300 underline">paper generator</Link> for full mock exams.
+                Free to start — 15 questions a day on the free plan. Create an account to generate your first question, or try our <Link href="/paper-generator" className="text-blue-400 hover:text-blue-300 underline">paper generator</Link> for full mock exams.
               </motion.p>
               <motion.div variants={fadeInUp}>
                 <Link

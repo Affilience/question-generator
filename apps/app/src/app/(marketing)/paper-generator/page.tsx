@@ -3,13 +3,13 @@ import PaperGeneratorContent from './PaperGeneratorContent';
 
 export const metadata: Metadata = {
   title: 'Paper Generator - Create Custom Mock Exams',
-  description: 'Generate unlimited custom practice papers for GCSE and A-Level exams. Choose topics, set difficulty, get instant mark schemes. AQA, Edexcel, OCR supported.',
+  description: 'Build custom practice papers for GCSE and A-Level exams. Choose topics, set difficulty, get instant mark schemes. AQA, Edexcel, OCR supported.',
   alternates: {
     canonical: '/paper-generator',
   },
   openGraph: {
     title: 'AI Paper Generator | Create Custom Mock Exams',
-    description: 'Generate unlimited custom practice papers for GCSE and A-Level exams. Choose topics, set difficulty, get instant mark schemes.',
+    description: 'Build custom practice papers for GCSE and A-Level exams. Choose topics, set difficulty, get instant mark schemes.',
     url: '/paper-generator',
   },
 };

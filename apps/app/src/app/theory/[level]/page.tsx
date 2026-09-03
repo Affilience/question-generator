@@ -32,6 +32,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
+    // Not indexed: the theory-note lookups return empty arrays, so every page
+    // in this tree renders an empty state.
+    robots: { index: false, follow: true },
     keywords: [
       `${qualInfo.name} theory notes`,
       `${qualInfo.name} study guide`,

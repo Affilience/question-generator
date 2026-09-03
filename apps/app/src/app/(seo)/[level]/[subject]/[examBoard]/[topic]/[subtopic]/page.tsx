@@ -70,8 +70,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Optimized description to stay under 160 characters while maintaining SEO value
   const description = `${subtopicName} practice for ${boardInfo.name} ${qualInfo.name} ${subjectInfo.name}. Unlimited AI questions with detailed solutions.`;
 
-  // Only index subtopics with verified search demand
-  const shouldIndex = shouldIndexSubtopic(level, subject, examBoard, topic, subtopic);
+  // Index only pages that (a) have verified search demand and (b) actually
+  // have content. shouldIndexSubtopic ignores the board and topic it is given,
+  // so 1,264 subtopics expanded to 2,252 indexed URLs — and until the slug
+  // repair, almost none of them had a content row, so they published
+  // near-identical placeholder prose. Requiring a real row makes the board
+  // variants genuinely distinct rather than duplicates of each other.
+  const hasDemand = shouldIndexSubtopic(level, subject, examBoard, topic, subtopic);
+  const hasContent = hasDemand
+    ? !!(await getSEOContent(level, subject, examBoard, topic, subtopic))
+    : false;
+  const shouldIndex = hasDemand && hasContent;
 
   return {
     title,

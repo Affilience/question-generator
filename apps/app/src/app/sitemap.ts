@@ -153,14 +153,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Required Practical pages - High search demand for science subjects
-  const practicalPages: MetadataRoute.Sitemap = getAllPracticalParams().map(({ level, subject, examBoard, practicalId }) => ({
-    url: `${BASE_URL}/${level}/${subject}/${examBoard}/practicals/${practicalId}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
   // Blog pages - Important for SEO and content marketing
   const blogPosts = await getAllBlogPosts();
   const blogPages: MetadataRoute.Sitemap = [
@@ -186,7 +178,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...examBoardPages,
     ...topicPages,
     ...subtopicPages,
-    ...practicalPages,
+    // practicalPages intentionally omitted: practicals/layout.tsx sets
+    // robots index:false, so submitting them produced ~190 "Submitted URL
+    // marked noindex" errors in Search Console.
     ...blogPages,
   ];
 

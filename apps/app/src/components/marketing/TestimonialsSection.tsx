@@ -70,7 +70,7 @@ export function TestimonialsSection() {
           variants={fadeInUp}
           className="text-center mb-16"
         >
-          <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
+          <p className="text-sm font-medium text-white/60 uppercase tracking-wider mb-4">
             Student Reviews
           </p>
           <h2 id="testimonials-heading" className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
@@ -100,7 +100,7 @@ export function TestimonialsSection() {
                 </div>
                 <div>
                   <h3 className="font-medium text-white">{testimonial.name}</h3>
-                  <p className="text-white/40 text-sm">{testimonial.grade} • {testimonial.subject}</p>
+                  <p className="text-white/60 text-sm">{testimonial.grade} • {testimonial.subject}</p>
                 </div>
               </div>
               <blockquote className="text-white/70 leading-relaxed">
@@ -118,23 +118,15 @@ export function TestimonialsSection() {
           variants={fadeInUp}
           className="text-center mt-12"
         >
-          <div className="flex flex-wrap items-center justify-center gap-8 text-white/30">
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 fill-yellow-400" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-sm">4.8/5 from thousands of students</span>
-            </div>
-            <div className="text-sm">
-              ✓ Used by students at 50+ UK schools
-            </div>
-            <div className="text-sm">
-              ✓ 15,000+ questions generated this week
-            </div>
+          {/* Verifiable product facts only. The previous row asserted
+              "4.8/5 from thousands of students", "50+ UK schools" and a static
+              "15,000+ questions generated this week" — none of which is
+              measured anywhere, and the last never changed. Contrast also
+              lifted from white/30 (2.6:1) to white/60, which passes AA. */}
+          <div className="flex flex-wrap items-center justify-center gap-8 text-white/60">
+            <div className="text-sm">✓ AQA, Edexcel and OCR</div>
+            <div className="text-sm">✓ GCSE and A-Level</div>
+            <div className="text-sm">✓ Every question with a full mark scheme</div>
           </div>
         </motion.div>
       </div>

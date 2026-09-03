@@ -1,11 +1,20 @@
 import type { BreadcrumbItem } from '@/lib/seo/utils';
 
+/**
+ * Canonical origin for structured data.
+ *
+ * These components defaulted to the bare domain while metadataBase, the
+ * sitemap and robots.txt all use www, so every @id, LearningResource.url and
+ * Course.url named a host that does not serve the page.
+ */
+const SITE_URL = 'https://www.past-papers.co.uk';
+
 interface BreadcrumbJsonLdProps {
   items: BreadcrumbItem[];
   baseUrl?: string;
 }
 
-export function BreadcrumbJsonLd({ items, baseUrl = 'https://past-papers.co.uk' }: BreadcrumbJsonLdProps) {
+export function BreadcrumbJsonLd({ items, baseUrl = SITE_URL }: BreadcrumbJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -44,7 +53,7 @@ export function EducationalResourceJsonLd({
   educationalLevel,
   subject,
   provider = 'Past Papers',
-  baseUrl = 'https://past-papers.co.uk',
+  baseUrl = SITE_URL,
 }: EducationalResourceJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -60,7 +69,7 @@ export function EducationalResourceJsonLd({
     ...(subject && { teaches: subject }),
     learningResourceType: 'Practice Questions',
     interactivityType: 'active',
-    isAccessibleForFree: true,
+    isAccessibleForFree: false,
   };
 
   return (
@@ -101,21 +110,16 @@ interface WebsiteJsonLdProps {
   baseUrl?: string;
 }
 
-export function WebsiteJsonLd({ baseUrl = 'https://past-papers.co.uk' }: WebsiteJsonLdProps) {
+export function WebsiteJsonLd({ baseUrl = SITE_URL }: WebsiteJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Past Papers',
     description: 'AI-generated exam questions for GCSE and A-Level students',
     url: baseUrl,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
+    // No potentialAction: there is no /search route, and robots.txt disallows
+    // every URL carrying a query string, so advertising a sitelinks search box
+    // pointed Google at a page it can neither reach nor crawl.
   };
 
   return (
@@ -130,7 +134,7 @@ interface OrganizationJsonLdProps {
   baseUrl?: string;
 }
 
-export function OrganizationJsonLd({ baseUrl = 'https://past-papers.co.uk' }: OrganizationJsonLdProps) {
+export function OrganizationJsonLd({ baseUrl = SITE_URL }: OrganizationJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
@@ -147,7 +151,6 @@ export function OrganizationJsonLd({ baseUrl = 'https://past-papers.co.uk' }: Or
       availableLanguage: 'English'
     },
     areaServed: 'GB',
-    educationalCredentialAwarded: 'Practice Questions and Solutions',
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'Educational Practice Questions',
@@ -201,7 +204,7 @@ export function CourseJsonLd({
   subject,
   examBoard,
   topics,
-  baseUrl = 'https://past-papers.co.uk',
+  baseUrl = SITE_URL,
 }: CourseJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -217,15 +220,12 @@ export function CourseJsonLd({
     educationalLevel,
     teaches: subject,
     courseCode: `${examBoard.toUpperCase()}-${educationalLevel}-${subject.toUpperCase()}`,
-    numberOfCredits: 0,
-    timeRequired: 'PT0H',
-    isAccessibleForFree: true,
+    isAccessibleForFree: false,
     inLanguage: 'en-GB',
     availableLanguage: 'en-GB',
     hasCourseInstance: {
       '@type': 'CourseInstance',
       courseMode: 'online',
-      courseWorkload: 'self-paced',
       instructor: {
         '@type': 'Organization',
         name: provider,
@@ -236,8 +236,6 @@ export function CourseJsonLd({
       name: topic,
       about: `${topic} practice questions and solutions`,
     })),
-    occupationalCredentialAwarded: `${educationalLevel} ${subject} Practice`,
-    educationalCredentialAwarded: `${educationalLevel} ${subject} Practice Questions Completion`,
   };
 
   return (
@@ -269,7 +267,7 @@ export function CollectionPageJsonLd({
   numberOfItems,
   itemType,
   items,
-  baseUrl = 'https://past-papers.co.uk',
+  baseUrl = SITE_URL,
 }: CollectionPageJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',

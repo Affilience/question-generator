@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -10,10 +9,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SentryProvider } from "@/components/SentryProvider";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
+import { ConsentedAnalytics } from "@/components/ConsentedAnalytics";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { GlowOrbs } from "@/components/GlowOrbs";
 import { LayoutStabilizer } from "@/components/LayoutStabilizer";
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Temporarily disabled due to Turbopack font loading issue
 // const geistSans = Geist({
@@ -69,14 +68,7 @@ export const metadata: Metadata = {
     siteName: 'Past Papers',
     title: 'Past Papers - AI Practice Questions for GCSE & A-Level',
     description: 'AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions matching AQA, Edexcel, and OCR exam board styles with step-by-step solutions.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Past Papers - AI Practice Questions',
-      },
-    ],
+
   },
   twitter: {
     card: 'summary_large_image',
@@ -84,7 +76,6 @@ export const metadata: Metadata = {
     creator: '@pastpapers',
     title: 'Past Papers - AI Practice Questions for GCSE & A-Level',
     description: 'AI-generated exam-style questions for GCSE and A-Level. Practice unlimited questions with step-by-step solutions.',
-    images: ['/og-image.png'],
   },
   icons: {
     icon: [
@@ -246,12 +237,11 @@ export default function RootLayout({
               <CommandPalette />
               <CookieConsent />
               <NetworkStatus />
-              <SpeedInsights />
               </ThemeProvider>
             </SubscriptionProvider>
           </AuthProvider>
         </SentryProvider>
-        <Analytics />
+        <ConsentedAnalytics />
       </body>
     </html>
   );

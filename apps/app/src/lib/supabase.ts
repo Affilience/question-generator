@@ -94,10 +94,13 @@ export async function getSEOContent(
       .eq('exam_board', examBoard)
       .eq('topic_slug', topicSlug)
       .eq('subtopic_slug', subtopicSlug)
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     if (error) {
-      // Log error for debugging but don't throw - graceful degradation
+      // maybeSingle returns null (not an error) when nothing matches, so this
+      // now only fires for genuine failures. With .single() it logged on every
+      // uncovered page, which was most of them.
       console.error('Error fetching SEO content:', error);
       return null;
     }

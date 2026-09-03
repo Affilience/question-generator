@@ -32,7 +32,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
             <div className="font-semibold text-white mb-4">Past Papers</div>
-            <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
               AI-generated exam questions for GCSE & A-Level students.
             </p>
           </div>
@@ -40,7 +40,7 @@ export function Footer() {
             <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Product</div>
             <nav className="flex flex-col gap-2" aria-label="Product links">
               {FOOTER_LINKS.product.map(link => (
-                <Link key={link.href} href={link.href} className="text-white/40 hover:text-white text-sm transition-colors">
+                <Link key={link.href} href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                   {link.label}
                 </Link>
               ))}
@@ -50,7 +50,7 @@ export function Footer() {
             <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Subjects</div>
             <nav className="flex flex-col gap-2" aria-label="Subject links">
               {FOOTER_LINKS.subjects.map(link => (
-                <Link key={link.href} href={link.href} className="text-white/40 hover:text-white text-sm transition-colors">
+                <Link key={link.href} href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                   {link.label}
                 </Link>
               ))}
@@ -60,7 +60,7 @@ export function Footer() {
             <div className="font-medium text-white/60 text-sm uppercase tracking-wider mb-4">Exam Boards</div>
             <nav className="flex flex-col gap-2" aria-label="Exam board links">
               {FOOTER_LINKS.examBoards.map(link => (
-                <Link key={link.href} href={link.href} className="text-white/40 hover:text-white text-sm transition-colors">
+                <Link key={link.href} href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                   {link.label}
                 </Link>
               ))}
@@ -70,12 +70,12 @@ export function Footer() {
 
         <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm">
           {FOOTER_LINKS.legal.map(link => (
-            <Link key={link.href} href={link.href} className="text-white/40 hover:text-white transition-colors">
+            <Link key={link.href} href={link.href} className="text-white/60 hover:text-white transition-colors">
               {link.label}
             </Link>
           ))}
         </div>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06] text-sm text-white/30">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06] text-sm text-white/60">
           <div>&copy; {new Date().getFullYear()} Past Papers. All rights reserved.</div>
           <div>Not affiliated with AQA, Edexcel, Pearson, or OCR.</div>
         </div>

@@ -10,6 +10,12 @@ import {
 } from '@/lib/topics';
 import type { Subject, QualificationLevel, ExamBoard } from '@/types';
 
+// Theory notes are not written yet - getTheoryNotes* return empty arrays - so
+// every page here renders an empty state. Keep them out of the index until
+// there is real content (robots.ts disallows the path as well).
+export const metadata = { robots: { index: false, follow: true } };
+
+
 interface PageProps {
   params: Promise<{ level: string; subject: string; examBoard: string }>;
 }

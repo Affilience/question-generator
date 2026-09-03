@@ -29,7 +29,7 @@ const features = [
   },
   {
     icon: '🔄',
-    title: 'Unlimited Papers',
+    title: 'Papers Every Week',
     description: 'Generate as many practice papers as you need. Never run out of revision material before your exams.',
   },
   {
@@ -124,7 +124,7 @@ export default function PaperGeneratorContent() {
               variants={fadeInUp}
               className="text-xl text-white/60 max-w-2xl mx-auto mb-8"
             >
-              Create unlimited GCSE and A-Level mock exams tailored to your needs.
+              Create GCSE and A-Level mock exams tailored to your needs — 3 a week on Student Plus, 7 on Exam Pro.
               Choose topics, set difficulty, and get instant mark schemes.
             </motion.p>
             <motion.div
