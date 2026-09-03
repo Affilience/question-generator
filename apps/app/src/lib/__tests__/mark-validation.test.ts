@@ -91,6 +91,46 @@ check('unlabelled points still count one each', calculateMarksFromScheme([
 
 check('empty scheme is 0', calculateMarksFromScheme([]), 0);
 
+// A level-descriptor scheme that also carries stray calculation lines: the
+// bands still decide. Real row from the bank — a 20-mark Macbeth essay whose
+// scheme ended with "M9::" and "A1::" and was being scored as 2 marks.
+check('level bands beat stray scoring lines', calculateMarksFromScheme([
+  'AO Breakdown: AO1=12, AO2=12, AO3=6',
+  'Level 6 (16-20 marks): Critical, exploratory response',
+  'Level 5 (11-15 marks): Thoughtful, developed response',
+  'Level 1 ((1 mark)): Simple comments',
+  'Indicative content: the role of the witches; ambition; the supernatural',
+  'M9:: Appropriate working shown',
+  'A1:: Correct final answer',
+]), 20);
+
+check('single-value band is read', calculateMarksFromScheme([
+  'Level 2 (4-6 marks): Limited analysis',
+  'Level 1 (1 mark): Minimal analysis',
+]), 6);
+
+// --- Mixed multi-part schemes ----------------------------------------------
+// Real row from the bank: (a) point-scored, (b) banded, (c) point-scored.
+// 2 + 6 + 2 = 10, not 7 (counting bands as points) and not 6 (bands winning
+// over the whole scheme).
+check('mixed parts are scored per part', calculateMarksFromScheme([
+  '(a) M1:: Calculates the correct resultant vector magnitude.',
+  '(a) A1:: States the direction of the resultant vector.',
+  '(b) Level 3 (5-6 marks): Detailed coherent explanation with terminology.',
+  '(b) Level 2 (3-4 marks): Links some points.',
+  '(b) Level 1 (1-2 marks): Simple statements.',
+  "(c) M1:: Uses Pythagoras' theorem to calculate the magnitude.",
+  '(c) A1:: States the correct magnitude of the new resultant vector.',
+]), 10);
+
+// A three-part point-scored scheme adds its parts up.
+check('parted point scheme sums across parts', calculateMarksFromScheme([
+  '(a) M1: States that atomic number is the number of protons',
+  'A1: Explains that this determines the position in the periodic table',
+  '(b) M1: States that isotopes have the same number of protons',
+  'A1: Explains that this leads to identical chemical properties',
+]), 4);
+
 // --- parseMarkSchemePoint keeps its contract -------------------------------
 
 check('parse returns type, value and description',

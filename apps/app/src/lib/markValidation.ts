@@ -63,35 +63,76 @@ function isNonScoringLine(point: string): boolean {
   );
 }
 
-// Calculate total marks from mark scheme
+/**
+ * Total marks a mark scheme supports.
+ *
+ * Schemes come in three shapes and a question may mix them:
+ *
+ *  - Point-scored: one mark per labelled point ("M1:", "A1:", "B1:").
+ *  - Banded: level descriptors, where the TOP BAND states what the part is out
+ *    of ("Level 4 (13-16 marks)" means 16). Bands are never summed.
+ *  - Mixed multi-part: e.g. (a) point-scored, (b) banded, (c) point-scored.
+ *
+ * So: split by part label, score each part on its own terms, and add the parts
+ * together. An unparted scheme is treated as a single part.
+ */
 export function calculateMarksFromScheme(markScheme: string[]): number {
-  const scoring = markScheme.filter(
-    point => typeof point === 'string' && point.trim().length > 0 && !isNonScoringLine(point)
+  const lines = markScheme.filter(
+    (p): p is string => typeof p === 'string' && p.trim().length > 0
   );
+  if (lines.length === 0) return 0;
 
-  // A level-descriptor scheme has no per-point marks to count. Take the top of
-  // the highest band instead of summing anything.
-  if (scoring.length === 0) {
-    return highestLevelBand(markScheme) ?? 0;
+  const groups = new Map<string, string[]>();
+  for (const line of lines) {
+    const part = line.match(/^\s*\(([a-z]|[ivxlcdm]+|\d+)\)/i)?.[1]?.toLowerCase() ?? '';
+    const existing = groups.get(part);
+    if (existing) existing.push(line);
+    else groups.set(part, [line]);
   }
 
-  let totalMarks = 0;
-  for (const point of scoring) {
-    const { value } = parseMarkSchemePoint(point);
-    totalMarks += value;
+  let total = 0;
+  for (const group of groups.values()) {
+    total += scoreGroup(group);
   }
-  return totalMarks;
+  return total;
 }
 
-/** Highest upper bound across "Level n (x-y marks)" descriptors, if any. */
-function highestLevelBand(markScheme: string[]): number | null {
+/** Marks for one part of a scheme (or the whole scheme when unparted). */
+function scoreGroup(lines: string[]): number {
+  // Banded parts take their top band. This also protects against the stray
+  // calculation lines that generated essay schemes often carry ("M9::",
+  // "A1::"), which otherwise reduced a 20-mark Macbeth essay to 2 marks.
+  const topBand = highestLevelBand(lines);
+  if (topBand !== null) return topBand;
+
+  const scoring = lines.filter(line => !isNonScoringLine(line));
+  if (scoring.length === 0) return 0;
+
+  let total = 0;
+  for (const point of scoring) {
+    total += parseMarkSchemePoint(point).value;
+  }
+  return total;
+}
+
+/**
+ * Highest upper bound across "Level n (x-y marks)" descriptors, if any.
+ * Accepts an optional part prefix and a single-value band ("Level 1 (1 mark)").
+ */
+function highestLevelBand(lines: string[]): number | null {
   let best: number | null = null;
-  for (const point of markScheme) {
-    if (typeof point !== 'string') continue;
-    const band = point.match(/level\s*\d+\s*\(\s*\d+\s*[-–]\s*(\d+)\s*marks?\s*\)/i);
-    if (band) {
-      const upper = parseInt(band[1], 10);
-      if (Number.isFinite(upper) && (best === null || upper > best)) best = upper;
+  for (const line of lines) {
+    if (typeof line !== 'string') continue;
+    if (!/^\s*(?:\((?:[a-z]|[ivxlcdm]+|\d+)\)\s*)?level\s*\d+/i.test(line)) continue;
+
+    const range = line.match(/\(+\s*\d+\s*[-–—]\s*(\d+)\s*marks?\s*\)+/i);
+    const single = line.match(/\(+\s*(\d+)\s*marks?\s*\)+/i);
+    const raw = range?.[1] ?? single?.[1];
+    if (!raw) continue;
+
+    const upper = parseInt(raw, 10);
+    if (Number.isFinite(upper) && upper > 0 && (best === null || upper > best)) {
+      best = upper;
     }
   }
   return best;
