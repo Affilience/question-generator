@@ -111,9 +111,18 @@ export function LoginForm() {
         }
       }
 
-      // If there's an explicit redirect, use it
-      if (redirect) {
-        router.push(redirect);
+      // If there's an explicit redirect, use it - but only a same-site path.
+      // The value comes from the query string, so an absolute URL here would
+      // navigate the user off-site immediately after a genuine successful
+      // login, which is a ready-made phishing chain from a link that looks
+      // like ours. A leading "//" is also an absolute URL.
+      const safeRedirect =
+        redirect && redirect.startsWith('/') && !redirect.startsWith('//')
+          ? redirect
+          : null;
+
+      if (safeRedirect) {
+        router.push(safeRedirect);
         return;
       }
 

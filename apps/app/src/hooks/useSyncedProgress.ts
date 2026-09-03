@@ -161,6 +161,15 @@ export async function migrateLocalProgressToSupabase(userId: string): Promise<vo
     // The key might be just topicId or topicId:subtopic
     const [topicId, subtopic] = key.includes(':') ? key.split(':') : [key, null];
 
+    // Anonymous progress is keyed only by topic (and optionally subtopic), so
+    // it carries no subject context. Default it to the same values the schema
+    // backfill used, which keeps these rows inside the (user, topic, subtopic,
+    // subject, board, qualification) uniqueness rule instead of sitting
+    // outside it on NULLs and quietly duplicating.
+    const DEFAULT_SUBJECT = 'maths';
+    const DEFAULT_BOARD = 'aqa';
+    const DEFAULT_QUALIFICATION = 'gcse';
+
     // Check if entry exists
     const { data: existing } = await supabase
       .from('user_topic_progress')
@@ -168,7 +177,11 @@ export async function migrateLocalProgressToSupabase(userId: string): Promise<vo
       .eq('user_id', userId)
       .eq('topic_id', topicId)
       .is('subtopic', subtopic)
-      .single();
+      .eq('subject', DEFAULT_SUBJECT)
+      .eq('exam_board', DEFAULT_BOARD)
+      .eq('qualification', DEFAULT_QUALIFICATION)
+      .limit(1)
+      .maybeSingle();
 
     if (existing) {
       // Merge: add local stats to existing
@@ -189,6 +202,9 @@ export async function migrateLocalProgressToSupabase(userId: string): Promise<vo
         attempted: progress.attempted,
         correct: progress.correct,
         last_practiced_at: progress.lastPracticed,
+        subject: DEFAULT_SUBJECT,
+        exam_board: DEFAULT_BOARD,
+        qualification: DEFAULT_QUALIFICATION,
       });
     }
   }

@@ -11,17 +11,28 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { updatePassword, session } = useAuth();
+  const { updatePassword, session, loading: authLoading } = useAuth();
   const router = useRouter();
+  // Whether the reset link produced a usable session. The link is single-use
+  // and device-bound (PKCE), so opening it in a different browser, or after it
+  // has expired, establishes nothing. Previously the form was shown anyway and
+  // the user only found out after typing a new password twice, at which point
+  // they were shown the raw message "Auth session missing!" with no way back.
+  const [linkState, setLinkState] = useState<'checking' | 'valid' | 'invalid'>('checking');
 
-  // Check if user has a valid session (from the email link)
   useEffect(() => {
-    // Give a moment for the session to be established from the URL hash
+    if (authLoading) return;
+    if (session) {
+      setLinkState('valid');
+      return;
+    }
+    // Supabase parses the URL fragment asynchronously on mount; give it a
+    // moment before concluding the link is dead.
     const timer = setTimeout(() => {
-      // Session will be set if the user came from a valid reset link
-    }, 1000);
+      setLinkState((current) => (current === 'checking' ? 'invalid' : current));
+    }, 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [authLoading, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +91,50 @@ export default function ResetPasswordPage() {
             >
               Sign in now
             </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (linkState === 'checking') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-10 h-10 mx-auto mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/60">Checking your reset link…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (linkState === 'invalid') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Link href="/" className="text-2xl font-semibold text-white">
+              Past Papers
+            </Link>
+          </div>
+
+          <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-8 text-center">
+            <h1 className="text-2xl font-semibold text-white mb-3">This link has expired</h1>
+            <p className="text-white/60 mb-6">
+              Password reset links can only be used once, and only in the browser
+              that requested them. Ask for a new one and open it on this device.
+            </p>
+            <Link
+              href="/forgot-password"
+              className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-lg transition-colors"
+            >
+              Send a new link
+            </Link>
+            <p className="mt-6 text-sm text-white/40">
+              <Link href="/login" className="hover:text-white/70 transition-colors">
+                Back to sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

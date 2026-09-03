@@ -30,8 +30,7 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${next}`);
       }
 
-      // Check if user has any question attempts to determine if new
-      console.log('[Auth Callback] Checking question attempts for user:', data.user.id);
+      // Check if user has any question attempts to decide where to land them.
       const { count, error: countError } = await supabase
         .from('question_attempts')
         .select('*', { count: 'exact', head: true })
@@ -39,20 +38,31 @@ export async function GET(request: Request) {
 
       if (countError) {
         console.error('[Auth Callback] Error checking question attempts:', countError);
-        // Default to treating as new user if query fails
       }
 
-      console.log('[Auth Callback] Question attempts count:', count);
-
-      // New users (no attempts) go to welcome, returning users go to start
-      const isNewUser = count === 0 || countError; // Treat query errors as new users
+      // New users (no attempts) go to welcome, returning users go to start.
+      const isNewUser = count === 0 || !!countError;
       const redirectTo = isNewUser ? '/welcome' : '/start';
       
       console.log('[Auth Callback] User type:', isNewUser ? 'NEW' : 'RETURNING', '- Redirecting to:', redirectTo);
       
-      // Send welcome email for new users
-      if (isNewUser && data.user.email) {
-        console.log('[Auth Callback] Attempting to send welcome email to:', data.user.email);
+      // Send the welcome email at most once, ever.
+      //
+      // This used to key off "has no question attempts", so anyone who signed
+      // in without answering a question was emailed again on EVERY login - the
+      // least engaged users, who are the most likely to mark it as spam. The
+      // claim is now recorded on the profile row, and the update is
+      // conditional so two concurrent sign-ins cannot both send.
+      const { data: claimedRows } = await supabase
+        .from('users')
+        .update({ welcome_email_sent_at: new Date().toISOString() })
+        .eq('id', data.user.id)
+        .is('welcome_email_sent_at', null)
+        .select('id');
+
+      const shouldSendWelcome = (claimedRows?.length ?? 0) > 0;
+
+      if (shouldSendWelcome && data.user.email) {
         try {
           const firstName = data.user.user_metadata?.display_name || 
                           data.user.user_metadata?.full_name || 
@@ -82,7 +92,7 @@ export async function GET(request: Request) {
       } else if (!data.user.email) {
         console.warn('[Auth Callback] No email address found for user - skipping welcome email');
       } else {
-        console.log('[Auth Callback] Returning user - skipping welcome email');
+        console.log('[Auth Callback] Welcome email already sent - skipping');
       }
       
       return NextResponse.redirect(`${origin}${redirectTo}`);

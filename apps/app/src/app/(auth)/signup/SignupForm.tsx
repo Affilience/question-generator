@@ -43,10 +43,16 @@ export function SignupForm() {
       return;
     }
 
-    const { error, user } = await signUp(email, password, displayName);
+    const { error, user, needsConfirmation } = await signUp(email, password, displayName);
 
     if (error) {
       setError(error);
+      setLoading(false);
+    } else if (user && needsConfirmation) {
+      // No session yet: the account exists but the address must be confirmed.
+      // Show the confirmation screen rather than pushing to /welcome, which
+      // would bounce straight back here with no explanation.
+      setSuccess(true);
       setLoading(false);
     } else if (user) {
       // If coming from checkout, try to claim the pending subscription

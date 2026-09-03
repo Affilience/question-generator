@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { sendWelcomeEmail } from '@/lib/email';
 import { getAuthenticatedUser } from '@/lib/api/auth';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * Sends the welcome email to the signed-in user.
@@ -16,6 +22,20 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
     if (!user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    // Claim the send. The conditional update is the lock: whichever of this
+    // route and the OAuth callback gets there first sends, and a retry, a
+    // double submit or a second device sends nothing.
+    const { data: claimedRows } = await supabase
+      .from('users')
+      .update({ welcome_email_sent_at: new Date().toISOString() })
+      .eq('id', user.id)
+      .is('welcome_email_sent_at', null)
+      .select('id');
+
+    if ((claimedRows?.length ?? 0) === 0) {
+      return NextResponse.json({ success: true, alreadySent: true }, { status: 200 });
     }
 
     const body = await request.json().catch(() => ({}));

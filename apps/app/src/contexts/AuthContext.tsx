@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { migrateLocalProgressToSupabase } from '@/hooks/useSyncedProgress';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: string | null; user: any }>;
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: string | null; user: any; needsConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signInWithGithub: () => Promise<{ error: string | null }>;
@@ -29,6 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   // Memoize supabase client to ensure stable reference across renders
   const supabase = useMemo(() => createClient(), []);
+  // Which user we have already synced, so a recovered session does not re-run
+  // the whole sign-in sync on every page load.
+  const syncedUserRef = useRef<string | null>(null);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -62,16 +65,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Fire-and-forget database sync on sign in (don't await!)
+        // Fire-and-forget database sync on sign in (don't await!).
+        //
+        // supabase-js emits SIGNED_IN when it recovers a stored session, not
+        // only on an actual login, so this ran on every page load: a profile
+        // read, a last_active_at write, a local-progress migration and often a
+        // claim-pending POST, every single navigation. Run it once per mounted
+        // session instead.
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('[AuthContext] SIGNED_IN event fired for user:', session.user.id);
-          // Check if this is a new user (created within last minute)
-          const userCreatedAt = new Date(session.user.created_at).getTime();
-          const isNewUser = Date.now() - userCreatedAt < 60000; // 1 minute
-          
-          syncUserToDatabase(session.user, isNewUser).catch(err => {
-            console.error('Failed to sync user to database:', err);
-          });
+          if (syncedUserRef.current !== session.user.id) {
+            syncedUserRef.current = session.user.id;
+            // Check if this is a new user (created within last minute)
+            const userCreatedAt = new Date(session.user.created_at).getTime();
+            const isNewUser = Date.now() - userCreatedAt < 60000; // 1 minute
+
+            syncUserToDatabase(session.user, isNewUser).catch(err => {
+              console.error('Failed to sync user to database:', err);
+            });
+          }
+        }
+
+        if (event === 'SIGNED_OUT') {
+          syncedUserRef.current = null;
         }
       }
     );
@@ -225,7 +240,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) {
-      return { error: error.message, user: null };
+      // Don't confirm whether an address is already registered. With email
+      // confirmation disabled Supabase returns "User already registered",
+      // which turns /signup into an enumeration oracle - and this userbase is
+      // school-age.
+      const isExistingAccount = /already\s*registered|already\s*exists|user\s*already/i.test(
+        error.message || ''
+      );
+      return {
+        error: isExistingAccount
+          ? 'If that email address is not already registered, your account has been created. Try signing in, or reset your password.'
+          : error.message,
+        user: null,
+      };
     }
 
     // Send welcome email after successful signup (fire-and-forget)
@@ -247,7 +274,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    return { error: null, user: data.user };
+    // needsConfirmation: signUp returns a user but NO session when email
+    // confirmation is on. Without this the form always pushed to /welcome,
+    // which bounces unauthenticated users straight back to /signup - a silent
+    // dead end the moment confirmations are re-enabled.
+    return { error: null, user: data.user, needsConfirmation: !data.session };
   };
 
   const signIn = async (email: string, password: string) => {
