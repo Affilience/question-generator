@@ -487,7 +487,15 @@ export default function SubtopicPracticePage() {
         {error && !isStreaming && (
           upgradeNeeded ? (
             <div className="mb-6 animate-fade-in">
-              <UpgradePrompt reason="daily_limit" message={error} />
+              {/* Distinguish "you need an account" from "you have used today's
+                  allowance". Anonymous users are refused with "Please sign up",
+                  but this hardcoded the daily-limit copy, so every first-time
+                  desktop visitor was shown a £4.99 paywall for a free signup.
+                  The mobile feed already got this right. */}
+              <UpgradePrompt
+                reason={error?.toLowerCase().includes('sign up') ? 'auth_required' : 'daily_limit'}
+                message={error}
+              />
             </div>
           ) : (
             <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6 animate-fade-in">

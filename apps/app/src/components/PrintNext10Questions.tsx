@@ -6,6 +6,8 @@ import { Question, Difficulty, Subject, ExamBoard, QualificationLevel } from '@/
 import { PrintableQuestion } from './PrintableQuestion';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import Link from 'next/link';
+import { MathRenderer } from './MathRenderer';
+import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
 
 interface PrintNext10QuestionsProps {
   topicId: string;
@@ -91,8 +93,17 @@ const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetProps>(
               lineHeight: '1.6', 
               marginBottom: '15pt' 
             }}>
-              <div dangerouslySetInnerHTML={{ __html: question.content }} />
+              {/* Was dangerouslySetInnerHTML with raw model output: LaTeX
+                  printed literally and any < or > in the content was parsed as
+                  a tag. This is a paid feature. */}
+              <MathRenderer content={question.content} />
             </div>
+
+            {question.diagram && (
+              <div style={{ margin: '12pt 0', pageBreakInside: 'avoid' }}>
+                <ResponsiveDiagramRenderer spec={question.diagram} />
+              </div>
+            )}
 
             {/* Answer Space */}
             <div style={{ 

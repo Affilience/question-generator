@@ -76,13 +76,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Calculate start of current week (Monday)
+      // Rolling 7 days, matching checkPaperGenerationAllowed on the server.
+      // The client used to count from Monday 00:00 local, so on a Tuesday a
+      // user who spent their allowance the previous Friday saw "0 of 3 used"
+      // and an enabled button, then got a 403 and the limit modal.
       const now = new Date();
-      const startOfWeek = new Date(now);
-      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday should be 6 days from Monday
-      startOfWeek.setDate(now.getDate() - daysFromMonday);
-      startOfWeek.setHours(0, 0, 0, 0);
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
       // Query subscription and usage data directly - same pattern as getUserStats
       const [subResult, usageResult, weeklyPaperResult] = await Promise.all([

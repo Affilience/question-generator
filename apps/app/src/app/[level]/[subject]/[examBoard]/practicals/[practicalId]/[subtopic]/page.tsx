@@ -15,6 +15,7 @@ import { DifficultySelector } from '@/components/DifficultySelector';
 import { useStreamingQuestion } from '@/hooks/useStreamingQuestion';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { QuestionFeed } from '@/components/mobile/QuestionFeed';
+import { UpgradePrompt } from '@/components/UpgradePrompt';
 
 const validLevels: QualificationLevel[] = ['gcse', 'a-level'];
 const validExamBoards: ExamBoard[] = ['aqa', 'edexcel', 'ocr'];
@@ -74,7 +75,9 @@ export default function PracticalSubtopicPracticePage() {
     streamedContent,
     question,
     error,
+    upgradeNeeded,
     generate,
+    abort,
   } = useStreamingQuestion();
 
   useEffect(() => {
@@ -295,6 +298,17 @@ export default function PracticalSubtopicPracticePage() {
         </div>
 
         {error && !isStreaming && (
+          upgradeNeeded ? (
+            // A daily limit is not a failure. This page dropped upgradeNeeded
+            // entirely, so hitting the limit on a required practical showed a
+            // red error with a retry button that could only fail again.
+            <div className="mb-6 animate-fade-in">
+              <UpgradePrompt
+                reason={error?.toLowerCase().includes('sign up') ? 'auth_required' : 'daily_limit'}
+                message={error}
+              />
+            </div>
+          ) : (
           <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6 animate-fade-in">
             <p className="text-red-400 mb-4">{error}</p>
             <button
@@ -304,6 +318,7 @@ export default function PracticalSubtopicPracticePage() {
               Try again
             </button>
           </div>
+          )
         )}
 
         {(isStreaming || question) && !error && (

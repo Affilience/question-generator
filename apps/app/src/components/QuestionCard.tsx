@@ -8,21 +8,7 @@ import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
 import { PrintableQuestion } from './PrintableQuestion';
 import { usePrintQuestion } from '@/hooks/usePrintQuestion';
 import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
-
-// Error boundary to gracefully handle diagram rendering failures
-class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: ReactNode; fallback: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  render() {
-    if (this.state.hasError) return this.props.fallback;
-    return this.props.children;
-  }
-}
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface QuestionCardProps {
   question: Question;

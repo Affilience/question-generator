@@ -2,6 +2,29 @@
 
 import { useState, useEffect } from 'react';
 
+/**
+ * Storage access that cannot throw. With site data blocked (Chrome's "block
+ * all cookies", some managed profiles) a bare localStorage call raises
+ * SecurityError, and because that happened inside useSwipeHint it took the
+ * entire mobile practice screen down with it.
+ */
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore - the hint simply shows again next time.
+  }
+}
+
+
 interface SwipeHintProps {
   show: boolean;
   onDismiss: () => void;
@@ -85,7 +108,7 @@ export function useSwipeHint() {
 
   useEffect(() => {
     // Check if user has seen the hint before
-    const hasSeenHint = localStorage.getItem('mobile-feed-hint-seen');
+    const hasSeenHint = safeGetItem('mobile-feed-hint-seen');
     if (!hasSeenHint) {
       setShowHint(true);
     }
@@ -93,7 +116,7 @@ export function useSwipeHint() {
 
   const dismissHint = () => {
     setShowHint(false);
-    localStorage.setItem('mobile-feed-hint-seen', 'true');
+    safeSetItem('mobile-feed-hint-seen', 'true');
   };
 
   return { showHint, dismissHint };

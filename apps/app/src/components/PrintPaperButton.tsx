@@ -47,30 +47,25 @@ export function PrintPaperButton({
     }, 500);
   };
 
-  // Show upgrade prompt for users without print_papers feature
+  // Locked state for users without print_papers.
+  //
+  // This slot sits inside the take-paper page's sticky header button row, so a
+  // full-width gradient panel with a heading and a paragraph broke the header
+  // layout for every Student Plus user — the majority of people who can
+  // generate a paper at all. Keep it the size of a button.
   if (!canPrintPapers) {
     return (
-      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-medium text-[var(--color-text-primary)] mb-1 flex items-center gap-2">
-              🔒 Professional Paper PDFs
-            </h4>
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Print this paper as a professional exam-style PDF with proper formatting, marks boxes, and answer spaces
-            </p>
-          </div>
-          <Link
-            href="/pricing"
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-            Upgrade to Exam Pro
-          </Link>
-        </div>
-      </div>
+      <Link
+        href="/pricing"
+        title="Printing papers as exam-style PDFs is part of Exam Pro"
+        aria-label="Upgrade to Exam Pro to print this paper"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors whitespace-nowrap"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        Print · Exam Pro
+      </Link>
     );
   }
 

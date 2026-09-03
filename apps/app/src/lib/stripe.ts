@@ -52,7 +52,9 @@ export async function getOrCreateStripeCustomer(
     .select('stripe_customer_id')
     .eq('user_id', userId)
     .not('stripe_customer_id', 'is', null)
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (subscription?.stripe_customer_id) {
     return subscription.stripe_customer_id;

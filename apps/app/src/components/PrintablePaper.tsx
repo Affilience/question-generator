@@ -662,7 +662,7 @@ export const PrintablePaper = forwardRef<HTMLDivElement, PrintablePaperProps>(
                     <ul style={{ fontSize: '10pt', paddingLeft: '20pt', margin: '0', lineHeight: '1.4' }}>
                       {question.markScheme.map((mark, markIndex) => (
                         <li key={markIndex} style={{ marginBottom: '3pt' }}>
-                          {mark}
+                          <MathRenderer content={mark} />
                         </li>
                       ))}
                     </ul>

@@ -13,6 +13,8 @@ interface PlanFeature {
   text: string;
   included: boolean;
   highlight?: boolean;
+  /** Advertised but not built yet - rendered as "coming soon", not as included. */
+  comingSoon?: boolean;
 }
 
 interface Plan {
@@ -87,7 +89,7 @@ const plans: Plan[] = [
       { text: 'Professional exam-style PDFs', included: true, highlight: true },
       { text: 'Full difficulty control', included: true },
       { text: 'Bookmark questions', included: true },
-      { text: 'Timed exam mode', included: true },
+      { text: 'Timed exam mode', included: false, comingSoon: true },
     ],
     cta: 'Get Started',
     popular: true,
@@ -292,10 +294,13 @@ function PricingContent() {
                           ? feature.highlight
                             ? 'text-white font-medium'
                             : 'text-white/80'
-                          : 'text-white/30'
+                          : 'text-white/50'
                       }`}
                     >
                       {feature.text}
+                      {feature.comingSoon && (
+                        <span className="ml-2 text-xs text-white/50">(coming soon)</span>
+                      )}
                     </span>
                   </li>
                 ))}

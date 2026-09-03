@@ -158,9 +158,18 @@ export default function PaperGeneratorPage() {
       setGenerationProgress({ current: 0, total: totalQuestions });
 
       // Poll for status
+      // Overlap guard: if the status route is slower than the 2s interval,
+      // calls used to stack up. Failure budget: a single network blip used to
+      // tear the whole session down even though the job was still running.
+      let inFlight = false;
+      let consecutiveFailures = 0;
+      const MAX_CONSECUTIVE_FAILURES = 3;
+
       const pollStatus = async () => {
         // Skip if aborted
         if (signal.aborted) return;
+        if (inFlight) return;
+        inFlight = true;
 
         try {
           const statusResponse = await fetch(`/api/papers/status/${jobId}`, { signal });
@@ -178,6 +187,8 @@ export default function PaperGeneratorPage() {
             return;
           }
 
+          consecutiveFailures = 0;
+
           // Update progress
           setGenerationProgress({
             current: statusData.progress.current,
@@ -191,9 +202,16 @@ export default function PaperGeneratorPage() {
               pollingRef.current = null;
             }
 
-            // Store paper in localStorage for the take page
+            // Cache the paper for the take page. In its own try/catch: this
+            // sat inside the polling try, so a storage quota or private-mode
+            // error was reported as "Failed to check generation status" and
+            // the user never reached the paper they had just paid a quota for.
             if (statusData.paper) {
-              localStorage.setItem(`paper-${statusData.paperId}`, JSON.stringify(statusData.paper));
+              try {
+                localStorage.setItem(`paper-${statusData.paperId}`, JSON.stringify(statusData.paper));
+              } catch {
+                // The take page falls back to fetching from the database.
+              }
             }
 
             // Navigate to paper taking view
@@ -214,15 +232,23 @@ export default function PaperGeneratorPage() {
           if (err instanceof Error && err.name === 'AbortError') {
             return;
           }
-          // Stop polling on error
+          console.error('Polling error:', err);
+          consecutiveFailures++;
+
+          // Keep trying; the job is still running server-side.
+          if (consecutiveFailures < MAX_CONSECUTIVE_FAILURES) return;
+
           if (pollingRef.current) {
             clearInterval(pollingRef.current);
             pollingRef.current = null;
           }
-          console.error('Polling error:', err);
-          setError(err instanceof Error ? err.message : 'Failed to check generation status');
+          setError(
+            'We lost contact while your paper was generating. It may still finish — check your paper history in a minute.'
+          );
           setIsGenerating(false);
           setGenerationProgress(null);
+        } finally {
+          inFlight = false;
         }
       };
 

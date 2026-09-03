@@ -4,7 +4,9 @@ import { useEffect, useState, useRef } from 'react';
 import { Question } from '@/types';
 import { MathRenderer } from './MathRenderer';
 import { BookmarkButton } from './BookmarkButton';
-import { getValidatedMarks } from '@/lib/markValidation';
+import { getValidatedMarks, formatMarksDisplay } from '@/lib/markValidation';
+import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface StreamingQuestionCardProps {
   question: Question | null;
@@ -153,6 +155,11 @@ export function StreamingQuestionCard({
           Question
         </span>
         <div className="flex items-center gap-3">
+          {!isStreaming && question && (
+            <span className="text-sm font-medium text-[var(--color-text-secondary)] whitespace-nowrap">
+              {formatMarksDisplay(getValidatedMarks(question).marks)}
+            </span>
+          )}
           {isStreaming && (
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rounded-full animate-pulse" />
@@ -187,6 +194,28 @@ export function StreamingQuestionCard({
           <span className="inline-block w-0.5 h-5 bg-[var(--color-accent)] ml-0.5 rounded-full animate-cursor-blink" />
         )}
       </div>
+
+      {/* Diagrams. The desktop card had no diagram block at all, so questions
+          that say "the diagram shows..." rendered with nothing to look at,
+          while the mobile slide showed one correctly. */}
+      {!isStreaming && question?.diagram && (
+        <div className="mt-4 sm:mt-6 w-full max-w-full overflow-hidden">
+          <ErrorBoundary
+            fallback={
+              <div className="flex flex-col items-center justify-center p-6 border border-[var(--color-border)] rounded-lg min-h-[160px]">
+                <span className="text-sm text-[var(--color-text-muted)] text-center">
+                  This diagram could not be drawn. The question can still be answered from the text.
+                </span>
+              </div>
+            }
+          >
+            <ResponsiveDiagramRenderer
+              spec={question.diagram}
+              className="bg-[var(--color-diagram-bg)] rounded-lg p-3 sm:p-4 mx-auto"
+            />
+          </ErrorBoundary>
+        </div>
+      )}
     </div>
   );
 }

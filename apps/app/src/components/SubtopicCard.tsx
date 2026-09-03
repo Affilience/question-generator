@@ -18,10 +18,9 @@ export function SubtopicCard({ topicId, subtopic, index, isRandom = false, examB
   const { trackClick } = useAnalytics();
   
   // Add cache busting timestamp to prevent navigation caching issues
-  const cacheBust = Date.now();
   const href = isRandom
-    ? `/${level}/${subject}/${examBoard}/practice/${topicId}/random?t=${cacheBust}`
-    : `/${level}/${subject}/${examBoard}/practice/${topicId}/${encodeURIComponent(subtopic)}?t=${cacheBust}`;
+    ? `/${level}/${subject}/${examBoard}/practice/${topicId}/random`
+    : `/${level}/${subject}/${examBoard}/practice/${topicId}/${encodeURIComponent(subtopic)}`;
 
   // Determine if this is a Higher tier topic
   const isHigher = subtopic.includes('(H)');

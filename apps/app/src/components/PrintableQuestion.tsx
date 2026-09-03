@@ -3,6 +3,7 @@
 import { forwardRef } from 'react';
 import { Question } from '@/types';
 import { MathRenderer } from './MathRenderer';
+import { ResponsiveDiagramRenderer } from './ResponsiveDiagramRenderer';
 
 interface PrintableQuestionProps {
   question: Question;
@@ -167,6 +168,15 @@ export const PrintableQuestion = forwardRef<HTMLDivElement, PrintableQuestionPro
             <MathRenderer content={question.content} />
           </div>
 
+          {/* Diagrams were dropped entirely from single-question printing, so a
+              geometry or graph question printed with no figure and could not be
+              answered on paper. */}
+          {question.diagram && (
+            <div style={{ margin: '12pt 0', pageBreakInside: 'avoid' }}>
+              <ResponsiveDiagramRenderer spec={question.diagram} />
+            </div>
+          )}
+
           {/* Answer Space */}
           <div className="answer-space">
             <p style={{ 
@@ -199,7 +209,7 @@ export const PrintableQuestion = forwardRef<HTMLDivElement, PrintableQuestionPro
                   <ul style={{ fontSize: '10pt', paddingLeft: '20pt', margin: '0' }}>
                     {question.markScheme.map((mark, index) => (
                       <li key={index} style={{ marginBottom: '3pt' }}>
-                        {mark}
+                        <MathRenderer content={mark} />
                       </li>
                     ))}
                   </ul>
