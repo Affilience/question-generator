@@ -136,8 +136,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --font-geist-sans is not defined anywhere (next/font is commented out in
+     layout.tsx), and an unresolvable var() invalidates the whole declaration
+     at computed-value time - so this fell back to the browser default serif
+     rather than to the Arial listed beside it. Use a real stack. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 body {

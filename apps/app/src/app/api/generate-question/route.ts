@@ -445,6 +445,12 @@ import { getClientIP } from '@/lib/rate-limit';
 import { Difficulty, Question, ExamBoard, QualificationLevel, Subject, PracticalSubtopic, QuestionType as QuestionTypeEnum } from '@/types';
 import { DiagramSpec } from '@/types/diagram';
 
+// Long-running: this route makes gpt-4o-mini completions. Without an explicit
+// maxDuration it ran on the platform default and was killed mid-generation
+// with a 504 that no handler in this file ever sees.
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 // Using Node.js runtime (default) - Edge runtime has 1MB limit which is exceeded by prompt imports
 
 // Question types for all subjects

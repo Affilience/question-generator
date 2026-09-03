@@ -1,0 +1,12 @@
+# 52 MB of exam-board PDFs are committed under apps/app/data/raw/. They are not
+# read at runtime, and uploading them on every deployment is pure cost.
+apps/app/data/raw/
+
+# Local video assets (1.4 GB)
+my-video/
+remotion-source/
+
+# Reports and research artefacts
+*.md
+!README.md
+seo-keywords-combined.csv

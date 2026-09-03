@@ -16,6 +16,11 @@ export const config = {
      * - api routes (let them handle their own auth)
      * - auth/callback (OAuth callback handles its own session logic)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api).*)',
+    // Excludes: build assets, images, API routes (they authenticate
+    // themselves), the Sentry tunnel at /monitoring (middleware runs BEFORE
+    // rewrites, so every error envelope was paying an auth round trip), and
+    // crawler/manifest files. Without these, supabase.auth.getUser() ran on all
+    // ~1,295 prerendered public pages, on requests carrying no cookies at all.
+    '/((?!_next/static|_next/image|favicon.ico|monitoring|sitemap.xml|robots.txt|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|json|webmanifest)$|api).*)',
   ],
 };

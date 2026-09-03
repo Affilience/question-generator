@@ -29,7 +29,11 @@ const nextConfig: NextConfig = {
   
   // Target modern browsers to reduce polyfills (ES2020+)
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // Keep error and warn. Stripping every console call also removed the 176
+    // console.error calls that are the only record of failures in API routes,
+    // where fewer than a quarter report to Sentry.
+    removeConsole:
+      process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   
   // External packages for server components (remove katex from optimizePackageImports to avoid conflict)
@@ -71,10 +75,6 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
-          {
-            key: 'Preload-Policy',
-            value: 'accept',
-          },
         ],
       },
       {
@@ -106,28 +106,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Aggressive no-cache for HTML pages to prevent navigation caching issues
-        source: '/:path((?!_next|api).*)',
+        // No-store belongs ONLY on signed-in pages.
+        //
+        // This rule used to match every non-_next, non-api path, so all ~1,295
+        // prerendered public pages were served uncacheable: nothing reached the
+        // Vercel edge cache, the `revalidate` set on the (seo) routes was
+        // neutered, and `no-store` on the document disables back/forward cache
+        // in Chrome and Firefox, making every back navigation a full round
+        // trip. Being last, it also overrode the immutable rule above for
+        // favicon/icon files.
+        source: '/:path(dashboard|bookmarks|app|login|signup|welcome|choose-mode|questions|account|subscription)/:rest*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
-          {
-            key: 'Surrogate-Control',
-            value: 'no-store',
-          },
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
+            value: 'private, no-store, max-age=0, must-revalidate',
           },
         ],
       },
@@ -138,6 +130,10 @@ const nextConfig: NextConfig = {
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
             key: 'X-Frame-Options',
@@ -159,11 +155,19 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net vitals.vercel-analytics.com https://js.stripe.com https://checkout.stripe.com",
+              // 'unsafe-eval' removed: nothing in src/ evals since the
+              // expression parser replaced eval() in DiagramRenderer. Turbopack's
+              // dev HMR still needs it, so allow it in development only.
+              `script-src 'self' ${process.env.NODE_ENV === 'production' ? '' : "'unsafe-eval' "}'unsafe-inline' cdn.jsdelivr.net vitals.vercel-analytics.com https://js.stripe.com https://checkout.stripe.com`,
               "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com https://checkout.stripe.com",
               "img-src 'self' data: blob: images.unsplash.com cdn.sanity.io https://*.stripe.com",
               "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net",
-              "connect-src 'self' *.supabase.co api.anthropic.com api.openai.com vitals.vercel-analytics.com https://api.stripe.com https://checkout.stripe.com",
+              // The browser never calls the model APIs - those imports are
+              // server-only - so listing them just hands an injected script a
+              // ready-made exfiltration channel. Sentry's ingest is reached
+              // through the /monitoring tunnel, which is same-origin.
+              "connect-src 'self' *.supabase.co vitals.vercel-analytics.com https://api.stripe.com https://checkout.stripe.com",
+              "frame-ancestors 'self'",
               "frame-src https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
               "object-src 'none'",
               "base-uri 'self'",

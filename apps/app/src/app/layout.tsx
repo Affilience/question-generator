@@ -155,17 +155,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
         
         {/* Additional resource hints for Core Web Vitals */}
-        <link rel="preconnect" href="https://fmnzyvdgewlrggnxvgec.supabase.co" />
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         )}
-        <link rel="dns-prefetch" href="https://api.anthropic.com" />
-        <link rel="dns-prefetch" href="https://api.openai.com" />
-        
-        {/* Prefetch critical pages for faster navigation */}
-        <link rel="prefetch" href="/gcse" />
-        <link rel="prefetch" href="/a-level" />
-        
         {/* Critical CSS for preventing layout shifts and mobile optimization */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -180,19 +172,22 @@ export default function RootLayout({
               box-sizing: border-box;
             }
             
-            /* Image and content optimization */
-            img { 
-              content-visibility: auto; 
-              contain: layout style paint;
+            /* Images: keep only the responsive rules. content-visibility
+               auto plus size containment made every off-screen image collapse
+               to zero height, CAUSING the layout shift it claimed to prevent
+               and delaying LCP on any hero image; "loading: lazy" is not a CSS
+               property at all and was dropped by the parser. next/image
+               already reserves space. */
+            img {
               max-width: 100%;
               height: auto;
-              loading: lazy;
             }
-            
-            /* Math content optimization */
-            .math-display { 
+
+            /* Math content: containment is useful, but will-change promoted
+               every expression to its own compositor layer for the life of the
+               page, which is a large GPU cost on a question-heavy screen. */
+            .math-display {
               contain: layout style;
-              will-change: transform;
             }
             
             /* Enhanced mobile optimizations */
