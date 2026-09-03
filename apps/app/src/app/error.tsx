@@ -57,6 +57,8 @@ export default function Error({
           </button>
 
           <a
+            // eslint-disable-next-line @next/next/no-html-link-for-pages -- deliberate:
+            // the router may be what failed, so force a full document load.
             href="/"
             className="px-6 py-2.5 border border-[var(--color-border)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text-primary)] font-medium rounded-lg transition-colors"
           >

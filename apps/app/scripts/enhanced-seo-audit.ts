@@ -298,7 +298,7 @@ const performEnhancedSEOAudit = async (url: string): Promise<SEOReport> => {
     
     if (structuredDataCount > 0) {
       // Validate structured data quality
-      let structuredDataScore = ENTERPRISE_CHECKS.STRUCTURED_DATA.weight;
+      const structuredDataScore = ENTERPRISE_CHECKS.STRUCTURED_DATA.weight;
       try {
         const jsonLdScripts = html.match(/<script[^>]*type=["\']application\/ld\+json["\'][^>]*>([^<]*)<\/script>/gi) || [];
         let validSchemas = 0;
@@ -362,7 +362,7 @@ const performEnhancedSEOAudit = async (url: string): Promise<SEOReport> => {
     
     let linkingScore = ENTERPRISE_CHECKS.INTERNAL_LINKING.weight;
     let linkingStatus: 'pass' | 'warning' = 'pass';
-    let linkingMessage = `${internalLinks} internal, ${externalLinks} external`;
+    const linkingMessage = `${internalLinks} internal, ${externalLinks} external`;
     
     if (internalLinks < 3) {
       linkingStatus = 'warning';

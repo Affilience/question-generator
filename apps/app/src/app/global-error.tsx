@@ -85,6 +85,8 @@ export default function GlobalError({
           </button>
 
           <a
+            // eslint-disable-next-line @next/next/no-html-link-for-pages -- deliberate:
+            // the router may be what failed, so force a full document load.
             href="/"
             style={{
               display: 'inline-block',

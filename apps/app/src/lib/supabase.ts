@@ -158,7 +158,7 @@ export async function getSampleQuestionsForSubtopic(
 // Get or create user from localStorage ID
 export async function getOrCreateUser(): Promise<User | null> {
   // Check localStorage for existing user ID
-  let userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
   if (userId) {
     // Try to fetch existing user

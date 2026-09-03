@@ -288,7 +288,7 @@ export default function SubtopicPracticePage() {
   // First decode the URL-encoded subtopic param and then slugify it for comparison
   const decodedSubtopic = decodeURIComponent(subtopic);
   const normalizedSubtopic = slugify(decodedSubtopic);
-  let subtopicName = topic.subtopics.find(s => slugify(s) === normalizedSubtopic);
+  const subtopicName = topic.subtopics.find(s => slugify(s) === normalizedSubtopic);
 
   // Debug logging
   console.log('[SubtopicPage] Looking for subtopic:', {
@@ -313,7 +313,7 @@ export default function SubtopicPracticePage() {
       .trim();
 
     // Try fuzzy matching with the subtopic param
-    let fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
+    const fuzzyMatch = topic.subtopics.find(s => brokenSlugify(s) === subtopic);
 
     if (fuzzyMatch) {
       // Redirect to the correct URL

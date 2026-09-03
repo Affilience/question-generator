@@ -132,7 +132,7 @@ export default async function SubtopicPage({ params }: PageProps) {
   }
 
   // Find the actual subtopic name - first try exact match
-  let subtopicName = topicData.subtopics.find(s => slugify(s) === subtopic);
+  const subtopicName = topicData.subtopics.find(s => slugify(s) === subtopic);
 
   // If no exact match, try fuzzy matching for backwards compatibility
   // This handles URLs generated with the old incorrect slugification that

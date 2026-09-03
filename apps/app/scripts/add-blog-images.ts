@@ -103,7 +103,7 @@ function getRandomImageForCategory(category: string): string {
 
 async function addImagesToBlogs() {
   const blogFilePath = path.join(process.cwd(), 'src/lib/blog.ts');
-  let blogContent = fs.readFileSync(blogFilePath, 'utf-8');
+  const blogContent = fs.readFileSync(blogFilePath, 'utf-8');
 
   // Pattern to match blog post objects without images
   const blogPostPattern = /(\{\s*id:\s*'[^']+',[\s\S]*?category:\s*'([^']+)',)(\s*content:)/g;

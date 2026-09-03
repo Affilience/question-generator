@@ -207,7 +207,7 @@ async function getCachedQuestionFromRedis(
 /**
  * Get cached question from Supabase
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function getCachedQuestionFromSupabase(
   supabase: any,
   topicId: string,
@@ -373,7 +373,7 @@ async function cacheQuestionToRedis(
 /**
  * Cache question to Supabase
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function cacheQuestionToSupabase(
   supabase: any,
   topicId: string,
