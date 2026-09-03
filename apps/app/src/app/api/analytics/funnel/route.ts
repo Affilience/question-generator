@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/client';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { calculateFunnelMetrics } from '@/lib/analytics';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
+function isOwnerEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const owners = (process.env.OWNER_EMAILS || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  return owners.length > 0 && owners.includes(email.toLowerCase());
+}
+
+/**
+ * Funnel analytics for the site owner.
+ *
+ * This was previously unauthenticated and read with the browser (anon) client.
+ * The journey_events read policy allows any row whose user_id is null, so the
+ * anon key returns every logged-out visitor's session id, page path and event
+ * properties — readable by anyone, here or directly against the REST API.
+ */
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!isOwnerEmail(user?.email)) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get('timeframe') as '24h' | '7d' | '30d' || '7d';
     
@@ -12,14 +35,19 @@ export async function GET(request: NextRequest) {
     const hours = timeframe === '24h' ? 24 : timeframe === '7d' ? 168 : 720;
     timeAgo.setHours(timeAgo.getHours() - hours);
     
-    const supabase = createClient();
-    
-    // Get all journey events in timeframe
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get journey events in timeframe. Bounded: PostgREST silently caps at
+    // 1000 rows by default, and this table carries tens of thousands.
     const { data: events, error } = await supabase
       .from('journey_events')
       .select('event, session_id, user_id, timestamp, page, properties')
       .gte('timestamp', timeAgo.toISOString())
-      .order('timestamp', { ascending: true });
+      .order('timestamp', { ascending: true })
+      .limit(50000);
     
     if (error) {
       console.error('Failed to fetch journey events:', error);

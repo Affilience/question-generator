@@ -1,5 +1,9 @@
 'use client';
 
+import { notFound } from 'next/navigation';
+// PRODUCTION_GUARD: internal rendering harness, dev-only (see robots.ts).
+
+
 import { ResponsiveDiagramRenderer } from '@/components/ResponsiveDiagramRenderer';
 import { PrintTest } from '@/components/PrintTest';
 import type {
@@ -1959,6 +1963,8 @@ const diagrams: { name: string; category: string; subject: string; spec: Diagram
 const subjects = [...new Set(diagrams.map(d => d.subject))];
 
 export default function TestDiagramsPage() {
+  if (process.env.NODE_ENV === 'production') notFound();
+
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [failedDiagrams, setFailedDiagrams] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');

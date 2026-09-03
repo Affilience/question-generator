@@ -6,6 +6,7 @@ import {
   ClaimMethod,
   PendingSubscriptionRow,
 } from '@/lib/subscription/claim';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,24 +25,25 @@ const supabase = createClient(
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, sessionId } = await request.json();
-
-    if (!userId || (!email && !sessionId)) {
-      console.warn('[Claim Pending] Missing required fields:', { userId: !!userId, email: !!email, sessionId: !!sessionId });
-      return NextResponse.json(
-        { error: 'User ID and either email or session ID are required' },
-        { status: 400 }
-      );
+    // Authenticate. The session-id branch matched on the checkout id alone, so
+    // anyone who learned a session id could claim that purchase onto their own
+    // account before the buyer signed up. The user id now comes from the
+    // session and any id in the body is ignored.
+    const authedUser = await getAuthenticatedUser(request);
+    if (!authedUser) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
+    const userId = authedUser.id;
+
+    const { sessionId } = await request.json().catch(() => ({ sessionId: undefined }));
 
     console.log('[Claim Pending] Starting claim check:', {
       userId,
-      email,
       sessionId,
       timestamp: new Date().toISOString()
     });
 
-    // Resolve the account's real email server-side; body email is never
+    // Resolve the account's real email server-side; a body email is never
     // trusted for matching.
     const { data: targetUser, error: userError } = await supabase.auth.admin.getUserById(userId);
     if (userError || !targetUser?.user) {
@@ -49,6 +51,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unknown user' }, { status: 400 });
     }
     const accountEmail = targetUser.user.email?.toLowerCase() ?? null;
+
+    if (!accountEmail && !sessionId) {
+      return NextResponse.json(
+        { error: 'No account email or session id to match on' },
+        { status: 400 }
+      );
+    }
 
     // Check if user already has an active subscription
     const { data: existingSubscription } = await supabase

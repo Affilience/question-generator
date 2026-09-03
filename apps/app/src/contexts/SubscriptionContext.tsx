@@ -91,7 +91,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
           .select('*, subscription_prices(product_id, subscription_products(metadata))')
           .eq('user_id', user.id)
           .in('status', ['active', 'trialing'])
-          .order('created_at', { ascending: false })
+          // Match getUserTier: furthest-reaching period wins, nulls last.
+          .order('current_period_end', { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle(),
         supabase
@@ -110,7 +111,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       // Handle subscription data
       const { data: subData } = subResult;
       let subscription = null;
-      if (subData) {
+      // The server (getUserTier) also requires an unexpired billing period.
+      // Without this check the UI showed "Exam Pro — unlimited" to users the
+      // API was already refusing, which made the renewal outage invisible.
+      const periodEnd = subData?.current_period_end
+        ? new Date(subData.current_period_end)
+        : null;
+      const isCurrent = !!periodEnd && periodEnd > new Date();
+
+      if (subData && isCurrent) {
         const productMetadata = subData.subscription_prices?.subscription_products?.metadata;
         const tierFromMetadata = productMetadata?.tier;
         const tierFromPriceId = subData.price_id?.includes('student_plus') ? 'student_plus'

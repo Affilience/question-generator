@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { constructWebhookEvent, getTierFromPriceId, STRIPE_PRICES } from '@/lib/stripe';
+import { constructWebhookEvent, getTierFromPriceId, getStripe, STRIPE_PRICES } from '@/lib/stripe';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +10,47 @@ const supabase = createClient(
 
 // Disable body parsing - we need raw body for webhook verification
 export const runtime = 'nodejs';
+
+/**
+ * Resolve a subscription's billing period as ISO strings.
+ *
+ * In recent Stripe API versions current_period_start/end live on each
+ * subscription ITEM, not on the subscription itself. Reading them off the
+ * subscription yields undefined, and `new Date(undefined * 1000)` is an
+ * Invalid Date whose .toISOString() throws — which silently broke every
+ * renewal (no monthly subscription in the database had ever been extended).
+ *
+ * Read the item first, fall back to the legacy top-level fields for older
+ * API versions, and validate before converting.
+ */
+function getSubscriptionPeriod(
+  subscription: Stripe.Subscription
+): { start: string | null; end: string | null } {
+  const item = subscription.items?.data?.[0] as
+    | (Stripe.SubscriptionItem & {
+        current_period_start?: number;
+        current_period_end?: number;
+      })
+    | undefined;
+
+  const legacy = subscription as Stripe.Subscription & {
+    current_period_start?: number;
+    current_period_end?: number;
+  };
+
+  const toIso = (seconds: unknown): string | null => {
+    if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) {
+      return null;
+    }
+    const date = new Date(seconds * 1000);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  };
+
+  return {
+    start: toIso(item?.current_period_start ?? legacy.current_period_start),
+    end: toIso(item?.current_period_end ?? legacy.current_period_end),
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +82,22 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid signature' },
         { status: 400 }
       );
+    }
+
+    // Idempotency: Stripe delivers at least once and retries on any non-2xx.
+    // Claim the event id before doing any work; a duplicate delivery hits the
+    // primary key and returns 200 without re-running the handler.
+    const { error: claimError } = await supabase
+      .from('processed_stripe_events')
+      .insert({ event_id: event.id, event_type: event.type });
+
+    if (claimError) {
+      if (claimError.code === '23505') {
+        console.log('Duplicate webhook delivery ignored:', event.id);
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+      // Never block a real event because the ledger is unavailable.
+      console.error('Could not record webhook event id, processing anyway:', claimError);
     }
 
     // Handle different event types
@@ -218,13 +275,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 1 month
 
-  // First check if subscription already exists
+  // First check if subscription already exists.
+  // maybeSingle + limit: .single() errors when a user has more than one active
+  // row, and that error was discarded — so the code fell through to INSERT and
+  // created yet another duplicate.
   const { data: existing } = await supabase
     .from('user_subscriptions')
     .select('id')
     .eq('user_id', userId)
     .eq('status', 'active')
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (existing) {
     console.log('Active subscription already exists for user:', userId);
@@ -334,32 +396,38 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     throw new Error('No price ID found in subscription');
   }
   
-  // Map Stripe price ID to database price ID
-  // Create reverse lookup from STRIPE_PRICES to find the key (database format)
+  // Map Stripe price ID to database price ID.
+  // NOTE: no raw-price-id fallback. price_id is a foreign key into
+  // subscription_prices, and getUserTier derives the tier by matching
+  // 'student_plus'/'exam_pro' inside it — writing a raw Stripe id (price_1Q…)
+  // both violates the FK and silently resolves the customer to the free tier.
   const dbPriceId = (() => {
     for (const [dbKey, stripePriceId] of Object.entries(STRIPE_PRICES)) {
       if (stripePriceId === rawPriceId) {
         return `price_${dbKey}`; // Convert to database format
       }
     }
-    // Fallback to the old mapping for backwards compatibility
-    const oldMapping = Object.entries(PRICE_KEY_TO_DB_ID).find(
-      ([_, stripePriceId]) => stripePriceId === rawPriceId
-    )?.[1];
-    return oldMapping || rawPriceId;
+    return null;
   })();
 
-  console.log('Price mapping:', {
-    rawPriceId,
-    dbPriceId,
-    availablePrices: Object.entries(STRIPE_PRICES)
-  });
+  if (!dbPriceId) {
+    console.error('Unmapped Stripe price id — refusing to write a subscription', {
+      rawPriceId,
+      subscriptionId: subscription.id,
+      configuredPrices: Object.entries(STRIPE_PRICES),
+    });
+    throw new Error(`Unmapped Stripe price id: ${rawPriceId}`);
+  }
 
-  // Access subscription period from the raw object (these exist at runtime)
-  const subData = subscription as Stripe.Subscription & {
-    current_period_start: number;
-    current_period_end: number;
-  };
+  const { start: periodStart, end: periodEnd } = getSubscriptionPeriod(subscription);
+
+  if (!periodStart || !periodEnd) {
+    console.error('Could not resolve billing period from subscription', {
+      subscriptionId: subscription.id,
+      itemCount: subscription.items.data.length,
+    });
+    throw new Error('Could not resolve subscription billing period');
+  }
 
   const { error } = await supabase
     .from('user_subscriptions')
@@ -369,8 +437,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       stripe_subscription_id: subscription.id,
       price_id: dbPriceId,
       status: subscription.status,
-      current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
       cancel_at_period_end: subscription.cancel_at_period_end,
       canceled_at: subscription.canceled_at
         ? new Date(subscription.canceled_at * 1000).toISOString()
@@ -423,23 +491,76 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 }
 
+/**
+ * Pull the subscription id off an invoice across Stripe API versions.
+ * Older versions expose invoice.subscription; newer ones nest it under
+ * invoice.parent.subscription_details, and it also appears on line items.
+ */
+function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  const inv = invoice as Stripe.Invoice & {
+    subscription?: string | { id: string } | null;
+    parent?: { subscription_details?: { subscription?: string | { id: string } } | null } | null;
+  };
+
+  const candidates = [
+    inv.subscription,
+    inv.parent?.subscription_details?.subscription,
+    (inv.lines?.data?.[0] as { subscription?: string | { id: string } } | undefined)?.subscription,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate) return candidate;
+    if (candidate && typeof candidate === 'object' && 'id' in candidate) return candidate.id;
+  }
+  return null;
+}
+
+/**
+ * A successful payment must reinstate access. Previously this was a no-op that
+ * deferred to subscription.updated, so a customer knocked to 'past_due' by one
+ * failed retry stayed there permanently even after their card went through.
+ */
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-  // Subscription renewals are handled by subscription.updated
-  console.log('Invoice payment succeeded:', invoice.id);
+  const subscriptionId = getSubscriptionIdFromInvoice(invoice);
+
+  if (!subscriptionId) {
+    console.log('Invoice payment succeeded with no subscription (one-off):', invoice.id);
+    return;
+  }
+
+  // Re-read the subscription so status and billing period come from Stripe
+  // rather than being inferred here.
+  try {
+    const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+    await handleSubscriptionUpdate(subscription);
+    console.log('Reinstated subscription after successful payment:', subscriptionId);
+  } catch (err) {
+    console.error('Failed to refresh subscription after payment success:', {
+      subscriptionId,
+      err,
+    });
+    throw err;
+  }
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const customerId = invoice.customer as string;
+  const subscriptionId = getSubscriptionIdFromInvoice(invoice);
 
-  // Find subscription by customer
+  if (!subscriptionId) {
+    console.log('Invoice payment failed with no subscription:', invoice.id);
+    return;
+  }
+
+  // Scope by subscription, not customer: a customer with more than one
+  // subscription previously had all of them marked past_due together.
   const { error } = await supabase
     .from('user_subscriptions')
     .update({
       status: 'past_due',
       updated_at: new Date().toISOString(),
     })
-    .eq('stripe_customer_id', customerId)
-    .eq('status', 'active');
+    .eq('stripe_subscription_id', subscriptionId)
+    .in('status', ['active', 'trialing']);
 
   if (error) {
     console.error('Error updating subscription to past_due:', error);

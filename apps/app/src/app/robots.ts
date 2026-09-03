@@ -12,6 +12,10 @@ export default function robots(): MetadataRoute.Robots {
           '/dashboard', // User dashboard (requires auth)
           '/bookmarks', // User bookmarks (requires auth)
           '/*?*',       // URLs with query parameters
+          '/test-',     // Internal rendering harnesses (dev only)
+          '/theory/',   // Placeholder content until theory notes are generated
+          '/choose-mode',
+          '/questions',
         ],
       },
     ],

@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo } 
 import { createClient } from '@/lib/supabase/client';
 import { migrateLocalProgressToSupabase } from '@/hooks/useSyncedProgress';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import { authHeaders } from '@/lib/api/client-auth';
 
 interface AuthContextType {
   user: User | null;
@@ -176,12 +177,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetch('/api/subscription/claim-pending', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: authUser.id,
-            email: authUser.email,
-            sessionId: storedSessionId
-          })
+          headers: await authHeaders(),
+          body: JSON.stringify({ sessionId: storedSessionId })
         });
 
         if (response.ok) {
@@ -234,16 +231,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Send welcome email after successful signup (fire-and-forget)
     if (data.user) {
       const firstName = displayName || email.split('@')[0];
-      fetch('/api/email/welcome', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          firstName: firstName,
-        }),
-      }).catch(err => {
+      // The route sends only to the caller's own verified address; the name is
+      // a display hint, not an addressing field.
+      authHeaders()
+        .then(headers =>
+          fetch('/api/email/welcome', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ firstName }),
+          })
+        )
+        .catch(err => {
         console.error('Failed to send welcome email:', err);
         // Don't fail signup if email fails - just log it
       });

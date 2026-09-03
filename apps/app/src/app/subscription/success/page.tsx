@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { authHeaders } from '@/lib/api/client-auth';
 
 function SubscriptionSuccessContent() {
   const searchParams = useSearchParams();
@@ -51,11 +52,8 @@ function SubscriptionSuccessContent() {
           
           const response = await fetch('/api/subscription/verify-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              sessionId, 
-              userId: user.id 
-            })
+            headers: await authHeaders(),
+            body: JSON.stringify({ sessionId })
           });
 
           if (response.ok) {

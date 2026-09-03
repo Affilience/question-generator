@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getStripe } from '@/lib/stripe';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,11 +17,21 @@ const PRICE_KEY_TO_DB_ID: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { sessionId, userId } = await request.json();
+    // Authenticate first. This route writes an active subscription with the
+    // service-role key, so it must never take a user id from the body: doing so
+    // let anyone with any paid checkout session id mint subscriptions on
+    // arbitrary accounts, repeatedly, from a single payment.
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    const userId = user.id;
 
-    if (!sessionId || !userId) {
+    const { sessionId } = await request.json();
+
+    if (!sessionId) {
       return NextResponse.json(
-        { error: 'Missing sessionId or userId' },
+        { error: 'Missing sessionId' },
         { status: 400 }
       );
     }
@@ -46,13 +57,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Bind the checkout session to this account. Accept it only when Stripe's
+    // own record says it belongs to the caller — either by the user id we set
+    // in metadata at checkout, or by a verified email match.
+    const sessionUserId = session.metadata?.user_id;
+    const sessionEmail = (
+      session.customer_details?.email ||
+      session.customer_email ||
+      ''
+    ).toLowerCase();
+    const callerEmail = (user.email || '').toLowerCase();
+
+    const belongsToCaller =
+      (sessionUserId && sessionUserId === userId) ||
+      (!!sessionEmail && !!callerEmail && sessionEmail === callerEmail);
+
+    if (!belongsToCaller) {
+      console.warn('verify-payment: session does not belong to caller', {
+        sessionId,
+        userId,
+        sessionUserId,
+        hasSessionEmail: !!sessionEmail,
+      });
+      return NextResponse.json(
+        {
+          error:
+            'This payment was made with a different email address. Use "Link a purchase" to connect it to your account.',
+        },
+        { status: 403 }
+      );
+    }
+
     // Check if subscription already exists
     const { data: existingSub } = await supabase
       .from('user_subscriptions')
       .select('id, status')
       .eq('user_id', userId)
       .eq('status', 'active')
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (existingSub) {
       console.log('Subscription already exists for user:', userId);
@@ -84,10 +128,12 @@ export async function POST(request: NextRequest) {
       periodEnd: periodEndDate.toISOString() 
     });
 
-    // Create subscription record as fallback
+    // Upsert, not insert: keyed on the Stripe subscription id (or a stable
+    // id derived from the session) so replaying the same session can only ever
+    // produce one row, whichever of the webhook or this fallback runs first.
     const { error } = await supabase
       .from('user_subscriptions')
-      .insert({
+      .upsert({
         user_id: userId,
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: session.subscription as string || `fallback_${session.id}`,
@@ -102,6 +148,8 @@ export async function POST(request: NextRequest) {
           payment_method: 'stripe',
           timestamp: new Date().toISOString()
         }
+      }, {
+        onConflict: 'stripe_subscription_id',
       });
 
     if (error) {

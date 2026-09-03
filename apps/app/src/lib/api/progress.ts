@@ -3,6 +3,8 @@
  * This calls the server API which handles XP, achievements, and database updates
  */
 
+import { authHeaders } from './client-auth';
+
 export interface RecordProgressParams {
   userId: string;
   topicId: string;
@@ -42,13 +44,12 @@ export interface RecordProgressResult {
  */
 export async function recordProgress(params: RecordProgressParams): Promise<RecordProgressResult> {
   try {
+    // The server takes the user from the session; params.userId is retained on
+    // the interface for call-site clarity but is no longer sent or trusted.
     const response = await fetch('/api/progress/record', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: await authHeaders(),
       body: JSON.stringify({
-        userId: params.userId,
         topicId: params.topicId,
         subtopic: params.subtopic,
         difficulty: params.difficulty,

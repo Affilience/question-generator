@@ -1,17 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processQuestionAnswer } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+const DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
+
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate before touching anything. This handler writes with the
+    // service-role key, which bypasses row-level security, so taking a user id
+    // from the body let anyone award XP, raise levels, forge question attempts
+    // and move streaks on any account they knew the id of.
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    const userId = user.id;
+
     const body = await request.json();
     const {
-      userId,
       topicId,
       subtopic,
       difficulty,
@@ -24,12 +36,25 @@ export async function POST(request: NextRequest) {
       correctStreak = 0,
     } = body;
 
-    if (!userId || !topicId || !subtopic || !difficulty || correct === undefined) {
+    if (!topicId || !subtopic || !difficulty || correct === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
+
+    if (!DIFFICULTIES.has(difficulty)) {
+      return NextResponse.json(
+        { error: 'Invalid difficulty' },
+        { status: 400 }
+      );
+    }
+
+    // Bound the streak the client reports; it only feeds achievement checks,
+    // but an arbitrary value would unlock every streak achievement at once.
+    const reportedStreak = Number.isFinite(Number(correctStreak))
+      ? Math.max(0, Math.min(1000, Math.floor(Number(correctStreak))))
+      : 0;
 
     // Record the attempt
     const { data: attemptData, error: attemptError } = await supabase.from('question_attempts').insert({
@@ -116,7 +141,7 @@ export async function POST(request: NextRequest) {
       userId,
       difficulty as 'easy' | 'medium' | 'hard',
       correct,
-      correctStreak,
+      reportedStreak,
       supabase
     );
 
@@ -127,7 +152,7 @@ export async function POST(request: NextRequest) {
       leveledUp: xpResult.leveledUp,
       newLevel: xpResult.newLevel,
       newAchievements: xpResult.newAchievements,
-      correctStreak: correct ? correctStreak + 1 : 0,
+      correctStreak: correct ? reportedStreak + 1 : 0,
     });
   } catch (error) {
     console.error('Error recording progress:', error);

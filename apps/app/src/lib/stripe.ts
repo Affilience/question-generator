@@ -16,7 +16,11 @@ export function getStripe(): Stripe {
     }
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
       typescript: true,
-      // Let Stripe use the default API version for the account
+      // Pin explicitly. The SDK sends its own default version regardless, so
+      // "let the account decide" was never true — and an unannounced version
+      // bump is what moved current_period_end onto subscription items and
+      // silently broke every renewal. Change this deliberately, with a test.
+      apiVersion: '2025-12-15.clover',
     });
   }
   return stripeInstance;

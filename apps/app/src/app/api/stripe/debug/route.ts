@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
   const debugToken = request.headers.get('x-debug-token');
   const isDev = process.env.NODE_ENV === 'development';
   
-  if (!isDev && debugToken !== process.env.DEBUG_TOKEN) {
+  // Fail closed. Previously an unset DEBUG_TOKEN made this `undefined !==
+  // undefined` -> false, so the gate opened for anyone sending no header at
+  // all, and the response discloses live price ids and key prefixes.
+  const expected = process.env.DEBUG_TOKEN;
+  if (!isDev && (!expected || debugToken !== expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -39,28 +39,38 @@ export async function getUserTier(userId: string | null): Promise<SubscriptionTi
 
   const supabase = getSupabaseAdmin();
 
-  const { data: subscription } = await supabase
+  // Order by the furthest-reaching billing period, not by created_at.
+  // Some users hold more than one active row (duplicate webhook writes, or a
+  // plan change). Sorting by created_at picked the newest row even when it had
+  // no end date, which hid a genuinely valid subscription behind an empty
+  // duplicate. Nulls sort last so an incomplete row can never win.
+  const { data: subscriptions } = await supabase
     .from('user_subscriptions')
     .select('price_id, status, current_period_end')
     .eq('user_id', userId)
     .in('status', ['active', 'trialing'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+    .order('current_period_end', { ascending: false, nullsFirst: false })
+    .limit(5);
 
-  if (!subscription) return 'free';
+  if (!subscriptions || subscriptions.length === 0) return 'free';
 
-  const periodEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end)
-    : null;
+  const now = new Date();
 
-  if (!periodEnd || periodEnd <= new Date()) return 'free';
+  // Take the best tier across every unexpired row, so a stale duplicate can
+  // never downgrade someone who is genuinely paying.
+  let best: SubscriptionTier = 'free';
+  for (const subscription of subscriptions) {
+    const periodEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end)
+      : null;
+    if (!periodEnd || periodEnd <= now) continue;
 
-  const priceId = subscription.price_id || '';
-  if (priceId.includes('student_plus')) return 'student_plus';
-  if (priceId.includes('exam_pro')) return 'exam_pro';
+    const priceId = subscription.price_id || '';
+    if (priceId.includes('exam_pro')) return 'exam_pro'; // highest tier, stop early
+    if (priceId.includes('student_plus')) best = 'student_plus';
+  }
 
-  return 'free';
+  return best;
 }
 
 /**

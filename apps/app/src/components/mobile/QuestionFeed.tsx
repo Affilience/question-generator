@@ -9,6 +9,7 @@ import { UpgradePrompt } from '../UpgradePrompt';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+import { authHeaders } from '@/lib/api/client-auth';
 
 interface QuestionFeedProps {
   // For regular topics
@@ -27,6 +28,9 @@ interface QuestionFeedProps {
 interface GeneratedQuestion extends Question {
   isMarked: boolean;
   diagram?: DiagramSpec;
+  /** The subtopic actually served, which differs from the `subtopic` prop
+   *  during random practice. Progress is recorded against this. */
+  subtopic?: string;
 }
 
 export function QuestionFeed({
@@ -57,6 +61,7 @@ export function QuestionFeed({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<'daily_limit' | 'auth_required'>('daily_limit');
   const [upgradeMessage, setUpgradeMessage] = useState<string>();
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const previousQuestionsRef = useRef<string[]>([]);
   const isGeneratingRef = useRef(false); // Ref to track generation state without re-renders
@@ -81,6 +86,7 @@ export function QuestionFeed({
     isGeneratingRef.current = true; // Set immediately before async work
     setIsGenerating(true);
     setStreamingContent('');
+    setGenerationError(null);
 
     // Select random subtopic if needed
     const selectedSubtopic = subtopic === 'random'
@@ -136,6 +142,7 @@ export function QuestionFeed({
           id: data.id || crypto.randomUUID(),
           topicId: data.topicId || itemId,
           difficulty: data.difficulty || difficulty,
+          subtopic: data.subtopic || selectedSubtopic,
           content: data.content,
           solution: data.solution,
           marks: data.marks,
@@ -186,6 +193,16 @@ export function QuestionFeed({
 
                 const data = JSON.parse(jsonStr);
 
+                // Surface server-sent errors. These were previously dropped
+                // (the branches below only look at content/done), leaving the
+                // placeholder slide on its loading animation forever with no
+                // message and no way to retry.
+                if (data.error) {
+                  throw new Error(
+                    typeof data.error === 'string' ? data.error : 'Generation failed'
+                  );
+                }
+
                 // Handle streaming content chunks
                 if (data.content && typeof data.content === 'string' && !data.done) {
                   accumulatedContent += data.content;
@@ -199,6 +216,7 @@ export function QuestionFeed({
                     id: questionData.id || crypto.randomUUID(),
                     topicId: questionData.topicId || itemId,
                     difficulty: questionData.difficulty || difficulty,
+                    subtopic: questionData.subtopic || selectedSubtopic,
                     content: questionData.content,
                     solution: questionData.solution,
                     marks: questionData.marks,
@@ -217,7 +235,9 @@ export function QuestionFeed({
                   }
                 }
               } catch (e) {
-                // Log parsing errors for debugging
+                // A genuine generation error must propagate to the outer catch
+                // so the UI can show it; only malformed SSE frames are ignored.
+                if (e instanceof Error && !(e instanceof SyntaxError)) throw e;
                 console.warn('SSE parse error:', e);
               }
             }
@@ -225,12 +245,19 @@ export function QuestionFeed({
         }
       }
 
-      // If no question was added from done event, try to create one from accumulated content
-      if (!questionAdded && accumulatedContent) {
-        console.warn('No done event received, using accumulated content');
+      // A stream that ended without producing a question is a failure too —
+      // otherwise the placeholder slide sits on its loading animation forever.
+      if (!questionAdded) {
+        console.warn('Stream ended without a question');
+        setGenerationError("That question didn't come through. Tap to try again.");
       }
     } catch (error) {
       console.error('Error generating question:', error);
+      setGenerationError(
+        error instanceof Error && error.message
+          ? error.message
+          : "Something went wrong generating that question."
+      );
     } finally {
       isGeneratingRef.current = false; // Reset ref immediately
       setIsGenerating(false);
@@ -297,15 +324,28 @@ export function QuestionFeed({
     // Record attempt if user is logged in
     if (userId) {
       try {
+        // Report what was actually served, not what the UI has selected:
+        // `subtopic` is the literal 'random' during random practice, and free
+        // users get a server-chosen difficulty that ignores the picker. Sending
+        // the UI values filed every random-practice attempt under "random" and
+        // logged difficulties that were never served.
+        const answered = questions[index];
+        const servedSubtopic = answered?.subtopic || (subtopic === 'random' ? undefined : subtopic);
+        const servedDifficulty = answered?.difficulty || difficulty;
+
+        if (!servedSubtopic) {
+          console.warn('[QuestionFeed] No subtopic recorded for question; skipping progress write');
+          return;
+        }
+
         const response = await fetch('/api/progress/record', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: await authHeaders(),
           body: JSON.stringify({
-            userId,
             topicId: itemId,
-            subtopic,
+            subtopic: servedSubtopic,
             correct,
-            difficulty,
+            difficulty: servedDifficulty,
             subject,
             examBoard,
             qualification: level,
@@ -326,7 +366,7 @@ export function QuestionFeed({
       }
     }
     // Note: Don't auto-generate here - let scroll handler trigger generation
-  }, [userId, itemId, subtopic, difficulty, subject, examBoard, level, correctStreak]);
+  }, [questions, userId, itemId, subtopic, difficulty, subject, examBoard, level, correctStreak]);
 
   // Handle next question (scroll to next slide)
   const handleNextQuestion = useCallback((index: number) => {
@@ -436,22 +476,42 @@ export function QuestionFeed({
 
         {/* Next question slide - always present so user can scroll to it
             Shows streaming content while generating, or empty state to trigger generation */}
-        <QuestionSlide
-          key={`next-${questions.length}`}
-          question={null}
-          streamedContent={streamingContent}
-          isStreaming={isGenerating}
-          questionNumber={questions.length + 1}
-          onMark={() => {}}
-          onNextQuestion={() => {}}
-          isMarked={false}
-          difficulty={difficulty}
-          onDifficultyChange={handleDifficultyChange}
-          topicName={itemName}
-          subtopic={subtopic}
-          userId={userId}
-          isActive={currentIndex >= questions.length}
-        />
+        {generationError && !isGenerating ? (
+          <div className="h-dvh w-full snap-start flex flex-col items-center justify-center px-8 text-center">
+            <p className="text-white/90 text-base mb-6 max-w-xs">{generationError}</p>
+            <button
+              type="button"
+              onClick={() => generateQuestion()}
+              className="px-6 py-3 rounded-lg bg-white text-black font-medium min-h-[44px]"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={onBack}
+              className="mt-4 px-6 py-3 text-white/60 underline min-h-[44px]"
+            >
+              Back to subtopics
+            </button>
+          </div>
+        ) : (
+          <QuestionSlide
+            key={`next-${questions.length}`}
+            question={null}
+            streamedContent={streamingContent}
+            isStreaming={isGenerating}
+            questionNumber={questions.length + 1}
+            onMark={() => {}}
+            onNextQuestion={() => {}}
+            isMarked={false}
+            difficulty={difficulty}
+            onDifficultyChange={handleDifficultyChange}
+            topicName={itemName}
+            subtopic={subtopic}
+            userId={userId}
+            isActive={currentIndex >= questions.length}
+          />
+        )}
       </div>
       
       {/* Upgrade modal */}

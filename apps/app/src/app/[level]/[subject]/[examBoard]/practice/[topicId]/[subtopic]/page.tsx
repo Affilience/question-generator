@@ -68,6 +68,7 @@ export default function SubtopicPracticePage() {
     error,
     upgradeNeeded,
     generate,
+    abort,
   } = useStreamingQuestion();
 
   // Clear any cached state when URL params change to prevent stale state
@@ -150,22 +151,43 @@ export default function SubtopicPracticePage() {
     }
   }, [topic?.id, topic, difficulty, subtopic, isRandom, examBoard, subject, generate]);
 
-  // Generate question when topic loads (only once)
+  // useIsMobile starts false and resolves in an effect, so on the first pass we
+  // do not yet know which view owns generation. Wait until the viewport has
+  // been measured: without this, a phone ran BOTH this effect and QuestionFeed's
+  // own mount effect, spending two of the user's daily questions and two model
+  // calls per page load and showing only one of them.
+  const [viewportResolved, setViewportResolved] = useState(false);
   useEffect(() => {
+    setViewportResolved(true);
+  }, []);
+
+  // Generate question when topic loads (only once, desktop only)
+  useEffect(() => {
+    if (!viewportResolved || isMobile) return;
     if (topic && !hasGeneratedRef.current) {
       hasGeneratedRef.current = true;
       generateQuestion();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topic]); // Only depend on topic, not generateQuestion to avoid loops
+  }, [topic, viewportResolved, isMobile]);
 
   // Generate new question when difficulty changes
   useEffect(() => {
+    if (!viewportResolved || isMobile) return;
     if (topic && hasGeneratedRef.current) {
       generateQuestion();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [difficulty]); // Only depend on difficulty
+
+  // Abort any in-flight generation when leaving the page, so a stream we will
+  // never display does not keep running (and counting against the quota).
+  useEffect(() => {
+    return () => {
+      abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const handleMark = async (correct: boolean) => {

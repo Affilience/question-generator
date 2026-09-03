@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { authHeaders } from '@/lib/api/client-auth';
 
 export function SignupForm() {
   const [email, setEmail] = useState('');
@@ -57,8 +58,8 @@ export function SignupForm() {
           
           const response = await fetch('/api/subscription/claim-pending', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, email, sessionId })
+            headers: await authHeaders(),
+            body: JSON.stringify({ sessionId })
           });
           
           if (!response.ok) {

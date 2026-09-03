@@ -182,42 +182,29 @@ export function EmbeddedCheckoutModal({
                   onClick={async () => {
                     try {
                       setIsLoading(true);
-                      
-                      // First try the test endpoint to get better error info
-                      console.log('[Checkout] Trying test endpoint...');
-                      const testResponse = await fetch('/api/stripe/test-checkout', {
+
+                      // Go straight to hosted checkout. This previously called
+                      // /api/stripe/test-checkout first — an unauthenticated
+                      // debug route that created live sessions carrying no user
+                      // metadata, so anyone who paid through it could not be
+                      // matched to their purchase. It also returned no URL for
+                      // embedded sessions, so this button dead-ended anyway.
+                      const response = await fetch('/api/stripe/create-checkout-redirect', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ priceKey }),
+                        body: JSON.stringify({ priceKey, userId }),
                       });
-                      
-                      const testData = await testResponse.json();
-                      console.log('[Checkout] Test endpoint response:', testData);
-                      
-                      if (!testResponse.ok) {
-                        console.error('[Checkout] Test endpoint failed:', testData);
-                        // Fall back to redirect checkout
-                        const response = await fetch('/api/stripe/create-checkout-redirect', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            priceKey,
-                            userId,
-                          }),
-                        });
-                        
-                        if (!response.ok) {
-                          const errorData = await response.json();
-                          throw new Error(errorData.error || 'Failed to create checkout');
-                        }
-                        
-                        const data = await response.json();
-                        if (data.url) {
-                          window.location.href = data.url;
-                        }
-                      } else if (testData.url) {
-                        // If test endpoint returns a URL, use it
-                        window.location.href = testData.url;
+
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to create checkout');
+                      }
+
+                      const data = await response.json();
+                      if (data.url) {
+                        window.location.href = data.url;
+                      } else {
+                        throw new Error('Checkout did not return a payment link.');
                       }
                     } catch (err) {
                       console.error('Failed to redirect to checkout:', err);
