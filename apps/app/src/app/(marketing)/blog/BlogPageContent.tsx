@@ -5,63 +5,46 @@ import Link from 'next/link';
 import { Navigation } from '@/components/marketing/Navigation';
 import { Footer } from '@/components/marketing/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { getAllBlogPosts, getFeaturedPosts, getCategories, type BlogPost } from '@/lib/blog';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 // Each blog post has its own unique image - no fallbacks needed
 
-export default function BlogPageContent() {
+export interface BlogListItem {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  readTime: string;
+  image?: string;
+}
+
+interface BlogPageContentProps {
+  posts: BlogListItem[];
+  featuredPosts: BlogListItem[];
+  categories: string[];
+}
+
+/**
+ * Posts arrive from the server component, already trimmed to what the index
+ * displays. This file no longer imports @/lib/blog, so the 628 KB post corpus
+ * (including every full article body) stays out of the browser bundle, and the
+ * initial HTML contains real post links instead of skeletons.
+ */
+export default function BlogPageContent({ posts, featuredPosts, categories }: BlogPageContentProps) {
   const { user, loading } = useAuth();
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<string[]>(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
-  
-  useEffect(() => {
-    async function loadBlogData() {
-      const [allPosts, featured, cats] = await Promise.all([
-        getAllBlogPosts(),
-        getFeaturedPosts(),
-        Promise.resolve(['All', ...getCategories()])
-      ]);
-      
-      setBlogPosts(allPosts);
-      setFeaturedPosts(featured);
-      setCategories(cats);
-      setFilteredPosts(allPosts);
-    }
-    
-    loadBlogData();
-  }, []);
-  
-  useEffect(() => {
-    if (selectedCategory === 'All') {
-      setFilteredPosts(blogPosts);
-    } else {
-      setFilteredPosts(blogPosts.filter(post => post.category === selectedCategory));
-    }
-  }, [selectedCategory, blogPosts]);
-  
-  // Prevent hydration mismatch by ensuring consistent initial render
-  if (typeof window === 'undefined') {
-    // Server-side render with safe defaults
-    return <BlogPageContentInner 
-      user={null} 
-      loading={true} 
-      blogPosts={[]} 
-      featuredPosts={[]} 
-      categories={['All']}
-      selectedCategory="All"
-      onCategoryChange={() => {}}
-      filteredPosts={[]}
-    />;
-  }
-  
-  return <BlogPageContentInner 
-    user={user} 
+
+  const filteredPosts = useMemo(
+    () => (selectedCategory === 'All' ? posts : posts.filter(p => p.category === selectedCategory)),
+    [posts, selectedCategory]
+  );
+
+  return <BlogPageContentInner
+    user={user}
     loading={loading}
-    blogPosts={blogPosts}
+    blogPosts={posts}
     featuredPosts={featuredPosts}
     categories={categories}
     selectedCategory={selectedCategory}
@@ -73,12 +56,12 @@ export default function BlogPageContent() {
 interface BlogPageContentInnerProps {
   user: any;
   loading: boolean;
-  blogPosts: BlogPost[];
-  featuredPosts: BlogPost[];
+  blogPosts: BlogListItem[];
+  featuredPosts: BlogListItem[];
   categories: string[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
-  filteredPosts: BlogPost[];
+  filteredPosts: BlogListItem[];
 }
 
 function BlogPageContentInner({ 
@@ -147,7 +130,7 @@ function BlogPageContentInner({
                     key={post.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    transition={{ duration: 0.6, delay: Math.min(index, 8) * 0.05 }}
                     className="bg-gradient-to-br from-white/5 to-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl hover:border-white/30 transition-all duration-300 group backdrop-blur-sm transform hover:-translate-y-1"
                   >
                     <div className="aspect-video relative overflow-hidden">
@@ -244,7 +227,7 @@ function BlogPageContentInner({
                     key={post.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    transition={{ duration: 0.5, delay: Math.min(index, 8) * 0.05 }}
                     className="bg-gradient-to-br from-white/5 to-white/10 border border-white/15 rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:border-white/30 transition-all duration-300 group backdrop-blur-sm transform hover:-translate-y-1 h-full flex flex-col"
                   >
                     <div className="aspect-[4/3] relative overflow-hidden">

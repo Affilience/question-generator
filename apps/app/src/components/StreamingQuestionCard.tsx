@@ -187,7 +187,13 @@ export function StreamingQuestionCard({
         </div>
       </div>
 
-      <div className="text-base sm:text-lg text-[var(--color-text-primary)] leading-relaxed min-h-[60px]">
+      {/* Announce the question to screen readers as it arrives. Without a live
+          region the content simply appeared with no notification. */}
+      <div
+        className="text-base sm:text-lg text-[var(--color-text-primary)] leading-relaxed min-h-[60px]"
+        aria-live="polite"
+        aria-busy={isStreaming}
+      >
         {/* Always use MathRenderer for consistent formatting during and after streaming */}
         <MathRenderer content={displayContent} isStreaming={isStreaming} />
         {showCursor && (
